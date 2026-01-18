@@ -8,7 +8,7 @@ export interface DepartureDto {
     minutesUntil: number;
 }
 
-const API_BASE_URL = 'http://192.168.1.102:8080/api/v1/travel';
+const API_BASE_URL = 'http://localhost:8080/api/v1/travel';
 
 export const fetchDepartures = async (from: string, to: string, date?: string): Promise<DepartureDto[]> => {
     try {

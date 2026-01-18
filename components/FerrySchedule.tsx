@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Modal, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { fetchDepartures } from '../services/api';
+
+// ... (interfaces and constants remain the same)
 
 interface FerryRoute {
     id: string;
@@ -19,91 +22,12 @@ const ISLANDS = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
 const MAINLAND = ['Kabataş', 'Bostancı', 'Kadıköy', 'Beşiktaş'];
 const ALL_LOCATIONS = [...ISLANDS, ...MAINLAND];
 const DEPARTURE_LOCATIONS = ['All', ...ALL_LOCATIONS];
-const DESTINATION_LOCATIONS = ['All', ...ALL_LOCATIONS];
+const DESTINATION_LOCATIONS = ['Unselected', ...ALL_LOCATIONS];
 
-const generateFerryData = (): FerryRoute[] => {
-    const data: FerryRoute[] = [];
-    const ports = MAINLAND;
-    const startHour = 7;
-    const endHour = 23;
+// Ferry data is fetched from the API
 
-    let idCounter = 1;
 
-    ISLANDS.forEach(island => {
-        ports.forEach(port => {
-            // Limit trips to between 5 and 9 per port
-            const tripCount = Math.floor(Math.random() * (9 - 5 + 1)) + 5;
-
-            // Pick unique random hours for these trips from startHour to endHour
-            const availableHours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i);
-
-            // Shuffle hours
-            for (let i = availableHours.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availableHours[i], availableHours[j]] = [availableHours[j], availableHours[i]];
-            }
-
-            // Select first 'tripCount' hours and sort them sequentially
-            const selectedHours = availableHours.slice(0, tripCount).sort((a, b) => a - b);
-
-            selectedHours.forEach(hour => {
-                const minute = Math.random() > 0.5 ? '00' : '30';
-
-                // INCOMING (Port -> Island)
-                const isMotor = Math.random() > 0.4; // 60% Vapur
-                const duration = isMotor ? 30 : 60;
-
-                let arrMin = parseInt(minute) + duration;
-                let arrHour = hour + Math.floor(arrMin / 60);
-                arrMin = arrMin % 60;
-
-                // 75% Direct, 25% Indirect
-                const isIncomingDirect = Math.random() < 0.75;
-
-                data.push({
-                    id: `in_${port}_${island}_${idCounter++}`,
-                    departure: port,
-                    destination: island,
-                    departureTime: `${hour.toString().padStart(2, '0')}:${minute}`,
-                    arrivalTime: `${arrHour.toString().padStart(2, '0')}:${arrMin.toString().padStart(2, '0')}`,
-                    type: isMotor ? 'Motor' : 'Vapur',
-                    isDirect: isIncomingDirect,
-                });
-
-                // OUTGOING (Island -> Port)
-                // Simple return trip logic (offset by some time, e.g. 15 mins later)
-                let outDepMin = parseInt(minute) + 15;
-                let outDepHour = hour;
-                if (outDepMin >= 60) {
-                    outDepMin -= 60;
-                    outDepHour += 1;
-                }
-
-                let outArrMin = outDepMin + duration;
-                let outArrHour = outDepHour + Math.floor(outArrMin / 60);
-                outArrMin = outArrMin % 60;
-
-                // 75% Direct, 25% Indirect
-                const isOutgoingDirect = Math.random() < 0.75;
-
-                data.push({
-                    id: `out_${port}_${island}_${idCounter++}`,
-                    departure: island,
-                    destination: port,
-                    departureTime: `${outDepHour.toString().padStart(2, '0')}:${outDepMin.toString().padStart(2, '0')}`,
-                    arrivalTime: `${outArrHour.toString().padStart(2, '0')}:${outArrMin.toString().padStart(2, '0')}`,
-                    type: isMotor ? 'Motor' : 'Vapur',
-                    isDirect: isOutgoingDirect,
-                });
-            });
-        });
-    });
-
-    return data;
-};
-
-const FERRY_DATA: FerryRoute[] = generateFerryData();
-
+// ... (calculateDuration remains the same)
 const calculateDuration = (start: string, end: string) => {
     const [startH, startM] = start.split(':').map(Number);
     const [endH, endM] = end.split(':').map(Number);
@@ -122,7 +46,7 @@ const calculateDuration = (start: string, end: string) => {
 export function FerrySchedule() {
     const { theme } = useTheme();
     // Destination (formerly selectedIsland)
-    const [destination, setDestination] = useState(ALL_LOCATIONS[0]); // Default to first island
+    const [destination, setDestination] = useState('Unselected'); // Default to Unselected
     const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
 
     // Departure (formerly selectedPort)
@@ -133,12 +57,30 @@ export function FerrySchedule() {
     const [selectedTrip, setSelectedTrip] = useState<FerryRoute | null>(null);
     const isLight = theme === 'light';
 
+    // Reset to default on focus
+    useFocusEffect(
+        useCallback(() => {
+            setDestination('Unselected');
+            setDeparture('All');
+            // Optional: setOnlyDirect(false);
+            return () => {
+                // Optional cleanup
+            };
+        }, [])
+    );
+
     // API Integration Data
-    const [ferryData, setFerryData] = useState<FerryRoute[]>(FERRY_DATA); // Init with mock data for now
+    const [ferryData, setFerryData] = useState<FerryRoute[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const loadIds = async () => {
+            // If Unselected, don't fetch anything, showing empty list
+            if (destination === 'Unselected') {
+                setFerryData([]);
+                return;
+            }
+
             setLoading(true);
             try {
                 // Determine valid Departments
@@ -147,9 +89,8 @@ export function FerrySchedule() {
                     : [departure];
 
                 // Determine valid Destinations
-                const validDestinations = destination === 'All'
-                    ? ALL_LOCATIONS
-                    : [destination];
+                // Note: destination 'Unselected' is handled above
+                const validDestinations = [destination];
 
                 // Generate pairs (From -> To)
                 const pairs: { from: string, to: string }[] = [];
@@ -157,8 +98,7 @@ export function FerrySchedule() {
                 validDepartures.forEach(from => {
                     validDestinations.forEach(to => {
                         // Exclude same location / self-loops
-                        // Exclude 'All' strings just in case
-                        if (from !== to && from !== 'All' && to !== 'All') {
+                        if (from !== to) {
                             pairs.push({ from, to });
                         }
                     });
@@ -543,12 +483,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 8,
         color: '#2B7A8E',
+        textAlign: 'center',
     },
     disclaimerText: {
         fontSize: 12,
         color: '#666',
         marginBottom: 16,
         fontStyle: 'italic',
+        textAlign: 'center',
     },
     tabsWrapper: {
         paddingRight: 16,
