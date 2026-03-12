@@ -1,12 +1,40 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ImageBackground, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { scrollTo, useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '../../../../components/ui/icon-symbol';
+import { ISLANDS } from '../../../../constants/Islands';
 
 export default function IslandDetailScreen() {
     const { id, name, image, description, sunset } = useLocalSearchParams();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const scrollY = useSharedValue(0);
+    const scrollRef = useAnimatedRef<Animated.ScrollView>();
+
+    const onScroll = useAnimatedScrollHandler((event) => {
+        scrollY.value = event.contentOffset.y;
+        // Prevent scrolling upward — only allow pull-down (overscroll bounce)
+        if (event.contentOffset.y > 0) {
+            scrollTo(scrollRef, 0, 0, false);
+        }
+    });
+
+    const HEADER_HEIGHT = 300;
+
+    const headerAnimatedStyle = useAnimatedStyle(() => {
+        // Only trigger when pulled down past the top edge
+        const isPullingDown = scrollY.value < 0;
+
+        return {
+            height: isPullingDown ? HEADER_HEIGHT + Math.abs(scrollY.value) : HEADER_HEIGHT,
+            // When pulling down we don't translate, the height naturally expands from top (default origin)
+            // When scrolling up, we want the image to stay behind the content, so we just stick it to top.
+            transform: [
+                { translateY: isPullingDown ? scrollY.value : 0 }
+            ]
+        };
+    });
 
     // Fallback if no image passed, though discover page should pass it
     const heroImage = typeof image === 'string' ? { uri: image } : { uri: 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=600&auto=format&fit=crop' };
@@ -18,33 +46,54 @@ export default function IslandDetailScreen() {
     // Sunset time or fallback
     const sunsetTime = typeof sunset === 'string' ? sunset : "19:40";
 
+    const island = ISLANDS.find(i => i.id === id);
+    const activities = island?.activities || [];
+
     return (
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             <StatusBar barStyle="light-content" />
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Hero Header */}
-                <ImageBackground source={heroImage} style={styles.heroImage}>
-                    <View style={styles.heroOverlay}>
-                        {/* Back Button */}
-                        <TouchableOpacity
-                            style={[styles.backButton, { top: insets.top + 10 }]}
-                            onPress={() => router.back()}
-                        >
-                            <IconSymbol name="chevron.left" size={24} color="#000" />
-                        </TouchableOpacity>
+            {/* Fixed Back Button */}
+            <TouchableOpacity
+                style={[styles.backButton, { top: insets.top + 10 }]}
+                onPress={() => router.back()}
+            >
+                <IconSymbol name="chevron.left" size={24} color="#000" />
+            </TouchableOpacity>
 
-                        <View style={styles.heroTextContainer}>
-                            <Text style={styles.heroTitle}>{islandName}</Text>
-                            <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
-                                <IconSymbol name={"sunny" as any} size={16} color="#FFD700" style={{ marginRight: 6 }} />
-                                <Text style={{ color: '#FFD700', fontWeight: '600', fontSize: 14 }}>Sunset {sunsetTime}</Text>
+            {/* Weather Info Box */}
+            <View style={[styles.weatherBox, { top: insets.top + 10 }]}>
+                <View style={styles.weatherRow}>
+                    <IconSymbol name={"sunset.fill" as any} size={14} color="#FFD700" />
+                    <Text style={styles.weatherText}>{sunsetTime}</Text>
+                </View>
+                <View style={[styles.weatherRow, { marginTop: 4 }]}>
+                    <IconSymbol name={"thermometer.medium" as any} size={14} color="#fff" />
+                    <Text style={styles.weatherText}>18°C</Text>
+                </View>
+            </View>
+
+            <Animated.ScrollView
+                ref={scrollRef}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
+            >
+                {/* Parallax Hero Header container */}
+                <View style={styles.heroContainer}>
+                    <Animated.View style={[styles.heroImageWrapper, headerAnimatedStyle]}>
+                        <ImageBackground source={heroImage} style={styles.heroImage}>
+                            <View style={styles.heroOverlay}>
+                                <View style={styles.heroTextContainer}>
+                                    <Text style={styles.heroTitle}>{islandName}</Text>
+                                    <Text style={styles.heroDescription}>{islandDescription}</Text>
+                                </View>
                             </View>
-                            <Text style={styles.heroDescription}>{islandDescription}</Text>
-                        </View>
-                    </View>
-                </ImageBackground>
+                        </ImageBackground>
+                    </Animated.View>
+                </View>
 
                 {/* Content Body */}
                 <View style={styles.body}>
@@ -55,38 +104,44 @@ export default function IslandDetailScreen() {
 
                     {/* Cards */}
                     <ActivityCard
-                        icon="restaurant"
+                        icon="fork.knife"
                         color="#F97316"
-                        title="Fine Dining"
-                        subtitle="World-class restaurants with ocean views"
+                        title="Restaurants and Cafe"
+                        subtitle="World-class dining with ocean views"
+                        onPress={() => router.push('/(tabs)/explore/island/restaurant')}
                     />
                     <ActivityCard
-                        icon="directions-bus"
+                        icon="bus.fill"
                         color="#3B82F6"
                         title="Transportation"
                         subtitle="Island shuttles and taxi services"
+                        onPress={() => router.push('/(tabs)/explore/island/transportation')}
                     />
                     <ActivityCard
-                        icon="camera-alt"
+                        icon="map.fill"
                         color="#EC4899"
-                        title="Island Tours"
-                        subtitle="Guided tours of volcanic peaks"
+                        title="Tour Guide"
+                        subtitle="Guided tours of the island"
+                        onPress={() => router.push('/(tabs)/explore/island/guide')}
                     />
                     <ActivityCard
-                        icon="chat"
+                        icon="bubble.left.and.bubble.right.fill"
                         color="#10B981"
                         title="Agora Forum"
                         subtitle="Share experiences with other travelers"
+                        onPress={() => router.push('/(tabs)/explore/island/forum')}
                     />
                 </View>
-            </ScrollView>
+            </Animated.ScrollView>
         </View>
     );
 }
 
-function ActivityCard({ icon, color, title, subtitle }: { icon: string, color: string, title: string, subtitle: string }) {
+function ActivityCard({ icon, color, title, subtitle, onPress }: { icon: string, color: string, title: string, subtitle: string, onPress?: () => void }) {
+    const Component = onPress ? TouchableOpacity : View;
+
     return (
-        <View style={styles.card}>
+        <Component style={styles.card} onPress={onPress}>
             <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
                 {/* 20 opacity hex */}
                 <IconSymbol name={icon as any} size={24} color={color} />
@@ -95,7 +150,7 @@ function ActivityCard({ icon, color, title, subtitle }: { icon: string, color: s
                 <Text style={styles.cardTitle}>{title}</Text>
                 <Text style={styles.cardSubtitle}>{subtitle}</Text>
             </View>
-        </View>
+        </Component>
     );
 }
 
@@ -107,9 +162,20 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 40,
     },
-    heroImage: {
+    heroContainer: {
+        height: 300,
+        overflow: 'visible',
+    },
+    heroImageWrapper: {
         width: '100%',
         height: 300,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+    heroImage: {
+        width: '100%',
+        height: '100%',
     },
     heroOverlay: {
         flex: 1,
@@ -197,5 +263,24 @@ const styles = StyleSheet.create({
     cardSubtitle: {
         fontSize: 13,
         color: '#778DA9',
+    },
+    weatherBox: {
+        position: 'absolute',
+        right: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+        borderRadius: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        zIndex: 10,
+    },
+    weatherRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    weatherText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
+        marginLeft: 6,
     },
 });

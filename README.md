@@ -1,50 +1,90 @@
-# Welcome to your Expo app 👋
+# ADA - Interstellar Travel & Ferry Schedule 🚀
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to **ADA**, a modern, cross-platform mobile application designed to simplify island exploration and ferry scheduling. Built with **React Native (Expo)** on the frontend and **Spring Boot (Java)** on the backend, ADA offers a seamless experience for travelers navigating the beautiful Princes' Islands.
 
-## Get started
+## 🌟 Key Features
 
-1. Install dependencies
+- **Island Discovery**: interactive destination guides for Kınalıada, Burgazada, Heybeliada, and Büyükada.
+- **Real-Time Schedules**: dynamic ferry timetables with "Incoming" and "Outgoing" views.
+- **Smart Navigation**: smooth page transitions and intuitive gestures powered by `react-native-reanimated`.
+- **Localization**: Bilingual support (English/Turkish) for a wider audience.
+- **Robust Backend**: scalable API service handling schedule data and user interactions.
 
-   ```bash
-   npm install
-   ```
+## 🛠 Tech Stack
 
-2. Start the app
+### Frontend (Mobile App)
+- **Framework**: [React Native](https://reactnative.dev/) with [Expo SDK 52](https://expo.dev/)
+- **Language**: TypeScript
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based routing)
+- **State Management**: Redux Toolkit
+- **Styling**: StyleSheet, Expo Linear Gradient
+- **Animations**: React Native Reanimated v3
 
-   ```bash
-   npx expo start
-   ```
+### Backend (API Service)
+- **Framework**: Spring Boot 3.5.7
+- **Language**: Java 21
+- **Build Tool**: Gradle 8.x
+- **Containerization**: Docker & Docker Compose
 
-In the output, you'll find options to open the app in a
+## 🚀 Getting Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Follow these instructions to set up the project locally.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Prerequisites
+- **Node.js** (v18 or later)
+- **JDK 21** (for backend)
+- **Docker** (optional, for containerized backend)
+- **Expo Go** app on your mobile device (iOS/Android) or a simulator.
 
-## Get a fresh project
+### Installation
 
-When you're ready, run:
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/your-username/ada.git
+    cd ada
+    ```
 
-```bash
-npm run reset-project
+2.  **Backend Setup**
+    Navigate to the backend directory and start the Spring Boot application:
+    ```bash
+    cd ada-plus-backend
+    ./gradlew bootRun
+    ```
+    *The backend server will start on port 8080 (default).*
+
+3.  **Frontend Setup**
+    Open a new terminal window in the project root:
+    ```bash
+    # Install dependencies
+    npm install
+
+    # Start the Expo development server
+    npx expo start
+    ```
+
+### Running the App
+- Press `i` to run on iOS Simulator (macOS only).
+- Press `a` to run on Android Emulator.
+- Scan the QR code with the **Expo Go** app to run on your physical device.
+
+## 📂 Project Structure
+
+```
+ADA/
+├── app/                 # Expo Router pages and layouts
+├── components/          # Reusable UI components (FerrySchedule, etc.)
+├── constants/           # App-wide constants (Colors, Layout)
+├── assets/              # Images and icons
+├── ada-plus-backend/    # Spring Boot backend application
+│   ├── src/main/java    # Java source code
+│   └── build.gradle     # Backend build configuration
+└── package.json         # Frontend dependencies
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🤝 Contributing
 
-## Learn more
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📄 License
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is open source and available under the [MIT License](LICENSE).

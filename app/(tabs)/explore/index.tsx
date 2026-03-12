@@ -1,84 +1,228 @@
-import React from 'react';
-import { Dimensions, FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
+import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
-const CARD_MARGIN = 8;
-const CARD_WIDTH = (width - (CARD_MARGIN * 3 + 32)) / 2; // 32 for screen padding
+import { FerrySchedule } from '@/components/FerrySchedule';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ISLANDS } from '@/constants/Islands';
 
-const ISLANDS = [
-  {
-    id: '1',
-    name: 'KINALIADA',
-    image: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?q=80&w=600&auto=format&fit=crop', // Scenic view
-    description: 'The closest island to Istanbul, known for its reddish soil, extensive beaches, and lack of horse carriages.',
-    sunset: '19:42',
-  },
-  {
-    id: '2',
-    name: 'BURGAZADA',
-    image: 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=600&auto=format&fit=crop', // Blue water
-    description: 'A peaceful retreat known for its writers, wooden mansions, and the cloudy Sait Faik Abasıyanık Museum.',
-    sunset: '19:45',
-  },
-  {
-    id: '3',
-    name: 'HEYBELIADA',
-    image: 'https://images.unsplash.com/photo-1566371486490-560ded23b5e4?q=80&w=600&auto=format&fit=crop', // Santorini style
-    description: 'Home to the Naval Cadet School and lush pine groves perfect for picnics and hiking.',
-    sunset: '19:47',
-  },
-  {
-    id: '4',
-    name: 'BÜYÜKADA',
-    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600&auto=format&fit=crop', // Beach sunset
-    description: 'The largest of the princes\' islands, featuring the historic Splendid Palace Hotel and clock tower.',
-    sunset: '19:50',
-  }
-];
-
-import { useRouter } from 'expo-router';
-
-// ... (imports)
+const SPACING = 16;
+const CONTAINER_PADDING = 24;
 
 export default function DiscoveryScreen() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  const cardWidth = (width - (CONTAINER_PADDING * 2) - SPACING) / 2;
+  const TAB_BAR_HEIGHT = 80;
+  const HEADING_HEIGHT = 80;
+  const availableHeight = height - insets.top - insets.bottom - (CONTAINER_PADDING * 2) - SPACING - TAB_BAR_HEIGHT - HEADING_HEIGHT;
+  const cardHeight = availableHeight / 2;
+
+  const translateY = useSharedValue(height);
+  const translateX = useSharedValue(0);
+  const isSwiping = useSharedValue(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      translateY.value = height;
+      translateX.value = 0; // reset
+      isSwiping.value = false;
+    }, [height])
+  );
+
+  React.useEffect(() => {
+    const onOpenSchedule = () => {
+      // Just slide up, no tag hiding
+      animateAndNavigate();
+    };
+
+    const emitter = require('@/utils/eventEmitter').default;
+    emitter.on('openFerrySchedule', onOpenSchedule);
+
+    return () => {
+      emitter.off('openFerrySchedule', onOpenSchedule);
+    };
+  }, []);
+
+  const navigateToSchedule = () => {
+    router.push('/(tabs)/home');
+  };
+
+  const animateAndNavigate = () => {
+    translateY.value = withTiming(0, {
+      duration: 600,
+      easing: Easing.bezier(0.33, 1, 0.68, 1)
+    }, (finished) => {
+      if (finished) {
+        runOnJS(navigateToSchedule)();
+      }
+    });
+  };
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10]) // Activate very easily for horizontal movement
+    .failOffsetY([-20, 20]) // Fail if mostly vertical
+    .onUpdate((e) => {
+      // Only allow swiping to the left
+      if (e.translationX < 0) {
+        translateX.value = e.translationX;
+        isSwiping.value = true;
+      }
+    })
+    .onEnd((e) => {
+      // Swiping to the LEFT (negative translationX) to go to Ferry Schedule tab
+      if (e.translationX < -50 || e.velocityX < -500) {
+        // animate off screen
+        translateX.value = withTiming(-width, { duration: 300 }, (finished) => {
+          if (finished) {
+            runOnJS(navigateToSchedule)();
+          }
+        });
+      } else {
+        // snap back to 0
+        translateX.value = withSpring(0);
+      }
+    });
+
+  const curtainStyle = useAnimatedStyle(() => {
+    // If the slide-up animation is active (and we aren't dragging horizontally)
+    if (translateY.value < height && !isSwiping.value) {
+      return {
+        transform: [
+          { translateX: 0 },
+          { translateY: translateY.value }
+        ]
+      };
+    } else {
+      // Otherwise, we are either resting or swiping left.
+      // Make sure the translateY is locked at 0 while swiping left,
+      // so it doesn't move upwards.
+      return {
+        transform: [
+          { translateX: width },
+          { translateY: 0 }
+        ]
+      };
+    }
+  });
+
+  const mainStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   const renderItem = ({ item }: { item: typeof ISLANDS[0] }) => (
     <TouchableOpacity
-      style={styles.cardContainer}
-      activeOpacity={0.8}
-      onPress={() => router.push({ pathname: '/(tabs)/explore/island/[id]', params: { id: item.id, name: item.name, image: item.image, description: item.description, sunset: item.sunset } })}
+      style={[
+        styles.cardContainer,
+        { width: cardWidth, height: cardHeight, marginBottom: SPACING }
+      ]}
+      onPress={() => router.push({
+        pathname: '/explore/island/[id]',
+        params: {
+          id: item.id,
+          name: item.name,
+          image: item.image,
+          description: item.description,
+          sunset: item.sunset,
+        }
+      })}
+      activeOpacity={0.9}
     >
       <ImageBackground
         source={{ uri: item.image }}
         style={styles.cardImage}
-        imageStyle={{ borderRadius: 24 }}
+        imageStyle={{ borderRadius: 28 }}
       >
-        <View style={styles.cardOverlay}>
-          <Text style={styles.cardText}>{item.name}</Text>
-        </View>
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.8)']}
+          style={styles.cardOverlay}
+        >
+          <Text style={styles.cardTitle} numberOfLines={1} adjustsFontSizeToFit>{item.name}</Text>
+          <Text style={styles.cardSubtitle} numberOfLines={2}>
+            Tap to discover
+          </Text>
+        </LinearGradient>
       </ImageBackground>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Ready to explore?</Text>
-        <Text style={styles.subtitle}>Choose your island, start the journey</Text>
-      </View>
+    <View style={styles.container}>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[{ flex: 1 }, mainStyle]}>
+          <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.heading}>
+                <View style={styles.headingTextContainer}>
+                  <Text style={styles.headingTitle} numberOfLines={1} adjustsFontSizeToFit>{`Ready for an Adventure?`}</Text>
+                  <Text style={styles.headingSubtitle}>Choose your island</Text>
+                </View>
+                <TouchableOpacity style={styles.notificationButton}>
+                  <IconSymbol name="bell.fill" size={24} color="#000" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.featuredContainer}>
+                <TouchableOpacity
+                  style={styles.featuredCard}
+                  onPress={() => router.push('/explore/island/guided-tour')}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={['#3B82F6', '#2563EB']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.featuredGradient}
+                  >
+                    <View style={styles.featuredContent}>
+                      <View style={styles.featuredIconContainer}>
+                        <IconSymbol name="speaker.wave.2.fill" size={24} color="#fff" />
+                      </View>
+                      <View style={styles.featuredTextContainer}>
+                        <Text style={styles.featuredTitle}>Guided Audio Tour</Text>
+                        <Text style={styles.featuredSubtitle}>Explore the island with your own AI narrator</Text>
+                      </View>
+                      <View style={styles.featuredBadge}>
+                        <Text style={styles.featuredBadgeText}>NEW</Text>
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
 
-      <FlatList
-        data={ISLANDS}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.row}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+              <FlatList
+                data={ISLANDS}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                numColumns={2}
+                columnWrapperStyle={styles.columnWrapper}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                scrollEnabled={false}
+              />
+            </View>
+          </SafeAreaView>
+
+          {/* Curtain (Ferry Schedule Preview) */}
+          <Animated.View style={[
+            styles.curtainContainer,
+            { top: 0, height: height - TAB_BAR_HEIGHT, zIndex: 1000 },
+            curtainStyle
+          ]}>
+            <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+              <FerrySchedule />
+            </View>
+          </Animated.View>
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 }
 
@@ -86,44 +230,56 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
   },
-  header: {
-    marginTop: 40, // Increased from 20
-    marginBottom: 24,
-    // Removed alignItems: center to align left
+  heading: {
+    paddingHorizontal: CONTAINER_PADDING,
+    paddingTop: 16,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#0D1B2A',
-    marginBottom: 8,
-    // Removed textAlign: center to align left
+  headingTextContainer: {
+    flex: 1,
+    paddingRight: 16,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#778DA9',
-    // Removed textAlign: center to align left
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  headingTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#000',
+    letterSpacing: -1,
+  },
+  headingSubtitle: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  columnWrapper: {
+    gap: SPACING,
+    marginBottom: SPACING,
   },
   listContent: {
-    paddingBottom: 20,
-  },
-  row: {
-    justifyContent: 'space-between',
-    marginBottom: 16,
+    padding: CONTAINER_PADDING,
+    paddingBottom: 120,
   },
   cardContainer: {
-    width: CARD_WIDTH,
-    height: CARD_WIDTH * 1.5, // Portrait aspect ratio
-    borderRadius: 24,
+    borderRadius: 28,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
     elevation: 8,
+    backgroundColor: '#fff',
   },
   cardImage: {
     flex: 1,
@@ -131,15 +287,92 @@ const styles = StyleSheet.create({
   },
   cardOverlay: {
     padding: 16,
-    // Optional: Gradient or dimming could go here if text contrast is low
+    paddingTop: 32,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
-  cardText: {
+  cardTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+    marginBottom: 2,
+  },
+  cardSubtitle: {
+    color: '#E0E0E0',
+    fontSize: 12,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  curtainContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  featuredContainer: {
+    paddingHorizontal: CONTAINER_PADDING,
+    marginBottom: 24,
+  },
+  featuredCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: "#3B82F6",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  featuredGradient: {
+    padding: 20,
+  },
+  featuredContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  featuredIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featuredTextContainer: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  featuredTitle: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '800',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    letterSpacing: -0.5,
+  },
+  featuredSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  featuredBadge: {
+    backgroundColor: '#fff',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  featuredBadgeText: {
+    color: '#3B82F6',
+    fontSize: 10,
+    fontWeight: '900',
   },
 });

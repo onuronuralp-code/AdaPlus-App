@@ -25,6 +25,32 @@ const MAPPING = {
   'camera-alt': 'camera-alt',
   'chat': 'chat-bubble-outline',
   'sunny': 'wb-sunny',
+  'boat': 'directions-boat',
+  'ferry': 'directions-boat',
+  'chevron.up': 'expand-less',
+  'map': 'map',
+  // Below are added map targets to align SFSymbol to MaterialIcons
+  'sun.max.fill': 'beach-access',
+  'figure.walk': 'hiking',
+  'fork.knife': 'restaurant',
+  'building.columns.fill': 'museum', // Used for Mosque and other grand buildings
+  'cup.and.saucer.fill': 'local-cafe',
+  'leaf.fill': 'eco', // eco or park
+  'camera.fill': 'camera-alt',
+  'graduationcap.fill': 'school',
+  'bicycle': 'directions-bike',
+  'sailboat.fill': 'sailing',
+  'bed.double.fill': 'hotel',
+  'bus.fill': 'directions-bus',
+  'map.fill': 'map',
+  'bubble.left.and.bubble.right.fill': 'forum',
+  // Landmark specific icons
+  'cross.fill': 'church', // For Orthodox and Armenian Churches
+  'mountain.2.fill': 'landscape', // For Monastery on the hill
+  'ferry.fill': 'directions-boat', // For the Pier
+  'bell.fill': 'notifications', // For Notifications
+  'doc.text.fill': 'menu-book', // For Restaurant Menus
+  'info.circle.fill': 'info', // For Information and Details
 } as Partial<IconMapping>;
 
 /**

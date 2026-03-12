@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Modal, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { fetchDepartures } from '../services/api';
 
@@ -14,6 +15,7 @@ interface FerryRoute {
     departureTime: string;
     arrivalTime: string;
     type: 'Vapur' | 'Motor';
+    provider: string;
     isDirect: boolean;
     via?: string[];
 }
@@ -21,11 +23,37 @@ interface FerryRoute {
 const ISLANDS = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
 const MAINLAND = ['Kabataş', 'Bostancı', 'Kadıköy', 'Beşiktaş'];
 const ALL_LOCATIONS = [...ISLANDS, ...MAINLAND];
-const DEPARTURE_LOCATIONS = ['All', ...ALL_LOCATIONS];
+const DEPARTURE_LOCATIONS = ['Unselected', ...ALL_LOCATIONS];
 const DESTINATION_LOCATIONS = ['Unselected', ...ALL_LOCATIONS];
 
 // Ferry data is fetched from the API
 
+// Approximate transit times in minutes between key stops
+const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
+    'Kınalıada': { 'Burgazada': 15, 'Heybeliada': 30, 'Büyükada': 50, 'Bostancı': 25, 'Kabataş': 80, 'Kadıköy': 65, 'Beşiktaş': 90, 'Maltepe': 60 },
+    'Burgazada': { 'Kınalıada': 15, 'Heybeliada': 15, 'Büyükada': 35, 'Bostancı': 35, 'Kabataş': 90, 'Kadıköy': 70, 'Beşiktaş': 100 },
+    'Heybeliada': { 'Kınalıada': 30, 'Burgazada': 15, 'Büyükada': 20, 'Bostancı': 50, 'Kabataş': 100, 'Kadıköy': 80 },
+    'Büyükada': { 'Kınalıada': 50, 'Burgazada': 35, 'Heybeliada': 20, 'Bostancı': 60, 'Kabataş': 110, 'Kadıköy': 90, 'Maltepe': 45 },
+    'Bostancı': { 'Kınalıada': 25, 'Burgazada': 35, 'Heybeliada': 50, 'Büyükada': 60 },
+    'Kabataş': { 'Kınalıada': 80, 'Burgazada': 90, 'Heybeliada': 100, 'Büyükada': 110, 'Kadıköy': 30 },
+    'Kadıköy': { 'Kınalıada': 65, 'Büyükada': 90, 'Kabataş': 30 },
+    'Beşiktaş': { 'Kınalıada': 90, 'Büyükada': 110 },
+    'Maltepe': { 'Kınalıada': 60, 'Büyükada': 45 },
+};
+
+const addMinutes = (time: string, mins: number): string => {
+    const [h, m] = time.split(':').map(Number);
+    const total = h * 60 + m + mins;
+    const rh = Math.floor(total / 60) % 24;
+    const rm = total % 60;
+    return `${String(rh).padStart(2, '0')}:${String(rm).padStart(2, '0')}`;
+};
+
+const getArrivalTime = (from: string, to: string, departureTime: string): string | null => {
+    const mins = TRANSIT_MINUTES[from]?.[to];
+    if (!mins) return null;
+    return addMinutes(departureTime, mins);
+};
 
 // ... (calculateDuration remains the same)
 const calculateDuration = (start: string, end: string) => {
@@ -50,22 +78,22 @@ export function FerrySchedule() {
     const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
 
     // Departure (formerly selectedPort)
-    const [departure, setDeparture] = useState('All');
+    const [departure, setDeparture] = useState('Unselected');
     const [showDepartureDropdown, setShowDepartureDropdown] = useState(false);
 
     const [onlyDirect, setOnlyDirect] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState<FerryRoute | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const isLight = theme === 'light';
 
     // Reset to default on focus
     useFocusEffect(
         useCallback(() => {
             setDestination('Unselected');
-            setDeparture('All');
-            // Optional: setOnlyDirect(false);
-            return () => {
-                // Optional cleanup
-            };
+            setDeparture('Unselected');
+            setSelectedDate(new Date());
+            return () => { };
         }, [])
     );
 
@@ -84,7 +112,7 @@ export function FerrySchedule() {
             setLoading(true);
             try {
                 // Determine valid Departments
-                const validDepartures = departure === 'All'
+                const validDepartures = departure === 'Unselected'
                     ? ALL_LOCATIONS
                     : [departure];
 
@@ -109,8 +137,12 @@ export function FerrySchedule() {
 
                 let allRoutes: FerryRoute[] = [];
 
+                // Build date string for API (YYYY-MM-DD), null = today
+                const isToday = selectedDate.toDateString() === new Date().toDateString();
+                const dateStr = isToday ? undefined : selectedDate.toISOString().split('T')[0];
+
                 // Use Promise.all for parallel fetching
-                const dataPromises = pairs.map(pair => fetchDepartures(pair.from, pair.to));
+                const dataPromises = pairs.map(pair => fetchDepartures(pair.from, pair.to, dateStr));
                 const results = await Promise.all(dataPromises);
 
                 results.forEach((data, index) => {
@@ -121,7 +153,8 @@ export function FerrySchedule() {
                         destination: dto.to,
                         departureTime: dto.time,
                         arrivalTime: "",
-                        type: (dto.provider === 'SEHIR_HATLARI' ? 'Vapur' : 'Motor') as 'Vapur' | 'Motor',
+                        type: (dto.provider === 'Şehir Hatları' ? 'Vapur' : 'Motor') as 'Vapur' | 'Motor',
+                        provider: dto.provider,
                         isDirect: !dto.via || dto.via.length === 0,
                         via: dto.via
                     }));
@@ -141,7 +174,7 @@ export function FerrySchedule() {
         };
 
         loadIds();
-    }, [destination, departure]);
+    }, [destination, departure, selectedDate]);
 
     const groupedSections = useMemo(() => {
         // Filter logical changes
@@ -157,7 +190,7 @@ export function FerrySchedule() {
 
             // Filter by Selected Departure (Port)
             // Handled by API mostly, but if we change filters locally on cached data:
-            if (departure !== 'All') {
+            if (departure !== 'Unselected') {
                 const port = item.departure;
                 if (port !== departure) return false;
             }
@@ -243,8 +276,8 @@ export function FerrySchedule() {
                             key={route.id}
                             style={[
                                 styles.timeChip,
-                                isNext && { borderColor: '#2E7D32', borderWidth: 2, backgroundColor: '#E8F5E9' },
-                                isPast && { opacity: 0.4 }
+                                isNext && { borderColor: '#2E7D32', borderWidth: 1.5, backgroundColor: '#F1FBF1' },
+                                isPast && { opacity: 0.35 }
                             ]}
                             // Show modal on press
                             onPress={() => setSelectedTrip(route)}
@@ -262,109 +295,127 @@ export function FerrySchedule() {
                                     borderRadius: 10,
                                     zIndex: 1
                                 }}>
-                                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>NEXT</Text>
+                                    <Text style={{ color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 }}>NEXT</Text>
                                 </View>
                             )}
-                            <Text style={[styles.timeChipText, isNext && { color: '#1B5E20' }]}>{route.departureTime}</Text>
-                            <View style={styles.signatureContainer}>
-                                <Ionicons
-                                    name={route.isDirect ? "checkmark-circle-outline" : "git-network-outline"}
-                                    size={10}
-                                    color={route.isDirect ? "#2E7D32" : "#E65100"}
-                                />
-                                <Text style={[
-                                    styles.signatureText,
-                                    { color: route.isDirect ? "#2E7D32" : "#E65100" }
-                                ]}>
-                                    {route.isDirect ? "Direct" : "Indirect"}
-                                </Text>
-                            </View>
+                            <Text style={[styles.timeChipText, isNext && { color: '#1B5E20', fontWeight: '700' }]}>{route.departureTime}</Text>
+                            {(() => {
+                                const arr = getArrivalTime(route.departure, route.destination, route.departureTime);
+                                return arr ? <Text style={styles.arrivalText}>→ {arr}</Text> : null;
+                            })()}
+                            <Text style={styles.providerText} numberOfLines={1}>{route.provider}</Text>
                         </TouchableOpacity>
                     );
-                })}
-            </View>
+                })
+                }
+            </View >
         )
     };
 
     return (
         <View style={styles.container}>
             {/* Header */}
-            <Text style={styles.headerTitle}>Ferry Schedule</Text>
-            <Text style={styles.disclaimerText}>
-                <Ionicons name="information-circle-outline" size={14} color="#666" /> Tap on trip hours to see full details
-            </Text>
-
-            {/* Departure Dropdown (Moved & Styled Same as Destination) */}
-            <View style={{ marginBottom: 12, zIndex: 102 }}>
-                <Text style={{ marginBottom: 4, color: '#2B7A8E', fontWeight: '500' }}>Departure (From):</Text>
-                <TouchableOpacity
-                    style={[
-                        styles.dropdownButton,
-                        { borderColor: '#2B7A8E', backgroundColor: '#E0F7FA' }
-                    ]}
-                    onPress={() => setShowDepartureDropdown(!showDepartureDropdown)}
-                >
-                    <Text style={[styles.dropdownButtonText, { color: '#006064' }]}>
-                        {departure}
-                    </Text>
-                    <Ionicons name={showDepartureDropdown ? "chevron-up" : "chevron-down"} size={16} color='#006064' />
-                </TouchableOpacity>
-
-                {showDepartureDropdown && (
-                    <View style={styles.dropdownList}>
-                        {DEPARTURE_LOCATIONS.map(loc => (
-                            <TouchableOpacity
-                                key={loc}
-                                style={styles.dropdownItem}
-                                onPress={() => {
-                                    setDeparture(loc);
-                                    setShowDepartureDropdown(false);
-                                }}
-                            >
-                                <Text style={[styles.dropdownItemText, (departure === loc) && styles.selectedDropdownText]}>{loc}</Text>
-                                {(departure === loc) && <Ionicons name="checkmark" size={16} color="#2B7A8E" />}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
+            <View style={styles.headerContainer}>
+                <Text style={styles.headerTitle}>Ferry Schedule</Text>
             </View>
 
-            {/* Destination Dropdown */}
-            <View style={{ marginBottom: 16, zIndex: 101 }}>
-                <Text style={{ marginBottom: 4, color: '#2B7A8E', fontWeight: '500' }}>Destination (To):</Text>
-                <TouchableOpacity
-                    style={[
-                        styles.dropdownButton,
-                        { borderColor: '#2B7A8E', backgroundColor: '#E0F7FA' }
-                    ]}
-                    onPress={() => setShowDestinationDropdown(!showDestinationDropdown)}
-                >
-                    <Text style={[styles.dropdownButtonText, { color: '#006064' }]}>
-                        {destination}
-                    </Text>
-                    <Ionicons name={showDestinationDropdown ? "chevron-up" : "chevron-down"} size={16} color='#006064' />
-                </TouchableOpacity>
+            {/* From / To / Date row */}
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                {/* Departure Dropdown */}
+                <View style={{ flex: 1, zIndex: 102 }}>
+                    <Text style={styles.dropdownLabel}>From</Text>
+                    <TouchableOpacity
+                        style={styles.dropdownButton}
+                        onPress={() => setShowDepartureDropdown(!showDepartureDropdown)}
+                    >
+                        <Text style={styles.dropdownButtonText} numberOfLines={1}>{departure}</Text>
+                        <Ionicons name={showDepartureDropdown ? "chevron-up" : "chevron-down"} size={14} color='#888' />
+                    </TouchableOpacity>
 
-                {showDestinationDropdown && (
-                    <View style={styles.dropdownList}>
-                        {DESTINATION_LOCATIONS.map(loc => (
-                            <TouchableOpacity
-                                key={loc}
-                                style={styles.dropdownItem}
-                                onPress={() => {
-                                    setDestination(loc);
-                                    setShowDestinationDropdown(false);
-                                }}
-                            >
-                                <Text style={[styles.dropdownItemText, (destination === loc) && styles.selectedDropdownText]}>{loc}</Text>
-                                {(destination === loc) && <Ionicons name="checkmark" size={16} color="#2B7A8E" />}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
+                    {showDepartureDropdown && (
+                        <View style={styles.dropdownList}>
+                            {DEPARTURE_LOCATIONS.map(loc => (
+                                <TouchableOpacity
+                                    key={loc}
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                        setDeparture(loc);
+                                        setShowDepartureDropdown(false);
+                                    }}
+                                >
+                                    <Text style={[styles.dropdownItemText, (departure === loc) && styles.selectedDropdownText]}>{loc}</Text>
+                                    {(departure === loc) && <Ionicons name="checkmark" size={16} color="#000" />}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                </View>
+
+                {/* Destination Dropdown */}
+                <View style={{ flex: 1, zIndex: 101 }}>
+                    <Text style={styles.dropdownLabel}>To</Text>
+                    <TouchableOpacity
+                        style={styles.dropdownButton}
+                        onPress={() => setShowDestinationDropdown(!showDestinationDropdown)}
+                    >
+                        <Text style={styles.dropdownButtonText} numberOfLines={1}>{destination}</Text>
+                        <Ionicons name={showDestinationDropdown ? "chevron-up" : "chevron-down"} size={14} color='#888' />
+                    </TouchableOpacity>
+
+                    {showDestinationDropdown && (
+                        <View style={styles.dropdownList}>
+                            {DESTINATION_LOCATIONS.map(loc => (
+                                <TouchableOpacity
+                                    key={loc}
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                        setDestination(loc);
+                                        setShowDestinationDropdown(false);
+                                    }}
+                                >
+                                    <Text style={[styles.dropdownItemText, (destination === loc) && styles.selectedDropdownText]}>{loc}</Text>
+                                    {(destination === loc) && <Ionicons name="checkmark" size={16} color="#000" />}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                </View>
+
+                {/* Date picker button */}
+                <View style={{ width: 70, zIndex: 100 }}>
+                    <Text style={styles.dropdownLabel}>Date</Text>
+                    <TouchableOpacity
+                        style={[styles.dropdownButton, { paddingHorizontal: 8 }]}
+                        onPress={() => setShowDatePicker(v => !v)}
+                    >
+                        <Ionicons name="calendar-outline" size={14} color="#555" />
+                        <Text style={[styles.dropdownButtonText, { fontSize: 12 }]} numberOfLines={1}>
+                            {selectedDate.toDateString() === new Date().toDateString()
+                                ? 'Today'
+                                : `${selectedDate.getDate()} ${selectedDate.toLocaleString('en', { month: 'short' })}`}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            {/* Filters Row: Checkbox Only */}
+            {/* Native Date Picker */}
+            {showDatePicker && (
+                <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                    minimumDate={new Date()}
+                    onChange={(_, date) => {
+                        if (date) {
+                            setSelectedDate(date);
+                        }
+                        if (Platform.OS !== 'ios') setShowDatePicker(false);
+                    }}
+                    style={{ marginBottom: 8, alignSelf: 'center' }}
+                />
+            )}
+
+            {/* Direct filter */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, zIndex: 100 }}>
                 <TouchableOpacity
                     style={styles.checkboxContainer}
@@ -373,16 +424,16 @@ export function FerrySchedule() {
                 >
                     <Ionicons
                         name={onlyDirect ? "checkbox" : "square-outline"}
-                        size={20}
-                        color={onlyDirect ? "#2B7A8E" : "#666"}
+                        size={18}
+                        color={onlyDirect ? "#000" : "#bbb"}
                     />
                     <Text style={[styles.checkboxText, onlyDirect && styles.checkboxTextActive]}>
-                        Direct items only
+                        Direct only
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Schedule List (Grid) */}
+            {/* Schedule List */}
             <SectionList
                 sections={groupedSections}
                 keyExtractor={(item, index) => index.toString()}
@@ -390,7 +441,6 @@ export function FerrySchedule() {
                 renderSectionHeader={({ section: { title } }) => (
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionHeaderText}>{title}</Text>
-                        <Ionicons name="location-outline" size={16} color={isLight ? '#666' : '#aaa'} />
                     </View>
                 )}
             />
@@ -399,8 +449,8 @@ export function FerrySchedule() {
             {loading && (
                 <View style={styles.loadingOverlay}>
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#2B7A8E" />
-                        <Text style={styles.loadingText}>Finding Ferries...</Text>
+                        <ActivityIndicator size="large" color="#000" />
+                        <Text style={styles.loadingText}>Loading...</Text>
                     </View>
                 </View>
             )}
@@ -440,25 +490,36 @@ export function FerrySchedule() {
                                         <Text style={styles.routeLabel}>Route Stops:</Text>
                                         {/* Visualization of the route */}
                                         <View style={styles.routeWrapper}>
-                                            <View style={styles.routeNode}>
-                                                <View style={[styles.dot, { backgroundColor: '#2B7A8E' }]} />
-                                                <Text style={styles.nodeText}>{selectedTrip.departure}</Text>
-                                            </View>
+                                            {(() => {
+                                                const stops = [
+                                                    selectedTrip.departure,
+                                                    ...(selectedTrip.via ?? []),
+                                                    selectedTrip.destination,
+                                                ];
+                                                const dotColors = ['#2B7A8E', ...((selectedTrip.via ?? []).map(() => '#FFA000')), '#D32F2F'];
 
-                                            {/* Via Stops */}
-                                            {selectedTrip.via && selectedTrip.via.map((stop, index) => (
-                                                <View key={index} style={styles.routeNode}>
-                                                    <View style={styles.verticalLine} />
-                                                    <View style={[styles.dot, { backgroundColor: '#FFA000' }]} />
-                                                    <Text style={styles.nodeText}>{stop}</Text>
-                                                </View>
-                                            ))}
+                                                // Build cumulative times
+                                                const times: string[] = [selectedTrip.departureTime];
+                                                for (let i = 1; i < stops.length; i++) {
+                                                    const prev = stops[i - 1];
+                                                    const curr = stops[i];
+                                                    const mins = TRANSIT_MINUTES[prev]?.[curr];
+                                                    times.push(mins ? addMinutes(times[i - 1], mins) : '');
+                                                }
 
-                                            <View style={styles.routeNode}>
-                                                <View style={styles.verticalLine} />
-                                                <View style={[styles.dot, { backgroundColor: '#D32F2F' }]} />
-                                                <Text style={styles.nodeText}>{selectedTrip.destination}</Text>
-                                            </View>
+                                                return stops.map((stop, i) => (
+                                                    <View key={i} style={styles.routeNode}>
+                                                        {i > 0 && <View style={styles.verticalLine} />}
+                                                        <View style={[styles.dot, { backgroundColor: dotColors[i] }]} />
+                                                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <Text style={styles.nodeText}>{stop}</Text>
+                                                            {times[i] ? (
+                                                                <Text style={styles.nodeTime}>{times[i]}</Text>
+                                                            ) : null}
+                                                        </View>
+                                                    </View>
+                                                ));
+                                            })()}
                                         </View>
                                     </View>
                                 </View>
@@ -475,21 +536,30 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
         marginTop: 60,
+        backgroundColor: '#fff',
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+    },
+    backButton: {
+        padding: 8,
     },
     headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 8,
-        color: '#2B7A8E',
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#000',
         textAlign: 'center',
+        letterSpacing: -0.3,
     },
     disclaimerText: {
         fontSize: 12,
-        color: '#666',
+        color: '#aaa',
         marginBottom: 16,
-        fontStyle: 'italic',
         textAlign: 'center',
     },
     tabsWrapper: {
@@ -504,19 +574,19 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     activeTab: {
-        backgroundColor: '#2B7A8E',
+        backgroundColor: '#000',
     },
     tabText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#666',
+        color: '#888',
     },
     activeTabText: {
         color: '#fff',
     },
     toggleContainer: {
         flexDirection: 'row',
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#f5f5f5',
         borderRadius: 8,
         padding: 2,
         marginBottom: 16,
@@ -531,37 +601,36 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.06,
         shadowRadius: 1,
         elevation: 1,
     },
     toggleText: {
         fontSize: 13,
         fontWeight: '500',
-        color: '#666',
+        color: '#aaa',
     },
     activeToggleText: {
-        color: '#2B7A8E',
+        color: '#000',
         fontWeight: '700',
     },
     listContent: {
         paddingBottom: 20,
     },
     sectionHeader: {
-        paddingVertical: 8,
-        backgroundColor: 'transparent',
-        marginTop: 12,
-        marginBottom: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        paddingVertical: 10,
+        backgroundColor: '#fff',
+        marginTop: 8,
+        marginBottom: 6,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#e8e8e8',
     },
     sectionHeaderText: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#2B7A8E',
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#888',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
     },
     gridContainer: {
         flexDirection: 'row',
@@ -569,53 +638,61 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     timeChip: {
-        backgroundColor: '#E0F7FA',
-        borderRadius: 8,
-        paddingVertical: 10,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 10,
+        paddingVertical: 12,
         paddingHorizontal: 10,
-        borderWidth: 1,
-        borderColor: '#B2EBF2',
-        width: '48%', // Wider for more content
+        borderWidth: 0.5,
+        borderColor: '#e8e8e8',
+        width: '48%',
         alignItems: 'center',
         justifyContent: 'center',
     },
     timeChipText: {
-        color: '#006064',
-        fontWeight: '700',
-        fontSize: 14,
+        color: '#000',
+        fontWeight: '600',
+        fontSize: 16,
         marginBottom: 2,
     },
     arrivalText: {
-        color: '#555',
-        fontSize: 12,
+        color: '#aaa',
+        fontSize: 11,
         marginBottom: 2,
     },
     destinationText: {
-        color: '#2B7A8E',
+        color: '#888',
         fontSize: 11,
-        fontWeight: '600',
+        fontWeight: '500',
         marginTop: 2,
     },
     emptyText: {
         textAlign: 'center',
-        marginTop: 20,
-        color: '#666',
-        fontStyle: 'italic',
+        marginTop: 40,
+        color: '#bbb',
+        fontSize: 14,
+    },
+    dropdownLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#aaa',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+        marginBottom: 6,
     },
     dropdownButton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        paddingHorizontal: 16,
+        backgroundColor: '#f8f8f8',
+        borderWidth: 0.5,
+        borderColor: '#e0e0e0',
+        borderRadius: 10,
+        paddingHorizontal: 14,
         paddingVertical: 12,
     },
     dropdownButtonText: {
-        fontSize: 14,
-        color: '#333',
+        fontSize: 15,
+        color: '#000',
         fontWeight: '500',
     },
     dropdownList: {
@@ -624,14 +701,14 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
+        borderWidth: 0.5,
+        borderColor: '#e0e0e0',
+        borderRadius: 10,
         marginTop: 4,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
         elevation: 3,
         paddingVertical: 4,
     },
@@ -641,15 +718,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#f2f2f2',
     },
     dropdownItemText: {
-        fontSize: 14,
-        color: '#666',
+        fontSize: 15,
+        color: '#555',
     },
     selectedDropdownText: {
-        color: '#2B7A8E',
+        color: '#000',
         fontWeight: '600',
     },
     filterContainer: {
@@ -663,13 +740,19 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     checkboxText: {
-        fontSize: 14,
-        color: '#666',
+        fontSize: 13,
+        color: '#aaa',
         fontWeight: '500',
     },
     checkboxTextActive: {
-        color: '#2B7A8E',
+        color: '#000',
         fontWeight: '600',
+    },
+    providerText: {
+        fontSize: 10,
+        color: '#888',
+        fontWeight: '500',
+        marginTop: 1,
     },
     signatureContainer: {
         flexDirection: 'row',
@@ -767,6 +850,11 @@ const styles = StyleSheet.create({
     nodeText: {
         fontSize: 15,
         color: '#444',
+    },
+    nodeTime: {
+        fontSize: 13,
+        color: '#2B7A8E',
+        fontWeight: '600',
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
