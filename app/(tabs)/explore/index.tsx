@@ -169,33 +169,7 @@ export default function DiscoveryScreen() {
                   <IconSymbol name="bell.fill" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
-              <View style={styles.featuredContainer}>
-                <TouchableOpacity
-                  style={styles.featuredCard}
-                  onPress={() => router.push('/explore/island/guided-tour')}
-                  activeOpacity={0.9}
-                >
-                  <LinearGradient
-                    colors={['#3B82F6', '#2563EB']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.featuredGradient}
-                  >
-                    <View style={styles.featuredContent}>
-                      <View style={styles.featuredIconContainer}>
-                        <IconSymbol name="speaker.wave.2.fill" size={24} color="#fff" />
-                      </View>
-                      <View style={styles.featuredTextContainer}>
-                        <Text style={styles.featuredTitle}>Guided Audio Tour</Text>
-                        <Text style={styles.featuredSubtitle}>Explore the island with your own AI narrator</Text>
-                      </View>
-                      <View style={styles.featuredBadge}>
-                        <Text style={styles.featuredBadgeText}>NEW</Text>
-                      </View>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
+
 
               <FlatList
                 data={ISLANDS}
@@ -320,59 +294,5 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  featuredContainer: {
-    paddingHorizontal: CONTAINER_PADDING,
-    marginBottom: 24,
-  },
-  featuredCard: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: "#3B82F6",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  featuredGradient: {
-    padding: 20,
-  },
-  featuredContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  featuredIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featuredTextContainer: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  featuredTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  featuredSubtitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  featuredBadge: {
-    backgroundColor: '#fff',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  featuredBadgeText: {
-    color: '#3B82F6',
-    fontSize: 10,
-    fontWeight: '900',
-  },
+
 });

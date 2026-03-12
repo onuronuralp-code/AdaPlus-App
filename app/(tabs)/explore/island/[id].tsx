@@ -115,7 +115,7 @@ export default function IslandDetailScreen() {
                         color="#3B82F6"
                         title="Transportation"
                         subtitle="Island shuttles and taxi services"
-                        onPress={() => router.push('/(tabs)/explore/island/transportation')}
+                        onPress={() => router.push({ pathname: '/(tabs)/explore/island/transportation', params: { islandId: id } })}
                     />
                     <ActivityCard
                         icon="map.fill"

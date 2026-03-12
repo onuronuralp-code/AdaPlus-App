@@ -1,34 +1,68 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Stack, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { fetchBusDepartures } from '@/services/api';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const TRANSPORT_ROUTES = [
-    {
-        id: '1',
-        name: 'Island Tour Route',
-        type: 'Electric Bus',
-        stations: ['Pier', 'Center Square', 'Pine Grove', 'Sunset Point', 'Monastery'],
-        hours: [
-            '08:00', '09:00', '10:00', '11:00', '12:00',
-            '13:30', '14:30', '15:30', '16:30', '17:30', '18:30'
-        ]
-    },
-    {
-        id: '2',
-        name: 'Beach Express',
-        type: 'Electric Shuttle',
-        stations: ['Pier', 'East Beach', 'West Beach', 'South Lagoon'],
-        hours: [
-            '09:15', '10:15', '11:15', '12:15',
-            '14:00', '15:00', '16:00', '17:00'
-        ]
-    }
-];
+const ISLAND_ROUTES: Record<string, string[]> = {
+    '1': ['KA-1', 'KA-2'],
+    '2': ['BU-1'],
+    '3': ['HA-1', 'HA-3'],
+    '4': ['BA-1', 'BA-2-A', 'BA-2-B', 'BA-4', 'BA-5'],
+};
+
+interface TransportationRoute {
+    id: string;
+    name: string;
+    type: string;
+    stations: string[];
+    hours: string[];
+}
 
 export default function TransportationScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { islandId } = useLocalSearchParams<{ islandId: string }>();
+
+    const [routes, setRoutes] = useState<TransportationRoute[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadBusData = async () => {
+            const id = islandId || '4'; // Default to Büyükada if not specified
+            const routeCodes = ISLAND_ROUTES[id] || [];
+
+            setLoading(true);
+            try {
+                const results = await Promise.all(
+                    routeCodes.map(code => fetchBusDepartures(code))
+                );
+
+                const mappedRoutes: TransportationRoute[] = results
+                    .filter(data => data.length > 0)
+                    .map((data, index) => {
+                        // Assuming the first stop is the main departure point for the "hours" list
+                        const firstStop = data[0].stop;
+                        return {
+                            id: data[0].routeCode,
+                            name: data[0].routeName,
+                            type: 'Electric Bus',
+                            stations: [firstStop, '...', 'End Station'], // We'd need a separate endpoint for full stop list
+                            hours: data.map(d => d.time)
+                        };
+                    });
+
+                setRoutes(mappedRoutes);
+            } catch (error) {
+                console.error("Error loading bus data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadBusData();
+    }, [islandId]);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -50,45 +84,69 @@ export default function TransportationScreen() {
                     </Text>
                 </View>
 
-                {TRANSPORT_ROUTES.map((route) => (
-                    <View key={route.id} style={styles.routeCard}>
-                        <View style={styles.routeHeader}>
-                            <View>
-                                <Text style={styles.routeName}>{route.name}</Text>
-                                <Text style={styles.routeType}>{route.type}</Text>
-                            </View>
-                            <View style={styles.iconCircle}>
-                                <IconSymbol name="bus.fill" size={20} color="#3B82F6" />
-                            </View>
-                        </View>
-
-                        <View style={styles.stationsContainer}>
-                            <Text style={styles.sectionHeading}>Stations</Text>
-                            <View style={styles.stationsList}>
-                                {route.stations.map((station, index) => (
-                                    <View key={index} style={styles.stationItem}>
-                                        <View style={styles.stationDot} />
-                                        <Text style={styles.stationText}>{station}</Text>
-                                        {index < route.stations.length - 1 && (
-                                            <IconSymbol name="chevron.right" size={16} color="#CBD5E1" style={styles.stationArrow} />
-                                        )}
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
-
-                        <View style={styles.hoursContainer}>
-                            <Text style={styles.sectionHeading}>Departure Hours (From Pier)</Text>
-                            <View style={styles.hoursGrid}>
-                                {route.hours.map((hour, index) => (
-                                    <View key={index} style={styles.hourBadge}>
-                                        <Text style={styles.hourText}>{hour}</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#3B82F6" />
+                        <Text style={styles.loadingText}>Fetching bus schedules...</Text>
                     </View>
-                ))}
+                ) : routes.length > 0 ? (
+                    routes.map((route) => (
+                        <View key={route.id} style={styles.routeCard}>
+                            <View style={styles.routeHeader}>
+                                <View style={{ flex: 1, marginRight: 8 }}>
+                                    <Text style={styles.routeName} numberOfLines={1} adjustsFontSizeToFit>{route.name}</Text>
+                                    <Text style={styles.routeType} numberOfLines={1}>{route.type}</Text>
+                                </View>
+                                <View style={styles.iconCircle}>
+                                    <IconSymbol name="bus.fill" size={20} color="#3B82F6" />
+                                </View>
+                            </View>
+
+                            <View style={styles.hoursContainer}>
+                                <Text style={styles.sectionHeading}>Departure Hours (From Main Station)</Text>
+                                <View style={styles.hoursGrid}>
+                                    {(() => {
+                                        const now = new Date();
+                                        const isToday = true; // Placeholder until date picker is added
+                                        const currentTimeVal = now.getHours() * 60 + now.getMinutes();
+
+                                        // Find the index of the next trip
+                                        const nextIndex = route.hours.findIndex(hour => {
+                                            const [h, m] = hour.split(':').map(Number);
+                                            return (h * 60 + m) >= currentTimeVal;
+                                        });
+
+                                        return route.hours.map((hour, index) => {
+                                            const [h, m] = hour.split(':').map(Number);
+                                            const routeTimeVal = h * 60 + m;
+                                            const isPast = isToday && routeTimeVal < currentTimeVal;
+                                            const isNext = isToday && index === nextIndex;
+
+                                            return (
+                                                <View key={index} style={[
+                                                    styles.hourBadge,
+                                                    isPast && { opacity: 0.35 },
+                                                    isNext && { borderColor: '#2E7D32', borderWidth: 1, backgroundColor: '#F1FBF1' }
+                                                ]}>
+                                                    {isNext && (
+                                                        <View style={styles.nextBadge}>
+                                                            <Text style={styles.nextBadgeText}>NEXT</Text>
+                                                        </View>
+                                                    )}
+                                                    <Text style={[styles.hourText, isNext && { color: '#1B5E20' }]}>{hour}</Text>
+                                                </View>
+                                            );
+                                        });
+                                    })()}
+                                </View>
+                            </View>
+                        </View>
+                    ))
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No bus schedules available for this island.</Text>
+                    </View>
+                )}
             </ScrollView>
         </View>
     );
@@ -162,7 +220,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F1F5F9',
     },
     routeName: {
-        fontSize: 18,
+        fontSize: 15,
         fontWeight: 'bold',
         color: '#0F172A',
         marginBottom: 4,
@@ -233,5 +291,38 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#0F172A',
         fontWeight: '600',
+    },
+    loadingContainer: {
+        padding: 40,
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        color: '#64748B',
+        fontSize: 14,
+    },
+    emptyContainer: {
+        padding: 40,
+        alignItems: 'center',
+    },
+    emptyText: {
+        color: '#64748B',
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    nextBadge: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        backgroundColor: '#2E7D32',
+        paddingHorizontal: 4,
+        paddingVertical: 1,
+        borderRadius: 4,
+        zIndex: 1,
+    },
+    nextBadgeText: {
+        color: '#fff',
+        fontSize: 8,
+        fontWeight: '900',
     }
 });

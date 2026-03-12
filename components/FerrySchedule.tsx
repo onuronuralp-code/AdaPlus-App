@@ -267,9 +267,10 @@ export function FerrySchedule() {
                     const isNext = nextTripIds.has(route.id);
 
                     // Calculate if trip is in the past
+                    const isToday = selectedDate.toDateString() === new Date().toDateString();
                     const [h, m] = route.departureTime.split(':').map(Number);
                     const routeTimeVal = h * 60 + m;
-                    const isPast = routeTimeVal < currentTimeVal;
+                    const isPast = isToday && routeTimeVal < currentTimeVal;
 
                     return (
                         <TouchableOpacity
