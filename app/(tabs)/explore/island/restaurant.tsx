@@ -2,7 +2,7 @@ import { PlaceDetailModal } from '@/components/PlaceDetailModal';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Mock reviews for restaurants
@@ -58,11 +58,11 @@ export default function RestaurantScreen() {
     };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
+            <StatusBar barStyle="dark-content" />
 
-            {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <IconSymbol name="chevron.left" size={24} color="#000" />
                 </TouchableOpacity>
@@ -125,14 +125,14 @@ export default function RestaurantScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#fff',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 20,
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },

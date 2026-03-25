@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
-import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { FlatList, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,11 +9,15 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FerrySchedule } from '@/components/FerrySchedule';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ISLANDS } from '@/constants/Islands';
+import i18n from '@/utils/i18n';
+import Svg, { Circle, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 
 const SPACING = 16;
 const CONTAINER_PADDING = 24;
 
 export default function DiscoveryScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -147,7 +151,7 @@ export default function DiscoveryScreen() {
         >
           <Text style={styles.cardTitle} numberOfLines={1} adjustsFontSizeToFit>{item.name}</Text>
           <Text style={styles.cardSubtitle} numberOfLines={2}>
-            Tap to discover
+            {t('common.tapToDiscover')}
           </Text>
         </LinearGradient>
       </ImageBackground>
@@ -156,19 +160,74 @@ export default function DiscoveryScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Dynamic Bubble Background */}
+      <View style={StyleSheet.absoluteFill}>
+        <Svg width={width} height={height}>
+          <Defs>
+            <Filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+              <FeGaussianBlur stdDeviation="25" />
+            </Filter>
+          </Defs>
+          
+          {/* Red Bubble */}
+          <Circle cx={width * 0.15} cy={height * 0.2} r={70} fill="#EF4444" fillOpacity={0.35} filter="url(#softBlur)" />
+          
+          {/* Purple Bubble */}
+          <Circle cx={width * 0.85} cy={height * 0.15} r={90} fill="#8B5CF6" fillOpacity={0.3} filter="url(#softBlur)" />
+          
+          {/* Orange Bubble */}
+          <Circle cx={width * 0.5} cy={height * 0.45} r={110} fill="#F97316" fillOpacity={0.38} filter="url(#softBlur)" />
+          
+          {/* Green Bubble */}
+          <Circle cx={width * 0.1} cy={height * 0.7} r={85} fill="#22C55E" fillOpacity={0.32} filter="url(#softBlur)" />
+          
+          {/* Blue Bubble */}
+          <Circle cx={width * 0.8} cy={height * 0.8} r={100} fill="#3B82F6" fillOpacity={0.35} filter="url(#softBlur)" />
+
+          {/* Extra smaller ones for depth */}
+          <Circle cx={width * 0.6} cy={height * 0.9} r={50} fill="#EF4444" fillOpacity={0.25} filter="url(#softBlur)" />
+          <Circle cx={width * 0.3} cy={height * 0.1} r={40} fill="#22C55E" fillOpacity={0.2} filter="url(#softBlur)" />
+          <Circle cx={width * 0.9} cy={height * 0.55} r={60} fill="#8B5CF6" fillOpacity={0.25} filter="url(#softBlur)" />
+        </Svg>
+      </View>
+
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[{ flex: 1 }, mainStyle]}>
-          <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-            <View style={{ flex: 1 }}>
-              <View style={styles.heading}>
-                <View style={styles.headingTextContainer}>
-                  <Text style={styles.headingTitle} numberOfLines={1} adjustsFontSizeToFit>{`Ready for an Adventure?`}</Text>
-                  <Text style={styles.headingSubtitle}>Choose your island</Text>
-                </View>
-                <TouchableOpacity style={styles.notificationButton}>
-                  <IconSymbol name="bell.fill" size={24} color="#000" />
+        <Animated.View style={[{ flex: 1, backgroundColor: '#fff' }, mainStyle]}>
+          <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+            <View style={styles.heading}>
+              <View style={styles.headingTextContainer}>
+                <Text style={styles.headingTitle} numberOfLines={1} adjustsFontSizeToFit>{t('common.readyForAdventure')}</Text>
+                <Text style={styles.headingSubtitle}>{t('common.chooseYourIsland')}</Text>
+              </View>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity
+                  style={styles.headerButton}
+                  onPress={() => {
+                    const newLang = i18n.language === 'en' ? 'tr' : 'en';
+                    i18n.changeLanguage(newLang);
+                  }}
+                >
+                  <IconSymbol name="globe" size={22} color="#000" />
+                  <View style={styles.langBadge}>
+                    <Text style={styles.langBadgeText}>{i18n.language.toUpperCase()}</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.headerButton}>
+                  <IconSymbol name="bell.fill" size={22} color="#000" />
                 </TouchableOpacity>
               </View>
+            </View>
+          </View>
+
+          <Image 
+            source={require('@/assets/images/island_doodle.png')} 
+            style={[StyleSheet.absoluteFill, { opacity: 0.12, top: insets.top + 60, bottom: 80 }]} 
+            resizeMode="repeat"
+          />
+
+          <SafeAreaView style={{ flex: 1 }} edges={['left', 'right']}>
+            <View style={{ flex: 1 }}>
 
 
               <FlatList
@@ -205,10 +264,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  headerContainer: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    zIndex: 10,
+  },
   heading: {
     paddingHorizontal: CONTAINER_PADDING,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -217,14 +282,34 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 16,
   },
-  notificationButton: {
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  headerButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+  },
+  langBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#000',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  langBadgeText: {
+    color: '#fff',
+    fontSize: 8,
+    fontWeight: '800',
   },
   headingTitle: {
     fontSize: 36,

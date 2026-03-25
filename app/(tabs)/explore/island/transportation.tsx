@@ -2,7 +2,8 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { fetchBusDepartures } from '@/services/api';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ISLAND_ROUTES: Record<string, string[]> = {
@@ -21,34 +22,52 @@ interface TransportationRoute {
 }
 
 export default function TransportationScreen() {
+    const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { islandId } = useLocalSearchParams<{ islandId: string }>();
 
     const [routes, setRoutes] = useState<TransportationRoute[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [loading, setLoading] = useState(true);
+
+    const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const weekDays = React.useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const days: Date[] = [];
+        for (let i = 0; i < 30; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() + i);
+            days.push(d);
+        }
+        return days;
+    }, []);
 
     useEffect(() => {
         const loadBusData = async () => {
-            const id = islandId || '4'; // Default to Büyükada if not specified
+            const id = islandId || '4'; 
             const routeCodes = ISLAND_ROUTES[id] || [];
 
             setLoading(true);
             try {
+                const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                
                 const results = await Promise.all(
-                    routeCodes.map(code => fetchBusDepartures(code))
+                    routeCodes.map(code => fetchBusDepartures(code, undefined, dateStr))
                 );
 
                 const mappedRoutes: TransportationRoute[] = results
                     .filter(data => data.length > 0)
                     .map((data, index) => {
-                        // Assuming the first stop is the main departure point for the "hours" list
                         const firstStop = data[0].stop;
                         return {
                             id: data[0].routeCode,
                             name: data[0].routeName,
                             type: 'Electric Bus',
-                            stations: [firstStop, '...', 'End Station'], // We'd need a separate endpoint for full stop list
+                            stations: [firstStop, '...', 'End Station'],
                             hours: data.map(d => d.time)
                         };
                     });
@@ -62,32 +81,76 @@ export default function TransportationScreen() {
         };
 
         loadBusData();
-    }, [islandId]);
-
+    }, [islandId, selectedDate]);
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
+            <StatusBar barStyle="dark-content" />
 
-            {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <IconSymbol name="chevron.left" size={24} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Transportation</Text>
+                <Text style={styles.headerTitle}>{t('common.transportation')}</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* Date Picker Strip */}
+                <View style={styles.datePickerContainer}>
+                    <View style={styles.datePickerHeader}>
+                        <Text style={styles.datePickerTitle}>
+                            {MONTHS_EN[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+                        </Text>
+                        {selectedDate.toDateString() === new Date().toDateString() && (
+                            <Text style={styles.todayLabel}>{t('common.today')}</Text>
+                        )}
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {weekDays.map((day, i) => {
+                            const isSelected = day.toDateString() === selectedDate.toDateString();
+                            const isToday = day.toDateString() === new Date().toDateString();
+                            const dayName = DAY_NAMES_SHORT[day.getDay()];
+                            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+
+                            return (
+                                <TouchableOpacity
+                                    key={i}
+                                    style={styles.dayColumn}
+                                    onPress={() => setSelectedDate(day)}
+                                >
+                                    <Text style={[
+                                        styles.dayName,
+                                        isWeekend && styles.weekendText,
+                                        isSelected && styles.selectedDayText
+                                    ]}>{dayName}</Text>
+                                    <View style={[
+                                        styles.dayCircle,
+                                        isSelected && styles.selectedDayCircle
+                                    ]}>
+                                        <Text style={[
+                                            styles.dayNum,
+                                            isWeekend && styles.weekendText,
+                                            isSelected && styles.selectedDayNum
+                                        ]}>{day.getDate()}</Text>
+                                    </View>
+                                    {isToday && <View style={styles.todayDot} />}
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </ScrollView>
+                </View>
+
                 <View style={styles.infoBox}>
                     <IconSymbol name="info" size={20} color="#3B82F6" />
                     <Text style={styles.infoText}>
-                        Motor vehicles are prohibited on the islands. Transportation is provided by eco-friendly electric buses and shuttles.
+                        {t('common.prohibitedVehicles')}
                     </Text>
                 </View>
 
                 {loading ? (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color="#3B82F6" />
-                        <Text style={styles.loadingText}>Fetching bus schedules...</Text>
+                        <Text style={styles.loadingText}>{t('common.fetchingBusSchedules')}</Text>
                     </View>
                 ) : routes.length > 0 ? (
                     routes.map((route) => (
@@ -95,7 +158,7 @@ export default function TransportationScreen() {
                             <View style={styles.routeHeader}>
                                 <View style={{ flex: 1, marginRight: 8 }}>
                                     <Text style={styles.routeName} numberOfLines={1} adjustsFontSizeToFit>{route.name}</Text>
-                                    <Text style={styles.routeType} numberOfLines={1}>{route.type}</Text>
+                                    <Text style={styles.routeType} numberOfLines={1}>{t('common.ecoFriendlyBus')}</Text>
                                 </View>
                                 <View style={styles.iconCircle}>
                                     <IconSymbol name="bus.fill" size={20} color="#3B82F6" />
@@ -103,48 +166,53 @@ export default function TransportationScreen() {
                             </View>
 
                             <View style={styles.hoursContainer}>
-                                <Text style={styles.sectionHeading}>Departure Hours (From Main Station)</Text>
-                                <View style={styles.hoursGrid}>
-                                    {(() => {
-                                        const now = new Date();
-                                        const isToday = true; // Placeholder until date picker is added
-                                        const currentTimeVal = now.getHours() * 60 + now.getMinutes();
+                                {(() => {
+                                    const now = new Date();
+                                    const dateDisplay = `${selectedDate.getDate()} ${MONTHS_EN[selectedDate.getMonth()]}`;
+                                    const isSelectedToday = selectedDate.toDateString() === now.toDateString();
+                                    const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
-                                        // Find the index of the next trip
-                                        const nextIndex = route.hours.findIndex(hour => {
-                                            const [h, m] = hour.split(':').map(Number);
-                                            return (h * 60 + m) >= currentTimeVal;
-                                        });
+                                    // Find index of next trip ONLY if it's today
+                                    const nextIndex = isSelectedToday ? route.hours.findIndex(hour => {
+                                        const [h, m] = hour.split(':').map(Number);
+                                        return (h * 60 + m) >= currentTimeVal;
+                                    }) : -1;
 
-                                        return route.hours.map((hour, index) => {
-                                            const [h, m] = hour.split(':').map(Number);
-                                            const routeTimeVal = h * 60 + m;
-                                            const isPast = isToday && routeTimeVal < currentTimeVal;
-                                            const isNext = isToday && index === nextIndex;
+                                    return (
+                                        <>
+                                            <Text style={styles.sectionHeading}>{t('common.departureHours')} ({dateDisplay})</Text>
+                                            <View style={styles.hoursGrid}>
+                                                {route.hours.map((hour, index) => {
+                                                    const [h, m] = hour.split(':').map(Number);
+                                                    const routeTimeVal = h * 60 + m;
+                                                    const isPast = isSelectedToday && routeTimeVal < currentTimeVal;
+                                                    const isNext = isSelectedToday && index === nextIndex;
 
-                                            return (
-                                                <View key={index} style={[
-                                                    styles.hourBadge,
-                                                    isPast && { opacity: 0.35 },
-                                                    isNext && { borderColor: '#2E7D32', borderWidth: 1, backgroundColor: '#F1FBF1' }
-                                                ]}>
-                                                    {isNext && (
-                                                        <View style={styles.nextBadge}>
-                                                            <Text style={styles.nextBadgeText}>NEXT</Text>
+                                                    return (
+                                                        <View key={index} style={[
+                                                            styles.hourBadge,
+                                                            isPast && { opacity: 0.15 },
+                                                            isNext && { borderColor: '#3B82F6', borderWidth: 1.5, backgroundColor: '#EFF6FF' }
+                                                        ]}>
+                                                            {isNext && (
+                                                                <View style={styles.nextBadge}>
+                                                                    <Text style={styles.nextBadgeText}>{t('common.next')}</Text>
+                                                                </View>
+                                                            )}
+                                                            <Text style={[styles.hourText, isNext && { color: '#1D4ED8' }]}>{hour}</Text>
                                                         </View>
-                                                    )}
-                                                    <Text style={[styles.hourText, isNext && { color: '#1B5E20' }]}>{hour}</Text>
-                                                </View>
-                                            );
-                                        });
-                                    })()}
-                                </View>
+                                                    );
+                                                })}
+                                            </View>
+                                        </>
+                                    );
+                                })()}
                             </View>
                         </View>
                     ))
                 ) : (
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No bus schedules available for this island.</Text>
+                        <Text style={styles.emptyText}>{t('common.noBusSchedules')}</Text>
                     </View>
                 )}
             </ScrollView>
@@ -155,14 +223,14 @@ export default function TransportationScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#fff',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 20,
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
@@ -312,17 +380,90 @@ const styles = StyleSheet.create({
     },
     nextBadge: {
         position: 'absolute',
-        top: -6,
-        right: -6,
+        top: -7,
+        right: -7,
         backgroundColor: '#2E7D32',
-        paddingHorizontal: 4,
+        paddingHorizontal: 3,
         paddingVertical: 1,
         borderRadius: 4,
         zIndex: 1,
     },
     nextBadgeText: {
         color: '#fff',
-        fontSize: 8,
+        fontSize: 6,
         fontWeight: '900',
+        letterSpacing: -0.2,
+    },
+    // Date Picker Styles
+    datePickerContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    datePickerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    datePickerTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+    todayLabel: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#3B82F6',
+        textTransform: 'uppercase',
+    },
+    dayColumn: {
+        width: 45,
+        alignItems: 'center',
+        paddingVertical: 4,
+    },
+    dayName: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#64748B',
+        marginBottom: 4,
+    },
+    dayCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    selectedDayCircle: {
+        backgroundColor: '#EFF6FF',
+    },
+    dayNum: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#0F172A',
+    },
+    selectedDayNum: {
+        color: '#3B82F6',
+        fontWeight: '800',
+    },
+    selectedDayText: {
+        color: '#3B82F6',
+    },
+    weekendText: {
+        color: '#3B82F6',
+    },
+    todayDot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#3B82F6',
+        marginTop: 2,
     }
 });

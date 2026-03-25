@@ -1,14 +1,17 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, { scrollTo, useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '../../../../components/ui/icon-symbol';
 import { ISLANDS } from '../../../../constants/Islands';
 
 export default function IslandDetailScreen() {
+    const { t } = useTranslation();
     const { id, name, image, description, sunset } = useLocalSearchParams();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { width: windowWidth, height: windowHeight } = useWindowDimensions();
     const scrollY = useSharedValue(0);
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
@@ -38,10 +41,12 @@ export default function IslandDetailScreen() {
 
     // Fallback if no image passed, though discover page should pass it
     const heroImage = typeof image === 'string' ? { uri: image } : { uri: 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=600&auto=format&fit=crop' };
+
+    const islandSlug = typeof name === 'string' ? name.toLowerCase() : '';
     const islandName = typeof name === 'string' ? name : 'Discover Island';
 
-    // Description from params or fallback
-    const islandDescription = typeof description === 'string' ? description : "A tropical paradise known for its stunning turquoise lagoon and luxury overwater bungalows.";
+    // Description from params or translated
+    const islandDescription = islandSlug ? t(`islands.${islandSlug}.description`) : (typeof description === 'string' ? description : "");
 
     // Sunset time or fallback
     const sunsetTime = typeof sunset === 'string' ? sunset : "19:40";
@@ -52,7 +57,7 @@ export default function IslandDetailScreen() {
     return (
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle="dark-content" />
 
             {/* Fixed Back Button */}
             <TouchableOpacity
@@ -97,38 +102,43 @@ export default function IslandDetailScreen() {
 
                 {/* Content Body */}
                 <View style={styles.body}>
+                    <Image 
+                        source={require('@/assets/images/island_doodle.png')} 
+                        style={[StyleSheet.absoluteFill, { opacity: 0.15, borderRadius: 24 }]} 
+                        resizeMode="repeat"
+                    />
                     <View style={styles.sectionHeader}>
                         <IconSymbol name={"safari" as any} size={24} color="#EA580C" style={{ marginRight: 8 }} />
-                        <Text style={styles.sectionTitle}>Services & Activities</Text>
+                        <Text style={styles.sectionTitle}>{t('common.servicesAndActivities', { defaultValue: 'Services & Activities' })}</Text>
                     </View>
 
                     {/* Cards */}
                     <ActivityCard
                         icon="fork.knife"
                         color="#F97316"
-                        title="Restaurants and Cafe"
-                        subtitle="World-class dining with ocean views"
+                        title={t(`islands.${islandSlug}.activities.seafood`, { defaultValue: 'Restaurants and Cafe' })}
+                        subtitle={t(`islands.${islandSlug}.activities.seafoodSub`, { defaultValue: 'World-class dining with ocean views' })}
                         onPress={() => router.push('/(tabs)/explore/island/restaurant')}
                     />
                     <ActivityCard
                         icon="bus.fill"
                         color="#3B82F6"
-                        title="Transportation"
-                        subtitle="Island shuttles and taxi services"
+                        title={t('common.transportation')}
+                        subtitle={t('common.islandShuttles')}
                         onPress={() => router.push({ pathname: '/(tabs)/explore/island/transportation', params: { islandId: id } })}
                     />
                     <ActivityCard
                         icon="map.fill"
                         color="#EC4899"
-                        title="Tour Guide"
-                        subtitle="Guided tours of the island"
+                        title={t('common.tourGuide', { defaultValue: 'Tour Guide' })}
+                        subtitle={t('common.guidedTours', { defaultValue: 'Guided tours of the island' })}
                         onPress={() => router.push('/(tabs)/explore/island/guide')}
                     />
                     <ActivityCard
                         icon="bubble.left.and.bubble.right.fill"
                         color="#10B981"
-                        title="Agora Forum"
-                        subtitle="Share experiences with other travelers"
+                        title={t('common.agoraForum', { defaultValue: 'Agora Forum' })}
+                        subtitle={t('common.shareExperiences', { defaultValue: 'Share experiences with other travelers' })}
                         onPress={() => router.push('/(tabs)/explore/island/forum')}
                     />
                 </View>
@@ -214,6 +224,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         marginTop: -20, // Overlap the image slightly
+        overflow: 'hidden', // Keep background clipped
     },
     sectionHeader: {
         flexDirection: 'row',

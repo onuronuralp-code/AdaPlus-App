@@ -1,0 +1,85 @@
+{
+    "common": {
+        "readyForAdventure": "Maceraya Hazır mısın?",
+        "chooseYourIsland": "Adanı seç",
+        "tapToDiscover": "Keşfetmek için dokun",
+        "ferrySchedule": "Vapur Saatleri",
+        "transportation": "Ulaşım",
+        "loading": "Yükleniyor...",
+        "fetchingDepartures": "Seferler getiriliyor...",
+        "noDepartures": "Sefer bulunamadı.",
+        "from": "Nereden",
+        "to": "Nereye",
+        "date": "Tarih",
+        "today": "Bugün",
+        "directOnly": "Sadece direkt",
+        "next": "SIRADAKİ",
+        "ecoFriendlyBus": "Elektrikli Otobüs",
+        "stations": "Duraklar",
+        "departureHours": "Kalkış Saatleri",
+        "mainStation": "Ana Durak",
+        "noBusSchedules": "Bu ada için otobüs seferi bulunmamaktadır.",
+        "fetchingBusSchedules": "Otobüs seferleri getiriliyor...",
+        "prohibitedVehicles": "Adalarda motorlu araç kullanımı yasaktır. Ulaşım doğa dostu elektrikli otobüsler ve araçlar ile sağlanmaktadır.",
+        "servicesAndActivities": "Hizmetler & Aktiviteler",
+        "islandShuttles": "Ada içi minivan ve taksi hizmetleri",
+        "tourGuide": "Gezi Rehberi",
+        "guidedTours": "Ada için sesli rehberli tur",
+        "agoraForum": "Agora Forum",
+        "shareExperiences": "Diğer gezginlerle deneyimlerinizi paylaşın"
+    },
+    "islands": {
+        "kinaliada": {
+            "description": "İstanbul'a en yakın ada; kızıl toprağı, geniş plajları ve faytonsuz yapısıyla bilinir.",
+            "activities": {
+                "beaches": "Plajlar",
+                "beachesSub": "Geniş kızıl plajlarda rahatlayın",
+                "hiking": "Yürüyüş",
+                "hikingSub": "Manzara noktalarına yürüyün",
+                "rentals": "Kiralık Evler",
+                "rentalsSub": "Yerel yazlık evler bulun",
+                "seafood": "Deniz Ürünleri",
+                "seafoodSub": "İskelede taze balığın tadını çıkarın"
+            }
+        },
+        "burgazada": {
+            "description": "Yazarları, ahşap köşkleri ve Sait Faik Abasıyanık Müzesi ile bilinen huzurlu bir durak.",
+            "activities": {
+                "museum": "Sait Faik Müzesi",
+                "museumSub": "Ünlü yazarın evini ziyaret edin",
+                "cafe": "Kafe Kültürü",
+                "cafeSub": "Ağaçlar altında dinlendirici kafeler",
+                "walks": "Doğa Yürüyüşleri",
+                "walksSub": "Bulutlu tepeleri keşfedin",
+                "photography": "Fotoğrafçılık",
+                "photographySub": "Ahşap köşkleri fotoğraflayın"
+            }
+        },
+        "heybeliada": {
+            "description": "Deniz Harp Okulu ve piknik ile yürüyüş için mükemmel çam ormanlarına ev sahipliği yapar.",
+            "activities": {
+                "naval": "Deniz Harp Okulu",
+                "navalSub": "Tarihi askeri akademi manzaraları",
+                "groves": "Çam Ormanları",
+                "grovesSub": "Piknik ve dinlenme için mükemmel",
+                "cycling": "Bisiklet Turu",
+                "cyclingSub": "Bisiklet kiralayıp adayı gezin",
+                "waterSports": "Su Sporları",
+                "waterSportsSub": "Yelken ve deniz aktivitelerinin tadını çıkarın"
+            }
+        },
+        "buyukada": {
+            "description": "Prens Adaları'nın en büyüğü; tarihi Splendid Palas Oteli ve saat kulesi ile öne çıkar.",
+            "activities": {
+                "splendid": "Splendid Palas",
+                "splendidSub": "Tarihi büyük otellerde konaklayın",
+                "cycling": "Bisiklet Turu",
+                "cyclingSub": "Adayı görmenin en iyi yolu",
+                "dining": "Gurme Restoranlar",
+                "diningSub": "Deniz manzaralı birinci sınıf restoranlar",
+                "museum": "Adalar Müzesi",
+                "museumSub": "Yerel tarihi öğrenin"
+            }
+        }
+    }
+}

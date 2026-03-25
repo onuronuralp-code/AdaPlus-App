@@ -1,0 +1,85 @@
+{
+    "common": {
+        "readyForAdventure": "Ready for an Adventure?",
+        "chooseYourIsland": "Choose your island",
+        "tapToDiscover": "Tap to discover",
+        "ferrySchedule": "Ferry Schedule",
+        "transportation": "Transportation",
+        "loading": "Loading...",
+        "fetchingDepartures": "Fetching departures...",
+        "noDepartures": "No departures available.",
+        "from": "From",
+        "to": "To",
+        "date": "Date",
+        "today": "Today",
+        "directOnly": "Direct only",
+        "next": "NEXT",
+        "ecoFriendlyBus": "Electric Bus",
+        "stations": "Stations",
+        "departureHours": "Departure Hours",
+        "mainStation": "Main Station",
+        "noBusSchedules": "No bus schedules available for this island.",
+        "fetchingBusSchedules": "Fetching bus schedules...",
+        "prohibitedVehicles": "Motor vehicles are prohibited on the islands. Transportation is provided by eco-friendly electric buses and shuttles.",
+        "servicesAndActivities": "Services & Activities",
+        "islandShuttles": "Island shuttles and taxi services",
+        "tourGuide": "Tour Guide",
+        "guidedTours": "Guided tours of the island",
+        "agoraForum": "Agora Forum",
+        "shareExperiences": "Share experiences with other travelers"
+    },
+    "islands": {
+        "kinaliada": {
+            "description": "The closest island to Istanbul, known for its reddish soil, extensive beaches, and lack of horse carriages.",
+            "activities": {
+                "beaches": "Beaches",
+                "beachesSub": "Relax on the extensive reddish beaches",
+                "hiking": "Hiking",
+                "hikingSub": "Walk up to the view points",
+                "rentals": "Rentals",
+                "rentalsSub": "Find local summer houses",
+                "seafood": "Seafood",
+                "seafoodSub": "Enjoy fresh catch by the pier"
+            }
+        },
+        "burgazada": {
+            "description": "A peaceful retreat known for its writers, wooden mansions, and the cloudy Sait Faik Abasıyanık Museum.",
+            "activities": {
+                "museum": "Sait Faik Museum",
+                "museumSub": "Visit the famous writer's house",
+                "cafe": "Cafe Culture",
+                "cafeSub": "Relaxing cafes under the trees",
+                "walks": "Nature Walks",
+                "walksSub": "Explore the cloudy heights",
+                "photography": "Photography",
+                "photographySub": "Capture the wooden mansions"
+            }
+        },
+        "heybeliada": {
+            "description": "Home to the Naval Cadet School and lush pine groves perfect for picnics and hiking.",
+            "activities": {
+                "naval": "Naval School",
+                "navalSub": "Historic naval academy views",
+                "groves": "Pine Groves",
+                "grovesSub": "Perfect for picnics and relaxation",
+                "cycling": "Cycling",
+                "cyclingSub": "Rent a bike and tour the island",
+                "waterSports": "Water Sports",
+                "waterSportsSub": "Enjoy sailing and sea activities"
+            }
+        },
+        "buyukada": {
+            "description": "The largest of the princes' islands, featuring the historic Splendid Palace Hotel and clock tower.",
+            "activities": {
+                "splendid": "Splendid Palace",
+                "splendidSub": "Stay at historic grand hotels",
+                "cycling": "Bicycle Tour",
+                "cyclingSub": "The best way to see the island",
+                "dining": "Fine Dining",
+                "diningSub": "World-class restaurants with ocean views",
+                "museum": "Princes' Islands Museum",
+                "museumSub": "Learn local history"
+            }
+        }
+    }
+}

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Modal, Platform, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, Dimensions, FlatList, Modal, Image, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchDepartures } from '../services/api';
 
 // ... (interfaces and constants remain the same)
@@ -23,6 +24,7 @@ interface FerryRoute {
 const ISLANDS = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
 const MAINLAND = ['Kabataş', 'Bostancı', 'Kadıköy', 'Beşiktaş'];
 const ALL_LOCATIONS = [...ISLANDS, ...MAINLAND];
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DEPARTURE_LOCATIONS = ['Unselected', ...ALL_LOCATIONS];
 const DESTINATION_LOCATIONS = ['Unselected', ...ALL_LOCATIONS];
 
@@ -72,7 +74,9 @@ const calculateDuration = (start: string, end: string) => {
 };
 
 export function FerrySchedule() {
+    const { t } = useTranslation();
     const { theme } = useTheme();
+    const insets = useSafeAreaInsets();
     // Destination (formerly selectedIsland)
     const [destination, setDestination] = useState('Unselected'); // Default to Unselected
     const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
@@ -84,8 +88,26 @@ export function FerrySchedule() {
     const [onlyDirect, setOnlyDirect] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState<FerryRoute | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    const scrollViewRef = useRef<ScrollView>(null);
+    const nextTripY = useRef<number>(0);
+    const hasFoundNextTrip = useRef(false);
+    const calendarScrollRef = useRef<ScrollView>(null);
     const isLight = theme === 'light';
+
+    // Generate all days of the selected month
+    const monthDays = useMemo(() => {
+        const year = selectedDate.getFullYear();
+        const month = selectedDate.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const days: Date[] = [];
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push(new Date(year, month, i));
+        }
+        return days;
+    }, [selectedDate.getMonth(), selectedDate.getFullYear()]);
+
+    const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     // Reset to default on focus
     useFocusEffect(
@@ -139,8 +161,11 @@ export function FerrySchedule() {
 
                 // Build date string for API (YYYY-MM-DD), null = today
                 const isToday = selectedDate.toDateString() === new Date().toDateString();
-                const dateStr = isToday ? undefined : selectedDate.toISOString().split('T')[0];
-
+                
+                // Format date as YYYY-MM-DD in local time to avoid UTC shift issues
+                const dateStr = isToday ? undefined : 
+                    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                
                 // Use Promise.all for parallel fetching
                 const dataPromises = pairs.map(pair => fetchDepartures(pair.from, pair.to, dateStr));
                 const results = await Promise.all(dataPromises);
@@ -177,9 +202,12 @@ export function FerrySchedule() {
     }, [destination, departure, selectedDate]);
 
     const groupedSections = useMemo(() => {
+        const isToday = selectedDate.toDateString() === new Date().toDateString();
+        const now = new Date();
+        const currentTimeVal = now.getHours() * 60 + now.getMinutes();
+
         // Filter logical changes
         const filtered = ferryData.filter(item => {
-            // Filter Logical Changes:
             // Filter by Destination
             if (destination !== 'All') {
                 if (item.destination !== destination) return false;
@@ -189,19 +217,34 @@ export function FerrySchedule() {
             if (onlyDirect && !item.isDirect) return false;
 
             // Filter by Selected Departure (Port)
-            // Handled by API mostly, but if we change filters locally on cached data:
             if (departure !== 'Unselected') {
                 const port = item.departure;
                 if (port !== departure) return false;
             }
 
+            // NEW: Hide past trips for today
+            if (isToday) {
+                const [h, m] = item.departureTime.split(':').map(Number);
+                const routeTimeVal = h * 60 + m;
+                if (routeTimeVal < currentTimeVal) return false;
+            }
+
             return true;
+        });
+
+        // De-duplicate: Same time, destination, and provider
+        const uniqueItems = new Map<string, FerryRoute>();
+        filtered.forEach(item => {
+            const key = `${item.departureTime}_${item.destination}_${item.provider}`;
+            if (!uniqueItems.has(key)) {
+                uniqueItems.set(key, item);
+            }
         });
 
         // Group by Port
         const groups: { [key: string]: FerryRoute[] } = {};
 
-        filtered.forEach(item => {
+        Array.from(uniqueItems.values()).forEach(item => {
             const port = item.departure;
             if (!groups[port]) groups[port] = [];
             groups[port].push(item);
@@ -222,12 +265,15 @@ export function FerrySchedule() {
     }, [destination, onlyDirect, departure, ferryData]);
 
     const nextTripIds = useMemo(() => {
+        const isToday = selectedDate.toDateString() === new Date().toDateString();
+        const ids = new Set<string>();
+        
+        if (!isToday) return ids;
+
         const now = new Date();
         const currentHours = now.getHours();
         const currentMinutes = now.getMinutes();
         const currentTimeVal = currentHours * 60 + currentMinutes;
-
-        const ids = new Set<string>();
 
         // Iterate through all displayed routes to find the closest future trip FOR EACH SECTION
         groupedSections.forEach(section => {
@@ -255,6 +301,27 @@ export function FerrySchedule() {
         return ids;
     }, [groupedSections]);
 
+    // Auto-scroll to "Next Trip" when data loads
+    useEffect(() => {
+        if (loading || groupedSections.length === 0 || nextTripIds.size === 0) return;
+
+        // Reset the flag so onLayout can capture the position
+        hasFoundNextTrip.current = false;
+        nextTripY.current = 0;
+
+        // Wait for layout to complete, then scroll
+        const scrollTimer = setTimeout(() => {
+            if (nextTripY.current > 0) {
+                scrollViewRef.current?.scrollTo({
+                    y: nextTripY.current - 10, // Small offset for breathing room
+                    animated: true,
+                });
+            }
+        }, 800);
+
+        return () => clearTimeout(scrollTimer);
+    }, [loading, groupedSections, nextTripIds]);
+
     const renderGridItem = ({ item }: { item: FerryRoute[] }) => {
         const now = new Date();
         const currentHours = now.getHours();
@@ -277,8 +344,7 @@ export function FerrySchedule() {
                             key={route.id}
                             style={[
                                 styles.timeChip,
-                                isNext && { borderColor: '#2E7D32', borderWidth: 1.5, backgroundColor: '#F1FBF1' },
-                                isPast && { opacity: 0.35 }
+                                isNext && { borderColor: '#2E7D32', borderWidth: 1.5, backgroundColor: '#F1FBF1' }
                             ]}
                             // Show modal on press
                             onPress={() => setSelectedTrip(route)}
@@ -296,7 +362,7 @@ export function FerrySchedule() {
                                     borderRadius: 10,
                                     zIndex: 1
                                 }}>
-                                    <Text style={{ color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 }}>NEXT</Text>
+                                    <Text style={{ color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 }}>{t('common.next')}</Text>
                                 </View>
                             )}
                             <Text style={[styles.timeChipText, isNext && { color: '#1B5E20', fontWeight: '700' }]}>{route.departureTime}</Text>
@@ -315,136 +381,158 @@ export function FerrySchedule() {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.headerContainer}>
-                <Text style={styles.headerTitle}>Ferry Schedule</Text>
-            </View>
-
-            {/* From / To / Date row */}
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-                {/* Departure Dropdown */}
-                <View style={{ flex: 1, zIndex: 102 }}>
-                    <Text style={styles.dropdownLabel}>From</Text>
-                    <TouchableOpacity
-                        style={styles.dropdownButton}
-                        onPress={() => setShowDepartureDropdown(!showDepartureDropdown)}
-                    >
-                        <Text style={styles.dropdownButtonText} numberOfLines={1}>{departure}</Text>
-                        <Ionicons name={showDepartureDropdown ? "chevron-up" : "chevron-down"} size={14} color='#888' />
-                    </TouchableOpacity>
-
-                    {showDepartureDropdown && (
-                        <View style={styles.dropdownList}>
-                            {DEPARTURE_LOCATIONS.map(loc => (
-                                <TouchableOpacity
-                                    key={loc}
-                                    style={styles.dropdownItem}
-                                    onPress={() => {
-                                        setDeparture(loc);
-                                        setShowDepartureDropdown(false);
-                                    }}
-                                >
-                                    <Text style={[styles.dropdownItemText, (departure === loc) && styles.selectedDropdownText]}>{loc}</Text>
-                                    {(departure === loc) && <Ionicons name="checkmark" size={16} color="#000" />}
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
+            {/* Fixed Header Content */}
+            <View style={[styles.fixedHeader, { paddingTop: insets.top + 20 }]}>
+                {/* Header Title */}
+                <View style={styles.headerContainer}>
+                    <Text style={styles.headerTitle}>{t('common.ferrySchedule')}</Text>
                 </View>
 
-                {/* Destination Dropdown */}
-                <View style={{ flex: 1, zIndex: 101 }}>
-                    <Text style={styles.dropdownLabel}>To</Text>
-                    <TouchableOpacity
-                        style={styles.dropdownButton}
-                        onPress={() => setShowDestinationDropdown(!showDestinationDropdown)}
-                    >
-                        <Text style={styles.dropdownButtonText} numberOfLines={1}>{destination}</Text>
-                        <Ionicons name={showDestinationDropdown ? "chevron-up" : "chevron-down"} size={14} color='#888' />
-                    </TouchableOpacity>
-
-                    {showDestinationDropdown && (
-                        <View style={styles.dropdownList}>
-                            {DESTINATION_LOCATIONS.map(loc => (
-                                <TouchableOpacity
-                                    key={loc}
-                                    style={styles.dropdownItem}
-                                    onPress={() => {
-                                        setDestination(loc);
-                                        setShowDestinationDropdown(false);
-                                    }}
-                                >
-                                    <Text style={[styles.dropdownItemText, (destination === loc) && styles.selectedDropdownText]}>{loc}</Text>
-                                    {(destination === loc) && <Ionicons name="checkmark" size={16} color="#000" />}
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-                </View>
-
-                {/* Date picker button */}
-                <View style={{ width: 70, zIndex: 100 }}>
-                    <Text style={styles.dropdownLabel}>Date</Text>
-                    <TouchableOpacity
-                        style={[styles.dropdownButton, { paddingHorizontal: 8 }]}
-                        onPress={() => setShowDatePicker(v => !v)}
-                    >
-                        <Ionicons name="calendar-outline" size={14} color="#555" />
-                        <Text style={[styles.dropdownButtonText, { fontSize: 12 }]} numberOfLines={1}>
-                            {selectedDate.toDateString() === new Date().toDateString()
-                                ? 'Today'
-                                : `${selectedDate.getDate()} ${selectedDate.toLocaleString('en', { month: 'short' })}`}
+                {/* Month Strip Date Selector */}
+                <View style={styles.weekStripContainer}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <TouchableOpacity onPress={() => {
+                            const today = new Date();
+                            const prevMonth = selectedDate.getMonth() - 1;
+                            const prevYear = prevMonth < 0 ? selectedDate.getFullYear() - 1 : selectedDate.getFullYear();
+                            const actualMonth = prevMonth < 0 ? 11 : prevMonth;
+                            // If going to the current month, select today
+                            if (actualMonth === today.getMonth() && prevYear === today.getFullYear()) {
+                                setSelectedDate(new Date(today));
+                            } else {
+                                setSelectedDate(new Date(prevYear, actualMonth, 1));
+                            }
+                        }}>
+                            <Ionicons name="chevron-back" size={20} color="#555" />
+                        </TouchableOpacity>
+                        <Text style={styles.weekStripMonth}>
+                            {MONTHS_EN[selectedDate.getMonth()]} {selectedDate.getFullYear()}
                         </Text>
+                        <TouchableOpacity onPress={() => {
+                            const today = new Date();
+                            const nextMonth = selectedDate.getMonth() + 1;
+                            const nextYear = nextMonth > 11 ? selectedDate.getFullYear() + 1 : selectedDate.getFullYear();
+                            const actualMonth = nextMonth > 11 ? 0 : nextMonth;
+                            // If going to the current month, select today
+                            if (actualMonth === today.getMonth() && nextYear === today.getFullYear()) {
+                                setSelectedDate(new Date(today));
+                            } else {
+                                setSelectedDate(new Date(nextYear, actualMonth, 1));
+                            }
+                        }}>
+                            <Ionicons name="chevron-forward" size={20} color="#555" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView ref={calendarScrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4 }}
+                        onLayout={() => {
+                            // Auto-scroll to the selected day and CENTER it
+                            const dayIndex = selectedDate.getDate() - 1;
+                            const screenWidth = Dimensions.get('window').width;
+                            const itemWidth = 45; // Matches weekStripDayCol width
+                            const scrollX = Math.max(0, (dayIndex * itemWidth) - (screenWidth / 2) + (itemWidth / 2) + 20); // +20 for offset
+                            calendarScrollRef.current?.scrollTo({ x: scrollX, animated: false });
+                        }}
+                    >
+                        {monthDays.map((day, i) => {
+                            const isSelected = day.toDateString() === selectedDate.toDateString();
+                            const isToday = day.toDateString() === new Date().toDateString();
+                            const dayName = DAY_NAMES_SHORT[day.getDay()];
+                            return (
+                                <TouchableOpacity key={i} style={styles.weekStripDayCol} onPress={() => setSelectedDate(day)} activeOpacity={0.6}>
+                                    <Text style={[styles.weekStripDayName, (day.getDay() === 0 || day.getDay() === 6) && styles.weekStripWeekend, isSelected && { color: '#2196F3', fontWeight: '700' }]}>
+                                        {dayName}
+                                    </Text>
+                                    <View style={[styles.weekStripDayCircle, isSelected && styles.weekStripDaySelected]}>
+                                        <Text style={[styles.weekStripDayNum, (day.getDay() === 0 || day.getDay() === 6) && styles.weekStripWeekend, isSelected && styles.weekStripDayNumSelected]}>{day.getDate()}</Text>
+                                    </View>
+                                    {isToday && <View style={styles.weekStripTodayDot} />}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
+
+                {/* From / To row */}
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, backgroundColor: '#fff' }}>
+                    {/* Departure Dropdown */}
+                    <View style={{ flex: 1, zIndex: 102 }}>
+                        <Text style={styles.dropdownLabel}>{t('common.from')}</Text>
+                        <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowDepartureDropdown(!showDepartureDropdown)}>
+                            <Text style={styles.dropdownButtonText} numberOfLines={1}>{departure}</Text>
+                            <Ionicons name={showDepartureDropdown ? "chevron-up" : "chevron-down"} size={14} color='#888' />
+                        </TouchableOpacity>
+                        {showDepartureDropdown && (
+                            <View style={styles.dropdownList}>
+                                {DEPARTURE_LOCATIONS.map(loc => (
+                                    <TouchableOpacity key={loc} style={styles.dropdownItem} onPress={() => { setDeparture(loc); setShowDepartureDropdown(false); }}>
+                                        <Text style={[styles.dropdownItemText, (departure === loc) && styles.selectedDropdownText]}>{loc}</Text>
+                                        {(departure === loc) && <Ionicons name="checkmark" size={16} color="#000" />}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Destination Dropdown */}
+                    <View style={{ flex: 1, zIndex: 101 }}>
+                        <Text style={styles.dropdownLabel}>{t('common.to')}</Text>
+                        <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowDestinationDropdown(!showDestinationDropdown)}>
+                            <Text style={styles.dropdownButtonText} numberOfLines={1}>{destination}</Text>
+                            <Ionicons name={showDestinationDropdown ? "chevron-up" : "chevron-down"} size={14} color='#888' />
+                        </TouchableOpacity>
+                        {showDestinationDropdown && (
+                            <View style={styles.dropdownList}>
+                                {DESTINATION_LOCATIONS.map(loc => (
+                                    <TouchableOpacity key={loc} style={styles.dropdownItem} onPress={() => { setDestination(loc); setShowDestinationDropdown(false); }}>
+                                        <Text style={[styles.dropdownItemText, (destination === loc) && styles.selectedDropdownText]}>{loc}</Text>
+                                        {(destination === loc) && <Ionicons name="checkmark" size={16} color="#000" />}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Direct filter */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, zIndex: 100, backgroundColor: '#fff' }}>
+                    <TouchableOpacity style={styles.checkboxContainer} onPress={() => setOnlyDirect(!onlyDirect)} activeOpacity={0.7}>
+                        <Ionicons name={onlyDirect ? "checkbox" : "square-outline"} size={18} color={onlyDirect ? "#000" : "#bbb"} />
+                        <Text style={[styles.checkboxText, onlyDirect && styles.checkboxTextActive]}>{t('common.directOnly')}</Text>
                     </TouchableOpacity>
                 </View>
-            </View>
-
-            {/* Native Date Picker */}
-            {showDatePicker && (
-                <DateTimePicker
-                    value={selectedDate}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                    minimumDate={new Date()}
-                    onChange={(_, date) => {
-                        if (date) {
-                            setSelectedDate(date);
-                        }
-                        if (Platform.OS !== 'ios') setShowDatePicker(false);
-                    }}
-                    style={{ marginBottom: 8, alignSelf: 'center' }}
-                />
-            )}
-
-            {/* Direct filter */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, zIndex: 100 }}>
-                <TouchableOpacity
-                    style={styles.checkboxContainer}
-                    onPress={() => setOnlyDirect(!onlyDirect)}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={onlyDirect ? "checkbox" : "square-outline"}
-                        size={18}
-                        color={onlyDirect ? "#000" : "#bbb"}
-                    />
-                    <Text style={[styles.checkboxText, onlyDirect && styles.checkboxTextActive]}>
-                        Direct only
-                    </Text>
-                </TouchableOpacity>
             </View>
 
             {/* Schedule List */}
-            <SectionList
-                sections={groupedSections}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={renderGridItem}
-                renderSectionHeader={({ section: { title } }) => (
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionHeaderText}>{title}</Text>
-                    </View>
-                )}
-            />
+            <ScrollView
+                ref={scrollViewRef}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {groupedSections.map((section, sectionIdx) => {
+                    const sectionHasNext = section.data[0].some(route => nextTripIds.has(route.id));
+                    return (
+                        <View key={sectionIdx}>
+                            {sectionHasNext && (
+                                <View onLayout={(e) => {
+                                    if (!hasFoundNextTrip.current) {
+                                        nextTripY.current = e.nativeEvent.layout.y;
+                                        hasFoundNextTrip.current = true;
+                                    }
+                                }} />
+                            )}
+                            <View style={styles.sectionHeader}>
+                                <Text style={styles.sectionHeaderText}>{section.title}</Text>
+                            </View>
+                            {section.data.map((routes, itemIdx) => (
+                                <View key={itemIdx}>
+                                    {renderGridItem({ item: routes })}
+                                </View>
+                            ))}
+                        </View>
+                    );
+                })}
+            </ScrollView>
 
             {/* Loading Overlay */}
             {loading && (
@@ -537,9 +625,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
-        paddingHorizontal: 20,
-        marginTop: 60,
         backgroundColor: '#fff',
+    },
+    listContent: {
+        paddingHorizontal: 20,
+        paddingBottom: 40,
+    },
+    fixedHeader: {
+        backgroundColor: 'transparent',
+        paddingHorizontal: 20,
+        zIndex: 10,
     },
     headerContainer: {
         flexDirection: 'row',
@@ -615,13 +710,10 @@ const styles = StyleSheet.create({
         color: '#000',
         fontWeight: '700',
     },
-    listContent: {
-        paddingBottom: 20,
-    },
     sectionHeader: {
         paddingVertical: 10,
         backgroundColor: '#fff',
-        marginTop: 8,
+        marginTop: 0,
         marginBottom: 6,
         borderBottomWidth: 0.5,
         borderBottomColor: '#e8e8e8',
@@ -636,7 +728,8 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        justifyContent: 'space-between',
+        rowGap: 8,
     },
     timeChip: {
         backgroundColor: '#f8f8f8',
@@ -645,7 +738,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         borderWidth: 0.5,
         borderColor: '#e8e8e8',
-        width: '48%',
+        width: '48.8%', // Matches the 'From' and 'To' distribution with 8px gap
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -880,6 +973,69 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#2B7A8E',
+    },
+    // Week Strip styles
+    weekStripContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+        marginBottom: 12,
+        borderWidth: 0.5,
+        borderColor: '#eee',
+    },
+    weekStripMonth: {
+        fontSize: 11,
+        color: '#3B82F6',
+        fontWeight: '500',
+        marginBottom: 1,
+        paddingHorizontal: 10,
+    },
+    weekStripToday: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#2196F3',
+        paddingHorizontal: 10,
+    },
+    weekStripDayCol: {
+        width: 45,
+        alignItems: 'center',
+        paddingVertical: 4,
+    },
+    weekStripDayName: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#555',
+        marginBottom: 4,
+    },
+    weekStripWeekend: {
+        color: '#3B82F6',
+    },
+    weekStripDayCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    weekStripDaySelected: {
+        backgroundColor: '#E8F0FE',
+    },
+    weekStripDayNum: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#222',
+    },
+    weekStripDayNumSelected: {
+        color: '#3B82F6',
+        fontWeight: '800',
+    },
+    weekStripTodayDot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#3B82F6',
+        marginTop: 2,
     },
 });
 
