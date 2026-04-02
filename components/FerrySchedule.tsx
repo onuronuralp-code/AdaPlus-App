@@ -1,12 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
@@ -16,13 +10,11 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { fetchDepartures } from "../services/api";
-
-// ... (interfaces and constants remain the same)
 
 interface FerryRoute {
   id: string;
@@ -56,9 +48,9 @@ const MONTHS_EN = [
 const DEPARTURE_LOCATIONS = ["Unselected", ...ALL_LOCATIONS];
 const DESTINATION_LOCATIONS = ["Unselected", ...ALL_LOCATIONS];
 
-// Ferry data is fetched from the API
+// Turn this on during development if you want the tracking button always enabled
+const DEV_ALWAYS_TRACKABLE = true;
 
-// Approximate transit times in minutes between key stops
 const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
   Kınalıada: {
     Burgazada: 15,
@@ -127,7 +119,6 @@ const getArrivalTime = (
   return addMinutes(departureTime, mins);
 };
 
-// ... (calculateDuration remains the same)
 const calculateDuration = (start: string, end: string) => {
   const [startH, startM] = start.split(":").map(Number);
   const [endH, endM] = end.split(":").map(Number);
@@ -143,15 +134,103 @@ const calculateDuration = (start: string, end: string) => {
   return `${m}m`;
 };
 
+const getRouteTimeValue = (time: string): number => {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+};
+
+const isTripTrackable = (route: FerryRoute, selectedDate: Date): boolean => {
+  if (DEV_ALWAYS_TRACKABLE) return true;
+
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+  if (!isToday) return false;
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const departureMinutes = getRouteTimeValue(route.departureTime);
+
+  const arrival = getArrivalTime(
+    route.departure,
+    route.destination,
+    route.departureTime,
+  );
+  const arrivalMinutes = arrival
+    ? getRouteTimeValue(arrival)
+    : departureMinutes + 40;
+
+  const trackingStart = departureMinutes - 20;
+  const trackingEnd = arrivalMinutes + 10;
+
+  return nowMinutes >= trackingStart && nowMinutes <= trackingEnd;
+};
+
+const getTrackingStatus = (route: FerryRoute, selectedDate: Date) => {
+  if (DEV_ALWAYS_TRACKABLE) {
+    return {
+      trackable: true,
+      title: "Live tracking is available now.",
+      subtitle: "Dev mode",
+    };
+  }
+
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+
+  if (!isToday) {
+    return {
+      trackable: false,
+      title: "Live tracking is available only for today’s departures.",
+      subtitle: null,
+    };
+  }
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const departureMinutes = getRouteTimeValue(route.departureTime);
+
+  const arrival = getArrivalTime(
+    route.departure,
+    route.destination,
+    route.departureTime,
+  );
+  const arrivalMinutes = arrival
+    ? getRouteTimeValue(arrival)
+    : departureMinutes + 40;
+
+  const trackingStart = departureMinutes - 20;
+  const trackingEnd = arrivalMinutes + 10;
+
+  if (nowMinutes < trackingStart) {
+    return {
+      trackable: false,
+      title: "Tracking will be available closer to departure.",
+      subtitle: `Live tracking opens about 20 minutes before ${route.departureTime}.`,
+    };
+  }
+
+  if (nowMinutes > trackingEnd) {
+    return {
+      trackable: false,
+      title: "This ferry trip has already ended.",
+      subtitle: "Live tracking is no longer available for this departure.",
+    };
+  }
+
+  return {
+    trackable: true,
+    title: "Live tracking is available now.",
+    subtitle: "Updates roughly every 10 seconds on the map screen.",
+  };
+};
+
 export function FerrySchedule() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  // Destination (formerly selectedIsland)
-  const [destination, setDestination] = useState("Unselected"); // Default to Unselected
+
+  const [destination, setDestination] = useState("Unselected");
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
 
-  // Departure (formerly selectedPort)
   const [departure, setDeparture] = useState("Unselected");
   const [showDepartureDropdown, setShowDepartureDropdown] = useState(false);
 
@@ -164,7 +243,6 @@ export function FerrySchedule() {
   const calendarScrollRef = useRef<ScrollView>(null);
   const isLight = theme === "light";
 
-  // Generate all days of the selected month
   const monthDays = useMemo(() => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -175,27 +253,15 @@ export function FerrySchedule() {
       days.push(new Date(year, month, i));
     }
     return days;
-  }, [selectedDate.getMonth(), selectedDate.getFullYear()]);
+  }, [selectedDate]);
 
   const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Reset to default on focus
-  useFocusEffect(
-    useCallback(() => {
-      setDestination("Unselected");
-      setDeparture("Unselected");
-      setSelectedDate(new Date());
-      return () => {};
-    }, []),
-  );
-
-  // API Integration Data
   const [ferryData, setFerryData] = useState<FerryRoute[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadIds = async () => {
-      // If Unselected, don't fetch anything, showing empty list
       if (destination === "Unselected") {
         setFerryData([]);
         return;
@@ -203,50 +269,37 @@ export function FerrySchedule() {
 
       setLoading(true);
       try {
-        // Determine valid Departments
         const validDepartures =
           departure === "Unselected" ? ALL_LOCATIONS : [departure];
-
-        // Determine valid Destinations
-        // Note: destination 'Unselected' is handled above
         const validDestinations = [destination];
 
-        // Generate pairs (From -> To)
         const pairs: { from: string; to: string }[] = [];
 
         validDepartures.forEach((from) => {
           validDestinations.forEach((to) => {
-            // Exclude same location / self-loops
             if (from !== to) {
               pairs.push({ from, to });
             }
           });
         });
 
-        // Optimization: If > 20 pairs, maybe warn or slice?
-        // For 8 locations, max 8*7 = 56 pairs. A bit heavy but acceptable for demo.
-
         let allRoutes: FerryRoute[] = [];
 
-        // Build date string for API (YYYY-MM-DD), null = today
         const isToday =
           selectedDate.toDateString() === new Date().toDateString();
 
-        // Format date as YYYY-MM-DD in local time to avoid UTC shift issues
         const dateStr = isToday
           ? undefined
           : `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
-        // Use Promise.all for parallel fetching
         const dataPromises = pairs.map((pair) =>
           fetchDepartures(pair.from, pair.to, dateStr),
         );
         const results = await Promise.all(dataPromises);
 
-        results.forEach((data, index) => {
-          // map logic...
+        results.forEach((data) => {
           const mapped = data.map((dto) => ({
-            id: `${dto.from}_${dto.to}_${dto.time}_${Math.random().toString(36).substr(2, 9)}`,
+            id: `${dto.from}|${dto.to}|${dto.time}|${dto.provider}`,
             departure: dto.from,
             destination: dto.to,
             departureTime: dto.time,
@@ -261,11 +314,7 @@ export function FerrySchedule() {
           allRoutes = [...allRoutes, ...mapped];
         });
 
-        if (allRoutes.length > 0) {
-          setFerryData(allRoutes);
-        } else {
-          setFerryData([]);
-        }
+        setFerryData(allRoutes);
       } catch (e) {
         console.error(e);
       } finally {
@@ -281,23 +330,18 @@ export function FerrySchedule() {
     const now = new Date();
     const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
-    // Filter logical changes
     const filtered = ferryData.filter((item) => {
-      // Filter by Destination
       if (destination !== "All") {
         if (item.destination !== destination) return false;
       }
 
-      // Filter by Direct Only
       if (onlyDirect && !item.isDirect) return false;
 
-      // Filter by Selected Departure (Port)
       if (departure !== "Unselected") {
         const port = item.departure;
         if (port !== departure) return false;
       }
 
-      // NEW: Hide past trips for today
       if (isToday) {
         const [h, m] = item.departureTime.split(":").map(Number);
         const routeTimeVal = h * 60 + m;
@@ -307,16 +351,14 @@ export function FerrySchedule() {
       return true;
     });
 
-    // De-duplicate: Same time, destination, and provider
     const uniqueItems = new Map<string, FerryRoute>();
     filtered.forEach((item) => {
-      const key = `${item.departureTime}_${item.destination}_${item.provider}`;
+      const key = `${item.departure}_${item.departureTime}_${item.destination}_${item.provider}`;
       if (!uniqueItems.has(key)) {
         uniqueItems.set(key, item);
       }
     });
 
-    // Group by Port
     const groups: { [key: string]: FerryRoute[] } = {};
 
     Array.from(uniqueItems.values()).forEach((item) => {
@@ -325,7 +367,6 @@ export function FerrySchedule() {
       groups[port].push(item);
     });
 
-    // Sort keys and items
     const sortedKeys = Object.keys(groups).sort();
 
     return sortedKeys.map((port) => {
@@ -337,7 +378,7 @@ export function FerrySchedule() {
         data: [routes],
       };
     });
-  }, [destination, onlyDirect, departure, ferryData]);
+  }, [destination, onlyDirect, departure, ferryData, selectedDate]);
 
   const nextTripIds = useMemo(() => {
     const isToday = selectedDate.toDateString() === new Date().toDateString();
@@ -346,18 +387,14 @@ export function FerrySchedule() {
     if (!isToday) return ids;
 
     const now = new Date();
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
-    const currentTimeVal = currentHours * 60 + currentMinutes;
+    const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
-    // Iterate through all displayed routes to find the closest future trip FOR EACH SECTION
     groupedSections.forEach((section) => {
       let closestId: string | null = null;
       let minDiff = Infinity;
 
       section.data[0].forEach((route) => {
-        const [h, m] = route.departureTime.split(":").map(Number);
-        const routeTimeVal = h * 60 + m;
+        const routeTimeVal = getRouteTimeValue(route.departureTime);
 
         if (routeTimeVal > currentTimeVal) {
           const diff = routeTimeVal - currentTimeVal;
@@ -374,22 +411,19 @@ export function FerrySchedule() {
     });
 
     return ids;
-  }, [groupedSections]);
+  }, [groupedSections, selectedDate]);
 
-  // Auto-scroll to "Next Trip" when data loads
   useEffect(() => {
     if (loading || groupedSections.length === 0 || nextTripIds.size === 0)
       return;
 
-    // Reset the flag so onLayout can capture the position
     hasFoundNextTrip.current = false;
     nextTripY.current = 0;
 
-    // Wait for layout to complete, then scroll
     const scrollTimer = setTimeout(() => {
       if (nextTripY.current > 0) {
         scrollViewRef.current?.scrollTo({
-          y: nextTripY.current - 10, // Small offset for breathing room
+          y: nextTripY.current - 10,
           animated: true,
         });
       }
@@ -398,73 +432,73 @@ export function FerrySchedule() {
     return () => clearTimeout(scrollTimer);
   }, [loading, groupedSections, nextTripIds]);
 
+  const handleTrackFerry = (route: FerryRoute) => {
+    const tracking = getTrackingStatus(route, selectedDate);
+    if (!tracking.trackable) return;
+
+    router.push({
+      pathname: "../ferry-tracking",
+      params: {
+        tripId: route.id,
+        from: route.departure,
+        to: route.destination,
+        departureTime: route.departureTime,
+        arrivalTime:
+          getArrivalTime(
+            route.departure,
+            route.destination,
+            route.departureTime,
+          ) ?? "",
+        provider: route.provider,
+        type: route.type,
+      },
+    });
+  };
+
   const renderGridItem = ({ item }: { item: FerryRoute[] }) => {
     const now = new Date();
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
-    const currentTimeVal = currentHours * 60 + currentMinutes;
+    const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
     return (
       <View style={styles.gridContainer}>
         {item.map((route) => {
           const isNext = nextTripIds.has(route.id);
-
-          // Calculate if trip is in the past
           const isToday =
             selectedDate.toDateString() === new Date().toDateString();
           const [h, m] = route.departureTime.split(":").map(Number);
           const routeTimeVal = h * 60 + m;
           const isPast = isToday && routeTimeVal < currentTimeVal;
+          const showLiveBadge = isTripTrackable(route, selectedDate);
 
           return (
             <TouchableOpacity
               key={route.id}
-              style={[
-                styles.timeChip,
-                isNext && {
-                  borderColor: "#2E7D32",
-                  borderWidth: 1.5,
-                  backgroundColor: "#F1FBF1",
-                },
-              ]}
-              // Show modal on press
+              style={[styles.timeChip, isNext && styles.timeChipNext]}
               onPress={() => setSelectedTrip(route)}
               activeOpacity={0.7}
-              disabled={isPast} // Optional: disable interaction for past trips
+              disabled={isPast}
             >
-              {isNext && (
-                <View
-                  style={{
-                    position: "absolute",
-                    top: -8,
-                    right: -8,
-                    backgroundColor: "#2E7D32",
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderRadius: 10,
-                    zIndex: 1,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: 9,
-                      fontWeight: "700",
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    {t("common.next")}
-                  </Text>
-                </View>
-              )}
+              <View style={styles.cardBadgeRow}>
+                {isNext && (
+                  <View style={styles.nextBadge}>
+                    <Text style={styles.nextBadgeText}>{t("common.next")}</Text>
+                  </View>
+                )}
+
+                {showLiveBadge && (
+                  <View style={styles.liveBadge}>
+                    <Ionicons name="boat-outline" size={10} color="#0F6C7B" />
+                    <Text style={styles.liveBadgeText}>LIVE</Text>
+                  </View>
+                )}
+              </View>
+
               <Text
-                style={[
-                  styles.timeChipText,
-                  isNext && { color: "#1B5E20", fontWeight: "700" },
-                ]}
+                style={[styles.timeChipText, isNext && styles.timeChipTextNext]}
               >
                 {route.departureTime}
               </Text>
+
               {(() => {
                 const arr = getArrivalTime(
                   route.departure,
@@ -475,6 +509,7 @@ export function FerrySchedule() {
                   <Text style={styles.arrivalText}>→ {arr}</Text>
                 ) : null;
               })()}
+
               <Text style={styles.providerText} numberOfLines={1}>
                 {route.provider}
               </Text>
@@ -485,16 +520,17 @@ export function FerrySchedule() {
     );
   };
 
+  const selectedTripTracking = selectedTrip
+    ? getTrackingStatus(selectedTrip, selectedDate)
+    : null;
+
   return (
     <View style={styles.container}>
-      {/* Fixed Header Content */}
       <View style={[styles.fixedHeader, { paddingTop: insets.top + 20 }]}>
-        {/* Header Title */}
         <View style={styles.headerContainer}>
           <Text style={styles.headerTitle}>{t("common.ferrySchedule")}</Text>
         </View>
 
-        {/* Month Strip Date Selector */}
         <View style={styles.weekStripContainer}>
           <View
             style={{
@@ -513,7 +549,6 @@ export function FerrySchedule() {
                     ? selectedDate.getFullYear() - 1
                     : selectedDate.getFullYear();
                 const actualMonth = prevMonth < 0 ? 11 : prevMonth;
-                // If going to the current month, select today
                 if (
                   actualMonth === today.getMonth() &&
                   prevYear === today.getFullYear()
@@ -538,7 +573,6 @@ export function FerrySchedule() {
                     ? selectedDate.getFullYear() + 1
                     : selectedDate.getFullYear();
                 const actualMonth = nextMonth > 11 ? 0 : nextMonth;
-                // If going to the current month, select today
                 if (
                   actualMonth === today.getMonth() &&
                   nextYear === today.getFullYear()
@@ -559,14 +593,13 @@ export function FerrySchedule() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 4 }}
             onLayout={() => {
-              // Auto-scroll to the selected day and CENTER it
               const dayIndex = selectedDate.getDate() - 1;
               const screenWidth = Dimensions.get("window").width;
-              const itemWidth = 45; // Matches weekStripDayCol width
+              const itemWidth = 45;
               const scrollX = Math.max(
                 0,
                 dayIndex * itemWidth - screenWidth / 2 + itemWidth / 2 + 20,
-              ); // +20 for offset
+              );
               calendarScrollRef.current?.scrollTo({
                 x: scrollX,
                 animated: false,
@@ -619,7 +652,6 @@ export function FerrySchedule() {
           </ScrollView>
         </View>
 
-        {/* From / To row */}
         <View
           style={{
             flexDirection: "row",
@@ -628,7 +660,6 @@ export function FerrySchedule() {
             backgroundColor: "#fff",
           }}
         >
-          {/* Departure Dropdown */}
           <View style={{ flex: 1, zIndex: 102 }}>
             <Text style={styles.dropdownLabel}>{t("common.from")}</Text>
             <TouchableOpacity
@@ -672,7 +703,6 @@ export function FerrySchedule() {
             )}
           </View>
 
-          {/* Destination Dropdown */}
           <View style={{ flex: 1, zIndex: 101 }}>
             <Text style={styles.dropdownLabel}>{t("common.to")}</Text>
             <TouchableOpacity
@@ -719,7 +749,6 @@ export function FerrySchedule() {
           </View>
         </View>
 
-        {/* Direct filter */}
         <View
           style={{
             flexDirection: "row",
@@ -751,7 +780,6 @@ export function FerrySchedule() {
         </View>
       </View>
 
-      {/* Schedule List */}
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.listContent}
@@ -784,7 +812,6 @@ export function FerrySchedule() {
         })}
       </ScrollView>
 
-      {/* Loading Overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
@@ -794,7 +821,6 @@ export function FerrySchedule() {
         </View>
       )}
 
-      {/* Trip Detail Modal */}
       <Modal
         visible={!!selectedTrip}
         transparent
@@ -840,7 +866,6 @@ export function FerrySchedule() {
 
                   <View style={styles.routeContainer}>
                     <Text style={styles.routeLabel}>Route Stops:</Text>
-                    {/* Visualization of the route */}
                     <View style={styles.routeWrapper}>
                       {(() => {
                         const stops = [
@@ -854,7 +879,6 @@ export function FerrySchedule() {
                           "#D32F2F",
                         ];
 
-                        // Build cumulative times
                         const times: string[] = [selectedTrip.departureTime];
                         for (let i = 1; i < stops.length; i++) {
                           const prev = stops[i - 1];
@@ -874,14 +898,7 @@ export function FerrySchedule() {
                                 { backgroundColor: dotColors[i] },
                               ]}
                             />
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                flex: 1,
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                              }}
-                            >
+                            <View style={styles.routeNodeContent}>
                               <Text style={styles.nodeText}>{stop}</Text>
                               {times[i] ? (
                                 <Text style={styles.nodeTime}>{times[i]}</Text>
@@ -891,6 +908,83 @@ export function FerrySchedule() {
                         ));
                       })()}
                     </View>
+                  </View>
+
+                  <View style={styles.liveTrackingContainer}>
+                    <View style={styles.liveTrackingHeader}>
+                      <Ionicons
+                        name="navigate-circle-outline"
+                        size={18}
+                        color="#0F6C7B"
+                      />
+                      <Text style={styles.liveTrackingTitle}>
+                        Live Tracking
+                      </Text>
+                    </View>
+
+                    <Text style={styles.liveTrackingStatusTitle}>
+                      {selectedTripTracking?.title}
+                    </Text>
+
+                    {selectedTripTracking?.subtitle ? (
+                      <Text style={styles.liveTrackingStatusSubtitle}>
+                        {selectedTripTracking.subtitle}
+                      </Text>
+                    ) : null}
+
+                    <TouchableOpacity
+                      style={[
+                        styles.trackButton,
+                        !selectedTripTracking?.trackable &&
+                          styles.trackButtonDisabled,
+                      ]}
+                      activeOpacity={0.8}
+                      disabled={!selectedTripTracking?.trackable}
+                      onPress={() => {
+                        const trip = selectedTrip;
+                        setSelectedTrip(null);
+                        setTimeout(() => {
+                          if (trip) handleTrackFerry(trip);
+                        }, 150);
+                      }}
+                    >
+                      <Ionicons
+                        name="map-outline"
+                        size={16}
+                        color={
+                          selectedTripTracking?.trackable ? "#fff" : "#999"
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.trackButtonText,
+                          !selectedTripTracking?.trackable &&
+                            styles.trackButtonTextDisabled,
+                        ]}
+                      >
+                        Track Ferry on Map
+                      </Text>
+                    </TouchableOpacity>
+
+                    {selectedTripTracking?.trackable && (
+                      <Text style={styles.liveTrackingFootnote}>
+                        Map updates are fetched only while this trip is active.
+                      </Text>
+                    )}
+                  </View>
+
+                  <View style={styles.tripMetaRow}>
+                    <Text style={styles.tripMetaText}>
+                      Duration:{" "}
+                      {calculateDuration(
+                        selectedTrip.departureTime,
+                        getArrivalTime(
+                          selectedTrip.departure,
+                          selectedTrip.destination,
+                          selectedTrip.departureTime,
+                        ) ?? selectedTrip.departureTime,
+                      )}
+                    </Text>
                   </View>
                 </View>
               </>
@@ -1013,21 +1107,70 @@ const styles = StyleSheet.create({
     rowGap: 8,
   },
   timeChip: {
+    position: "relative",
     backgroundColor: "#f8f8f8",
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 0.5,
     borderColor: "#e8e8e8",
-    width: "48.8%", // Matches the 'From' and 'To' distribution with 8px gap
+    width: "48.8%",
+    minHeight: 92,
     alignItems: "center",
     justifyContent: "center",
+  },
+  timeChipNext: {
+    borderColor: "#2E7D32",
+    borderWidth: 1.5,
+    backgroundColor: "#F1FBF1",
+  },
+  cardBadgeRow: {
+    position: "absolute",
+    top: -8,
+    left: 8,
+    right: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    zIndex: 2,
+  },
+  nextBadge: {
+    backgroundColor: "#2E7D32",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  nextBadgeText: {
+    color: "#fff",
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  liveBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#EAF8FA",
+    borderColor: "#B9E3EA",
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  liveBadgeText: {
+    color: "#0F6C7B",
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.4,
   },
   timeChipText: {
     color: "#000",
     fontWeight: "600",
     fontSize: 16,
     marginBottom: 2,
+  },
+  timeChipTextNext: {
+    color: "#1B5E20",
+    fontWeight: "700",
   },
   arrivalText: {
     color: "#aaa",
@@ -1204,7 +1347,13 @@ const styles = StyleSheet.create({
   routeNode: {
     flexDirection: "row",
     alignItems: "center",
-    height: 32, // Fixed height for alignment
+    height: 32,
+  },
+  routeNodeContent: {
+    flexDirection: "row",
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   dot: {
     width: 10,
@@ -1215,8 +1364,8 @@ const styles = StyleSheet.create({
   },
   verticalLine: {
     position: "absolute",
-    left: 4, // Center of dot (10px width / 2 - 1px line width)
-    top: -22, // Extend up to previous node
+    left: 4,
+    top: -22,
     bottom: 5,
     width: 2,
     backgroundColor: "#ddd",
@@ -1230,6 +1379,69 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#2B7A8E",
     fontWeight: "600",
+  },
+  liveTrackingContainer: {
+    marginTop: 4,
+    borderRadius: 14,
+    backgroundColor: "#F7FBFC",
+    borderWidth: 1,
+    borderColor: "#E3EFF2",
+    padding: 14,
+    gap: 8,
+  },
+  liveTrackingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  liveTrackingTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#184A54",
+  },
+  liveTrackingStatusTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#244047",
+  },
+  liveTrackingStatusSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#6A7E84",
+  },
+  trackButton: {
+    marginTop: 4,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#0F6C7B",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  trackButtonDisabled: {
+    backgroundColor: "#F0F2F4",
+    borderWidth: 1,
+    borderColor: "#E1E6EA",
+  },
+  trackButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  trackButtonTextDisabled: {
+    color: "#999",
+  },
+  liveTrackingFootnote: {
+    fontSize: 12,
+    color: "#6A7E84",
+  },
+  tripMetaRow: {
+    marginTop: 2,
+  },
+  tripMetaText: {
+    fontSize: 13,
+    color: "#7A7A7A",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -1255,7 +1467,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#2B7A8E",
   },
-  // Week Strip styles
   weekStripContainer: {
     backgroundColor: "#fff",
     borderRadius: 10,
