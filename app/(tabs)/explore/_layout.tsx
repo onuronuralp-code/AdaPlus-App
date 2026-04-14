@@ -5,6 +5,10 @@ export default function ExploreLayout() {
         <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="island/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="island/restaurant" options={{ headerShown: false }} />
+            <Stack.Screen name="island/transportation" options={{ headerShown: false }} />
+            <Stack.Screen name="island/forum" options={{ headerShown: false }} />
+            <Stack.Screen name="island/guided-tour" options={{ headerShown: false }} />
         </Stack>
     );
 }

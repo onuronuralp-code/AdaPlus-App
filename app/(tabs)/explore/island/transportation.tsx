@@ -28,23 +28,8 @@ export default function TransportationScreen() {
     const { islandId } = useLocalSearchParams<{ islandId: string }>();
 
     const [routes, setRoutes] = useState<TransportationRoute[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [loading, setLoading] = useState(true);
-
-    const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    const weekDays = React.useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const days: Date[] = [];
-        for (let i = 0; i < 30; i++) {
-            const d = new Date(today);
-            d.setDate(today.getDate() + i);
-            days.push(d);
-        }
-        return days;
-    }, []);
+    const selectedDate = new Date();
 
     useEffect(() => {
         const loadBusData = async () => {
@@ -95,50 +80,6 @@ export default function TransportationScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Date Picker Strip */}
-                <View style={styles.datePickerContainer}>
-                    <View style={styles.datePickerHeader}>
-                        <Text style={styles.datePickerTitle}>
-                            {MONTHS_EN[selectedDate.getMonth()]} {selectedDate.getFullYear()}
-                        </Text>
-                        {selectedDate.toDateString() === new Date().toDateString() && (
-                            <Text style={styles.todayLabel}>{t('common.today')}</Text>
-                        )}
-                    </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {weekDays.map((day, i) => {
-                            const isSelected = day.toDateString() === selectedDate.toDateString();
-                            const isToday = day.toDateString() === new Date().toDateString();
-                            const dayName = DAY_NAMES_SHORT[day.getDay()];
-                            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-
-                            return (
-                                <TouchableOpacity
-                                    key={i}
-                                    style={styles.dayColumn}
-                                    onPress={() => setSelectedDate(day)}
-                                >
-                                    <Text style={[
-                                        styles.dayName,
-                                        isWeekend && styles.weekendText,
-                                        isSelected && styles.selectedDayText
-                                    ]}>{dayName}</Text>
-                                    <View style={[
-                                        styles.dayCircle,
-                                        isSelected && styles.selectedDayCircle
-                                    ]}>
-                                        <Text style={[
-                                            styles.dayNum,
-                                            isWeekend && styles.weekendText,
-                                            isSelected && styles.selectedDayNum
-                                        ]}>{day.getDate()}</Text>
-                                    </View>
-                                    {isToday && <View style={styles.todayDot} />}
-                                </TouchableOpacity>
-                            )
-                        })}
-                    </ScrollView>
-                </View>
 
                 <View style={styles.infoBox}>
                     <IconSymbol name="info" size={20} color="#3B82F6" />
@@ -168,25 +109,23 @@ export default function TransportationScreen() {
                             <View style={styles.hoursContainer}>
                                 {(() => {
                                     const now = new Date();
-                                    const dateDisplay = `${selectedDate.getDate()} ${MONTHS_EN[selectedDate.getMonth()]}`;
-                                    const isSelectedToday = selectedDate.toDateString() === now.toDateString();
                                     const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
-                                    // Find index of next trip ONLY if it's today
-                                    const nextIndex = isSelectedToday ? route.hours.findIndex(hour => {
+                                    // Find index of next trip
+                                    const nextIndex = route.hours.findIndex(hour => {
                                         const [h, m] = hour.split(':').map(Number);
                                         return (h * 60 + m) >= currentTimeVal;
-                                    }) : -1;
+                                    });
 
                                     return (
                                         <>
-                                            <Text style={styles.sectionHeading}>{t('common.departureHours')} ({dateDisplay})</Text>
+                                            <Text style={styles.sectionHeading}>{t('common.departureHours')}</Text>
                                             <View style={styles.hoursGrid}>
                                                 {route.hours.map((hour, index) => {
                                                     const [h, m] = hour.split(':').map(Number);
                                                     const routeTimeVal = h * 60 + m;
-                                                    const isPast = isSelectedToday && routeTimeVal < currentTimeVal;
-                                                    const isNext = isSelectedToday && index === nextIndex;
+                                                    const isPast = routeTimeVal < currentTimeVal;
+                                                    const isNext = index === nextIndex;
 
                                                     return (
                                                         <View key={index} style={[

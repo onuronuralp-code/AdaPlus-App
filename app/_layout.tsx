@@ -42,6 +42,10 @@ export default function RootLayout() {
                 options={{ presentation: "modal", title: "Modal" }}
               />
               <Stack.Screen
+                name="guide"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="ferry-tracking"
                 options={{
                   title: "Live Tracking",

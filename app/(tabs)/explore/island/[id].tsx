@@ -105,7 +105,7 @@ export default function IslandDetailScreen() {
                     <Image 
                         source={require('@/assets/images/island_doodle.png')} 
                         style={[StyleSheet.absoluteFill, { opacity: 0.15, borderRadius: 24 }]} 
-                        resizeMode="repeat"
+                        resizeMode="cover"
                     />
                     <View style={styles.sectionHeader}>
                         <IconSymbol name={"safari" as any} size={24} color="#EA580C" style={{ marginRight: 8 }} />
@@ -130,16 +130,16 @@ export default function IslandDetailScreen() {
                     <ActivityCard
                         icon="map.fill"
                         color="#EC4899"
-                        title={t('common.tourGuide', { defaultValue: 'Tour Guide' })}
-                        subtitle={t('common.guidedTours', { defaultValue: 'Guided tours of the island' })}
-                        onPress={() => router.push('/(tabs)/explore/island/guide')}
+                        title={t('common.tourGuide', { defaultValue: 'Tur Rehberi' })}
+                        subtitle={t('common.guidedTours', { defaultValue: 'Adalar için akıllı seyahat asistanın' })}
+                        onPress={() => router.push('/guide')}
                     />
                     <ActivityCard
                         icon="bubble.left.and.bubble.right.fill"
                         color="#10B981"
-                        title={t('common.agoraForum', { defaultValue: 'Agora Forum' })}
-                        subtitle={t('common.shareExperiences', { defaultValue: 'Share experiences with other travelers' })}
-                        onPress={() => router.push('/(tabs)/explore/island/forum')}
+                        title={t('common.agoraForum', { defaultValue: 'Topluluk' })}
+                        subtitle={t('common.shareExperiences', { defaultValue: 'Diğer gezginlerle deneyimlerini paylaş' })}
+                        onPress={() => router.push('/signup')}
                     />
                 </View>
             </Animated.ScrollView>

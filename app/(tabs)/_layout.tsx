@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -17,27 +17,45 @@ export default function TabLayout() {
         tabBarLabelStyle: styles.tabLabel,
       }}>
       <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
-          title: 'Discover',
+          title: 'Keşfet',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={24} name={"map" as any} color={color} />
+            <IconSymbol size={24} name={"safari" as any} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Ferry Schedule',
+          title: 'Seferler',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={24} name={"ferry" as any} color={color} />
+            <IconSymbol size={24} name={"ferry.fill" as any} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="contact"
         options={{
-          href: null,
+          title: 'İletişim',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name={"envelope.fill" as any} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name={"person.fill" as any} color={color} />
+          ),
         }}
       />
     </Tabs>
@@ -47,20 +65,20 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 0.5,
-    borderTopColor: '#E0E0E0',
-    height: 80,
-    paddingBottom: 16,
-    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    height: Platform.OS === 'ios' ? 88 : 68,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    paddingTop: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 10,
   },
   tabLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
   },
 });

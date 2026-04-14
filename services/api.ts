@@ -9,7 +9,7 @@ export interface DepartureDto {
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://localhost:8080/api/v1/travel/ferries";
+  "http://192.168.1.104:8080/api/v1/travel/ferries";
 
 export const fetchDepartures = async (
   from: string,
@@ -54,7 +54,7 @@ export interface BusDepartureDto {
   minutesUntil: number;
 }
 
-const BUS_API_BASE_URL = "http://localhost:8080/api/v1/travel/buses";
+const BUS_API_BASE_URL = "http://192.168.1.104:8080/api/v1/travel/buses";
 
 export const fetchBusDepartures = async (
   route: string,

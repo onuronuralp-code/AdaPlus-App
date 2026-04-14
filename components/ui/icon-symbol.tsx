@@ -51,6 +51,15 @@ const MAPPING = {
   'bell.fill': 'notifications', // For Notifications
   'doc.text.fill': 'menu-book', // For Restaurant Menus
   'info.circle.fill': 'info', // For Information and Details
+  
+  // Agora Forum icons
+  'plus': 'add',
+  'chevron.left': 'chevron-left',
+  'bubble.left.fill': 'chat',
+  'heart.fill': 'favorite',
+  'heart': 'favorite-border',
+  'person.fill': 'person',
+  'envelope.fill': 'mail',
 } as Partial<IconMapping>;
 
 /**
