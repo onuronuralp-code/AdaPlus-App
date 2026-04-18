@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
+import { authApi } from '@/services/authApi';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -12,6 +13,80 @@ export default function SignUpScreen() {
     const insets = useSafeAreaInsets();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+    const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; password?: boolean }>({});
+
+    const validateName = (val: string): string | undefined => {
+        const trimmed = val.trim();
+        if (!trimmed) return 'İsim Soyisim alanı boş bırakılamaz.';
+        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(trimmed)) return 'İsim yalnızca harf içermelidir.';
+        if (trimmed.split(/\s+/).length < 2) return 'Lütfen ad ve soyadınızı giriniz.';
+        return undefined;
+    };
+
+    const validateEmail = (val: string): string | undefined => {
+        const trimmed = val.trim();
+        if (!trimmed) return 'E-posta adresi boş bırakılamaz.';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Geçerli bir e-posta adresi giriniz.';
+        return undefined;
+    };
+
+    const validatePassword = (val: string): string | undefined => {
+        if (!val) return 'Şifre alanı boş bırakılamaz.';
+        if (val.length < 8) return 'Şifre en az 8 karakter olmalıdır.';
+        return undefined;
+    };
+
+    const handleNameChange = (val: string) => {
+        setName(val);
+        if (touched.name) setErrors(prev => ({ ...prev, name: validateName(val) }));
+    };
+
+    const handleEmailChange = (val: string) => {
+        setEmail(val);
+        if (touched.email) setErrors(prev => ({ ...prev, email: validateEmail(val) }));
+    };
+
+    const handlePasswordChange = (val: string) => {
+        setPassword(val);
+        if (touched.password) setErrors(prev => ({ ...prev, password: validatePassword(val) }));
+    };
+
+    const handleNameBlur = () => {
+        setTouched(prev => ({ ...prev, name: true }));
+        setErrors(prev => ({ ...prev, name: validateName(name) }));
+    };
+
+    const handleEmailBlur = () => {
+        setTouched(prev => ({ ...prev, email: true }));
+        setErrors(prev => ({ ...prev, email: validateEmail(email) }));
+    };
+
+    const handlePasswordBlur = () => {
+        setTouched(prev => ({ ...prev, password: true }));
+        setErrors(prev => ({ ...prev, password: validatePassword(password) }));
+    };
+
+    const handleSubmit = async () => {
+        const nameError = validateName(name);
+        const emailError = validateEmail(email);
+        const passwordError = validatePassword(password);
+        setTouched({ name: true, email: true, password: true });
+        setErrors({ name: nameError, email: emailError, password: passwordError });
+        if (nameError || emailError || passwordError) return;
+
+        setLoading(true);
+        try {
+            await authApi.signup(name.trim(), email.trim(), password);
+            router.push({ pathname: '/verify', params: { email: email.trim() } });
+        } catch (error: any) {
+            Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -28,9 +103,9 @@ export default function SignUpScreen() {
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <View style={[styles.branding, { paddingTop: insets.top + 60 }]}>
+                <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
                     <View style={styles.logoCircle}>
-                        <IconSymbol name="plus" size={40} color="#3B82F6" />
+                        <IconSymbol name="plus" size={30} color="#3B82F6" />
                     </View>
                     <Text style={styles.welcomeTitle}>Topluluğa Hoş Geldin</Text>
                     <Text style={styles.welcomeSubtitle}>Adanın en büyük topluluğuna katılarak maceranı paylaşmaya başla.</Text>
@@ -38,29 +113,28 @@ export default function SignUpScreen() {
             </LinearGradient>
 
             <View style={styles.cardContainer}>
-                <ScrollView 
-                    contentContainerStyle={styles.scrollContent} 
-                    showsVerticalScrollIndicator={false}
-                    bounces={false}
-                >
+                <View style={styles.formContainer}>
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>İSİM SOYİSİM</Text>
-                        <View style={styles.inputWrapper}>
-                            <IconSymbol name="person.fill" size={18} color="#94A3B8" />
+                        <View style={[styles.inputWrapper, errors.name ? styles.inputWrapperError : null]}>
+                            <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="Örn: Ahmet Yılmaz"
                                 placeholderTextColor="#94A3B8"
                                 value={name}
-                                onChangeText={setName}
+                                onChangeText={handleNameChange}
+                                onBlur={handleNameBlur}
+                                autoCapitalize="words"
                             />
                         </View>
+                        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
                     </View>
 
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>E-POSTA ADRESİ</Text>
-                        <View style={styles.inputWrapper}>
-                            <IconSymbol name="envelope.fill" size={18} color="#94A3B8" />
+                        <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
+                            <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="ahmet@example.com"
@@ -68,18 +142,44 @@ export default function SignUpScreen() {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={handleEmailChange}
+                                onBlur={handleEmailBlur}
                             />
                         </View>
+                        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>ŞİFRE</Text>
+                        <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                            <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
+                            <TextInput 
+                                style={styles.input} 
+                                placeholder="En az 6 karakter"
+                                placeholderTextColor="#94A3B8"
+                                secureTextEntry
+                                value={password}
+                                onChangeText={handlePasswordChange}
+                                onBlur={handlePasswordBlur}
+                            />
+                        </View>
+                        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                     </View>
 
                     <TouchableOpacity 
-                        style={styles.primaryButton} 
-                        onPress={() => router.replace('/(tabs)/explore/island/forum')}
+                        style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
+                        onPress={handleSubmit}
                         activeOpacity={0.8}
+                        disabled={loading}
                     >
-                        <Text style={styles.primaryButtonText}>Devam Et</Text>
-                        <IconSymbol name="chevron.right" size={18} color="#fff" />
+                        {loading ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                            <>
+                                <Text style={styles.primaryButtonText}>Kayıt Ol</Text>
+                                <IconSymbol name="chevron.right" size={18} color="#fff" />
+                            </>
+                        )}
                     </TouchableOpacity>
 
                     <View style={styles.divider}>
@@ -100,12 +200,12 @@ export default function SignUpScreen() {
                     </View>
 
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>Zaten bir hesabın var mı? </Text>
+                        <Text style={styles.footerText}>Zaten hesabın var mı? </Text>
                         <TouchableOpacity onPress={() => router.push('/login')}>
                             <Text style={styles.loginText}>Giriş Yap</Text>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
+                </View>
             </View>
         </View>
     );
@@ -135,27 +235,27 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logoCircle: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 64,
+        height: 64,
+        borderRadius: 32,
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 20,
+        marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
         shadowRadius: 20,
     },
     welcomeTitle: {
-        fontSize: 26,
+        fontSize: 24,
         fontWeight: '900',
         color: '#fff',
         textAlign: 'center',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     welcomeSubtitle: {
-        fontSize: 14,
+        fontSize: 13,
         color: 'rgba(255,255,255,0.7)',
         textAlign: 'center',
         lineHeight: 20,
@@ -164,17 +264,18 @@ const styles = StyleSheet.create({
     cardContainer: {
         flex: 1,
         backgroundColor: '#fff',
-        marginTop: -40,
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
-        paddingHorizontal: 30,
-        paddingTop: 40,
+        marginTop: -20,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingHorizontal: 20,
+        paddingTop: 24,
     },
-    scrollContent: {
-        paddingBottom: 40,
+    formContainer: {
+        flex: 1,
+        paddingBottom: 20,
     },
     inputGroup: {
-        marginBottom: 24,
+        marginBottom: 20,
     },
     inputLabel: {
         fontSize: 11,
@@ -218,12 +319,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: 'bold',
-        marginRight: 8,
     },
     divider: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 32,
+        marginVertical: 16,
     },
     line: {
         flex: 1,
@@ -261,7 +361,7 @@ const styles = StyleSheet.create({
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 32,
+        marginTop: 20,
     },
     footerText: {
         fontSize: 14,
@@ -271,5 +371,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         color: '#3B82F6',
+    },
+    inputWrapperError: {
+        borderColor: '#EF4444',
+        borderWidth: 1.5,
+    },
+    errorText: {
+        color: '#EF4444',
+        fontSize: 12,
+        fontWeight: '600',
+        marginTop: 6,
+        marginLeft: 4,
     },
 });

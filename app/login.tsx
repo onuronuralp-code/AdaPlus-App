@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
+import { authApi } from '@/services/authApi';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -12,6 +13,70 @@ export default function LoginScreen() {
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+    const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
+
+    const validateEmail = (val: string): string | undefined => {
+        const trimmed = val.trim();
+        if (!trimmed) return 'E-posta adresi boş bırakılamaz.';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Geçerli bir e-posta adresi giriniz.';
+        return undefined;
+    };
+
+    const validatePassword = (val: string): string | undefined => {
+        if (!val) return 'Şifre alanı boş bırakılamaz.';
+        if (val.length < 6) return 'Şifre en az 6 karakter olmalıdır.';
+        return undefined;
+    };
+
+    const handleEmailChange = (val: string) => {
+        setEmail(val);
+        if (touched.email) setErrors(prev => ({ ...prev, email: validateEmail(val) }));
+    };
+
+    const handlePasswordChange = (val: string) => {
+        setPassword(val);
+        if (touched.password) setErrors(prev => ({ ...prev, password: validatePassword(val) }));
+    };
+
+    const handleEmailBlur = () => {
+        setTouched(prev => ({ ...prev, email: true }));
+        setErrors(prev => ({ ...prev, email: validateEmail(email) }));
+    };
+
+    const handlePasswordBlur = () => {
+        setTouched(prev => ({ ...prev, password: true }));
+        setErrors(prev => ({ ...prev, password: validatePassword(password) }));
+    };
+
+    const handleSubmit = async () => {
+        const emailError = validateEmail(email);
+        const passwordError = validatePassword(password);
+        setTouched({ email: true, password: true });
+        setErrors({ email: emailError, password: passwordError });
+        if (emailError || passwordError) return;
+
+        setLoading(true);
+        try {
+            const response = await authApi.login(email.trim(), password);
+            // TODO: Store token in AsyncStorage
+            console.log('Login successful, token:', response.token);
+            router.replace('/(tabs)/explore/island/forum');
+        } catch (error: any) {
+            const msg = error.message || 'Giriş yapılamadı.';
+            if (msg.toLowerCase().includes('verified') || msg.toLowerCase().includes('doğrulan')) {
+                Alert.alert('Doğrulama Gerekli', 'E-postanız henüz doğrulanmamış.', [
+                    { text: 'İptal', style: 'cancel' },
+                    { text: 'Doğrula', onPress: () => router.push({ pathname: '/verify', params: { email: email.trim() } }) },
+                ]);
+            } else {
+                Alert.alert('Giriş Hatası', msg);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -28,9 +93,9 @@ export default function LoginScreen() {
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <View style={[styles.branding, { paddingTop: insets.top + 60 }]}>
+                <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
                     <View style={styles.logoCircle}>
-                        <IconSymbol name="person.fill" size={36} color="#10B981" />
+                        <IconSymbol name="person.fill" size={28} color="#10B981" />
                     </View>
                     <Text style={styles.welcomeTitle}>Tekrar Merhaba</Text>
                     <Text style={styles.welcomeSubtitle}>Hesabına giriş yap ve toplulukta neler olup bittiğini gör.</Text>
@@ -38,15 +103,11 @@ export default function LoginScreen() {
             </LinearGradient>
 
             <View style={styles.cardContainer}>
-                <ScrollView 
-                    contentContainerStyle={styles.scrollContent} 
-                    showsVerticalScrollIndicator={false}
-                    bounces={false}
-                >
+                <View style={styles.formContainer}>
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>E-POSTA</Text>
-                        <View style={styles.inputWrapper}>
-                            <IconSymbol name="envelope.fill" size={18} color="#94A3B8" />
+                        <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
+                            <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="E-posta adresini gir"
@@ -54,34 +115,38 @@ export default function LoginScreen() {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={handleEmailChange}
+                                onBlur={handleEmailBlur}
                             />
                         </View>
+                        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
                     </View>
 
                     <View style={styles.inputGroup}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Text style={styles.inputLabel}>ŞİFRE</Text>
                             <TouchableOpacity>
-                                <Text style={styles.forgotText}>Unuttum?</Text>
+                                <Text style={styles.forgotText}>Şifremi Unuttum</Text>
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.inputWrapper}>
-                            <IconSymbol name="plus" size={18} color="#94A3B8" /> 
+                        <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                            <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="********"
                                 placeholderTextColor="#94A3B8"
                                 secureTextEntry
                                 value={password}
-                                onChangeText={setPassword}
+                                onChangeText={handlePasswordChange}
+                                onBlur={handlePasswordBlur}
                             />
                         </View>
+                        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                     </View>
 
                     <TouchableOpacity 
                         style={styles.primaryButton} 
-                        onPress={() => router.replace('/(tabs)/explore/island/forum')}
+                        onPress={handleSubmit}
                         activeOpacity={0.8}
                     >
                         <Text style={styles.primaryButtonText}>Giriş Yap</Text>
@@ -93,7 +158,7 @@ export default function LoginScreen() {
                             <Text style={styles.signupText}>Hemen Katıl</Text>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
+                </View>
             </View>
         </View>
     );
@@ -104,11 +169,11 @@ const styles = StyleSheet.create({
     headerBackground: { height: SCREEN_HEIGHT * 0.358, paddingHorizontal: 30 },
     backButton: { position: 'absolute', left: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     branding: { alignItems: 'center' },
-    logoCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-    welcomeTitle: { fontSize: 26, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 12 },
-    welcomeSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
-    cardContainer: { flex: 1, backgroundColor: '#fff', marginTop: -40, borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingHorizontal: 30, paddingTop: 40 },
-    scrollContent: { paddingBottom: 40 },
+    logoCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+    welcomeTitle: { fontSize: 24, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },
+    welcomeSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
+    cardContainer: { flex: 1, backgroundColor: '#fff', marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 24 },
+    formContainer: { flex: 1, paddingBottom: 20 },
     inputGroup: { marginBottom: 24 },
     inputLabel: { fontSize: 11, fontWeight: '800', color: '#415A77', marginBottom: 8, letterSpacing: 1 },
     inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#E2E8F0' },
@@ -116,7 +181,9 @@ const styles = StyleSheet.create({
     forgotText: { fontSize: 11, fontWeight: '800', color: '#10B981', marginBottom: 8 },
     primaryButton: { backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 18, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
     primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },
+    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 'auto' },
     footerText: { fontSize: 14, color: '#94A3B8' },
-    signupText: { fontSize: 14, fontWeight: 'bold', color: '#1e293b' }
+    signupText: { fontSize: 14, fontWeight: 'bold', color: '#1e293b' },
+    inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },
+    errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginTop: 6, marginLeft: 4 },
 });
