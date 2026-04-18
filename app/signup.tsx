@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -89,7 +89,8 @@ export default function SignUpScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             
             <LinearGradient 
@@ -155,7 +156,7 @@ export default function SignUpScreen() {
                             <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="En az 6 karakter"
+                                placeholder="En az 8 karakter"
                                 placeholderTextColor="#94A3B8"
                                 secureTextEntry
                                 value={password}
@@ -208,6 +209,7 @@ export default function SignUpScreen() {
                 </View>
             </View>
         </View>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -380,7 +382,8 @@ const styles = StyleSheet.create({
         color: '#EF4444',
         fontSize: 12,
         fontWeight: '600',
-        marginTop: 6,
-        marginLeft: 4,
+        position: 'absolute',
+        bottom: -18,
+        left: 4,
     },
 });

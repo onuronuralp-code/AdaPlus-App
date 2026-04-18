@@ -1,4 +1,4 @@
-const AUTH_BASE_URL = 'http://192.168.1.102:8080/api/v1/auth';
+const AUTH_BASE_URL = 'http://192.168.5.136:8080/api/v1/auth';
 
 export interface UserProfile {
     id: string;
@@ -66,6 +66,20 @@ export const authApi = {
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || data.error || 'Kod gönderilemedi.');
+        }
+        return data;
+    },
+
+    forgotPassword: async (email: string): Promise<{ message: string }> => {
+        const response = await fetch(`${AUTH_BASE_URL}/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || data.error || 'Şifre sıfırlama bağlantısı gönderilemedi.');
         }
         return data;
     },

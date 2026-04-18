@@ -3,15 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const router = useRouter();
 
     return (
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-                <Text style={styles.headerTitle}>Profil</Text>
+                <Text style={styles.headerTitle}>{t('common.tabProfile')}</Text>
                 <TouchableOpacity style={styles.settingsButton}>
                     <IconSymbol name="plus" size={24} color="#000" />
                 </TouchableOpacity>
@@ -34,33 +36,24 @@ export default function ProfileScreen() {
                     <View style={styles.statsRow}>
                         <View style={styles.statBox}>
                             <Text style={styles.statValue}>12</Text>
-                            <Text style={styles.statLabel}>Paylaşım</Text>
+                            <Text style={styles.statLabel}>{t('common.posts', { defaultValue: 'Paylaşım' })}</Text>
                         </View>
-                        <View style={styles.statDivider} />
-                        <View style={styles.statBox}>
-                            <Text style={styles.statValue}>248</Text>
-                            <Text style={styles.statLabel}>Takipçi</Text>
-                        </View>
-                        <View style={styles.statDivider} />
-                        <View style={styles.statBox}>
-                            <Text style={styles.statValue}>156</Text>
-                            <Text style={styles.statLabel}>Takip</Text>
-                        </View>
+
                     </View>
                 </View>
 
                 <View style={styles.menuSection}>
-                    <ProfileMenuItem icon="heart.fill" label="Favorilerim" color="#EC4899" />
-                    <ProfileMenuItem icon="calendar" label="Etkinliklerim" color="#F59E0B" />
-                    <ProfileMenuItem icon="map.fill" label="Gezi Geçmişi" color="#3B82F6" />
-                    <ProfileMenuItem icon="envelope.fill" label="Mesajlar" color="#10B981" />
+                    <ProfileMenuItem icon="heart.fill" label={t('common.myFavorites', { defaultValue: 'Favorilerim' })} color="#EC4899" />
+                    <ProfileMenuItem icon="calendar" label={t('common.myEvents', { defaultValue: 'Etkinliklerim' })} color="#F59E0B" />
+                    <ProfileMenuItem icon="map.fill" label={t('common.travelHistory', { defaultValue: 'Gezi Geçmişi' })} color="#3B82F6" />
+                    <ProfileMenuItem icon="envelope.fill" label={t('common.messages', { defaultValue: 'Mesajlar' })} color="#10B981" />
                 </View>
 
                 <TouchableOpacity 
                     style={styles.logoutButton} 
                     onPress={() => router.replace('/login')}
                 >
-                    <Text style={styles.logoutText}>Çıkış Yap</Text>
+                    <Text style={styles.logoutText}>{t('common.logout', { defaultValue: 'Çıkış Yap' })}</Text>
                 </TouchableOpacity>
             </ScrollView>
         </View>

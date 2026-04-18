@@ -1,42 +1,37 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { fetchActivities, AppActivityDto } from '@/services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function EventsScreen() {
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
 
-    const events = [
-        {
-            id: '1',
-            title: 'Summer Music Festival',
-            date: 'Tomorrow, 19:00',
-            location: 'Sunset Beach',
-            image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
-            color: '#EC4899',
-            categoryIcon: 'sunny'
-        },
-        {
-            id: '2',
-            title: 'Bicycle Tour',
-            date: 'Saturday, 10:00',
-            location: 'Main Square',
-            image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800&auto=format&fit=crop&q=80',
-            color: '#3B82F6',
-            categoryIcon: 'bicycle'
-        },
-        {
-            id: '3',
-            title: 'Local Art Exhibition',
-            date: 'Next Week',
-            location: 'Island Gallery',
-            image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&auto=format&fit=crop&q=80',
-            color: '#10B981',
-            categoryIcon: 'camera.fill'
+    const [events, setEvents] = useState<AppActivityDto[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadEvents();
+    }, []);
+
+    const loadEvents = async () => {
+        try {
+            const data = await fetchActivities();
+            setEvents(data);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return t('common.notSpecified', { defaultValue: 'Belirtilmemiş' });
+        const d = new Date(dateString);
+        return d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
 
     return (
         <View style={styles.container}>
@@ -46,31 +41,38 @@ export default function EventsScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <IconSymbol name="chevron.left" size={24} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Etkinlikler</Text>
+                <Text style={styles.headerTitle}>{t('common.events')}</Text>
             </View>
 
             <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-                {events.map((event) => (
-                    <TouchableOpacity key={event.id} style={styles.eventCard} activeOpacity={0.8}>
-                        <Image source={{ uri: event.image }} style={styles.eventImage} />
-                        <View style={styles.eventInfo}>
-                            <View style={styles.titleRow}>
-                                <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
-                                {event.categoryIcon && (
-                                    <IconSymbol name={event.categoryIcon as any} size={20} color="#94A3B8" />
-                                )}
+                {loading ? (
+                    <ActivityIndicator size="large" color="#3B82F6" style={{ marginTop: 40 }} />
+                ) : events.length === 0 ? (
+                    <Text style={{ textAlign: 'center', marginTop: 40, color: '#94A3B8' }}>{t('common.noEventsFound', { defaultValue: 'Şu an için etkinlik bulunmamaktadır.' })}</Text>
+                ) : (
+                    events.map((event) => (
+                        <TouchableOpacity key={event.id} style={styles.eventCard} activeOpacity={0.8}>
+                            <Image 
+                                source={{ uri: event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }} 
+                                style={styles.eventImage} 
+                            />
+                            <View style={styles.eventInfo}>
+                                <View style={styles.titleRow}>
+                                    <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
+                                    <IconSymbol name="star.fill" size={20} color="#94A3B8" />
+                                </View>
+                                <View style={styles.eventDetailsRow}>
+                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                    <Text style={[styles.eventDate, { color: '#3B82F6' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                </View>
+                                <View style={styles.eventDetailsRow}>
+                                    <IconSymbol name="person.fill" size={14} color="#778DA9" />
+                                    <Text style={styles.eventLocation} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                </View>
                             </View>
-                            <View style={styles.eventDetailsRow}>
-                                <IconSymbol name="calendar" size={14} color={event.color} />
-                                <Text style={[styles.eventDate, { color: event.color }]} numberOfLines={1}>{event.date}</Text>
-                            </View>
-                            <View style={styles.eventDetailsRow}>
-                                <IconSymbol name="mappin.and.ellipse" size={14} color="#778DA9" />
-                                <Text style={styles.eventLocation} numberOfLines={1}>{event.location}</Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                        </TouchableOpacity>
+                    ))
+                )}
             </ScrollView>
         </View>
     );

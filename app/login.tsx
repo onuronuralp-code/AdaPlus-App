@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -14,6 +14,7 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
 
@@ -57,6 +58,8 @@ export default function LoginScreen() {
         setErrors({ email: emailError, password: passwordError });
         if (emailError || passwordError) return;
 
+        if (emailError || passwordError) return;
+
         setLoading(true);
         try {
             const response = await authApi.login(email.trim(), password);
@@ -78,8 +81,28 @@ export default function LoginScreen() {
         }
     };
 
+    const handleForgotPasswordSubmit = async () => {
+        const emailError = validateEmail(email);
+        setTouched(prev => ({ ...prev, email: true }));
+        setErrors(prev => ({ ...prev, email: emailError }));
+        if (emailError) return;
+
+        setLoading(true);
+        try {
+            await authApi.forgotPassword(email.trim());
+            Alert.alert('E-posta Gönderildi', 'Şifre sıfırlama bağlantısı e-posta adresine gönderildi.', [
+                { text: 'Tamam', onPress: () => setIsForgotPassword(false) }
+            ]);
+        } catch (error: any) {
+            Alert.alert('Hata', error.message || 'Bağlantı gönderilemedi.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <View style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             
             <LinearGradient 
@@ -97,8 +120,12 @@ export default function LoginScreen() {
                     <View style={styles.logoCircle}>
                         <IconSymbol name="person.fill" size={28} color="#10B981" />
                     </View>
-                    <Text style={styles.welcomeTitle}>Tekrar Merhaba</Text>
-                    <Text style={styles.welcomeSubtitle}>Hesabına giriş yap ve toplulukta neler olup bittiğini gör.</Text>
+                    <Text style={styles.welcomeTitle}>{isForgotPassword ? "Şifre Sıfırlama" : "Tekrar Merhaba"}</Text>
+                    <Text style={styles.welcomeSubtitle}>
+                        {isForgotPassword 
+                            ? "E-posta adresini gir, şifreni sıfırlaman için bir bağlantı gönderelim." 
+                            : "Hesabına giriş yap ve toplulukta neler olup bittiğini gör."}
+                    </Text>
                 </View>
             </LinearGradient>
 
@@ -122,45 +149,59 @@ export default function LoginScreen() {
                         {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
                     </View>
 
-                    <View style={styles.inputGroup}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={styles.inputLabel}>ŞİFRE</Text>
-                            <TouchableOpacity>
-                                <Text style={styles.forgotText}>Şifremi Unuttum</Text>
-                            </TouchableOpacity>
+                    {!isForgotPassword && (
+                        <View style={styles.inputGroup}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Text style={styles.inputLabel}>ŞİFRE</Text>
+                                <TouchableOpacity onPress={() => setIsForgotPassword(true)}>
+                                    <Text style={styles.forgotText}>Şifremi Unuttum</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                                <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
+                                <TextInput 
+                                    style={styles.input} 
+                                    placeholder="********"
+                                    placeholderTextColor="#94A3B8"
+                                    secureTextEntry
+                                    value={password}
+                                    onChangeText={handlePasswordChange}
+                                    onBlur={handlePasswordBlur}
+                                />
+                            </View>
+                            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                         </View>
-                        <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="********"
-                                placeholderTextColor="#94A3B8"
-                                secureTextEntry
-                                value={password}
-                                onChangeText={handlePasswordChange}
-                                onBlur={handlePasswordBlur}
-                            />
-                        </View>
-                        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-                    </View>
+                    )}
 
                     <TouchableOpacity 
-                        style={styles.primaryButton} 
-                        onPress={handleSubmit}
+                        style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
+                        onPress={isForgotPassword ? handleForgotPasswordSubmit : handleSubmit}
                         activeOpacity={0.8}
+                        disabled={loading}
                     >
-                        <Text style={styles.primaryButtonText}>Giriş Yap</Text>
+                        {loading ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                            <Text style={styles.primaryButtonText}>{isForgotPassword ? "Bağlantı Gönder" : "Giriş Yap"}</Text>
+                        )}
                     </TouchableOpacity>
 
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>Henüz hesabın yok mu? </Text>
-                        <TouchableOpacity onPress={() => router.push('/signup')}>
-                            <Text style={styles.signupText}>Hemen Katıl</Text>
+                    {isForgotPassword ? (
+                        <TouchableOpacity style={{ marginTop: 24, alignItems: 'center' }} onPress={() => setIsForgotPassword(false)}>
+                            <Text style={{ color: '#64748B', fontWeight: 'bold' }}>Giriş Ekranına Dön</Text>
                         </TouchableOpacity>
-                    </View>
+                    ) : (
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Henüz hesabın yok mu? </Text>
+                            <TouchableOpacity onPress={() => router.push('/signup')}>
+                                <Text style={styles.signupText}>Hemen Katıl</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -185,5 +226,5 @@ const styles = StyleSheet.create({
     footerText: { fontSize: 14, color: '#94A3B8' },
     signupText: { fontSize: 14, fontWeight: 'bold', color: '#1e293b' },
     inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },
-    errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginTop: 6, marginLeft: 4 },
+    errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', position: 'absolute', bottom: -18, left: 4 },
 });

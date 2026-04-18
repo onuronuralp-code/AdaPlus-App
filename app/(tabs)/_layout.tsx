@@ -4,8 +4,10 @@ import { StyleSheet, Platform } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useTranslation } from 'react-i18next';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -25,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Keşfet',
+          title: t('common.tabDiscover', { defaultValue: 'Keşfet' }),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name={"safari" as any} color={color} />
           ),
@@ -34,7 +36,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Seferler',
+          title: t('common.tabSchedule', { defaultValue: 'Seferler' }),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name={"ferry.fill" as any} color={color} />
           ),
@@ -43,7 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contact"
         options={{
-          title: 'İletişim',
+          title: t('common.tabRequests', { defaultValue: 'İletişim' }),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name={"envelope.fill" as any} color={color} />
           ),
@@ -52,7 +54,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: t('common.tabProfile', { defaultValue: 'Profil' }),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name={"person.fill" as any} color={color} />
           ),

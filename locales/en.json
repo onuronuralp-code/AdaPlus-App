@@ -23,9 +23,15 @@
         "prohibitedVehicles": "Motor vehicles are prohibited on the islands. Transportation is provided by eco-friendly electric buses and shuttles.",
         "servicesAndActivities": "Services & Activities",
         "islandShuttles": "Island shuttles and taxi services",
-        "tourGuide": "Tur Rehberi",
+        "events": "Events",
+        "tabDiscover": "Discover",
+        "tabSchedule": "Schedule",
+        "tabRequests": "Requests",
+        "tabProfile": "Profile",
+        "adaAI": "Tour Guide",
+        "yourSmartGuide": "Your smart travel assistant for the islands",
         "guidedTours": "Your personal island AI companion",
-        "agoraForum": "Topluluk",
+        "agoraForum": "Community",
         "shareExperiences": "Share experiences with other travelers"
     },
     "islands": {

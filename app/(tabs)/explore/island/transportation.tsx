@@ -6,20 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const ISLAND_ROUTES: Record<string, string[]> = {
-    '1': ['KA-1', 'KA-2'],
-    '2': ['BU-1'],
-    '3': ['HA-1', 'HA-3'],
-    '4': ['BA-1', 'BA-2-A', 'BA-2-B', 'BA-4', 'BA-5'],
-};
-
-interface TransportationRoute {
-    id: string;
-    name: string;
-    type: string;
-    stations: string[];
-    hours: string[];
-}
 
 export default function TransportationScreen() {
     const { t } = useTranslation();
@@ -27,46 +13,7 @@ export default function TransportationScreen() {
     const insets = useSafeAreaInsets();
     const { islandId } = useLocalSearchParams<{ islandId: string }>();
 
-    const [routes, setRoutes] = useState<TransportationRoute[]>([]);
-    const [loading, setLoading] = useState(true);
-    const selectedDate = new Date();
 
-    useEffect(() => {
-        const loadBusData = async () => {
-            const id = islandId || '4'; 
-            const routeCodes = ISLAND_ROUTES[id] || [];
-
-            setLoading(true);
-            try {
-                const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
-                
-                const results = await Promise.all(
-                    routeCodes.map(code => fetchBusDepartures(code, undefined, dateStr))
-                );
-
-                const mappedRoutes: TransportationRoute[] = results
-                    .filter(data => data.length > 0)
-                    .map((data, index) => {
-                        const firstStop = data[0].stop;
-                        return {
-                            id: data[0].routeCode,
-                            name: data[0].routeName,
-                            type: 'Electric Bus',
-                            stations: [firstStop, '...', 'End Station'],
-                            hours: data.map(d => d.time)
-                        };
-                    });
-
-                setRoutes(mappedRoutes);
-            } catch (error) {
-                console.error("Error loading bus data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadBusData();
-    }, [islandId, selectedDate]);
     return (
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
@@ -88,72 +35,9 @@ export default function TransportationScreen() {
                     </Text>
                 </View>
 
-                {loading ? (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#3B82F6" />
-                        <Text style={styles.loadingText}>{t('common.fetchingBusSchedules')}</Text>
-                    </View>
-                ) : routes.length > 0 ? (
-                    routes.map((route) => (
-                        <View key={route.id} style={styles.routeCard}>
-                            <View style={styles.routeHeader}>
-                                <View style={{ flex: 1, marginRight: 8 }}>
-                                    <Text style={styles.routeName} numberOfLines={1} adjustsFontSizeToFit>{route.name}</Text>
-                                    <Text style={styles.routeType} numberOfLines={1}>{t('common.ecoFriendlyBus')}</Text>
-                                </View>
-                                <View style={styles.iconCircle}>
-                                    <IconSymbol name="bus.fill" size={20} color="#3B82F6" />
-                                </View>
-                            </View>
-
-                            <View style={styles.hoursContainer}>
-                                {(() => {
-                                    const now = new Date();
-                                    const currentTimeVal = now.getHours() * 60 + now.getMinutes();
-
-                                    // Find index of next trip
-                                    const nextIndex = route.hours.findIndex(hour => {
-                                        const [h, m] = hour.split(':').map(Number);
-                                        return (h * 60 + m) >= currentTimeVal;
-                                    });
-
-                                    return (
-                                        <>
-                                            <Text style={styles.sectionHeading}>{t('common.departureHours')}</Text>
-                                            <View style={styles.hoursGrid}>
-                                                {route.hours.map((hour, index) => {
-                                                    const [h, m] = hour.split(':').map(Number);
-                                                    const routeTimeVal = h * 60 + m;
-                                                    const isPast = routeTimeVal < currentTimeVal;
-                                                    const isNext = index === nextIndex;
-
-                                                    return (
-                                                        <View key={index} style={[
-                                                            styles.hourBadge,
-                                                            isPast && { opacity: 0.15 },
-                                                            isNext && { borderColor: '#3B82F6', borderWidth: 1.5, backgroundColor: '#EFF6FF' }
-                                                        ]}>
-                                                            {isNext && (
-                                                                <View style={styles.nextBadge}>
-                                                                    <Text style={styles.nextBadgeText}>{t('common.next')}</Text>
-                                                                </View>
-                                                            )}
-                                                            <Text style={[styles.hourText, isNext && { color: '#1D4ED8' }]}>{hour}</Text>
-                                                        </View>
-                                                    );
-                                                })}
-                                            </View>
-                                        </>
-                                    );
-                                })()}
-                            </View>
-                        </View>
-                    ))
-                ) : (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>{t('common.noBusSchedules')}</Text>
-                    </View>
-                )}
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>{t('common.noBusSchedules')}</Text>
+                </View>
             </ScrollView>
         </View>
     );

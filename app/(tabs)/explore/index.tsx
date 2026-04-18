@@ -1,7 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { fetchActivities } from '@/services/api';
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -15,12 +16,95 @@ export default function MainMenuScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
+  const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    fetchActivities().then(activities => {
+      const validActivities = activities.filter((a: any) => a.imageUrl);
+      if (validActivities.length > 0) {
+        setHeroSlides(validActivities.map((a: any) => ({
+          id: a.id,
+          title: a.name,
+          subtitle: a.description || t('common.exploreServices', { defaultValue: 'Explore services & activities' }),
+          imageUrl: a.imageUrl
+        })));
+      }
+    });
+  }, []);
+
+  const dummySlides = [
+    {
+      id: 'default_1',
+      title: t('common.readyForAdventure', { defaultValue: 'Macera Zamanı?' }),
+      subtitle: t('common.exploreServices', { defaultValue: 'Adalardaki hizmetleri ve en yeni etkinlikleri keşfet' }),
+      imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'default_2',
+      title: 'Kültürel Rotalar',
+      subtitle: 'Adanın tarihi sokaklarında yürüyüşe çıkın.',
+      imageUrl: 'https://images.unsplash.com/photo-1542640244-7e672d6cb466?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+      id: 'default_3',
+      title: 'Eşsiz Lezzetler',
+      subtitle: 'Sahil kenarında yerel restoranları deneyimleyin.',
+      imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80'
+    }
+  ];
+
+  const slidesToRender = heroSlides.length > 1 ? heroSlides : (heroSlides.length === 1 ? [...heroSlides, dummySlides[1], dummySlides[2]] : dummySlides);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / width);
+    setActiveIndex(index);
+  };
   return (
     <View style={styles.container}>
-      {/* Hero Header */}
-      <View style={[styles.heroImage, { backgroundColor: '#3B82F6' }]}>
-        {/* Top bar with language & notification */}
-        <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
+      {/* Hero Header Slider Wrapper */}
+      <View style={styles.heroWrapper}>
+        <ScrollView 
+          horizontal 
+          pagingEnabled 
+          showsHorizontalScrollIndicator={false}
+          bounces={false}
+          onMomentumScrollEnd={handleScroll}
+        >
+          {slidesToRender.map(slide => (
+            <ImageBackground 
+                key={slide.id}
+                source={{ uri: slide.imageUrl }} 
+                style={[styles.heroImage, { width }]}
+                imageStyle={{ resizeMode: 'cover' }}
+            >
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.7)']}
+                style={styles.heroOverlay}
+              >
+                <Text style={styles.heroTitle}>{slide.title}</Text>
+                <Text style={styles.heroSubtitle} numberOfLines={2}>{slide.subtitle}</Text>
+              </LinearGradient>
+            </ImageBackground>
+          ))}
+        </ScrollView>
+
+        {/* Pagination Dots (Moved under hero) */}
+        <View style={styles.paginationUnderHero}>
+          {slidesToRender.map((_, index) => (
+            <View 
+              key={index} 
+              style={[
+                styles.dot, 
+                activeIndex === index ? styles.activeDot : null
+              ]} 
+            />
+          ))}
+        </View>
+
+        {/* Top bar with language & notification (Fixed over the slider) */}
+        <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
           <View style={{ flex: 1 }} />
           <View style={styles.headerButtons}>
             <TouchableOpacity
@@ -37,15 +121,6 @@ export default function MainMenuScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Hero overlay with title */}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)']}
-          style={styles.heroOverlay}
-        >
-          <Text style={styles.heroTitle}>{t('common.readyForAdventure', { defaultValue: 'Ready for Adventure?' })}</Text>
-          <Text style={styles.heroSubtitle}>{t('common.exploreServices', { defaultValue: 'Explore services & activities on the islands' })}</Text>
-        </LinearGradient>
       </View>
 
       {/* White body — no scrolling */}
@@ -192,10 +267,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  heroWrapper: {
+    height: SCREEN_HEIGHT * 0.33,
+    width: '100%',
+  },
   heroImage: {
     width: '100%',
-    height: '35.8%',
+    height: '100%',
     justifyContent: 'flex-end',
+  },
+  paginationUnderHero: {
+    height: 30,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fff',
+    marginTop: -10, // Pull it slightly up towards the image
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#CBD5E1', // Darker gray for white bg
+  },
+  activeDot: {
+    width: 20,
+    backgroundColor: '#3B82F6', // Theme color instead of white
   },
   topBar: {
     position: 'absolute',
@@ -273,8 +372,8 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 10,
+    marginTop: 0,
+    marginBottom: 6,
   },
   sectionTitle: {
     fontSize: 18,
@@ -286,8 +385,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 12,
+    padding: 16,
+    marginBottom: 10,
     borderColor: '#f0f0f0',
     borderWidth: 1,
     shadowColor: '#000',

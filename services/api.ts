@@ -9,7 +9,7 @@ export interface DepartureDto {
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://192.168.1.102:8080/api/v1/travel/ferries";
+  "http://192.168.5.136:8080/api/v1/travel/ferries";
 
 export const fetchDepartures = async (
   from: string,
@@ -54,7 +54,7 @@ export interface BusDepartureDto {
   minutesUntil: number;
 }
 
-const BUS_API_BASE_URL = "http://192.168.1.102:8080/api/v1/travel/buses";
+const BUS_API_BASE_URL = "http://192.168.5.136:8080/api/v1/travel/buses";
 
 export const fetchBusDepartures = async (
   route: string,
@@ -80,6 +80,31 @@ export const fetchBusDepartures = async (
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch bus departures:", error);
+    return [];
+  }
+};
+
+export interface AppActivityDto {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  organizerName: string;
+  organizerContact?: string;
+  instagramLink?: string;
+  imageUrl?: string;
+}
+
+const ACTIVITIES_API_BASE_URL = "http://192.168.5.136:8080/api/v1/activities";
+
+export const fetchActivities = async (): Promise<AppActivityDto[]> => {
+  try {
+    const response = await fetch(ACTIVITIES_API_BASE_URL);
+    if (!response.ok) throw new Error("Activities fetch error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch activities:", error);
     return [];
   }
 };
