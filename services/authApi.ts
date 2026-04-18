@@ -83,4 +83,18 @@ export const authApi = {
         }
         return data;
     },
+
+    resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+        const response = await fetch(`${AUTH_BASE_URL}/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, newPassword }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || data.error || 'Şifre sıfırlanamadı. Bağlantı geçersiz veya süresi dolmuş olabilir.');
+        }
+        return data;
+    },
 };

@@ -90,19 +90,6 @@ export default function MainMenuScreen() {
           ))}
         </ScrollView>
 
-        {/* Pagination Dots (Moved under hero) */}
-        <View style={styles.paginationUnderHero}>
-          {slidesToRender.map((_, index) => (
-            <View 
-              key={index} 
-              style={[
-                styles.dot, 
-                activeIndex === index ? styles.activeDot : null
-              ]} 
-            />
-          ))}
-        </View>
-
         {/* Top bar with language & notification (Fixed over the slider) */}
         <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
           <View style={{ flex: 1 }} />
@@ -125,6 +112,18 @@ export default function MainMenuScreen() {
 
       {/* White body — no scrolling */}
       <View style={styles.body}>
+        {/* Pagination Dots (Clearly in the white space) */}
+        <View style={styles.paginationUnderHero}>
+          {slidesToRender.map((_, index) => (
+            <View 
+              key={index} 
+              style={[
+                styles.dot, 
+                activeIndex === index ? styles.activeDot : null
+              ]} 
+            />
+          ))}
+        </View>
         {/* Quick Info Section */}
         <View style={styles.quickInfoSection}>
           <View style={styles.quickInfoRow}>
@@ -268,7 +267,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   heroWrapper: {
-    height: SCREEN_HEIGHT * 0.33,
+    height: SCREEN_HEIGHT * 0.29,
     width: '100%',
   },
   heroImage: {
@@ -282,19 +281,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: '#fff',
-    marginTop: -10, // Pull it slightly up towards the image
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#CBD5E1', // Darker gray for white bg
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E2E8F0',
   },
   activeDot: {
-    width: 20,
-    backgroundColor: '#3B82F6', // Theme color instead of white
+    width: 24,
+    backgroundColor: '#3B82F6',
   },
   topBar: {
     position: 'absolute',
@@ -363,7 +361,7 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 8,
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,

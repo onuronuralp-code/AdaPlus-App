@@ -27,7 +27,7 @@ export default function LoginScreen() {
 
     const validatePassword = (val: string): string | undefined => {
         if (!val) return 'Şifre alanı boş bırakılamaz.';
-        if (val.length < 6) return 'Şifre en az 6 karakter olmalıdır.';
+        if (val.length < 8) return 'Şifre en az 8 karakter olmalıdır.';
         return undefined;
     };
 
@@ -90,8 +90,9 @@ export default function LoginScreen() {
         setLoading(true);
         try {
             await authApi.forgotPassword(email.trim());
-            Alert.alert('E-posta Gönderildi', 'Şifre sıfırlama bağlantısı e-posta adresine gönderildi.', [
-                { text: 'Tamam', onPress: () => setIsForgotPassword(false) }
+            Alert.alert('E-posta Gönderildi', 'Şifre sıfırlama kodun e-posta adresine gönderildi. Kodu kullanarak şifreni yenileyebilirsin.', [
+                { text: 'Şimdi Yenile', onPress: () => router.push({ pathname: '/reset-password', params: { token: '' } }) },
+                { text: 'Kapat', onPress: () => setIsForgotPassword(false), style: 'cancel' }
             ]);
         } catch (error: any) {
             Alert.alert('Hata', error.message || 'Bağlantı gönderilemedi.');
@@ -161,7 +162,7 @@ export default function LoginScreen() {
                                 <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
                                     style={styles.input} 
-                                    placeholder="********"
+                                    placeholder="En az 8 karakter"
                                     placeholderTextColor="#94A3B8"
                                     secureTextEntry
                                     value={password}
