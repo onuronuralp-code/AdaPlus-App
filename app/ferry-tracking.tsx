@@ -14,6 +14,7 @@ import {
     LivePositionResponse,
     fetchTripLivePosition,
 } from "../services/trackingApi";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type Coordinates = {
   latitude: number;
@@ -204,19 +205,20 @@ export default function FerryTrackingScreen() {
           coordinate={fromCoord}
           title={from}
           description="Departure"
-          pinColor="#2B7A8E"
+          pinColor="#EA580C"
         />
         <Marker
           coordinate={toCoord}
           title={to}
           description="Arrival"
-          pinColor="#D32F2F"
+          pinColor="#0D1B2A"
         />
 
         <Polyline
           coordinates={[fromCoord, toCoord]}
-          strokeWidth={3}
-          strokeColor="#4FA3B1"
+          strokeWidth={4}
+          strokeColor="#EA580C"
+          lineDashPattern={[5, 5]}
         />
 
         {ferryCoordinate && (
@@ -258,7 +260,7 @@ export default function FerryTrackingScreen() {
 
           {loading ? (
             <View style={styles.inlineStatusRow}>
-              <ActivityIndicator size="small" color="#0F6C7B" />
+              <ActivityIndicator size="small" color="#EA580C" />
               <Text style={styles.statusText}>Loading live position...</Text>
             </View>
           ) : error ? (
@@ -289,7 +291,7 @@ export default function FerryTrackingScreen() {
           {polling ? (
             <ActivityIndicator size="small" color="#0F6C7B" />
           ) : (
-            <Ionicons name="refresh" size={18} color="#0F6C7B" />
+            <IconSymbol name="arrow.clockwise" size={18} color="#EA580C" />
           )}
           <Text style={styles.secondaryButtonText}>Refresh</Text>
         </TouchableOpacity>
@@ -303,7 +305,7 @@ export default function FerryTrackingScreen() {
             );
           }}
         >
-          <Ionicons name="locate-outline" size={18} color="#0F6C7B" />
+          <IconSymbol name="scope" size={18} color="#EA580C" />
           <Text style={styles.secondaryButtonText}>Center</Text>
         </TouchableOpacity>
       </View>
@@ -336,50 +338,54 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.96)",
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 4,
   },
   infoCard: {
-    backgroundColor: "rgba(255,255,255,0.97)",
-    borderRadius: 18,
-    padding: 16,
+    backgroundColor: "white",
+    borderRadius: 24,
+    padding: 18,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
   routeTitle: {
-    fontSize: 19,
-    fontWeight: "700",
-    color: "#1E1E1E",
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#0D1B2A",
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   routeSubtitle: {
     fontSize: 14,
-    color: "#5D6A6F",
+    color: "#778DA9",
+    fontWeight: "600",
     marginBottom: 4,
   },
   providerText: {
     fontSize: 13,
-    color: "#6F7C81",
-    marginBottom: 10,
+    color: "#778DA9",
+    marginBottom: 12,
   },
   updatedText: {
     fontSize: 13,
-    fontWeight: "600",
-    color: "#0F6C7B",
+    fontWeight: "800",
+    color: "#EA580C",
     marginBottom: 4,
   },
   metaText: {
     fontSize: 12,
-    color: "#6B7A80",
+    color: "#94A3B8",
   },
   inlineStatusRow: {
     flexDirection: "row",
@@ -388,77 +394,88 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 13,
-    color: "#4F5D63",
-    fontWeight: "500",
+    color: "#64748B",
+    fontWeight: "600",
   },
   errorInlineText: {
     fontSize: 13,
-    color: "#B00020",
-    fontWeight: "600",
+    color: "#EF4444",
+    fontWeight: "700",
   },
   bottomOverlay: {
     position: "absolute",
     left: 16,
     right: 16,
-    bottom: 28,
+    bottom: 32,
     flexDirection: "row",
     gap: 12,
   },
   secondaryButton: {
     flex: 1,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.96)",
+    height: 54,
+    borderRadius: 18,
+    backgroundColor: "white",
     borderWidth: 1,
-    borderColor: "#DDE9EC",
+    borderColor: "#F1F5F9",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F6C7B",
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#EA580C",
   },
   primaryButton: {
     marginTop: 20,
-    height: 46,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    backgroundColor: "#0F6C7B",
+    height: 54,
+    paddingHorizontal: 24,
+    borderRadius: 18,
+    backgroundColor: "#EA580C",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#EA580C",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
   primaryButtonText: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
   errorTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#222",
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0D1B2A",
     marginBottom: 8,
   },
   errorText: {
     fontSize: 14,
-    color: "#66757A",
+    color: "#778DA9",
     textAlign: "center",
+    lineHeight: 20,
   },
   ferryMarker: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#0F6C7B",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#EA580C",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
     borderColor: "#fff",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 5,
   },
 });

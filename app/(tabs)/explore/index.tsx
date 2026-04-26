@@ -2,12 +2,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { fetchActivities } from '@/services/api';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
+import { useWeather } from '@/hooks/useWeather';
 
 
 export default function MainMenuScreen() {
@@ -15,6 +16,9 @@ export default function MainMenuScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const { weather, loading: weatherLoading } = useWeather();
+  const [selectedIsland, setSelectedIsland] = useState("Büyükada");
+  const [showIslandPicker, setShowIslandPicker] = useState(false);
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -90,29 +94,19 @@ export default function MainMenuScreen() {
           ))}
         </ScrollView>
 
-        {/* Top bar with language & notification (Fixed over the slider) */}
+        {/* Top bar (Fixed over the slider) */}
         <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-          <View style={{ flex: 1 }} />
-          <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => {
-                const newLang = i18n.language === 'en' ? 'tr' : 'en';
-                i18n.changeLanguage(newLang);
-              }}
-            >
-              <IconSymbol name="globe" size={20} color="#fff" />
-              <View style={styles.langBadge}>
-                <Text style={styles.langBadgeText}>{i18n.language.toUpperCase()}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+           {/* Header buttons removed from here */}
         </View>
       </View>
 
-      {/* White body — no scrolling */}
-      <View style={styles.body}>
-        {/* Pagination Dots (Clearly in the white space) */}
+      {/* Body Scrollable Content */}
+      <ScrollView 
+        style={styles.body} 
+        contentContainerStyle={styles.bodyContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Pagination Dots */}
         <View style={styles.paginationUnderHero}>
           {slidesToRender.map((_, index) => (
             <View 
@@ -124,58 +118,97 @@ export default function MainMenuScreen() {
             />
           ))}
         </View>
-        {/* Quick Info Section */}
-        <View style={styles.quickInfoSection}>
-          <View style={styles.quickInfoRow}>
-            <QuickInfoChip icon="sunset.fill" iconColor="#FFD700" label={t('common.sunset', { defaultValue: 'Sunset' })} value="19:45" />
-            <QuickInfoChip icon="thermometer.medium" iconColor="#FF6B6B" label={t('common.temp', { defaultValue: 'Temp' })} value="18°C" />
-            <QuickInfoChip icon="wind" iconColor="#60A5FA" label={t('common.wind', { defaultValue: 'Wind' })} value="12 km/h" />
+
+        {/* Services Section */}
+        <View style={styles.servicesSection}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <IconSymbol name="safari.fill" size={20} color="#EA580C" />
+              <Text style={styles.sectionTitle}>
+                {t('common.servicesAndActivities', { defaultValue: i18n.language.startsWith('tr') ? 'Servisler ve Aktiviteler' : 'Services and Activities' })}
+              </Text>
+            </View>
+            {/* Language Toggle instead of Weather */}
+            <TouchableOpacity 
+              style={styles.headerLangBtn} 
+              onPress={() => {
+                const nextLang = i18n.language.startsWith('en') ? 'tr' : 'en';
+                i18n.changeLanguage(nextLang);
+              }}
+            >
+              <View style={styles.langIconBox}>
+                <IconSymbol name="globe" size={14} color="#0D1B2A" />
+              </View>
+              <Text style={styles.langValue}>{t('common.currentLang').toUpperCase()}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.cardsContainer}>
+            <View style={styles.gridRow}>
+              <GridCard
+                icon="megaphone.fill"
+                color="#3B82F6"
+                accentLight="#DBEAFE"
+                title={t('common.ilanlar', { defaultValue: 'İlanlar' })}
+                subtitle={t('common.ilanlarSubtitle', { defaultValue: 'İş, Emlak, Hizmet' })}
+                onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
+                style={{ marginRight: 6 }}
+              />
+              <GridCard
+                icon="calendar"
+                color="#F59E0B"
+                accentLight="#FEF3C7"
+                title={t('common.events', { defaultValue: 'Etkinlikler' })}
+                subtitle={t('common.islandEvents', { defaultValue: 'Etkinlikleri keşfet' })}
+                onPress={() => router.push('/(tabs)/explore/island/events')}
+                style={{ marginLeft: 6 }}
+              />
+            </View>
+            <MenuCard
+              icon="sparkles"
+              color="#EC4899"
+              accentLight="#FDF2F8"
+              title={t('common.adaAI', { defaultValue: 'Ada AI - Tur Rehberi' })}
+              subtitle={t('common.yourSmartGuide', { defaultValue: 'Adalar için akıllı rehberin' })}
+              onPress={() => router.push('/guide')}
+            />
+            <MenuCard
+              icon="bubble.left.and.bubble.right.fill"
+              colors={['#8E2DE2', '#4A00E0', '#FF0080', '#FF8C00']}
+              title={t('common.agoraForum', { defaultValue: 'Agora Forum' })}
+              subtitle={t('common.shareExperiences', { defaultValue: 'Toplulukla etkileşime geç' })}
+              onPress={() => router.push('/(tabs)/explore/island/forum')}
+            />
+
+            {/* Compact Quick Info Ribbon with Labels */}
+            <View style={styles.compactInfoRibbon}>
+              <View style={styles.ribbonItem}>
+                <IconSymbol name="sunset.fill" size={12} color="#FFD700" />
+                <View style={styles.ribbonTextRow}>
+                  <Text style={styles.ribbonLabel}>{t('common.sunset', { defaultValue: 'Batış' })}</Text>
+                  <Text style={styles.ribbonValue}>{weather ? weather.sunset : '...'}</Text>
+                </View>
+              </View>
+              <View style={styles.ribbonDivider} />
+              <View style={styles.ribbonItem}>
+                <IconSymbol name="thermometer.medium" size={12} color="#FF6B6B" />
+                <View style={styles.ribbonTextRow}>
+                  <Text style={styles.ribbonLabel}>{t('common.temp', { defaultValue: 'Sıcaklık' })}</Text>
+                  <Text style={styles.weatherValue}>{weather ? `${weather.temperature}°C` : '...'}</Text>
+                </View>
+              </View>
+              <View style={styles.ribbonDivider} />
+              <View style={styles.ribbonItem}>
+                <IconSymbol name="wind" size={12} color="#60A5FA" />
+                <View style={styles.ribbonTextRow}>
+                  <Text style={styles.ribbonLabel}>{t('common.wind', { defaultValue: 'Rüzgar' })}</Text>
+                  <Text style={styles.weatherValue}>{weather ? `${weather.windSpeed} km/h` : '...'}</Text>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
-
-        <View style={styles.sectionHeader}>
-          <IconSymbol name={"safari" as any} size={24} color="#EA580C" style={{ marginRight: 8 }} />
-          <Text style={styles.sectionTitle}>{t('common.servicesAndActivities', { defaultValue: 'Services & Activities' })}</Text>
-        </View>
-
-        {/* Menu Cards */}
-        {/* Grid Menu Cards (Side by side) */}
-        <View style={styles.gridRow}>
-          <GridCard
-            icon="ferry"
-            color="#3B82F6"
-            accentLight="#EFF6FF"
-            title={t('common.transportation', { defaultValue: 'Transportation' })}
-            subtitle={t('common.islandShuttles', { defaultValue: 'Shuttles & bikes' })}
-            onPress={() => router.push({ pathname: '/(tabs)/explore/island/transportation', params: { islandId: '1' } })}
-            style={{ marginRight: 6 }}
-          />
-          <GridCard
-            icon="calendar"
-            color="#F59E0B"
-            accentLight="#FEF3C7"
-            title={t('common.events', { defaultValue: 'Etkinlikler' })}
-            subtitle={t('common.islandEvents', { defaultValue: 'Discover events' })}
-            onPress={() => router.push('/(tabs)/explore/island/events')}
-            style={{ marginLeft: 6 }}
-          />
-        </View>
-        <MenuCard
-          icon="sparkles"
-          color="#EC4899"
-          accentLight="#FDF2F8"
-          title={t('common.adaAI', { defaultValue: 'Tur Rehberi' })}
-          subtitle={t('common.yourSmartGuide', { defaultValue: 'Adalar için akıllı seyahat asistanın' })}
-          onPress={() => router.push('/guide')}
-        />
-        <MenuCard
-          icon="bubble.left.and.bubble.right.fill"
-          colors={['#8E2DE2', '#4A00E0', '#FF0080', '#FF8C00']}
-          title={t('common.agoraForum', { defaultValue: 'Topluluk' })}
-          subtitle={t('common.shareExperiences', { defaultValue: 'Diğer gezginlerle deneyimlerini paylaş' })}
-          onPress={() => router.push('/signup')}
-        />
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -239,35 +272,21 @@ function GridCard({ icon, color, accentLight, title, subtitle, onPress, style }:
         <IconSymbol name={icon as any} size={24} color={color} />
       </View>
       <Text style={styles.gridCardTitle} numberOfLines={1} adjustsFontSizeToFit>{title}</Text>
-      <Text style={styles.gridCardSubtitle} numberOfLines={2}>{subtitle}</Text>
+      <Text style={styles.gridCardSubtitle} numberOfLines={1}>{subtitle}</Text>
     </TouchableOpacity>
   );
 }
 
-function QuickInfoChip({ icon, iconColor, label, value }: {
-  icon: string;
-  iconColor: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <View style={styles.quickInfoChip}>
-      <IconSymbol name={icon as any} size={16} color={iconColor} />
-      <Text style={styles.quickInfoLabel}>{label}</Text>
-      <Text style={styles.quickInfoValue}>{value}</Text>
-    </View>
-  );
-}
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#1B1B2F',
   },
   heroWrapper: {
-    height: SCREEN_HEIGHT * 0.29,
+    height: SCREEN_HEIGHT * 0.35,
     width: '100%',
   },
   heroImage: {
@@ -276,22 +295,22 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   paginationUnderHero: {
-    height: 30,
+    height: 20,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#E2E8F0',
   },
   activeDot: {
-    width: 24,
+    width: 18,
     backgroundColor: '#3B82F6',
   },
   topBar: {
@@ -338,7 +357,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     padding: 24,
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
   heroTitle: {
     color: '#fff',
@@ -360,23 +379,67 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    marginTop: -30,
+  },
+  bodyContent: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 160, // Significantly increased to fully clear any translucent tab bar
+  },
+  servicesSection: {
+    marginTop: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
     marginTop: 0,
-    marginBottom: 6,
+    marginBottom: 16,
+  },
+  headerLangBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#0D1B2A',
+  },
+  headerWeather: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  weatherValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginLeft: 4,
   },
   card: {
     flexDirection: 'row',
@@ -384,7 +447,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 16,
-    marginBottom: 10,
+    marginBottom: 12,
     borderColor: '#f0f0f0',
     borderWidth: 1,
     shadowColor: '#000',
@@ -418,7 +481,7 @@ const styles = StyleSheet.create({
   gridRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   gridCard: {
     flex: 1,
@@ -456,19 +519,104 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 14,
   },
-  quickInfoSection: {
+  compactInfoRibbon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+    marginTop: 4,
     marginBottom: 10,
-    paddingTop: 8,
-    paddingBottom: 4,
-    backgroundColor: 'transparent',
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
-  quickInfoRow: {
+  ribbonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+  ribbonTextRow: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  ribbonLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+  },
+  ribbonValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  ribbonDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: '#E2E8F0',
+  },
+  langIconBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  langValue: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#0D1B2A',
+    marginLeft: 6,
+  },
+  modalBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  islandSheet: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0D1B2A',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  islandItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  quickInfoChip: {
     alignItems: 'center',
-    flex: 1,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  islandItemText: {
+    fontSize: 16,
+    color: '#475569',
+    fontWeight: '600',
+  },
+  cardsContainer: {
+    justifyContent: 'flex-start',
+    paddingBottom: 10,
   },
   quickInfoLabel: {
     fontSize: 10,

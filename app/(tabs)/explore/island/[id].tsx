@@ -5,6 +5,7 @@ import Animated, { scrollTo, useAnimatedRef, useAnimatedScrollHandler, useAnimat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '../../../../components/ui/icon-symbol';
 import { ISLANDS } from '../../../../constants/Islands';
+import { useWeather } from '@/hooks/useWeather';
 
 export default function IslandDetailScreen() {
     const { t } = useTranslation();
@@ -14,6 +15,7 @@ export default function IslandDetailScreen() {
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
     const scrollY = useSharedValue(0);
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
+    const { weather } = useWeather();
 
     const onScroll = useAnimatedScrollHandler((event) => {
         scrollY.value = event.contentOffset.y;
@@ -48,8 +50,8 @@ export default function IslandDetailScreen() {
     // Description from params or translated
     const islandDescription = islandSlug ? t(`islands.${islandSlug}.description`) : (typeof description === 'string' ? description : "");
 
-    // Sunset time or fallback
-    const sunsetTime = typeof sunset === 'string' ? sunset : "19:40";
+    // Sunset time from API or fallback
+    const sunsetTime = weather?.sunset ?? (typeof sunset === 'string' ? sunset : '19:40');
 
     const island = ISLANDS.find(i => i.id === id);
     const activities = island?.activities || [];
@@ -75,7 +77,7 @@ export default function IslandDetailScreen() {
                 </View>
                 <View style={[styles.weatherRow, { marginTop: 4 }]}>
                     <IconSymbol name={"thermometer.medium" as any} size={14} color="#fff" />
-                    <Text style={styles.weatherText}>18°C</Text>
+                    <Text style={styles.weatherText}>{weather ? `${weather.temperature}°C` : '18°C'}</Text>
                 </View>
             </View>
 
@@ -130,8 +132,8 @@ export default function IslandDetailScreen() {
                     <ActivityCard
                         icon="map.fill"
                         color="#EC4899"
-                        title={t('common.tourGuide', { defaultValue: 'Tur Rehberi' })}
-                        subtitle={t('common.guidedTours', { defaultValue: 'Adalar için akıllı seyahat asistanın' })}
+                        title={t('common.adaAI', { defaultValue: 'Tur Rehberi' })}
+                        subtitle={t('common.yourSmartGuide', { defaultValue: 'Adalar için akıllı seyahat asistanın' })}
                         onPress={() => router.push('/guide')}
                     />
                     <ActivityCard
@@ -196,12 +198,19 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 20,
         backgroundColor: '#fff',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 10,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 3,
     },
     heroTextContainer: {
         padding: 20,

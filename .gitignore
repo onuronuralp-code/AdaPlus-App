@@ -44,3 +44,6 @@ app-example
 
 # backend (separate repo)
 ada-plus-backend/
+
+# env
+.env

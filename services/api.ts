@@ -1,3 +1,5 @@
+import { triggerNetworkError } from '@/context/NetworkContext';
+
 export interface DepartureDto {
   from: string;
   to: string;
@@ -9,7 +11,7 @@ export interface DepartureDto {
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://192.168.5.136:8080/api/v1/travel/ferries";
+  "http://192.168.1.109:8080/api/v1/travel/ferries";
 
 export const fetchDepartures = async (
   from: string,
@@ -40,6 +42,7 @@ export const fetchDepartures = async (
     return data;
   } catch (error) {
     console.error("Failed to fetch departures:", error);
+    triggerNetworkError();
     return [];
   }
 };
@@ -54,7 +57,7 @@ export interface BusDepartureDto {
   minutesUntil: number;
 }
 
-const BUS_API_BASE_URL = "http://192.168.5.136:8080/api/v1/travel/buses";
+const BUS_API_BASE_URL = "http://192.168.1.109:8080/api/v1/travel/buses";
 
 export const fetchBusDepartures = async (
   route: string,
@@ -80,6 +83,7 @@ export const fetchBusDepartures = async (
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch bus departures:", error);
+    triggerNetworkError();
     return [];
   }
 };
@@ -96,7 +100,7 @@ export interface AppActivityDto {
   imageUrl?: string;
 }
 
-const ACTIVITIES_API_BASE_URL = "http://192.168.5.136:8080/api/v1/activities";
+const ACTIVITIES_API_BASE_URL = "http://192.168.1.109:8080/api/v1/activities";
 
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
@@ -105,6 +109,8 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch activities:", error);
+    triggerNetworkError();
     return [];
   }
 };
+

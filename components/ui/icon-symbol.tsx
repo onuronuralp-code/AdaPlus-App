@@ -60,6 +60,13 @@ const MAPPING = {
   'heart': 'favorite-border',
   'person.fill': 'person',
   'envelope.fill': 'mail',
+  'ellipsis': 'more-horiz',
+  'square.and.arrow.up': 'share',
+  'globe': 'language',
+  'sparkles': 'auto-awesome',
+  'sunset.fill': 'brightness-high',
+  'thermometer.medium': 'thermostat',
+  'wind': 'air',
 } as Partial<IconMapping>;
 
 /**

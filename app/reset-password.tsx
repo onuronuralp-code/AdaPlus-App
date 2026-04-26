@@ -6,9 +6,12 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 
+import { useTranslation } from 'react-i18next';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ResetPasswordScreen() {
+    const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { token: initialToken } = useLocalSearchParams<{ token: string }>();
@@ -21,19 +24,19 @@ export default function ResetPasswordScreen() {
     const [touched, setTouched] = useState<{ token?: boolean; password?: boolean; confirmPassword?: boolean }>({});
 
     const validateToken = (val: string): string | undefined => {
-        if (!val.trim()) return 'Sıfırlama kodu gereklidir.';
+        if (!val.trim()) return t('auth.errors.tokenRequired');
         return undefined;
     };
 
     const validatePassword = (val: string): string | undefined => {
-        if (!val) return 'Şifre alanı boş bırakılamaz.';
-        if (val.length < 8) return 'Şifre en az 8 karakter olmalıdır.';
+        if (!val) return t('auth.errors.passwordRequired');
+        if (val.length < 8) return t('auth.errors.passwordMin');
         return undefined;
     };
 
     const validateConfirmPassword = (val: string): string | undefined => {
-        if (!val) return 'Şifre tekrarı gereklidir.';
-        if (val !== password) return 'Şifreler eşleşmiyor.';
+        if (!val) return t('auth.confirmPasswordPlaceholder');
+        if (val !== password) return t('auth.errors.passwordMismatch');
         return undefined;
     };
 
@@ -96,20 +99,20 @@ export default function ResetPasswordScreen() {
                     <View style={styles.logoCircle}>
                         <IconSymbol name="lock.fill" size={30} color="#F59E0B" />
                     </View>
-                    <Text style={styles.welcomeTitle}>Şifreyi Yenile</Text>
-                    <Text style={styles.welcomeSubtitle}>E-postandaki kodu ve yeni şifreni girerek hesabını kurtar.</Text>
+                    <Text style={styles.welcomeTitle}>{t('auth.resetTitle')}</Text>
+                    <Text style={styles.welcomeSubtitle}>{t('auth.resetSubtitle')}</Text>
                 </View>
             </LinearGradient>
 
             <View style={styles.cardContainer}>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formContainer}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>SIFIRLAMA KODU</Text>
+                        <Text style={styles.inputLabel}>{t('auth.tokenLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.token ? styles.inputWrapperError : null]}>
                             <IconSymbol name="key.fill" size={18} color={errors.token ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="Kodu buraya yapıştırın"
+                                placeholder={t('auth.tokenPlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 value={token}
                                 onChangeText={handleTokenChange}
@@ -120,12 +123,12 @@ export default function ResetPasswordScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>YENİ ŞİFRE</Text>
+                        <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
                             <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="En az 8 karakter"
+                                placeholder={t('auth.passwordPlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 secureTextEntry
                                 value={password}
@@ -136,12 +139,12 @@ export default function ResetPasswordScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>ŞİFRE TEKRAR</Text>
+                        <Text style={styles.inputLabel}>{t('auth.confirmPasswordLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.confirmPassword ? styles.inputWrapperError : null]}>
                             <IconSymbol name="lock.fill" size={18} color={errors.confirmPassword ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="Şifreyi onayla"
+                                placeholder={t('auth.confirmPasswordPlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 secureTextEntry
                                 value={confirmPassword}
@@ -161,7 +164,7 @@ export default function ResetPasswordScreen() {
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
                             <>
-                                <Text style={styles.primaryButtonText}>Şifreyi Güncelle</Text>
+                                <Text style={styles.primaryButtonText}>{t('auth.updateButton')}</Text>
                                 <IconSymbol name="checkmark.circle.fill" size={18} color="#fff" />
                             </>
                         )}

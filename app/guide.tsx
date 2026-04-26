@@ -1,30 +1,34 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { Keyboard, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Keyboard, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, Animated, KeyboardAvoidingView, Easing, LayoutAnimation } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GuideScreen() {
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const [prompt, setPrompt] = useState('');
-    const [keyboardHeight] = useState(new Animated.Value(0));
-
+    const keyboardShift = useRef(new Animated.Value(0)).current;
+    
     useEffect(() => {
         if (Platform.OS === 'android') return;
 
         const show = Keyboard.addListener('keyboardWillShow', (e) => {
-            Animated.timing(keyboardHeight, {
-                toValue: e.endCoordinates.height,
-                duration: e.duration || 250,
-                useNativeDriver: false,
+            Animated.timing(keyboardShift, {
+                toValue: -(e.endCoordinates.height - insets.bottom),
+                duration: e.duration,
+                easing: Easing.bezier(0.33, 0.66, 0.66, 1),
+                useNativeDriver: true,
             }).start();
         });
         const hide = Keyboard.addListener('keyboardWillHide', (e) => {
-            Animated.timing(keyboardHeight, {
+            Animated.timing(keyboardShift, {
                 toValue: 0,
-                duration: e.duration || 250,
-                useNativeDriver: false,
+                duration: e.duration,
+                easing: Easing.bezier(0.33, 0.66, 0.66, 1),
+                useNativeDriver: true,
             }).start();
         });
 
@@ -32,38 +36,86 @@ export default function GuideScreen() {
             show.remove();
             hide.remove();
         };
-    }, []);
+    }, [insets.bottom]);
 
-    const safeAreaPadding = keyboardHeight.interpolate({
-        inputRange: [0, 100],
-        outputRange: [Math.max(insets.bottom, 12), 12],
-        extrapolate: 'clamp'
-    });
+    const [messages, setMessages] = useState([
+        { 
+            id: '1', 
+            text: i18n.language.startsWith('tr') 
+                ? "Merhaba! 👋 Ben Ada Plus asistanın. Sana en doğru bilgileri verebilmem için öncelikle şu an hangi adada olduğunu öğrenebilir miyim?" 
+                : "Hello! 👋 I'm your Ada Plus assistant. To give you the most accurate information, may I first know which island you are currently on?", 
+            isBot: true 
+        }
+    ]);
+
+    const handleIslandSelect = (island: string) => {
+        const userMsg = { id: Date.now().toString(), text: island, isBot: false };
+        const botMsg = { 
+            id: (Date.now() + 1).toString(), 
+            text: i18n.language.startsWith('tr')
+                ? `${island} harika bir seçim! 🏝️ Sana nasıl yardımcı olabilirim? Gezilecek yerler, yemek seçenekleri veya ulaşım hakkında bilgi verebilirim.`
+                : `${island} is a great choice! 🏝️ How can I help you? I can provide information about landmarks, dining options, or transportation.`, 
+            isBot: true 
+        };
+        setMessages([...messages, userMsg, botMsg]);
+    };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
             <Stack.Screen options={{ headerShown: false }} />
             <StatusBar barStyle="dark-content" />
 
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+            <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <IconSymbol name="chevron.left" size={24} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Tur Rehberi</Text>
+                <Text style={styles.headerTitle}>{t('common.adaAI')}</Text>
             </View>
 
-            <Animated.View style={{ flex: 1, paddingBottom: Platform.OS === 'ios' ? keyboardHeight : 0 }}>
-                {/* Chat Content Area */}
-                <ScrollView style={styles.content}>
+            <Animated.View style={{ flex: 1, transform: [{ translateY: keyboardShift }] }}>
+                <ScrollView 
+                    style={styles.content} 
+                    contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {messages.map((msg) => (
+                        <View key={msg.id} style={[styles.messageRow, msg.isBot ? styles.botRow : styles.userRow]}>
+                            {msg.isBot && (
+                                <View style={styles.botAvatar}>
+                                    <IconSymbol name="sparkles" size={16} color="#fff" />
+                                </View>
+                            )}
+                            <View style={[styles.bubble, msg.isBot ? styles.botBubble : styles.userBubble]}>
+                                <Text style={[styles.messageText, msg.isBot ? styles.botText : styles.userText]}>
+                                    {msg.text}
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
                     
+                    {messages.length === 1 && (
+                        <View style={styles.suggestionsContainer}>
+                            <SuggestionChip text="Kınalıada" onPress={() => handleIslandSelect("Kınalıada")} />
+                            <SuggestionChip text="Burgazada" onPress={() => handleIslandSelect("Burgazada")} />
+                            <SuggestionChip text="Heybeliada" onPress={() => handleIslandSelect("Heybeliada")} />
+                            <SuggestionChip text="Büyükada" onPress={() => handleIslandSelect("Büyükada")} />
+                        </View>
+                    )}
+
+                    {messages.length > 1 && (
+                        <View style={styles.suggestionsContainer}>
+                            <SuggestionChip text={i18n.language.startsWith('tr') ? "📍 Gezilecek Yerler" : "📍 Sightseeing"} onPress={() => setPrompt(i18n.language.startsWith('tr') ? "Gezilecek yerleri listeler misin?" : "Can you list landmarks?")} />
+                            <SuggestionChip text={i18n.language.startsWith('tr') ? "🚢 Vapur Saatleri" : "🚢 Ferry Times"} onPress={() => setPrompt(i18n.language.startsWith('tr') ? "Vapur saatlerini öğrenmek istiyorum." : "I want to know ferry times.")} />
+                        </View>
+                    )}
                 </ScrollView>
 
-                {/* Input Bar */}
-                <Animated.View style={[styles.inputContainer, { paddingBottom: Platform.OS === 'ios' ? safeAreaPadding : Math.max(insets.bottom, 12) }]}>
+                <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 8, backgroundColor: '#fff' }]}>
                     <View style={styles.inputBox}>
                         <TextInput
                             style={styles.textInput}
-                            placeholder="Ask Ada AI..."
+                            placeholder={i18n.language.startsWith('tr') ? "Ada AI'a sor..." : "Ask Ada AI..."}
                             placeholderTextColor="#94A3B8"
                             value={prompt}
                             onChangeText={setPrompt}
@@ -76,9 +128,17 @@ export default function GuideScreen() {
                             <IconSymbol name="paperplane.fill" size={20} color={prompt.trim() ? "#fff" : "#94A3B8"} />
                         </TouchableOpacity>
                     </View>
-                </Animated.View>
+                </View>
             </Animated.View>
-        </View>
+        </SafeAreaView>
+    );
+}
+
+function SuggestionChip({ text, onPress }: { text: string, onPress: () => void }) {
+    return (
+        <TouchableOpacity style={styles.suggestionChip} onPress={onPress}>
+            <Text style={styles.suggestionText}>{text}</Text>
+        </TouchableOpacity>
     );
 }
 
@@ -91,28 +151,109 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 20,
-        backgroundColor: 'transparent',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        paddingBottom: 8,
+        backgroundColor: '#F8FAFC',
     },
     backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
         marginRight: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#000',
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#0F172A',
+        letterSpacing: -0.5,
     },
     content: {
         flex: 1,
         backgroundColor: '#F8FAFC',
+    },
+    messageRow: {
+        flexDirection: 'row',
+        marginBottom: 20,
+        alignItems: 'flex-end',
+    },
+    botRow: {
+        justifyContent: 'flex-start',
+    },
+    userRow: {
+        justifyContent: 'flex-end',
+    },
+    botAvatar: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#EC4899',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+    },
+    bubble: {
+        maxWidth: '80%',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 20,
+    },
+    botBubble: {
+        backgroundColor: '#fff',
+        borderBottomLeftRadius: 4,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    userBubble: {
+        backgroundColor: '#0F172A',
+        borderBottomRightRadius: 4,
+    },
+    messageText: {
+        fontSize: 15,
+        lineHeight: 22,
+    },
+    botText: {
+        color: '#334155',
+    },
+    userText: {
+        color: '#fff',
+    },
+    suggestionsContainer: {
+        flexDirection: 'row',
+        gap: 6,
+        marginTop: 10,
+        paddingLeft: 42,
+        paddingRight: 16,
+    },
+    suggestionChip: {
+        flex: 1, // Equal width for all chips
+        backgroundColor: '#fff',
+        paddingVertical: 8,
+        paddingHorizontal: 2,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#EC4899',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    suggestionText: {
+        fontSize: 9, // Slightly smaller to ensure "Heybeliada" fits in equal width
+        fontWeight: '800',
+        color: '#EC4899',
+        textAlign: 'center',
     },
     inputContainer: {
         paddingHorizontal: 16,

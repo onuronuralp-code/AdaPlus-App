@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 
@@ -8,12 +8,15 @@ import { useTranslation } from 'react-i18next';
 
 export default function TabLayout() {
   const { t } = useTranslation();
+  const pathname = usePathname();
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: styles.tabBarLight,
         tabBarActiveTintColor: '#000000',
         tabBarInactiveTintColor: '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
@@ -26,6 +29,12 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="explore"
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.navigate('/(tabs)/explore');
+          },
+        }}
         options={{
           title: t('common.tabDiscover', { defaultValue: 'Keşfet' }),
           tabBarIcon: ({ color }) => (
@@ -65,18 +74,21 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
+  tabBarLight: {
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
     height: Platform.OS === 'ios' ? 88 : 68,
     paddingBottom: Platform.OS === 'ios' ? 28 : 12,
     paddingTop: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 10,
+  },
+  tabBarDark: {
+    backgroundColor: '#050A18', // Match Forum deep blue
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+    height: Platform.OS === 'ios' ? 88 : 68,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    paddingTop: 12,
   },
   tabLabel: {
     fontSize: 10,

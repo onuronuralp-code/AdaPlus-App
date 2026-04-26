@@ -9,6 +9,7 @@ export default function ExploreLayout() {
             <Stack.Screen name="island/transportation" options={{ headerShown: false }} />
             <Stack.Screen name="island/forum" options={{ headerShown: false }} />
             <Stack.Screen name="island/guided-tour" options={{ headerShown: false }} />
+            <Stack.Screen name="island/ilanlar" options={{ headerShown: false }} />
         </Stack>
     );
 }

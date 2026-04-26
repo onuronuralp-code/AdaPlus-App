@@ -13,6 +13,7 @@ import { Provider } from "react-redux";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ThemeProvider as CustomThemeProvider } from "../context/ThemeContext";
+import { NetworkProvider } from "../context/NetworkContext";
 import { store } from "../store/store";
 import "../tasks/TourTask";
 import "../utils/i18n";
@@ -30,6 +31,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
+        <NetworkProvider>
         <CustomThemeProvider>
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
@@ -56,6 +58,7 @@ export default function RootLayout() {
             <StatusBar style="dark" />
           </ThemeProvider>
         </CustomThemeProvider>
+        </NetworkProvider>
       </Provider>
     </GestureHandlerRootView>
   );

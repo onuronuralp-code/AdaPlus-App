@@ -93,60 +93,68 @@ export default function ForumScreen() {
 
     const renderPost = ({ item }: { item: typeof ANONYMOUS_POSTS[0] }) => {
         return (
-            <View style={styles.postCard}>
-                {/* Colored visual indicator on the left edge */}
-                <View style={[styles.cardIndicator, { backgroundColor: item.tagColor }]} />
+            <View style={[styles.postCard, { borderColor: item.tagColor + '40', shadowColor: item.tagColor }]}>
+                {/* Neon Top Edge Line */}
+                <View style={[styles.neonEdge, { backgroundColor: item.tagColor }]} />
                 
-                <View style={styles.postInner}>
-                    {/* Header: Avatar, Name, Role */}
-                    <View style={styles.postHeader}>
-                        <LinearGradient 
-                            colors={[item.tagColor, item.tagColor + '80']} 
-                            style={styles.avatar}
-                        >
-                            <IconSymbol name="person.fill" size={20} color="#fff" />
-                        </LinearGradient>
-                        
-                        <View style={styles.headerText}>
+                <View style={styles.postHeader}>
+                    <LinearGradient 
+                        colors={[item.tagColor, item.tagColor + '90']} 
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                        style={styles.avatar}
+                    >
+                        <IconSymbol name="person.fill" size={22} color="#fff" />
+                    </LinearGradient>
+                    
+                    <View style={styles.headerText}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                             <Text style={styles.authorName}>{item.author}</Text>
-                            <Text style={styles.timeText}>{item.time}</Text>
+                            <View style={[styles.roleBadge, { backgroundColor: item.tagColor + '18', borderColor: item.tagColor + '40' }]}>
+                                <Text style={[styles.roleText, { color: item.tagColor }]}>{item.role}</Text>
+                            </View>
                         </View>
-                        
-                        <View style={[styles.roleBadge, { backgroundColor: item.tagColor + '15' }]}>
-                            <Text style={[styles.roleText, { color: item.tagColor }]}>{item.role}</Text>
-                        </View>
+                        <Text style={styles.timeText}>{item.time}</Text>
                     </View>
 
-                    {/* Content text */}
-                    <Text style={styles.contentText}>{item.content}</Text>
+                    <TouchableOpacity style={styles.moreBtn}>
+                        <IconSymbol name="ellipsis" size={18} color="#94A3B8" />
+                    </TouchableOpacity>
+                </View>
 
-                    {/* Optional Image */}
-                    {item.image && (
+                <Text style={styles.contentText}>{item.content}</Text>
+
+                {item.image && (
+                    <View style={styles.imageWrapper}>
                         <Image source={{ uri: item.image }} style={styles.postImage} />
-                    )}
-
-                    {/* Footer Actions */}
-                    <View style={styles.interactionRow}>
-                        <TouchableOpacity style={styles.actionPill}>
-                            <IconSymbol name="bubble.left.fill" size={16} color="#94A3B8" />
-                            <Text style={styles.actionCount}>{item.comments}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity 
-                            style={[styles.actionPill, item.isLiked && styles.actionPillLiked]} 
-                            onPress={() => toggleLike(item.id)}
-                            activeOpacity={0.6}
-                        >
-                            <IconSymbol 
-                                name={item.isLiked ? "heart.fill" : "heart"} 
-                                size={16} 
-                                color={item.isLiked ? "#EC4899" : "#94A3B8"} 
-                            />
-                            <Text style={[styles.actionCount, item.isLiked && { color: "#EC4899", fontWeight: 'bold' }]}>
-                                {item.likes}
-                            </Text>
-                        </TouchableOpacity>
                     </View>
+                )}
+
+                <View style={styles.interactionRow}>
+                    <TouchableOpacity 
+                        style={[styles.actionPill, item.isLiked && styles.actionPillLiked]} 
+                        onPress={() => toggleLike(item.id)}
+                        activeOpacity={0.6}
+                    >
+                        <IconSymbol 
+                            name={item.isLiked ? "heart.fill" : "heart"} 
+                            size={18} 
+                            color={item.isLiked ? "#EC4899" : "#94A3B8"} 
+                        />
+                        <Text style={[styles.actionCount, item.isLiked && { color: "#EC4899", fontWeight: '800' }]}>
+                            {item.likes}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.actionPill}>
+                        <IconSymbol name="bubble.left.fill" size={18} color="#94A3B8" />
+                        <Text style={styles.actionCount}>{item.comments}</Text>
+                    </TouchableOpacity>
+
+                    <View style={{ flex: 1 }} />
+
+                    <TouchableOpacity style={styles.shareBtn}>
+                        <IconSymbol name="square.and.arrow.up" size={18} color="#94A3B8" />
+                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -157,18 +165,16 @@ export default function ForumScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             <StatusBar barStyle="dark-content" />
 
-            {/* Clean Light Header */}
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <IconSymbol name="chevron.left" size={24} color="#0F172A" />
+                <TouchableOpacity onPress={() => router.replace('/(tabs)/explore')} style={styles.backButton}>
+                    <IconSymbol name="chevron.left" size={24} color="#1E293B" />
                 </TouchableOpacity>
                 <View style={styles.headerTitles}>
                     <Text style={styles.headerTitle}>Topluluk</Text>
-                    <Text style={styles.headerSubtitle}>Toplulukla Paylaş</Text>
                 </View>
+                <View style={styles.statusDot} />
             </View>
 
-            {/* Feed List */}
             <FlatList
                 data={posts}
                 renderItem={renderPost}
@@ -177,16 +183,19 @@ export default function ForumScreen() {
                 contentContainerStyle={styles.listContent}
             />
 
-            {/* Write Button */}
             <TouchableOpacity 
                 style={[styles.writeButton, { bottom: insets.bottom + 20 }]} 
                 activeOpacity={0.9}
                 onPress={() => setIsWriteModalVisible(true)}
             >
-                <IconSymbol name="plus" size={28} color="#fff" />
+                <LinearGradient
+                    colors={['#00D2FF', '#3a7bd5']}
+                    style={styles.writeButtonGradient}
+                >
+                    <IconSymbol name="plus" size={28} color="#fff" />
+                </LinearGradient>
             </TouchableOpacity>
 
-            {/* Write Modal */}
             <Modal
                 visible={isWriteModalVisible}
                 animationType="slide"
@@ -199,22 +208,22 @@ export default function ForumScreen() {
                 >
                     <View style={styles.modalHeader}>
                         <TouchableOpacity onPress={() => setIsWriteModalVisible(false)} style={styles.modalHeaderButton}>
-                            <Text style={styles.cancelText}>İptal</Text>
+                            <Text style={styles.cancelText}>DISCONNECT</Text>
                         </TouchableOpacity>
-                        <Text style={styles.modalTitle}>Yeni Gönderi</Text>
+                        <Text style={styles.modalTitle}>BROADCAST</Text>
                         <TouchableOpacity 
                             onPress={handleCreatePost} 
                             style={[styles.publishButton, !newPostContent.trim() && styles.publishButtonDisabled]}
                             disabled={!newPostContent.trim()}
                         >
-                            <Text style={styles.publishText}>Paylaş</Text>
+                            <Text style={styles.publishText}>SEND_DATA</Text>
                         </TouchableOpacity>
                     </View>
                     
                     <ScrollView style={styles.modalBody}>
                         <TextInput
                             style={styles.textInput}
-                            placeholder="Neler düşünüyorsun?"
+                            placeholder="TRANSMIT_THOUGHTS..."
                             placeholderTextColor="#94A3B8"
                             multiline
                             autoFocus
@@ -238,159 +247,215 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        paddingBottom: 24,
+        backgroundColor: '#F8FAFC',
         zIndex: 10,
     },
     backButton: {
         width: 44,
         height: 44,
-        borderRadius: 22,
-        backgroundColor: '#F1F5F9',
+        borderRadius: 14,
+        backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
     },
     headerTitles: {
         flex: 1,
     },
     headerTitle: {
-        fontSize: 22,
-        fontWeight: '900',
+        fontSize: 24,
+        fontWeight: '800',
         color: '#0F172A',
+        letterSpacing: -0.5,
     },
     headerSubtitle: {
-        fontSize: 13,
-        color: '#64748B',
-        fontWeight: '500',
+        fontSize: 10,
+        color: '#3B82F6',
+        fontWeight: '700',
+        letterSpacing: 1.5,
+        marginTop: 4,
+        opacity: 0.8,
+    },
+    statusDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#10B981',
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 5,
     },
     listContent: {
         padding: 16,
-        paddingBottom: 120, // space for FAB
+        paddingBottom: 120,
     },
     postCard: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        marginBottom: 16,
-        flexDirection: 'row', // to put indicator on left
+        backgroundColor: '#FFFFFF',
+        borderRadius: 24,
+        marginBottom: 20,
         overflow: 'hidden',
-        shadowColor: '#64748B',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 10,
-        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+        elevation: 4,
     },
-    cardIndicator: {
-        width: 6,
-        height: '100%',
-    },
-    postInner: {
-        flex: 1,
-        padding: 16,
+    neonEdge: {
+        height: 3,
+        width: '100%',
+        opacity: 0.8,
     },
     postHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 8,
     },
     avatar: {
-        width: 42,
-        height: 42,
-        borderRadius: 14,
+        width: 44,
+        height: 44,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 12,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
     },
     headerText: {
         flex: 1,
     },
     authorName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#0F172A',
-        marginBottom: 2,
+        fontSize: 15,
+        fontWeight: '800',
+        color: '#1E293B',
+        letterSpacing: -0.2,
     },
     timeText: {
-        fontSize: 12,
+        fontSize: 11,
         color: '#94A3B8',
+        marginTop: 2,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     roleBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+        borderWidth: 1,
     },
     roleText: {
-        fontSize: 11,
-        fontWeight: 'bold',
+        fontSize: 9,
+        fontWeight: '900',
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        letterSpacing: 1,
+    },
+    moreBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: '#F1F5F9',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     contentText: {
         fontSize: 15,
-        lineHeight: 22,
+        lineHeight: 24,
         color: '#334155',
-        marginBottom: 16,
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: 16,
+    },
+    imageWrapper: {
+        paddingHorizontal: 12,
+        paddingBottom: 16,
     },
     postImage: {
         width: '100%',
-        height: 180,
-        borderRadius: 12,
-        marginBottom: 16,
+        height: 220,
+        borderRadius: 16,
         backgroundColor: '#F1F5F9',
     },
     interactionRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 12,
         borderTopWidth: 1,
         borderTopColor: '#F1F5F9',
-        paddingTop: 12,
+        gap: 8,
+        backgroundColor: '#F8FAFC',
     },
     actionPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#FFFFFF',
         paddingHorizontal: 14,
         paddingVertical: 8,
-        borderRadius: 20,
-        marginRight: 12,
+        borderRadius: 14,
         gap: 6,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
     },
     actionPillLiked: {
         backgroundColor: '#FDF2F8',
+        borderColor: '#FCE7F3',
     },
     actionCount: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#64748B',
-        fontWeight: '600',
+        fontWeight: '700',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    shareBtn: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     writeButton: {
         position: 'absolute',
         right: 20,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: '#3B82F6',
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        overflow: 'hidden',
+        zIndex: 999,
+        shadowColor: '#3B82F6',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 10,
+    },
+    writeButtonGradient: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: '#3B82F6',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 8,
-        zIndex: 999,
     },
     modalContainer: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#FFFFFF',
     },
     modalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingVertical: 20,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
     },
@@ -398,27 +463,31 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     cancelText: {
-        fontSize: 16,
+        fontSize: 12,
         color: '#64748B',
+        fontWeight: '800',
+        letterSpacing: 1,
     },
     modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#0F172A',
+        fontSize: 14,
+        fontWeight: '900',
+        color: '#1E293B',
+        letterSpacing: 2,
     },
     publishButton: {
         backgroundColor: '#3B82F6',
         paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 20,
+        borderRadius: 12,
     },
     publishButtonDisabled: {
-        backgroundColor: '#CBD5E1',
+        backgroundColor: '#E2E8F0',
     },
     publishText: {
         color: '#fff',
-        fontWeight: '600',
-        fontSize: 15,
+        fontWeight: '900',
+        fontSize: 12,
+        letterSpacing: 1,
     },
     modalBody: {
         flex: 1,
@@ -426,8 +495,8 @@ const styles = StyleSheet.create({
     },
     textInput: {
         fontSize: 18,
-        color: '#0F172A',
+        color: '#1E293B',
         minHeight: 150,
-        lineHeight: 26,
+        lineHeight: 28,
     },
 });

@@ -6,9 +6,12 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 
+import { useTranslation } from 'react-i18next';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function LoginScreen() {
+    const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
@@ -20,14 +23,14 @@ export default function LoginScreen() {
 
     const validateEmail = (val: string): string | undefined => {
         const trimmed = val.trim();
-        if (!trimmed) return 'E-posta adresi boş bırakılamaz.';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Geçerli bir e-posta adresi giriniz.';
+        if (!trimmed) return t('auth.errors.emailRequired');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return t('auth.errors.invalidEmail');
         return undefined;
     };
 
     const validatePassword = (val: string): string | undefined => {
-        if (!val) return 'Şifre alanı boş bırakılamaz.';
-        if (val.length < 8) return 'Şifre en az 8 karakter olmalıdır.';
+        if (!val) return t('auth.errors.passwordRequired');
+        if (val.length < 8) return t('auth.errors.passwordMin');
         return undefined;
     };
 
@@ -121,11 +124,11 @@ export default function LoginScreen() {
                     <View style={styles.logoCircle}>
                         <IconSymbol name="person.fill" size={28} color="#10B981" />
                     </View>
-                    <Text style={styles.welcomeTitle}>{isForgotPassword ? "Şifre Sıfırlama" : "Tekrar Merhaba"}</Text>
+                    <Text style={styles.welcomeTitle}>{isForgotPassword ? t('auth.resetTitle') : t('auth.loginTitle')}</Text>
                     <Text style={styles.welcomeSubtitle}>
                         {isForgotPassword 
-                            ? "E-posta adresini gir, şifreni sıfırlaman için bir bağlantı gönderelim." 
-                            : "Hesabına giriş yap ve toplulukta neler olup bittiğini gör."}
+                            ? t('auth.resetSubtitle') 
+                            : t('auth.loginSubtitle')}
                     </Text>
                 </View>
             </LinearGradient>
@@ -133,12 +136,12 @@ export default function LoginScreen() {
             <View style={styles.cardContainer}>
                 <View style={styles.formContainer}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>E-POSTA</Text>
+                        <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
                             <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="E-posta adresini gir"
+                                placeholder={t('auth.emailPlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 keyboardType="email-address"
                                 autoCapitalize="none"
@@ -153,16 +156,16 @@ export default function LoginScreen() {
                     {!isForgotPassword && (
                         <View style={styles.inputGroup}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Text style={styles.inputLabel}>ŞİFRE</Text>
+                                <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
                                 <TouchableOpacity onPress={() => setIsForgotPassword(true)}>
-                                    <Text style={styles.forgotText}>Şifremi Unuttum</Text>
+                                    <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
                                 </TouchableOpacity>
                             </View>
                             <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
                                 <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
                                     style={styles.input} 
-                                    placeholder="En az 8 karakter"
+                                    placeholder={t('auth.passwordPlaceholder')}
                                     placeholderTextColor="#94A3B8"
                                     secureTextEntry
                                     value={password}
@@ -183,19 +186,19 @@ export default function LoginScreen() {
                         {loading ? (
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
-                            <Text style={styles.primaryButtonText}>{isForgotPassword ? "Bağlantı Gönder" : "Giriş Yap"}</Text>
+                            <Text style={styles.primaryButtonText}>{isForgotPassword ? t('common.next') : t('auth.loginButton')}</Text>
                         )}
                     </TouchableOpacity>
 
                     {isForgotPassword ? (
                         <TouchableOpacity style={{ marginTop: 24, alignItems: 'center' }} onPress={() => setIsForgotPassword(false)}>
-                            <Text style={{ color: '#64748B', fontWeight: 'bold' }}>Giriş Ekranına Dön</Text>
+                            <Text style={{ color: '#64748B', fontWeight: 'bold' }}>{t('auth.backToLogin')}</Text>
                         </TouchableOpacity>
                     ) : (
                         <View style={styles.footer}>
-                            <Text style={styles.footerText}>Henüz hesabın yok mu? </Text>
+                            <Text style={styles.footerText}>{t('auth.noAccount')}</Text>
                             <TouchableOpacity onPress={() => router.push('/signup')}>
-                                <Text style={styles.signupText}>Hemen Katıl</Text>
+                                <Text style={styles.signupText}>{t('auth.signupLink')}</Text>
                             </TouchableOpacity>
                         </View>
                     )}

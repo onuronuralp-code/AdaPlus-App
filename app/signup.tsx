@@ -6,9 +6,12 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 
+import { useTranslation } from 'react-i18next';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function SignUpScreen() {
+    const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const [name, setName] = useState('');
@@ -20,22 +23,22 @@ export default function SignUpScreen() {
 
     const validateName = (val: string): string | undefined => {
         const trimmed = val.trim();
-        if (!trimmed) return 'İsim Soyisim alanı boş bırakılamaz.';
-        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(trimmed)) return 'İsim yalnızca harf içermelidir.';
-        if (trimmed.split(/\s+/).length < 2) return 'Lütfen ad ve soyadınızı giriniz.';
+        if (!trimmed) return t('auth.errors.nameRequired');
+        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(trimmed)) return t('auth.errors.nameInvalid');
+        if (trimmed.split(/\s+/).length < 2) return t('auth.errors.nameShort');
         return undefined;
     };
 
     const validateEmail = (val: string): string | undefined => {
         const trimmed = val.trim();
-        if (!trimmed) return 'E-posta adresi boş bırakılamaz.';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Geçerli bir e-posta adresi giriniz.';
+        if (!trimmed) return t('auth.errors.emailRequired');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return t('auth.errors.invalidEmail');
         return undefined;
     };
 
     const validatePassword = (val: string): string | undefined => {
-        if (!val) return 'Şifre alanı boş bırakılamaz.';
-        if (val.length < 8) return 'Şifre en az 8 karakter olmalıdır.';
+        if (!val) return t('auth.errors.passwordRequired');
+        if (val.length < 8) return t('auth.errors.passwordMin');
         return undefined;
     };
 
@@ -108,20 +111,20 @@ export default function SignUpScreen() {
                     <View style={styles.logoCircle}>
                         <IconSymbol name="plus" size={30} color="#3B82F6" />
                     </View>
-                    <Text style={styles.welcomeTitle}>Topluluğa Hoş Geldin</Text>
-                    <Text style={styles.welcomeSubtitle}>Adanın en büyük topluluğuna katılarak maceranı paylaşmaya başla.</Text>
+                    <Text style={styles.welcomeTitle}>{t('auth.signupTitle')}</Text>
+                    <Text style={styles.welcomeSubtitle}>{t('auth.signupSubtitle')}</Text>
                 </View>
             </LinearGradient>
 
             <View style={styles.cardContainer}>
                 <View style={styles.formContainer}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>İSİM SOYİSİM</Text>
+                        <Text style={styles.inputLabel}>{t('auth.nameLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.name ? styles.inputWrapperError : null]}>
                             <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="Örn: Ahmet Yılmaz"
+                                placeholder={t('auth.namePlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 value={name}
                                 onChangeText={handleNameChange}
@@ -133,12 +136,12 @@ export default function SignUpScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>E-POSTA ADRESİ</Text>
+                        <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
                             <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="ahmet@example.com"
+                                placeholder={t('auth.emailPlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 keyboardType="email-address"
                                 autoCapitalize="none"
@@ -151,12 +154,12 @@ export default function SignUpScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>ŞİFRE</Text>
+                        <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
                             <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder="En az 8 karakter"
+                                placeholder={t('auth.passwordPlaceholder')}
                                 placeholderTextColor="#94A3B8"
                                 secureTextEntry
                                 value={password}
@@ -177,7 +180,7 @@ export default function SignUpScreen() {
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
                             <>
-                                <Text style={styles.primaryButtonText}>Kayıt Ol</Text>
+                                <Text style={styles.primaryButtonText}>{t('auth.signupButton')}</Text>
                                 <IconSymbol name="chevron.right" size={18} color="#fff" />
                             </>
                         )}
@@ -185,7 +188,7 @@ export default function SignUpScreen() {
 
                     <View style={styles.divider}>
                         <View style={styles.line} />
-                        <Text style={styles.dividerText}>VEYA</Text>
+                        <Text style={styles.dividerText}>{t('auth.orDivider')}</Text>
                         <View style={styles.line} />
                     </View>
 
@@ -201,9 +204,9 @@ export default function SignUpScreen() {
                     </View>
 
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>Zaten hesabın var mı? </Text>
+                        <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>
                         <TouchableOpacity onPress={() => router.push('/login')}>
-                            <Text style={styles.loginText}>Giriş Yap</Text>
+                            <Text style={styles.loginText}>{t('auth.loginLink')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
