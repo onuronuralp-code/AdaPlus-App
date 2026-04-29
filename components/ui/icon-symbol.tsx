@@ -67,6 +67,12 @@ const MAPPING = {
   'sunset.fill': 'brightness-high',
   'thermometer.medium': 'thermostat',
   'wind': 'air',
+  'square.grid.2x2.fill': 'grid-view',
+  'flame.fill': 'local-fire-department',
+  'chart.bar.fill': 'bar-chart',
+  'chart.pie.fill': 'pie-chart',
+  'pencil': 'edit',
+  'pencil.tip': 'draw',
 } as Partial<IconMapping>;
 
 /**

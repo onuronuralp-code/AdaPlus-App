@@ -13,6 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
+import { Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -119,6 +122,24 @@ export default function IlanlarScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<IlanCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAdModalVisible, setIsAdModalVisible] = useState(false);
+
+  // Ad Fields State
+  const [adTitle, setAdTitle] = useState('');
+  const [adPrice, setAdPrice] = useState('');
+  const [adDesc, setAdDesc] = useState('');
+  const [adCat, setAdCat] = useState('sell');
+  const [adIsland, setAdIsland] = useState('Büyükada');
+
+  const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Sedef Adası'];
+
+  const adCategories = [
+    { id: 'sell', label: 'Satılık', icon: 'tag-outline' },
+    { id: 'rent', label: 'Kiralık', icon: 'key-outline' },
+    { id: 'service', label: 'Hizmet', icon: 'hammer-wrench' },
+    { id: 'job', label: 'İş İlanı', icon: 'briefcase-outline' },
+    { id: 'lost', label: 'Kayıp', icon: 'alert-circle-outline' },
+  ];
 
   const filteredIlanlar = SAMPLE_ILANLAR.filter(ilan => {
     const matchesCategory = selectedCategory === 'all' || ilan.category === selectedCategory;
@@ -182,10 +203,120 @@ export default function IlanlarScreen() {
       <TouchableOpacity
         style={[styles.fab, { bottom: insets.bottom + 20 }]}
         activeOpacity={0.85}
-        onPress={() => Alert.alert('Yeni İlan', 'İlan oluşturma özelliği yakında aktif olacak!')}
+        onPress={() => setIsAdModalVisible(true)}
       >
         <IconSymbol name="plus" size={24} color="#fff" />
       </TouchableOpacity>
+
+      {/* Place Ad Modal */}
+      <Modal
+        visible={isAdModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setIsAdModalVisible(false)}
+      >
+        <KeyboardAvoidingView 
+          style={styles.modalContainer} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalHeader}>
+            <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
+              <TouchableOpacity onPress={() => setIsAdModalVisible(false)} style={styles.modalHeaderButton}>
+                <Text style={styles.cancelText}>İPTAL</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={styles.modalTitle} numberOfLines={1}>YENİ İLAN VER</Text>
+            </View>
+            <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
+              <TouchableOpacity 
+                onPress={() => setIsAdModalVisible(false)} 
+                style={[styles.publishButton, (!adTitle.trim() || !adPrice.trim()) && styles.publishButtonDisabled]}
+                disabled={!adTitle.trim() || !adPrice.trim()}
+              >
+                <Text style={styles.publishText}>YAYINLA</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>ADA SEÇİMİ</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.adCategoryRow}>
+                {islands.map(island => (
+                  <TouchableOpacity 
+                    key={island} 
+                    style={[styles.adCatItem, adIsland === island && styles.activeAdCat]}
+                    onPress={() => setAdIsland(island)}
+                  >
+                    <Text style={[styles.adCatText, adIsland === island && styles.activeAdCatText]}>{island}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>İLAN BAŞLIĞI</Text>
+              <TextInput
+                style={styles.adTitleInput}
+                placeholder="Ne satıyorsun veya arıyorsun?"
+                placeholderTextColor="#94A3B8"
+                value={adTitle}
+                onChangeText={setAdTitle}
+              />
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>KATEGORİ</Text>
+              <View style={styles.adCategoryRow}>
+                {adCategories.map(cat => (
+                  <TouchableOpacity 
+                    key={cat.id} 
+                    style={[styles.adCatItem, adCat === cat.id && styles.activeAdCat]}
+                    onPress={() => setAdCat(cat.id)}
+                  >
+                    <MaterialCommunityIcons 
+                      name={cat.icon as any} 
+                      size={20} 
+                      color={adCat === cat.id ? '#fff' : '#64748B'} 
+                    />
+                    <Text style={[styles.adCatText, adCat === cat.id && styles.activeAdCatText]}>{cat.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>FİYAT (₺)</Text>
+              <TextInput
+                style={styles.adTitleInput}
+                placeholder="0.00"
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                value={adPrice}
+                onChangeText={setAdPrice}
+              />
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>AÇIKLAMA</Text>
+              <TextInput
+                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
+                placeholder="Ürün veya hizmet detaylarını yaz..."
+                placeholderTextColor="#94A3B8"
+                multiline
+                value={adDesc}
+                onChangeText={setAdDesc}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.addPhotoBtn}>
+              <IconSymbol name="camera.fill" size={24} color="#64748B" />
+              <Text style={styles.addPhotoText}>Fotoğraf Ekle</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -449,5 +580,118 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 12,
     elevation: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalHeaderButton: {
+    paddingVertical: 8,
+  },
+  cancelText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#1E293B',
+    letterSpacing: 1,
+  },
+  publishButton: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  publishButtonDisabled: {
+    backgroundColor: '#E2E8F0',
+  },
+  publishText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 1,
+  },
+  modalBody: {
+    flex: 1,
+    padding: 20,
+  },
+  inputSection: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  adTitleInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    color: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    fontWeight: '600',
+  },
+  adCategoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  adCatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  activeAdCat: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
+  },
+  adCatText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  activeAdCatText: {
+    color: '#fff',
+  },
+  addPhotoBtn: {
+    marginTop: 10,
+    marginBottom: 40,
+    height: 120,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  addPhotoText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
   },
 });
