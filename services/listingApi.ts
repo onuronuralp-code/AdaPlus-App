@@ -35,7 +35,9 @@ export interface SaveListingRequest {
   active: boolean;
 }
 
-const LISTING_API_BASE = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.208:8080') + '/api/v1/listings';
+import { API_URL } from './apiConfig';
+
+const LISTING_API_BASE = API_URL + '/api/v1/listings';
 
 export const fetchListings = async (category?: ListingCategory): Promise<ListingDto[]> => {
   try {

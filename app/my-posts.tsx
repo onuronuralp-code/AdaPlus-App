@@ -7,6 +7,7 @@ import { fetchPosts, PostDto } from '@/services/forumApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
+import { useAuth } from '@/context/AuthContext';
 
 export default function MyPostsScreen() {
     const router = useRouter();
@@ -14,14 +15,20 @@ export default function MyPostsScreen() {
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const { user } = useAuth();
+
     useEffect(() => {
-        // Fetch all posts and filter for demo purposes (assuming user is Melis Yılmaz)
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+        // Fetch all posts and filter for the current user
         fetchPosts().then(allPosts => {
-            const myPosts = allPosts.filter(p => p.authorName === 'Melis Yılmaz');
+            const myPosts = allPosts.filter(p => p.authorName === user.fullName);
             setPosts(myPosts);
             setLoading(false);
         });
-    }, []);
+    }, [user]);
 
     const timeAgo = (dateStr: string) => {
         try {

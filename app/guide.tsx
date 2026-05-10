@@ -78,6 +78,8 @@ export default function GuideScreen() {
                     contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    bounces={false}
+                    overScrollMode="never"
                 >
                     {messages.map((msg) => (
                         <View key={msg.id} style={[styles.messageRow, msg.isBot ? styles.botRow : styles.userRow]}>

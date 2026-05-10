@@ -12,7 +12,9 @@ export enum PostType {
 export enum UserType {
   VISITOR = 'VISITOR',
   RESIDENT = 'RESIDENT',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
+  TOURIST = 'TOURIST',
+  ISLAND_RESIDENT = 'ISLAND_RESIDENT'
 }
 
 export enum Island {
@@ -65,7 +67,9 @@ export interface CreatePostRequest {
   anonymous: boolean;
 }
 
-const FORUM_API_BASE = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.208:8080') + '/api/v1/forum';
+import { API_URL } from './apiConfig';
+
+const FORUM_API_BASE = API_URL + '/api/v1/forum';
 
 // Helper for fetch with auth if needed
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
@@ -159,8 +163,10 @@ export const reportPost = async (postId: string, reason: string): Promise<boolea
 
 export const voteOnPoll = async (pollId: string, optionId: string): Promise<PostDto | null> => {
   try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/polls/${pollId}/vote?optionId=${optionId}`, {
+    const response = await fetchWithAuth(`${FORUM_API_BASE}/polls/${pollId}/vote`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ optionId }),
     });
     return await response.json();
   } catch (error) {

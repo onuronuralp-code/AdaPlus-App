@@ -372,7 +372,12 @@ export function FerrySchedule() {
 
       {/* Body */}
        <View style={styles.bodyWrapper}>
-            <AnimatedRE.ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
+            <AnimatedRE.ScrollView 
+                contentContainerStyle={styles.scrollBody} 
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+                overScrollMode="never"
+            >
                 {loading ? (
                     <View style={styles.loader}><ActivityIndicator size="large" color="#EA580C" /></View>
                 ) : destination === "Unselected" ? (

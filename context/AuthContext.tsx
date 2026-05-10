@@ -7,6 +7,7 @@ interface AuthContextType {
     isLoggedIn: boolean;
     login: (user: UserProfile, token: string) => Promise<void>;
     logout: () => Promise<void>;
+    updateProfile: (updatedUser: UserProfile) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,13 +38,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         await setToken(null);
     };
+    
+    const updateProfile = (updatedUser: UserProfile) => {
+        setUser(updatedUser);
+    };
 
     const isLoggedIn = !!user;
 
     if (!isInitialized) return null;
 
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoggedIn, login, logout, updateProfile }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,4 +1,5 @@
 import { triggerNetworkError } from '@/context/NetworkContext';
+import { API_URL } from './apiConfig';
 export { triggerNetworkError };
 
 export interface DepartureDto {
@@ -10,8 +11,7 @@ export interface DepartureDto {
   minutesUntil: number;
 }
 
-const API_BASE_URL =
-  (process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.208:8080") + "/api/v1/travel/ferries";
+const API_BASE_URL = API_URL + "/api/v1/travel/ferries";
 
 export const fetchDepartures = async (
   from: string,
@@ -57,7 +57,7 @@ export interface BusDepartureDto {
   minutesUntil: number;
 }
 
-const BUS_API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.208:8080") + "/api/v1/travel/buses";
+const BUS_API_BASE_URL = API_URL + "/api/v1/travel/buses";
 
 export const fetchBusDepartures = async (
   route: string,
@@ -100,7 +100,7 @@ export interface AppActivityDto {
   imageUrl?: string;
 }
 
-const ACTIVITIES_API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.208:8080") + "/api/v1/activities";
+const ACTIVITIES_API_BASE_URL = API_URL + "/api/v1/activities";
 
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
@@ -113,4 +113,3 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     return [];
   }
 };
-
