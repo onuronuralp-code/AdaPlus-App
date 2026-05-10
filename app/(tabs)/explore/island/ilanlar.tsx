@@ -236,7 +236,7 @@ export default function IlanlarScreen() {
         activeOpacity={0.85}
         onPress={() => {
             if (!isLoggedIn) {
-                setShowLoginPrompt(true);
+                router.push('/login');
                 return;
             }
             setIsAdModalVisible(true);
@@ -399,8 +399,8 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
     [ListingCategory.KAYIP]: 'lost',
   };
   
-  const frontendCat = backendToFrontend[listing.category] || 'sell';
-  const cfg = CATEGORY_CONFIG[frontendCat];
+  const frontendCat = backendToFrontend[listing.category] || 'all';
+  const cfg = CATEGORY_CONFIG[frontendCat] || CATEGORY_CONFIG.all;
 
   const timeAgo = formatDistanceToNow(new Date(listing.createdAt), { 
     addSuffix: true, 
@@ -414,10 +414,16 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
         { borderColor: `${cfg.color}33` },
       ]} 
       activeOpacity={0.7}
-      onPress={() => router.push({
-        pathname: '/explore/island/ilan/[id]',
-        params: { id: listing.id }
-      })}
+      onPress={() => {
+          if (!isLoggedIn) {
+              router.push('/login');
+          } else {
+              router.push({
+                pathname: '/explore/island/ilan/[id]',
+                params: { id: listing.id }
+              });
+          }
+      }}
     >
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>

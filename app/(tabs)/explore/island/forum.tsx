@@ -68,9 +68,30 @@ export default function ForumScreen() {
         setReplies(data);
     };
 
+    const handlePollVote = async (postId: string, optionId: string) => {
+        if (!isLoggedIn) {
+            router.push('/login');
+            return;
+        }
+        try {
+            const updatedPost = await forumApi.voteOnPoll(postId, optionId);
+            if (updatedPost) {
+                // Update main list
+                setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+                // Update detail view if open
+                if (selectedPost && selectedPost.id === postId) {
+                    setSelectedPost(updatedPost);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to vote:', error);
+            Alert.alert('Error', 'Anket oylaması başarısız oldu.');
+        }
+    };
+
     const handleSendReply = async () => {
         if (!isLoggedIn) {
-            setShowLoginPrompt(true);
+            router.push('/login');
             return;
         }
         if (!newReplyContent.trim() || !selectedPost) return;
@@ -117,72 +138,16 @@ export default function ForumScreen() {
 
     const loadPosts = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
-        const data = await (activeTab === 'hot' ? forumApi.fetchHotPosts() : forumApi.fetchPosts());
-        
-        // Add placeholder posts if none exist or for design preview
-        if (data.length === 0) {
-            const placeholders: PostDto[] = [
-                {
-                    id: 'p1',
-                    content: "Heybeliada'da gün batımı bir başka güzel... Bu akşamki manzara inanılmazdı! 🌅",
-                    authorName: "Selim Yılmaz",
-                    authorUserType: UserType.RESIDENT,
-                    island: Island.HEYBELIADA,
-                    postType: PostType.DISCUSSION,
-                    createdAt: new Date().toISOString(),
-                    likeCount: 24,
-                    replyCount: 5,
-                    isLiked: true,
-                    imageUrl: 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=600&auto=format&fit=crop'
-                },
-                {
-                    id: 'p2',
-                    content: "Vapur seferlerinin artırılması hakkında ne düşünüyorsunuz? Özellikle hafta sonları çok yoğun oluyor.",
-                    authorName: "Ayşe Demir",
-                    authorUserType: UserType.VISITOR,
-                    island: Island.BUYUKADA,
-                    postType: PostType.POLL,
-                    createdAt: new Date(Date.now() - 3600000).toISOString(),
-                    likeCount: 12,
-                    replyCount: 8,
-                    isLiked: false,
-                    pollOptions: [
-                        { id: 'o1', text: 'Kesinlikle artırılmalı', voteCount: 45, percentage: 75 },
-                        { id: 'o2', text: 'Mevcut seferler yeterli', voteCount: 15, percentage: 25 }
-                    ]
-                },
-                {
-                    id: 'p3',
-                    content: "Kınalıada'da yeni açılan 'Ada Mutfağı'nı denediniz mi? Mezeleri harika görünüyor! 🥗",
-                    authorName: "Ada Rehberi",
-                    authorUserType: UserType.ADMIN,
-                    island: Island.KINALIADA,
-                    postType: PostType.INFO,
-                    createdAt: new Date(Date.now() - 7200000).toISOString(),
-                    likeCount: 56,
-                    replyCount: 12,
-                    isLiked: false
-                },
-                {
-                    id: 'p4',
-                    content: "Bugün Burgazada sahilinde bir anahtarlık buldum. Sahibi benimle iletişime geçebilir. 🔑",
-                    authorName: "Mert Can",
-                    authorUserType: UserType.VISITOR,
-                    island: Island.BURGAZADA,
-                    postType: PostType.DISCUSSION,
-                    createdAt: new Date(Date.now() - 86400000).toISOString(),
-                    likeCount: 3,
-                    replyCount: 2,
-                    isLiked: false
-                }
-            ];
-            setPosts(placeholders);
-        } else {
-            setPosts(data);
+        try {
+            const data = await (activeTab === 'hot' ? forumApi.fetchHotPosts() : forumApi.fetchPosts());
+            setPosts(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to load posts:', error);
+            setPosts([]);
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
         }
-        
-        setIsLoading(false);
-        setIsRefreshing(false);
     };
 
     React.useEffect(() => {
@@ -197,7 +162,8 @@ export default function ForumScreen() {
     const getTagColor = (userType?: UserType) => {
         switch (userType) {
             case UserType.ADMIN: return '#EF4444';
-            case UserType.RESIDENT: return '#F59E0B';
+            case UserType.RESIDENT:
+            case UserType.ISLAND_RESIDENT: return '#F59E0B';
             default: return '#3B82F6';
         }
     };
@@ -284,7 +250,7 @@ export default function ForumScreen() {
 
     const toggleLike = async (id: string) => {
         if (!isLoggedIn) {
-            setShowLoginPrompt(true);
+            router.push('/login');
             return;
         }
         const success = await forumApi.likePost(id);
@@ -322,14 +288,22 @@ export default function ForumScreen() {
     const renderPost = ({ item }: { item: PostDto }) => {
         const tagColor = getTagColor(item.authorUserType);
         const authorName = item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' });
-        const roleName = item.authorUserType === UserType.RESIDENT ? t('forum.role.islander', { defaultValue: 'Adalı' }) : (item.authorUserType === UserType.ADMIN ? 'Admin' : t('forum.role.visitor', { defaultValue: 'Ziyaretçi' }));
+        const roleName = (item.authorUserType === UserType.RESIDENT || item.authorUserType === UserType.ISLAND_RESIDENT) 
+            ? t('forum.role.islander', { defaultValue: 'Adalı' }) 
+            : (item.authorUserType === UserType.ADMIN ? 'Admin' : t('forum.role.visitor', { defaultValue: 'Ziyaretçi' }));
 
         return (
             <View style={styles.postWrapper}>
                 <TouchableOpacity 
                     style={[styles.bubbleContainer]}
                     activeOpacity={0.9}
-                    onPress={() => openPostDetails(item)}
+                    onPress={() => {
+                        if (!isLoggedIn) {
+                            router.push('/login');
+                        } else {
+                            openPostDetails(item);
+                        }
+                    }}
                 >
                     <View style={styles.bubbleHeader}>
                         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -352,13 +326,18 @@ export default function ForumScreen() {
                         {item.postType === PostType.POLL && item.pollOptions && (
                             <View style={styles.renderedPollContainer}>
                                 {item.pollOptions.map((option) => (
-                                    <View key={option.id} style={styles.renderedPollOption}>
+                                    <TouchableOpacity 
+                                        key={option.id} 
+                                        style={styles.renderedPollOption}
+                                        onPress={() => handlePollVote(item.id, option.id)}
+                                        activeOpacity={0.7}
+                                    >
                                         <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: tagColor + '15' }]} />
                                         <View style={styles.pollOptionTextRow}>
                                             <Text style={styles.renderedPollOptionText}>{option.text}</Text>
                                             <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
                                         </View>
-                                    </View>
+                                    </TouchableOpacity>
                                 ))}
                             </View>
                         )}
@@ -408,7 +387,13 @@ export default function ForumScreen() {
                 <View style={{ width: 44 }} />
             </View>
             <View style={styles.tabsWrapper}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer} bounces={false}>
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    contentContainerStyle={styles.tabsContainer} 
+                    bounces={false}
+                    overScrollMode="never"
+                >
                     {tabs.map(tab => (
                         <TouchableOpacity 
                             key={tab.id}
@@ -429,11 +414,17 @@ export default function ForumScreen() {
                 </ScrollView>
             </View>
             <FlatList
-                data={posts}
+                data={posts.filter(post => {
+                    if (activeTab === 'polls') return post.postType === PostType.POLL;
+                    if (activeTab === 'liked') return post.isLiked;
+                    return true;
+                })}
                 renderItem={renderPost}
                 keyExtractor={item => item.id}
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
+                bounces={false}
+                overScrollMode="never"
                 contentContainerStyle={[styles.listContent, posts.length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }]}
                 refreshing={isRefreshing}
                 onRefresh={onRefresh}
@@ -449,7 +440,7 @@ export default function ForumScreen() {
                 style={[styles.fab, { bottom: insets.bottom + 20 }]} 
                 onPress={() => {
                     if (!isLoggedIn) {
-                        setShowLoginPrompt(true);
+                        router.push('/login');
                         return;
                     }
                     setIsWriteModalVisible(true);
@@ -671,6 +662,24 @@ export default function ForumScreen() {
                                     </View>
                                 </View>
                                 <Text style={styles.detailContentText}>{selectedPost.content}</Text>
+                                {selectedPost.postType === PostType.POLL && selectedPost.pollOptions && (
+                                    <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
+                                        {selectedPost.pollOptions.map((option: any) => (
+                                            <TouchableOpacity 
+                                                key={option.id} 
+                                                style={styles.renderedPollOption}
+                                                onPress={() => handlePollVote(selectedPost.id, option.id)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} />
+                                                <View style={styles.pollOptionTextRow}>
+                                                    <Text style={styles.renderedPollOptionText}>{option.text}</Text>
+                                                    <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
                                 {selectedPost.imageUrl && (
                                     <View style={styles.detailImageWrapper}>
                                         <Image source={{ uri: selectedPost.imageUrl }} style={styles.detailImage} />
@@ -937,9 +946,9 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
     emptyState: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 200,
     },
     emptyText: {
         fontSize: 16,

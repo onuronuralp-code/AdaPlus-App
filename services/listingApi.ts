@@ -1,6 +1,6 @@
 import { triggerNetworkError } from "./api";
-import { Island } from "./forumApi";
 import { API_BASE_URL } from "./config";
+import { Island } from "./forumApi";
 
 export enum ListingCategory {
   SATILIK = "SATILIK",

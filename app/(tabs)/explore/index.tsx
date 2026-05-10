@@ -51,40 +51,14 @@ export default function MainMenuScreen() {
     });
   }, []);
 
-  const dummySlides = [
-    {
-      id: 'default_1',
-      title: t('common.readyForAdventure', { defaultValue: 'Macera Zamanı?' }),
-      subtitle: t('common.exploreServices', { defaultValue: 'Adalardaki hizmetleri ve en yeni etkinlikleri keşfet' }),
-      imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'default_2',
-      title: 'Kültürel Rotalar',
-      subtitle: 'Adanın tarihi sokaklarında yürüyüşe çıkın.',
-      imageUrl: 'https://images.unsplash.com/photo-1542640244-7e672d6cb466?q=80&w=800&auto=format&fit=crop'
-    },
-    {
-      id: 'default_3',
-      title: 'Eşsiz Lezzetler',
-      subtitle: 'Sahil kenarında yerel restoranları deneyimleyin.',
-      imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'default_4',
-      title: 'Maviye Yolculuk',
-      subtitle: 'Vapurla adalar arası eşsiz deniz manzarası.',
-      imageUrl: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'default_5',
-      title: 'Doğa ile İç İçe',
-      subtitle: 'Bisiklet kiralayıp adanın yeşil tepelerini keşfedin.',
-      imageUrl: 'https://images.unsplash.com/photo-1520113412548-28564e292025?w=800&auto=format&fit=crop&q=80'
-    }
-  ];
+  const defaultSlide = {
+    id: 'default_welcome',
+    title: t('common.readyForAdventure', { defaultValue: 'Macera Zamanı?' }),
+    subtitle: t('common.exploreServices', { defaultValue: 'Adalardaki hizmetleri ve en yeni etkinlikleri keşfet' }),
+    imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+  };
 
-  const slidesToRender = [...heroSlides, ...dummySlides];
+  const slidesToRender = heroSlides.length > 0 ? heroSlides : [defaultSlide];
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -159,6 +133,8 @@ export default function MainMenuScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
+        overScrollMode="never"
+        scrollEnabled={false}
       >
         {/* Pagination Dots */}
         <View style={styles.paginationUnderHero}>
@@ -210,8 +186,7 @@ export default function MainMenuScreen() {
             <View style={[styles.gridRow, { height: isLargeScreen ? 130 : 110 }]}>
               <GridCard
                 icon="tag.fill"
-                color="#3B82F6"
-                accentLight="#DBEAFE"
+                colors={['#3B82F6', '#2563EB']}
                 title={t('common.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}
                 subtitle={t('common.ilanlarSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Jobs, Real Estate, Services' : 'İş, Emlak, Hizmet' })}
                 onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
@@ -220,8 +195,7 @@ export default function MainMenuScreen() {
               />
               <GridCard
                 icon="ticket.fill"
-                color="#F59E0B"
-                accentLight="#FEF3C7"
+                colors={['#F59E0B', '#D97706']}
                 title={t('common.events', { defaultValue: i18n.language.startsWith('en') ? 'Events' : 'Etkinlikler' })}
                 subtitle={t('common.islandEvents', { defaultValue: i18n.language.startsWith('en') ? 'Discover local events' : 'Etkinlikleri keşfet' })}
                 onPress={() => router.push('/(tabs)/explore/island/events')}
@@ -231,8 +205,7 @@ export default function MainMenuScreen() {
             </View>
             <MenuCard
               icon="safari.fill"
-              color="#EC4899"
-              accentLight="#FDF2F8"
+              colors={['#EC4899', '#BE185D']}
               title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI - Tour Guide' : 'Ada AI - Tur Rehberi' })}
               subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
               onPress={() => router.push('/guide')}
@@ -285,7 +258,7 @@ function MenuCard({ icon, color, accentLight, title, subtitle, onPress, style, c
 
   if (colors) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={style}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[style, { marginBottom: 12 }]}>
         <LinearGradient
           colors={colors}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -298,29 +271,50 @@ function MenuCard({ icon, color, accentLight, title, subtitle, onPress, style, c
   }
 
   return (
-    <TouchableOpacity style={[styles.card, { padding: cardPadding }, style]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.card, { padding: cardPadding }, style, { marginBottom: 12 }]} onPress={onPress} activeOpacity={0.7}>
       {content}
     </TouchableOpacity>
   );
 }
 
-function GridCard({ icon, color, accentLight, title, subtitle, onPress, style, large }: {
+function GridCard({ icon, color, accentLight, title, subtitle, onPress, style, colors, large }: {
   icon: string;
-  color: string;
-  accentLight: string;
+  color?: string;
+  accentLight?: string;
   title: string;
   subtitle: string;
   onPress?: () => void;
   style?: any;
+  colors?: any;
   large?: boolean;
 }) {
-  return (
-    <TouchableOpacity style={[styles.gridCard, large && { padding: 18 }, style]} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.gridIconContainer, { backgroundColor: color }, large && { width: 50, height: 50, borderRadius: 14 }]}>
+  const content = (
+    <>
+      <View style={[styles.gridIconContainer, { backgroundColor: colors ? 'rgba(255,255,255,0.2)' : color }, large && { width: 50, height: 50, borderRadius: 14 }]}>
         <IconSymbol name={icon as any} size={large ? 28 : 24} color="#fff" />
       </View>
-      <Text style={[styles.gridCardTitle, large && { fontSize: 17 }]} numberOfLines={1} adjustsFontSizeToFit>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 17 }]} numberOfLines={1}>{subtitle}</Text>
+      <Text style={[styles.gridCardTitle, large && { fontSize: 17 }, colors && { color: '#fff' }]} numberOfLines={1} adjustsFontSizeToFit>{title}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 17 }, colors && { color: 'rgba(255,255,255,0.8)' }]} numberOfLines={1}>{subtitle}</Text>
+    </>
+  );
+
+  if (colors) {
+    return (
+      <TouchableOpacity style={[styles.gridCard, { padding: 0, overflow: 'hidden' }, style]} onPress={onPress} activeOpacity={0.8}>
+        <LinearGradient
+          colors={colors}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[styles.gridCardGradient, large && { padding: 18 }]}
+        >
+          {content}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <TouchableOpacity style={[styles.gridCard, large && { padding: 18 }, style]} onPress={onPress} activeOpacity={0.7}>
+      {content}
     </TouchableOpacity>
   );
 }
@@ -599,6 +593,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+  },
+  gridCardGradient: {
+    flex: 1,
+    width: '100%',
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   gridCardTitle: {
     fontSize: 14,

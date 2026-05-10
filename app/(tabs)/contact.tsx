@@ -4,13 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<{ fullName?: string; email?: string }>({});
   const [touched, setTouched] = useState<{ fullName?: boolean; email?: boolean }>({});
@@ -105,7 +107,7 @@ export default function ContactScreen() {
                 <IconSymbol name="person.fill" size={18} color={errors.fullName ? '#EF4444' : '#94A3B8'} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Melis Yılmaz"
+                  placeholder={t('common.fullNamePlaceholder', { defaultValue: 'Ad Soyad' })}
                   placeholderTextColor="#CBD5E1"
                   value={fullName}
                   onChangeText={handleNameChange}
@@ -126,7 +128,7 @@ export default function ContactScreen() {
                 <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                 <TextInput
                   style={styles.input}
-                  placeholder="melis@example.com"
+                  placeholder={t('common.emailPlaceholder', { defaultValue: 'ornek@eposta.com' })}
                   placeholderTextColor="#CBD5E1"
                   value={email}
                   onChangeText={handleEmailChange}

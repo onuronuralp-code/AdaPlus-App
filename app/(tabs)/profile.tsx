@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
@@ -26,7 +26,7 @@ export default function ProfileScreen() {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const router = useRouter();
-    const { logout } = useAuth();
+    const { logout, user, isLoggedIn } = useAuth();
     const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [replies, setReplies] = useState<PostDto[]>([]);
@@ -38,13 +38,15 @@ export default function ProfileScreen() {
     const [loadingListings, setLoadingListings] = useState(true);
 
     useEffect(() => {
+        if (!user) return;
+
         fetchPosts().then(allPosts => {
-            const myPosts = allPosts.filter(p => p.authorName === 'Melis Yılmaz' && !p.parentId);
-            const myReplies = allPosts.filter(p => p.authorName === 'Melis Yılmaz' && p.parentId);
+            const myPosts = allPosts.filter(p => p.authorName === user.fullName && !p.parentId);
+            const myReplies = allPosts.filter(p => p.authorName === user.fullName && p.parentId);
             
             // Logic for notifications: posts that are replies to my posts from others
-            const myPostIds = allPosts.filter(p => p.authorName === 'Melis Yılmaz').map(p => p.id);
-            const myNotifications = allPosts.filter(p => p.parentId && myPostIds.includes(p.parentId) && p.authorName !== 'Melis Yılmaz');
+            const myPostIds = allPosts.filter(p => p.authorName === user.fullName).map(p => p.id);
+            const myNotifications = allPosts.filter(p => p.parentId && myPostIds.includes(p.parentId) && p.authorName !== user.fullName);
             
             setPosts(myPosts);
             setReplies(myReplies);
@@ -54,10 +56,12 @@ export default function ProfileScreen() {
             setLoadingNotifications(false);
         });
         fetchListings().then(allListings => {
+            // Filter listings by authorName if ListingDto supported it, 
+            // for now showing all or filtering if authorName exists in ListingDto
             setListings(allListings);
             setLoadingListings(false);
         });
-    }, []);
+    }, [user]);
 
     const timeAgo = (dateStr: string) => {
         try {
@@ -201,28 +205,50 @@ export default function ProfileScreen() {
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile')}</Text>
-                <TouchableOpacity 
-                    onPress={async () => {
-                        await logout();
-                        router.replace('/login');
-                    }} 
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    style={{ marginTop: 4 }}
-                >
-                    <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
-                </TouchableOpacity>
+                {isLoggedIn && (
+                    <TouchableOpacity 
+                        onPress={async () => {
+                            await logout();
+                            router.replace('/login');
+                        }} 
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        style={{ marginTop: 4 }}
+                    >
+                        <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
+                    </TouchableOpacity>
+                )}
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Profile Info */}
-                <View style={styles.profileCard}>
-                    <Image 
-                        source={{ uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop' }} 
-                        style={styles.avatar} 
-                    />
-                    <Text style={styles.userName}>Melis Yılmaz</Text>
-                    <Text style={styles.userBio}>Ada tutkunu | Gezgin | Fotoğrafçı</Text>
+            {!isLoggedIn ? (
+                <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center' }]}>
+                    <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
+                    <Text style={styles.emptyTitle}>Giriş Yapılmadı</Text>
+                    <Text style={styles.emptySubtitle}>Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.</Text>
+                    <TouchableOpacity 
+                        style={styles.loginButton}
+                        onPress={() => router.push('/login')}
+                    >
+                        <Text style={styles.loginButtonText}>Giriş Yap</Text>
+                    </TouchableOpacity>
                 </View>
+            ) : (
+                <ScrollView 
+                    contentContainerStyle={styles.scrollContent} 
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                    overScrollMode="never"
+                >
+                    {/* Profile Info */}
+                    <View style={styles.profileCard}>
+                        <View style={styles.avatarPlaceholder}>
+                            <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
+                        </View>
+                        <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
+                        <Text style={styles.userBio}>{user?.email || ''}</Text>
+                        <View style={styles.roleBadge}>
+                            <Text style={styles.roleText}>{user?.role === 'ADMIN' ? 'Yönetici' : (user?.role === 'RESIDENT' ? 'Sakin' : 'Ziyaretçi')}</Text>
+                        </View>
+                    </View>
 
                 {/* Tab Bar */}
                 <View style={styles.tabBar}>
@@ -246,20 +272,27 @@ export default function ProfileScreen() {
 
                 {/* Tab Content */}
                 {renderContent()}
-            </ScrollView>
+                </ScrollView>
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    container: { flex: 1, backgroundColor: '#fff' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 20, backgroundColor: '#fff' },
     headerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
     scrollContent: { paddingBottom: 100 },
     profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
     avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },
     userName: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
-    userBio: { fontSize: 14, color: '#64748B' },
+    userBio: { fontSize: 14, color: '#64748B', marginBottom: 8 },
+    avatarPlaceholder: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center', marginBottom: 14, borderWidth: 3, borderColor: '#F1F5F9' },
+    avatarText: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
+    roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+    roleText: { fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
+    loginButton: { marginTop: 24, backgroundColor: '#0F172A', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
+    loginButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
     // Tab Bar
     tabBar: { paddingVertical: 16 },
@@ -336,5 +369,19 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: '#F43F5E',
         marginTop: 6,
+    },
+    switchRoleBtn: {
+        marginTop: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: '#F1F5F9',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    switchRoleText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#6366F1',
     },
 });
