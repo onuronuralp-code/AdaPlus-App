@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://192.168.1.134:8080";
+import { API_BASE_URL } from './config';
 
 export type LivePositionResponse = {
   tripId: string;

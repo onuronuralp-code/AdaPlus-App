@@ -1,6 +1,7 @@
 import { triggerNetworkError } from './api';
+import { API_BASE_URL } from './config';
 
-const MEDIA_API_BASE = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.110:8080') + '/api/v1/media';
+const MEDIA_API_BASE = `${API_BASE_URL}/api/v1/media`;
 
 export const uploadImage = async (uri: string): Promise<string | null> => {
   try {

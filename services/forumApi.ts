@@ -1,5 +1,6 @@
 import { triggerNetworkError } from './api';
 import { getToken } from '../utils/tokenStorage';
+import { API_BASE_URL } from './config';
 
 export enum PostType {
   DISCUSSION = 'DISCUSSION',
@@ -65,7 +66,7 @@ export interface CreatePostRequest {
   anonymous: boolean;
 }
 
-const FORUM_API_BASE = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.208:8080') + '/api/v1/forum';
+const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;
 
 // Helper for fetch with auth if needed
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {

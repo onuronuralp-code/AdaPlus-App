@@ -362,9 +362,9 @@ export default function ForumScreen() {
                                 ))}
                             </View>
                         )}
-                        {item.image && (
+                        {item.imageUrl && (
                             <View style={styles.bubbleImageWrapper}>
-                                <Image source={{ uri: item.image }} style={styles.postImage} />
+                                <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
                             </View>
                         )}
                     </View>
@@ -1292,6 +1292,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#F7F9FC',
+    },
+    postCardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 12,
     },
     detailContentText: {
         fontSize: 16,

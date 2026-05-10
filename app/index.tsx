@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
+import * as ExpoSplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -16,22 +17,10 @@ export default function SplashScreen() {
   });
 
   useEffect(() => {
-    let navigated = false;
-    const navigate = () => {
-      if (!navigated) {
-        navigated = true;
-        router.replace("/(tabs)/explore");
-      }
-    };
-
-    const sub = player.addListener("playToEnd", navigate);
-    const t = setTimeout(navigate, 3000);
-
-    return () => {
-      sub.remove();
-      clearTimeout(t);
-    };
-  }, [player]);
+    ExpoSplashScreen.hideAsync();
+    const t = setTimeout(() => router.replace("/(tabs)/explore"), 3000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <View style={styles.container}>
