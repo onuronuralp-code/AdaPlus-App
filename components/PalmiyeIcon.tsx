@@ -41,7 +41,7 @@ export const PalmiyeIcon: React.FC<PalmiyeIconProps> = ({ size = 100, style }) =
             id="Adsız_degrade_52-3" 
             x1="-33.14" y1="313.55" x2="397.68" y2="588.38" 
             gradientUnits="userSpaceOnUse"
-            transform="translate(-17.75 12.64) rotate(-2.29)"
+            gradientTransform="translate(-17.75 12.64) rotate(-2.29)"
           >
             <Stop offset="0.02" stopColor="#ffe409" />
             <Stop offset="0.17" stopColor="#fdb119" />
@@ -56,7 +56,7 @@ export const PalmiyeIcon: React.FC<PalmiyeIconProps> = ({ size = 100, style }) =
             id="Adsız_degrade_52-4" 
             x1="-26.15" y1="304.38" x2="404.67" y2="579.22" 
             gradientUnits="userSpaceOnUse"
-            transform="translate(-10.8 7.51) rotate(-1.37)"
+            gradientTransform="translate(-10.8 7.51) rotate(-1.37)"
           >
             <Stop offset="0.02" stopColor="#ffe409" />
             <Stop offset="0.17" stopColor="#fdb119" />

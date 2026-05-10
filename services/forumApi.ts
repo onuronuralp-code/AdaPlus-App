@@ -1,28 +1,29 @@
-import { triggerNetworkError } from './api';
-import { getToken } from '../utils/tokenStorage';
+import { getToken } from "../utils/tokenStorage";
+import { triggerNetworkError } from "./api";
+import { API_BASE_URL } from "./config";
 
 export enum PostType {
-  DISCUSSION = 'DISCUSSION',
-  POLL = 'POLL',
-  COMPLAINT = 'COMPLAINT',
-  INFO = 'INFO',
-  ANNOUNCEMENT = 'ANNOUNCEMENT'
+  DISCUSSION = "DISCUSSION",
+  POLL = "POLL",
+  COMPLAINT = "COMPLAINT",
+  INFO = "INFO",
+  ANNOUNCEMENT = "ANNOUNCEMENT",
 }
 
 export enum UserType {
-  VISITOR = 'VISITOR',
-  RESIDENT = 'RESIDENT',
-  ADMIN = 'ADMIN',
-  TOURIST = 'TOURIST',
-  ISLAND_RESIDENT = 'ISLAND_RESIDENT'
+  VISITOR = "VISITOR",
+  RESIDENT = "RESIDENT",
+  ADMIN = "ADMIN",
+  TOURIST = "TOURIST",
+  ISLAND_RESIDENT = "ISLAND_RESIDENT",
 }
 
 export enum Island {
-  BUYUKADA = 'BUYUKADA',
-  HEYBELIADA = 'HEYBELIADA',
-  BURGAZADA = 'BURGAZADA',
-  KINALIADA = 'KINALIADA',
-  SEDEF_ADASI = 'SEDEF_ADASI'
+  BUYUKADA = "BUYUKADA",
+  HEYBELIADA = "HEYBELIADA",
+  BURGAZADA = "BURGAZADA",
+  KINALIADA = "KINALIADA",
+  SEDEF_ADASI = "SEDEF_ADASI",
 }
 
 export interface PollOptionDto {
@@ -67,20 +68,18 @@ export interface CreatePostRequest {
   anonymous: boolean;
 }
 
-import { API_URL } from './apiConfig';
-
-const FORUM_API_BASE = API_URL + '/api/v1/forum';
+const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;
 
 // Helper for fetch with auth if needed
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
   const headers = {
     ...options.headers,
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
   const response = await fetch(url, { ...options, headers });
-  
+
   if (!response.ok) {
     throw new Error(`API Error: ${response.status}`);
   }
@@ -89,21 +88,21 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 
 export const fetchPosts = async (topicId?: string): Promise<PostDto[]> => {
   try {
-    const url = topicId 
-      ? `${FORUM_API_BASE}/topics/${topicId}/posts` 
+    const url = topicId
+      ? `${FORUM_API_BASE}/topics/${topicId}/posts`
       : `${FORUM_API_BASE}/posts`;
-    
+
     const response = await fetchWithAuth(url);
     const data = await response.json();
-    
+
     // Handle Spring Data Page structure if present
     if (data && data.content && Array.isArray(data.content)) {
       return data.content;
     }
-    
+
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Failed to fetch forum posts:', error);
+    console.error("Failed to fetch forum posts:", error);
     triggerNetworkError();
     return [];
   }
@@ -114,22 +113,24 @@ export const fetchHotPosts = async (): Promise<PostDto[]> => {
     const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/hot`);
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch hot posts:', error);
+    console.error("Failed to fetch hot posts:", error);
     triggerNetworkError();
     return [];
   }
 };
 
-export const createPost = async (request: CreatePostRequest): Promise<PostDto | null> => {
+export const createPost = async (
+  request: CreatePostRequest,
+): Promise<PostDto | null> => {
   try {
     const response = await fetchWithAuth(`${FORUM_API_BASE}/posts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     });
     return await response.json();
   } catch (error) {
-    console.error('Failed to create post:', error);
+    console.error("Failed to create post:", error);
     triggerNetworkError();
     return null;
   }
@@ -137,65 +138,85 @@ export const createPost = async (request: CreatePostRequest): Promise<PostDto | 
 
 export const likePost = async (postId: string): Promise<boolean> => {
   try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/${postId}/like`, {
-      method: 'POST',
-    });
+    const response = await fetchWithAuth(
+      `${FORUM_API_BASE}/posts/${postId}/like`,
+      {
+        method: "POST",
+      },
+    );
     return response.ok;
   } catch (error) {
-    console.error('Failed to like post:', error);
+    console.error("Failed to like post:", error);
     return false;
   }
 };
 
-export const reportPost = async (postId: string, reason: string): Promise<boolean> => {
+export const reportPost = async (
+  postId: string,
+  reason: string,
+): Promise<boolean> => {
   try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/${postId}/report`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason }),
-    });
+    const response = await fetchWithAuth(
+      `${FORUM_API_BASE}/posts/${postId}/report`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      },
+    );
     return response.ok;
   } catch (error) {
-    console.error('Failed to report post:', error);
+    console.error("Failed to report post:", error);
     return false;
   }
 };
 
-export const voteOnPoll = async (pollId: string, optionId: string): Promise<PostDto | null> => {
+export const voteOnPoll = async (
+  pollId: string,
+  optionId: string,
+): Promise<PostDto | null> => {
   try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/polls/${pollId}/vote`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ optionId }),
-    });
+    const response = await fetchWithAuth(
+      `${FORUM_API_BASE}/polls/${pollId}/vote`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optionId }),
+      },
+    );
     return await response.json();
   } catch (error) {
-    console.error('Failed to vote on poll:', error);
+    console.error("Failed to vote on poll:", error);
     return null;
   }
 };
 
 export const fetchReplies = async (postId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/${postId}/replies`);
+    const response = await fetchWithAuth(
+      `${FORUM_API_BASE}/posts/${postId}/replies`,
+    );
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch replies:', error);
+    console.error("Failed to fetch replies:", error);
     triggerNetworkError();
     return [];
   }
 };
 
-export const postReply = async (postId: string, request: Partial<CreatePostRequest>): Promise<PostDto | null> => {
+export const postReply = async (
+  postId: string,
+  request: Partial<CreatePostRequest>,
+): Promise<PostDto | null> => {
   try {
     const response = await fetchWithAuth(`${FORUM_API_BASE}/posts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...request, parentId: postId }),
     });
     return await response.json();
   } catch (error) {
-    console.error('Failed to post reply:', error);
+    console.error("Failed to post reply:", error);
     triggerNetworkError();
     return null;
   }
@@ -206,7 +227,7 @@ export const fetchTopics = async (): Promise<ForumTopicDto[]> => {
     const response = await fetchWithAuth(`${FORUM_API_BASE}/topics`);
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch topics:', error);
+    console.error("Failed to fetch topics:", error);
     return [];
   }
 };

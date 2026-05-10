@@ -42,6 +42,16 @@ const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color
   lost:    { label: 'Kayıp',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2', backend: ListingCategory.KAYIP },
 };
 
+const ISLAND_ENUM_MAP: Record<string, Island> = {
+  'Büyükada':   Island.BUYUKADA,
+  'Heybeliada': Island.HEYBELIADA,
+  'Burgazada':  Island.BURGAZADA,
+  'Kınalıada':  Island.KINALIADA,
+  'Sedef Adası': Island.SEDEF_ADASI,
+};
+const getIslandEnum = (name: string): Island =>
+  ISLAND_ENUM_MAP[name] ?? Island.BUYUKADA;
+
 const SAMPLE_ILANLAR: ListingDto[] = []; // Replaced by real data
 
 export default function IlanlarScreen() {

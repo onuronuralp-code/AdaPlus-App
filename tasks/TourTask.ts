@@ -7,7 +7,7 @@ export const GEOFENCING_TASK_NAME = ' ISLAND_TOUR_GEOFENCING';
 // Note: This is a simplified version. For a real production app, 
 // we would probably want to emit an event that the UI can listen to,
 // or use a more robust state management if the app is killed.
-TaskManager.defineTask(GEOFENCING_TASK_NAME, ({ data: { eventType, region }, error }: any) => {
+TaskManager.defineTask(GEOFENCING_TASK_NAME, async ({ data: { eventType, region }, error }: any) => {
     if (error) {
         console.error('Geofencing tool error:', error);
         return;

@@ -1,6 +1,4 @@
-import { API_URL } from './apiConfig';
-
-const API_BASE_URL = API_URL;
+import { API_BASE_URL } from "./config";
 
 export type LivePositionResponse = {
   tripId: string;
