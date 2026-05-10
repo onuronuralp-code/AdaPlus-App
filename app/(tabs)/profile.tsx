@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { fetchPosts, PostDto } from '@/services/forumApi';
+import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto } from '@/services/forumApi';
 import { fetchListings, ListingDto } from '@/services/listingApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
@@ -30,34 +30,38 @@ export default function ProfileScreen() {
     const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [replies, setReplies] = useState<PostDto[]>([]);
+    const [likedPosts, setLikedPosts] = useState<PostDto[]>([]);
     const [notifications, setNotifications] = useState<PostDto[]>([]);
     const [listings, setListings] = useState<ListingDto[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [loadingReplies, setLoadingReplies] = useState(true);
+    const [loadingLikes, setLoadingLikes] = useState(true);
     const [loadingNotifications, setLoadingNotifications] = useState(true);
     const [loadingListings, setLoadingListings] = useState(true);
 
     useEffect(() => {
         if (!user) return;
 
-        fetchPosts().then(allPosts => {
-            const myPosts = allPosts.filter(p => p.authorName === user.fullName && !p.parentId);
-            const myReplies = allPosts.filter(p => p.authorName === user.fullName && p.parentId);
-            
-            // Logic for notifications: posts that are replies to my posts from others
-            const myPostIds = allPosts.filter(p => p.authorName === user.fullName).map(p => p.id);
-            const myNotifications = allPosts.filter(p => p.parentId && myPostIds.includes(p.parentId) && p.authorName !== user.fullName);
-            
-            setPosts(myPosts);
-            setReplies(myReplies);
-            setNotifications(myNotifications);
+        setLoadingPosts(true);
+        setLoadingReplies(true);
+        setLoadingLikes(true);
+
+        fetchUserPosts(user.id).then(data => {
+            setPosts(data);
             setLoadingPosts(false);
-            setLoadingReplies(false);
-            setLoadingNotifications(false);
         });
+
+        fetchUserReplies(user.id).then(data => {
+            setReplies(data);
+            setLoadingReplies(false);
+        });
+
+        fetchUserLikes(user.id).then(data => {
+            setLikedPosts(data);
+            setLoadingLikes(false);
+        });
+
         fetchListings().then(allListings => {
-            // Filter listings by authorName if ListingDto supported it, 
-            // for now showing all or filtering if authorName exists in ListingDto
             setListings(allListings);
             setLoadingListings(false);
         });
@@ -187,7 +191,30 @@ export default function ProfileScreen() {
     };
 
     const renderLikes = () => {
-        return renderEmpty('heart.fill', 'Henüz Beğeni Yok', 'Beğendiğiniz paylaşımlar burada görünecek.');
+        if (loadingLikes) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#EC4899" /></View>;
+        if (likedPosts.length === 0) return renderEmpty('heart.fill', 'Henüz Beğeni Yok', 'Beğendiğiniz paylaşımlar burada görünecek.');
+        return (
+            <View style={styles.contentList}>
+                {likedPosts.map(post => (
+                    <TouchableOpacity 
+                        key={post.id} 
+                        style={styles.postCard}
+                        onPress={() => router.push(`/(tabs)/explore/island/forum/${post.id}`)}
+                    >
+                        <Text style={styles.postContent}>{post.content}</Text>
+                        <View style={styles.postFooter}>
+                            <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                            <View style={styles.statsRow}>
+                                <View style={styles.statItem}>
+                                    <IconSymbol name="heart.fill" size={14} color="#EC4899" />
+                                    <Text style={styles.statText}>{post.likeCount}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        );
     };
 
     const renderContent = () => {

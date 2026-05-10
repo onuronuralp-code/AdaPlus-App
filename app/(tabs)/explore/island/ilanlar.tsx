@@ -176,7 +176,7 @@ export default function IlanlarScreen() {
 
       {/* Category Pills */}
       <View style={styles.tabsWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer} bounces={false}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer} bounces={true}>
           {(Object.keys(CATEGORY_CONFIG) as IlanCategory[]).map(key => {
             const cfg = CATEGORY_CONFIG[key];
             const isActive = selectedCategory === key;
@@ -184,8 +184,8 @@ export default function IlanlarScreen() {
               <TouchableOpacity
                 key={key}
                 style={[
-                  styles.tabButton,
-                  isActive && styles.activeTabButton
+                  styles.tabItem,
+                  isActive && styles.activeTabItem
                 ]}
                 onPress={() => setSelectedCategory(key)}
                 activeOpacity={0.7}
@@ -193,9 +193,9 @@ export default function IlanlarScreen() {
                 <IconSymbol 
                   name={cfg.icon as any} 
                   size={14} 
-                  color={isActive ? '#FFFFFF' : '#64748B'} 
+                  color={isActive ? '#FFFFFF' : '#475569'} 
                 />
-                <Text style={[styles.tabText, isActive && styles.activeTabText]}>
+                <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
                   {cfg.label}
                 </Text>
               </TouchableOpacity>
@@ -508,39 +508,40 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   tabsWrapper: {
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: 'transparent',
   },
   tabsContainer: {
     paddingHorizontal: 20,
-    gap: 12,
+    gap: 10,
   },
-  tabButton: {
+  tabItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 24,
     gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 1,
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
-  activeTabButton: {
+  activeTabItem: {
     backgroundColor: '#0F172A',
     borderColor: '#0F172A',
+    shadowOpacity: 0.1,
   },
-  tabText: {
-    fontSize: 14,
+  tabLabel: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#475569',
   },
-  activeTabText: {
+  activeTabLabel: {
     color: '#FFFFFF',
   },
   listContainer: {

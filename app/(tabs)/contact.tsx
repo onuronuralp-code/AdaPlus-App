@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/context/AuthContext';
+import { contactApi } from '@/services/contactApi';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -14,14 +15,13 @@ export default function ContactScreen() {
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [email, setEmail] = useState(user?.email || '');
   const [message, setMessage] = useState('');
-  const [errors, setErrors] = useState<{ fullName?: string; email?: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ fullName?: string; email?: string; message?: string }>({});
   const [touched, setTouched] = useState<{ fullName?: boolean; email?: boolean }>({});
 
   const validateName = (name: string): string | undefined => {
     const trimmed = name.trim();
     if (!trimmed) return 'Ad Soyad alanı boş bırakılamaz.';
-    if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(trimmed)) return 'Ad Soyad yalnızca harf içermelidir.';
-    if (trimmed.split(/\s+/).length < 2) return 'Lütfen ad ve soyadınızı giriniz.';
     return undefined;
   };
 
@@ -56,20 +56,28 @@ export default function ContactScreen() {
     setErrors(prev => ({ ...prev, email: validateEmail(email) }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const nameError = validateName(fullName);
     const emailError = validateEmail(email);
+    const messageError = message.trim().length < 10 ? 'Lütfen en az 10 karakterlik bir mesaj giriniz.' : undefined;
+    
     setTouched({ fullName: true, email: true });
-    setErrors({ fullName: nameError, email: emailError });
+    setErrors({ fullName: nameError, email: emailError, message: messageError });
 
-    if (nameError || emailError) return;
+    if (nameError || emailError || messageError) return;
 
-    Alert.alert('Başarılı ✓', 'Mesajınız başarıyla gönderildi!');
-    setFullName('');
-    setEmail('');
-    setMessage('');
-    setTouched({});
-    setErrors({});
+    setIsSubmitting(true);
+    try {
+      await contactApi.send({ fullName: fullName.trim(), email: email.trim(), message: message.trim() });
+      Alert.alert('Başarılı ✓', 'Mesajınız başarıyla gönderildi!');
+      setMessage('');
+      setTouched({});
+      setErrors({});
+    } catch (e: any) {
+      Alert.alert('Hata', e.message || 'Mesaj gönderilirken bir hata oluştu.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -147,7 +155,7 @@ export default function ContactScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('common.message', { defaultValue: 'MESAJINIZ' })}</Text>
-              <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+              <View style={[styles.inputWrapper, styles.textAreaWrapper, errors.message ? styles.inputWrapperError : null]}>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   placeholder={t('common.messagePlaceholder', { defaultValue: 'Nasıl yardımcı olabiliriz?' })}
@@ -159,6 +167,12 @@ export default function ContactScreen() {
                   textAlignVertical="top"
                 />
               </View>
+              {errors.message && (
+                <View style={styles.errorRow}>
+                  <IconSymbol name="exclamationmark.circle.fill" size={12} color="#EF4444" />
+                  <Text style={styles.errorText}>{errors.message}</Text>
+                </View>
+              )}
             </View>
 
           </View>
@@ -166,15 +180,21 @@ export default function ContactScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={styles.submitButtonWrapper}>
+          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={styles.submitButtonWrapper} disabled={isSubmitting}>
             <LinearGradient
-              colors={['#3B82F6', '#2563EB']} // Reverting to original blue gradient
+              colors={['#3B82F6', '#2563EB']} 
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.submitButton}
             >
-              <IconSymbol name="paperplane.fill" size={20} color="#fff" />
-              <Text style={styles.submitButtonText}>{t('common.send', { defaultValue: 'Gönder' })}</Text>
+              {isSubmitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <IconSymbol name="paperplane.fill" size={20} color="#fff" />
+                  <Text style={styles.submitButtonText}>{t('common.send', { defaultValue: 'Gönder' })}</Text>
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -197,10 +217,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerTitle: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#0F172A', 
-    letterSpacing: -0.8,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.3,
   },
   infoBanner: {
     flexDirection: 'row',
@@ -337,8 +357,8 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
 });
