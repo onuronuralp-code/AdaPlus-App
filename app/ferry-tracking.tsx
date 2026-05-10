@@ -30,6 +30,7 @@ const STOP_COORDINATES: Record<string, Coordinates> = {
   Kadıköy: { latitude: 40.9917, longitude: 29.0246 },
   Kabataş: { latitude: 41.0317, longitude: 28.9901 },
   Beşiktaş: { latitude: 41.0439, longitude: 29.0053 },
+  Maltepe: { latitude: 40.9168, longitude: 29.1314 },
 };
 
 const getStopCoordinates = (name?: string): Coordinates | null => {

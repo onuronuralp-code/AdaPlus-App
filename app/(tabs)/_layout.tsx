@@ -11,22 +11,18 @@ export default function TabLayout() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const isDeepRoute = pathname.includes('/island/') || pathname.includes('/guide');
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: styles.tabBarLight,
-        tabBarActiveTintColor: '#000000',
+        tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : '#000000',
         tabBarInactiveTintColor: '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
       <Tabs.Screen
         name="explore"
         listeners={{

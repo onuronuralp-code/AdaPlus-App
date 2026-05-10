@@ -1,98 +1,340 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { fetchPosts, PostDto } from '@/services/forumApi';
+import { fetchListings, ListingDto } from '@/services/listingApi';
+import { formatDistanceToNow } from 'date-fns';
+import { tr, enUS } from 'date-fns/locale';
+import i18n from '@/utils/i18n';
+import { useAuth } from '@/context/AuthContext';
+
+type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
+
+const TABS: { key: ProfileTab; label: string; icon: string; color: string }[] = [
+    { key: 'posts', label: 'Paylaşımlar', icon: 'bubble.left.and.bubble.right.fill', color: '#6366F1' },
+    { key: 'replies', label: 'Yanıtlar', icon: 'arrow.uturn.left.circle.fill', color: '#8B5CF6' },
+    { key: 'notifications', label: 'Bildirimler', icon: 'bell.fill', color: '#F43F5E' },
+    { key: 'listings', label: 'İlanlar', icon: 'tag.fill', color: '#10B981' },
+    { key: 'events', label: 'Etkinlikler', icon: 'calendar', color: '#F59E0B' },
+    { key: 'likes', label: 'Beğeniler', icon: 'heart.fill', color: '#EC4899' },
+];
 
 export default function ProfileScreen() {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const router = useRouter();
+    const { logout } = useAuth();
+    const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
+    const [posts, setPosts] = useState<PostDto[]>([]);
+    const [replies, setReplies] = useState<PostDto[]>([]);
+    const [notifications, setNotifications] = useState<PostDto[]>([]);
+    const [listings, setListings] = useState<ListingDto[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState(true);
+    const [loadingReplies, setLoadingReplies] = useState(true);
+    const [loadingNotifications, setLoadingNotifications] = useState(true);
+    const [loadingListings, setLoadingListings] = useState(true);
+
+    useEffect(() => {
+        fetchPosts().then(allPosts => {
+            const myPosts = allPosts.filter(p => p.authorName === 'Melis Yılmaz' && !p.parentId);
+            const myReplies = allPosts.filter(p => p.authorName === 'Melis Yılmaz' && p.parentId);
+            
+            // Logic for notifications: posts that are replies to my posts from others
+            const myPostIds = allPosts.filter(p => p.authorName === 'Melis Yılmaz').map(p => p.id);
+            const myNotifications = allPosts.filter(p => p.parentId && myPostIds.includes(p.parentId) && p.authorName !== 'Melis Yılmaz');
+            
+            setPosts(myPosts);
+            setReplies(myReplies);
+            setNotifications(myNotifications);
+            setLoadingPosts(false);
+            setLoadingReplies(false);
+            setLoadingNotifications(false);
+        });
+        fetchListings().then(allListings => {
+            setListings(allListings);
+            setLoadingListings(false);
+        });
+    }, []);
+
+    const timeAgo = (dateStr: string) => {
+        try {
+            return formatDistanceToNow(new Date(dateStr), {
+                addSuffix: true,
+                locale: i18n.language.startsWith('tr') ? tr : enUS
+            });
+        } catch {
+            return '';
+        }
+    };
+
+    const renderEmpty = (icon: string, title: string, subtitle: string) => (
+        <View style={styles.emptyContainer}>
+            <IconSymbol name={icon as any} size={48} color="#CBD5E1" />
+            <Text style={styles.emptyTitle}>{t('common.notFound', { defaultValue: 'Bulunamadı' })}</Text>
+            <Text style={styles.emptySubtitle}>{subtitle}</Text>
+        </View>
+    );
+
+    const renderPosts = () => {
+        if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
+        if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', 'Henüz Paylaşım Yok', 'Toplulukla fikirlerini paylaşmaya başla!');
+        return (
+            <View style={styles.contentList}>
+                {posts.map(post => (
+                    <View key={post.id} style={styles.postCard}>
+                        <Text style={styles.postContent}>{post.content}</Text>
+                        <View style={styles.postFooter}>
+                            <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                            <View style={styles.statsRow}>
+                                <View style={styles.statItem}>
+                                    <IconSymbol name="heart.fill" size={14} color="#EC4899" />
+                                    <Text style={styles.statText}>{post.likeCount}</Text>
+                                </View>
+                                <View style={styles.statItem}>
+                                    <IconSymbol name="bubble.left.and.bubble.right.fill" size={14} color="#64748B" />
+                                    <Text style={styles.statText}>{post.replyCount}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderReplies = () => {
+        if (loadingReplies) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B5CF6" /></View>;
+        if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', 'Henüz Yanıt Yok', 'Paylaşımlara yorum yaparak etkileşime geç!');
+        return (
+            <View style={styles.contentList}>
+                {replies.map(reply => (
+                    <View key={reply.id} style={styles.postCard}>
+                        <View style={styles.replyHeader}>
+                            <IconSymbol name="arrow.uturn.left" size={12} color="#64748B" />
+                            <Text style={styles.replyContext}>Gönderiye yanıt olarak:</Text>
+                        </View>
+                        <Text style={styles.postContent}>{reply.content}</Text>
+                        <View style={styles.postFooter}>
+                            <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
+                        </View>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderNotifications = () => {
+        if (loadingNotifications) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F43F5E" /></View>;
+        if (notifications.length === 0) return renderEmpty('bell.fill', 'Bildirim Yok', 'Gönderilerine yanıt geldiğinde burada görünecek.');
+        return (
+            <View style={styles.contentList}>
+                {notifications.map(notif => (
+                    <View key={notif.id} style={styles.notifCard}>
+                        <View style={styles.notifIcon}>
+                            <IconSymbol name="bubble.left.fill" size={16} color="#F43F5E" />
+                        </View>
+                        <View style={styles.notifBody}>
+                            <Text style={styles.notifTitle}>
+                                <Text style={styles.notifAuthor}>{notif.authorName}</Text> gönderine yanıt verdi
+                            </Text>
+                            <Text style={styles.notifContent} numberOfLines={2}>"{notif.content}"</Text>
+                            <Text style={styles.postTime}>{timeAgo(notif.createdAt)}</Text>
+                        </View>
+                        <View style={styles.notifDot} />
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderListings = () => {
+        if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#10B981" /></View>;
+        if (listings.length === 0) return renderEmpty('tag.fill', 'Henüz İlan Yok', 'İlk ilanınızı oluşturmak için İlanlar sayfasını ziyaret edin.');
+        return (
+            <View style={styles.contentList}>
+                {listings.map(listing => (
+                    <TouchableOpacity 
+                        key={listing.id} 
+                        style={styles.listingCard}
+                        activeOpacity={0.7}
+                        onPress={() => router.push(`/(tabs)/explore/island/ilan/${listing.id}`)}
+                    >
+                        <View style={styles.listingInfo}>
+                            <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
+                            <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
+                            <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
+                        </View>
+                        {listing.price > 0 && (
+                            <View style={styles.priceTag}>
+                                <Text style={styles.priceText}>{listing.price} ₺</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                ))}
+            </View>
+        );
+    };
+
+    const renderEvents = () => {
+        return renderEmpty('calendar', 'Henüz Etkinlik Yok', 'Katıldığınız etkinlikler burada görünecek.');
+    };
+
+    const renderLikes = () => {
+        return renderEmpty('heart.fill', 'Henüz Beğeni Yok', 'Beğendiğiniz paylaşımlar burada görünecek.');
+    };
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'posts': return renderPosts();
+            case 'replies': return renderReplies();
+            case 'notifications': return renderNotifications();
+            case 'listings': return renderListings();
+            case 'events': return renderEvents();
+            case 'likes': return renderLikes();
+        }
+    };
 
     return (
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile')}</Text>
-                <TouchableOpacity style={styles.settingsButton}>
-                    <IconSymbol name="plus" size={24} color="#000" />
+                <TouchableOpacity 
+                    onPress={async () => {
+                        await logout();
+                        router.replace('/login');
+                    }} 
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    style={{ marginTop: 4 }}
+                >
+                    <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
                 </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* Profile Info */}
                 <View style={styles.profileCard}>
-                    <View style={styles.avatarContainer}>
-                        <Image 
-                            source={{ uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop' }} 
-                            style={styles.avatar} 
-                        />
-                        <TouchableOpacity style={styles.editBadge}>
-                            <IconSymbol name="plus" size={14} color="#fff" />
-                        </TouchableOpacity>
-                    </View>
+                    <Image 
+                        source={{ uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop' }} 
+                        style={styles.avatar} 
+                    />
                     <Text style={styles.userName}>Melis Yılmaz</Text>
                     <Text style={styles.userBio}>Ada tutkunu | Gezgin | Fotoğrafçı</Text>
-
-                    <View style={styles.statsRow}>
-                        <View style={styles.statBox}>
-                            <Text style={styles.statValue}>12</Text>
-                            <Text style={styles.statLabel}>{t('common.posts', { defaultValue: 'Paylaşım' })}</Text>
-                        </View>
-
-                    </View>
                 </View>
 
-                <View style={styles.menuSection}>
-                    <ProfileMenuItem icon="heart.fill" label={t('common.myFavorites', { defaultValue: 'Favorilerim' })} color="#EC4899" />
-                    <ProfileMenuItem icon="calendar" label={t('common.myEvents', { defaultValue: 'Etkinliklerim' })} color="#F59E0B" />
-                    <ProfileMenuItem icon="map.fill" label={t('common.travelHistory', { defaultValue: 'Gezi Geçmişi' })} color="#3B82F6" />
-                    <ProfileMenuItem icon="envelope.fill" label={t('common.messages', { defaultValue: 'Mesajlar' })} color="#10B981" />
+                {/* Tab Bar */}
+                <View style={styles.tabBar}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
+                        {TABS.map(tab => {
+                            const isActive = activeTab === tab.key;
+                            return (
+                                <TouchableOpacity 
+                                    key={tab.key} 
+                                    style={[styles.tabItem, isActive && { backgroundColor: tab.color }]}
+                                    onPress={() => setActiveTab(tab.key)}
+                                    activeOpacity={0.7}
+                                >
+                                    <IconSymbol name={tab.icon as any} size={16} color={isActive ? '#fff' : tab.color} />
+                                    <Text style={[styles.tabLabel, isActive && { color: '#fff' }]}>{tab.label}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
                 </View>
 
-                <TouchableOpacity 
-                    style={styles.logoutButton} 
-                    onPress={() => router.replace('/login')}
-                >
-                    <Text style={styles.logoutText}>{t('common.logout', { defaultValue: 'Çıkış Yap' })}</Text>
-                </TouchableOpacity>
+                {/* Tab Content */}
+                {renderContent()}
             </ScrollView>
         </View>
-    );
-}
-
-function ProfileMenuItem({ icon, label, color }: { icon: string, label: string, color: string }) {
-    return (
-        <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: `${color}15` }]}>
-                <IconSymbol name={icon as any} size={20} color={color} />
-            </View>
-            <Text style={styles.menuLabel}>{label}</Text>
-            <IconSymbol name="chevron.right" size={16} color="#CBD5E1" />
-        </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 20, backgroundColor: '#fff' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#0F172A' },
-    settingsButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
-    scrollContent: { padding: 20, paddingBottom: 100 },
-    profileCard: { backgroundColor: '#fff', borderRadius: 30, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 5, marginBottom: 24 },
-    avatarContainer: { position: 'relative', marginBottom: 16 },
-    avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 4, borderColor: '#F1F5F9' },
-    editBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#3B82F6', width: 30, height: 30, borderRadius: 15, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+    headerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
+    scrollContent: { paddingBottom: 100 },
+    profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
+    avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },
     userName: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
-    userBio: { fontSize: 14, color: '#64748B', marginBottom: 24 },
-    statsRow: { flexDirection: 'row', alignItems: 'center', width: '100%', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 20 },
-    statBox: { flex: 1, alignItems: 'center' },
-    statValue: { fontSize: 18, fontWeight: 'bold', color: '#0F172A' },
-    statLabel: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-    statDivider: { width: 1, height: 30, backgroundColor: '#E2E8F0' },
-    menuSection: { backgroundColor: '#fff', borderRadius: 24, paddingVertical: 8, paddingHorizontal: 16, marginBottom: 24 },
-    menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-    menuIconContainer: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-    menuLabel: { flex: 1, fontSize: 16, fontWeight: '600', color: '#334155' },
-    logoutButton: { paddingVertical: 18, alignItems: 'center', justifyContent: 'center' },
-    logoutText: { color: '#EF4444', fontSize: 16, fontWeight: 'bold' }
+    userBio: { fontSize: 14, color: '#64748B' },
+
+    // Tab Bar
+    tabBar: { paddingVertical: 16 },
+    tabScroll: { paddingHorizontal: 20, gap: 10 },
+    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+    tabLabel: { fontSize: 13, fontWeight: '700', color: '#475569' },
+
+    // Content
+    loadingContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 120 },
+    emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 100, paddingHorizontal: 20 },
+    emptyTitle: { fontSize: 16, fontWeight: '600', color: '#94A3B8', marginTop: 12, textAlign: 'center' },
+    emptySubtitle: { fontSize: 13, color: '#CBD5E1', marginTop: 4, textAlign: 'center' },
+    contentList: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+
+    // Post Cards
+    postCard: { paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+    postContent: { fontSize: 15, color: '#1E293B', lineHeight: 22, marginBottom: 12 },
+    postFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    postTime: { fontSize: 12, color: '#94A3B8', fontWeight: '500' },
+    replyHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+    replyContext: { fontSize: 11, color: '#64748B', fontWeight: '600' },
+    statsRow: { flexDirection: 'row', gap: 12 },
+    statItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    statText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
+
+    // Listing Cards
+    listingCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+    listingInfo: { flex: 1 },
+    listingTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B', marginBottom: 4 },
+    listingDesc: { fontSize: 13, color: '#64748B', lineHeight: 18, marginBottom: 6 },
+    listingTime: { fontSize: 12, color: '#94A3B8' },
+    priceTag: { backgroundColor: '#ECFDF5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, marginLeft: 12 },
+    priceText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
+    
+    // Notifications
+    notifCard: {
+        flexDirection: 'row',
+        padding: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+        alignItems: 'flex-start',
+        gap: 12,
+    },
+    notifIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#FFF1F2',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    notifBody: {
+        flex: 1,
+    },
+    notifTitle: {
+        fontSize: 14,
+        color: '#1E293B',
+        marginBottom: 4,
+    },
+    notifAuthor: {
+        fontWeight: '700',
+        color: '#0F172A',
+    },
+    notifContent: {
+        fontSize: 13,
+        color: '#64748B',
+        fontStyle: 'italic',
+        marginBottom: 6,
+    },
+    notifDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#F43F5E',
+        marginTop: 6,
+    },
 });
