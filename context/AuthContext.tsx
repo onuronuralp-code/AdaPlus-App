@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../services/authApi';
-import { setToken, loadToken } from '../utils/tokenStorage';
+import { setToken, loadAuthData, setUserStorage } from '../utils/tokenStorage';
 
 interface AuthContextType {
     user: UserProfile | null;
@@ -18,11 +18,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         const initializeAuth = async () => {
-            const token = await loadToken();
-            if (token) {
-                // Optionally verify token or fetch user profile here
-                // For now, we'll keep the user null until they login again 
-                // OR we could store the user object too.
+            const { token, user: storedUser } = await loadAuthData();
+            if (token && storedUser) {
+                setUser(storedUser);
             }
             setIsInitialized(true);
         };
@@ -32,15 +30,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = async (userData: UserProfile, token: string) => {
         setUser(userData);
         await setToken(token);
+        await setUserStorage(userData);
     };
 
     const logout = async () => {
         setUser(null);
-        await setToken(null);
+        await setToken(null); // This also clears user storage in my implementation
     };
     
-    const updateProfile = (updatedUser: UserProfile) => {
+    const updateProfile = async (updatedUser: UserProfile) => {
         setUser(updatedUser);
+        await setUserStorage(updatedUser);
     };
 
     const isLoggedIn = !!user;

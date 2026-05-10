@@ -153,7 +153,7 @@ export default function MainMenuScreen() {
         <View style={styles.servicesSection}>
           <View style={styles.welcomeContainer}>
             <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 28 }]}>
-              {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Hello, Welcome! 👋' : 'Merhaba, Hoş Geldin! 👋' })}
+              {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
             </Text>
             <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 16 }]}>
               {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}

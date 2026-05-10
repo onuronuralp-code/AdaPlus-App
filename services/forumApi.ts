@@ -210,3 +210,36 @@ export const fetchTopics = async (): Promise<ForumTopicDto[]> => {
     return [];
   }
 };
+
+export const fetchUserPosts = async (userId: string): Promise<PostDto[]> => {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/api/v1/users/${userId}/posts`);
+    const data = await response.json();
+    return data.content || [];
+  } catch (error) {
+    console.error('Failed to fetch user posts:', error);
+    return [];
+  }
+};
+
+export const fetchUserReplies = async (userId: string): Promise<PostDto[]> => {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/api/v1/users/${userId}/replies`);
+    const data = await response.json();
+    return data.content || [];
+  } catch (error) {
+    console.error('Failed to fetch user replies:', error);
+    return [];
+  }
+};
+
+export const fetchUserLikes = async (userId: string): Promise<PostDto[]> => {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/api/v1/users/${userId}/likes`);
+    const data = await response.json();
+    return data.content || [];
+  } catch (error) {
+    console.error('Failed to fetch user likes:', error);
+    return [];
+  }
+};

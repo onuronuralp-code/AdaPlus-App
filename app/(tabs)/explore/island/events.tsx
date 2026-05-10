@@ -22,6 +22,9 @@ export default function EventsScreen() {
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
     const [newEventName, setNewEventName] = useState('');
+    const [newEventDate, setNewEventDate] = useState('');
+    const [newEventLocation, setNewEventLocation] = useState('');
+    const [newEventDetails, setNewEventDetails] = useState('');
 
     useEffect(() => {
         loadEvents();
@@ -152,6 +155,36 @@ export default function EventsScreen() {
                             placeholderTextColor="#94A3B8"
                             value={newEventName}
                             onChangeText={setNewEventName}
+                        />
+
+                        <Text style={styles.inputLabel}>TARİH VE SAAT</Text>
+                        <TextInput 
+                            style={styles.input}
+                            placeholder="Örn: 15 Haziran, 20:00"
+                            placeholderTextColor="#94A3B8"
+                            value={newEventDate}
+                            onChangeText={setNewEventDate}
+                        />
+
+                        <Text style={styles.inputLabel}>ETKİNLİK YERİ</Text>
+                        <TextInput 
+                            style={styles.input}
+                            placeholder="Örn: Büyükada Meydan"
+                            placeholderTextColor="#94A3B8"
+                            value={newEventLocation}
+                            onChangeText={setNewEventLocation}
+                        />
+
+                        <Text style={styles.inputLabel}>ETKİNLİK DETAYLARI</Text>
+                        <TextInput 
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Etkinlik hakkında bilgi verin..."
+                            placeholderTextColor="#94A3B8"
+                            value={newEventDetails}
+                            onChangeText={setNewEventDetails}
+                            multiline
+                            numberOfLines={4}
+                            textAlignVertical="top"
                         />
                     </ScrollView>
                 </View>
@@ -340,5 +373,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#1A1A1A',
         marginBottom: 20,
+    },
+    textArea: {
+        minHeight: 120,
+        paddingTop: 16,
     }
 });
