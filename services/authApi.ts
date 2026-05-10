@@ -1,4 +1,4 @@
-const AUTH_BASE_URL = 'http://192.168.5.136:8080/api/v1/auth';
+const AUTH_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.208:8080') + '/api/v1/auth';
 
 export interface UserProfile {
     id: string;

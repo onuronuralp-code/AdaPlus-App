@@ -73,6 +73,22 @@ const MAPPING = {
   'chart.pie.fill': 'pie-chart',
   'pencil': 'edit',
   'pencil.tip': 'draw',
+  'xmark': 'close',
+  'xmark.circle.fill': 'cancel',
+  'exclamationmark.triangle.fill': 'warning',
+  'bubble.left.and.bubble.right': 'chat',
+  'mappin.circle.fill': 'location-on',
+  'safari.fill': 'explore',
+  'megaphone.fill': 'campaign',
+  'checkmark.circle.fill': 'check-circle',
+  'apple.logo': 'apple',
+  'arrow.clockwise': 'refresh',
+  'scope': 'my-location',
+  'tag.fill': 'local-offer',
+  'ticket.fill': 'local-activity',
+  'person.3.fill': 'groups',
+  'phone.fill': 'phone',
+  'exclamationmark.circle.fill': 'error',
 } as Partial<IconMapping>;
 
 /**

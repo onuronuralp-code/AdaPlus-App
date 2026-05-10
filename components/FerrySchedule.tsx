@@ -35,20 +35,21 @@ interface FerryRoute {
 }
 
 const ISLANDS = ["Kınalıada", "Burgazada", "Heybeliada", "Büyükada"];
-const MAINLAND = ["Kabataş", "Bostancı", "Kadıköy", "Beşiktaş"];
+const MAINLAND = ["Kabataş", "Bostancı", "Kadıköy", "Beşiktaş", "Maltepe"];
 const ALL_LOCATIONS = [...ISLANDS, ...MAINLAND];
 const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
-  Kınalıada: { Burgazada: 15, Heybeliada: 30, Büyükada: 50, Bostancı: 25, Kabataş: 80, Kadıköy: 65, Beşiktaş: 90 },
-  Burgazada: { Kınalıada: 15, Heybeliada: 15, Büyükada: 35, Bostancı: 35, Kabataş: 90, Kadıköy: 70, Beşiktaş: 100 },
-  Heybeliada: { Kınalıada: 30, Burgazada: 15, Büyükada: 20, Bostancı: 50, Kabataş: 100, Kadıköy: 80 },
-  Büyükada: { Kınalıada: 50, Burgazada: 35, Heybeliada: 20, Bostancı: 60, Kabataş: 110, Kadıköy: 90 },
+  Kınalıada: { Burgazada: 15, Heybeliada: 30, Büyükada: 50, Bostancı: 25, Kabataş: 80, Kadıköy: 65, Beşiktaş: 90, Maltepe: 50 },
+  Burgazada: { Kınalıada: 15, Heybeliada: 15, Büyükada: 35, Bostancı: 35, Kabataş: 90, Kadıköy: 70, Beşiktaş: 100, Maltepe: 40 },
+  Heybeliada: { Kınalıada: 30, Burgazada: 15, Büyükada: 20, Bostancı: 50, Kabataş: 100, Kadıköy: 80, Maltepe: 30 },
+  Büyükada: { Kınalıada: 50, Burgazada: 35, Heybeliada: 20, Bostancı: 60, Kabataş: 110, Kadıköy: 90, Maltepe: 20 },
   Bostancı: { Kınalıada: 25, Burgazada: 35, Heybeliada: 50, Büyükada: 60 },
   Kabataş: { Kınalıada: 80, Burgazada: 90, Heybeliada: 100, Büyükada: 110, Kadıköy: 30 },
   Kadıköy: { Kınalıada: 65, Büyükada: 90, Kabataş: 30 },
   Beşiktaş: { Kınalıada: 90, Büyükada: 110 },
+  Maltepe: { Kınalıada: 50, Burgazada: 40, Heybeliada: 30, Büyükada: 20 },
 };
 
 const addMinutes = (time: string, mins: number): string => {
@@ -401,8 +402,8 @@ export function FerrySchedule() {
 
 
       {/* Pickers & Modals */}
-      <LocationPicker visible={showDepartureDropdown} onClose={() => setShowDepartureDropdown(false)} onSelect={setDeparture} selected={departure} title={t("common.from")} t={t} />
-      <LocationPicker visible={showDestinationDropdown} onClose={() => setShowDestinationDropdown(false)} onSelect={setDestination} selected={destination} title={t("common.to")} t={t} />
+      <LocationPicker visible={showDepartureDropdown} onClose={() => setShowDepartureDropdown(false)} onSelect={setDeparture} selected={departure} otherSelected={destination} title={t("common.from")} t={t} />
+      <LocationPicker visible={showDestinationDropdown} onClose={() => setShowDestinationDropdown(false)} onSelect={setDestination} selected={destination} otherSelected={departure} title={t("common.to")} t={t} />
       {selectedTrip && (
         <TripDetailPopup 
           trip={selectedTrip} 
@@ -460,7 +461,7 @@ function TripTripCard({ item, onPress, isNext, t, i18n }: any) {
     );
 }
 
-function LocationPicker({ visible, onClose, onSelect, selected, title, t }: any) {
+function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, title, t }: any) {
     return (
         <Modal visible={visible} transparent animationType="slide">
             <View style={styles.modalBg}>
@@ -477,16 +478,28 @@ function LocationPicker({ visible, onClose, onSelect, selected, title, t }: any)
                             <Text style={[styles.sheetSec, { color: '#EA580C' }]}>ADALAR</Text>
                         </View>
                         <View style={styles.islandsGrid}>
-                            {ISLANDS.map(l => (
-                                <TouchableOpacity 
-                                    key={l} 
-                                    style={[styles.islandGridItem, selected === l && styles.islandGridItemActive]} 
-                                    onPress={() => { onSelect(l); onClose(); }}
-                                >
-                                    <Text style={[styles.islandGridText, selected === l && styles.islandGridTextOn]}>{t("places." + l, { defaultValue: l })}</Text>
-                                    {selected === l && <IconSymbol name="checkmark.circle.fill" size={16} color="#EA580C" style={styles.gridCheck} />}
-                                </TouchableOpacity>
-                            ))}
+                            {ISLANDS.map(l => {
+                                const isDisabled = l === otherSelected;
+                                return (
+                                    <TouchableOpacity 
+                                        key={l} 
+                                        disabled={isDisabled}
+                                        style={[
+                                            styles.islandGridItem, 
+                                            selected === l && styles.islandGridItemActive,
+                                            isDisabled && styles.locationDisabled
+                                        ]} 
+                                        onPress={() => { onSelect(l); onClose(); }}
+                                    >
+                                        <Text style={[
+                                            styles.islandGridText, 
+                                            selected === l && styles.islandGridTextOn,
+                                            isDisabled && styles.locationDisabledText
+                                        ]}>{t("places." + l, { defaultValue: l })}</Text>
+                                        {selected === l && <IconSymbol name="checkmark.circle.fill" size={16} color="#EA580C" style={styles.gridCheck} />}
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
 
                         <View style={[styles.sheetSectionHeader, { marginTop: 32 }]}>
@@ -496,16 +509,28 @@ function LocationPicker({ visible, onClose, onSelect, selected, title, t }: any)
                             <Text style={[styles.sheetSec, { color: '#0284C7' }]}>ANAKARA</Text>
                         </View>
                         <View style={styles.mainlandList}>
-                            {MAINLAND.map(l => (
-                                <TouchableOpacity 
-                                    key={l} 
-                                    style={[styles.mainlandListItem, selected === l && styles.mainlandListItemActive]} 
-                                    onPress={() => { onSelect(l); onClose(); }}
-                                >
-                                    <Text style={[styles.mainlandListText, selected === l && styles.mainlandListTextOn]}>{t("places." + l, { defaultValue: l })}</Text>
-                                    {selected === l && <IconSymbol name="checkmark.circle.fill" size={20} color="#0284C7" />}
-                                </TouchableOpacity>
-                            ))}
+                            {MAINLAND.map(l => {
+                                const isDisabled = l === otherSelected;
+                                return (
+                                    <TouchableOpacity 
+                                        key={l} 
+                                        disabled={isDisabled}
+                                        style={[
+                                            styles.mainlandListItem, 
+                                            selected === l && styles.mainlandListItemActive,
+                                            isDisabled && styles.locationDisabled
+                                        ]} 
+                                        onPress={() => { onSelect(l); onClose(); }}
+                                    >
+                                        <Text style={[
+                                            styles.mainlandListText, 
+                                            selected === l && styles.mainlandListTextOn,
+                                            isDisabled && styles.locationDisabledText
+                                        ]}>{t("places." + l, { defaultValue: l })}</Text>
+                                        {selected === l && <IconSymbol name="checkmark.circle.fill" size={20} color="#0284C7" />}
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </ScrollView>
                 </View>
@@ -824,5 +849,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#475569',
+  },
+  locationDisabled: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
+    opacity: 0.5,
+  },
+  locationDisabledText: {
+    color: '#94A3B8',
   },
 });

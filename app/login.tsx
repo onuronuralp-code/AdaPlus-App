@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
-
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -20,6 +20,7 @@ export default function LoginScreen() {
     const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
+    const { login: setAuthLogin } = useAuth();
 
     const validateEmail = (val: string): string | undefined => {
         const trimmed = val.trim();
@@ -66,9 +67,8 @@ export default function LoginScreen() {
         setLoading(true);
         try {
             const response = await authApi.login(email.trim(), password);
-            // TODO: Store token in AsyncStorage
-            console.log('Login successful, token:', response.token);
-            router.replace('/(tabs)/explore/island/forum');
+            await setAuthLogin(response.user, response.token);
+            router.replace('/(tabs)/explore');
         } catch (error: any) {
             const msg = error.message || 'Giriş yapılamadı.';
             if (msg.toLowerCase().includes('verified') || msg.toLowerCase().includes('doğrulan')) {
@@ -110,12 +110,24 @@ export default function LoginScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             
             <LinearGradient 
-                colors={['#1e293b', '#0f172a']} 
+                colors={['rgba(30, 41, 59, 0.7)', '#0f172a']} 
                 style={styles.headerBackground}
             >
+                <Image 
+                    source={require('@/assets/images/begonvil.jpeg')}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                />
+                <LinearGradient 
+                    colors={['rgba(30, 41, 59, 0.4)', '#0f172a']} 
+                    style={StyleSheet.absoluteFillObject}
+                />
                 <TouchableOpacity 
                     style={[styles.backButton, { top: insets.top + 10 }]} 
-                    onPress={() => router.back()}
+                    onPress={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/(tabs)/explore');
+                    }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
@@ -212,7 +224,17 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     headerBackground: { height: SCREEN_HEIGHT * 0.358, paddingHorizontal: 30 },
-    backButton: { position: 'absolute', left: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    backButton: { 
+        position: 'absolute', 
+        left: 20, 
+        zIndex: 10, 
+        width: 44, 
+        height: 44, 
+        borderRadius: 16, 
+        backgroundColor: 'rgba(255,255,255,0.15)', 
+        alignItems: 'center', 
+        justifyContent: 'center'
+    },
     branding: { alignItems: 'center' },
     logoCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
     welcomeTitle: { fontSize: 24, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },

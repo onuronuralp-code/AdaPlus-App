@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { fetchActivities } from '@/services/api';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal } from 'react-native';
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -23,6 +23,19 @@ export default function MainMenuScreen() {
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isHeroExpanded, setIsHeroExpanded] = useState(false);
+  const slideAnim = React.useRef(new Animated.Value(0)).current;
+
+  const toggleHero = () => {
+    const toValue = isHeroExpanded ? 0 : 120; // 120px aşağı kaydır
+    Animated.spring(slideAnim, {
+      toValue,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 40,
+    }).start();
+    setIsHeroExpanded(!isHeroExpanded);
+  };
 
   useEffect(() => {
     fetchActivities().then(activities => {
@@ -56,10 +69,22 @@ export default function MainMenuScreen() {
       title: 'Eşsiz Lezzetler',
       subtitle: 'Sahil kenarında yerel restoranları deneyimleyin.',
       imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'default_4',
+      title: 'Maviye Yolculuk',
+      subtitle: 'Vapurla adalar arası eşsiz deniz manzarası.',
+      imageUrl: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'default_5',
+      title: 'Doğa ile İç İçe',
+      subtitle: 'Bisiklet kiralayıp adanın yeşil tepelerini keşfedin.',
+      imageUrl: 'https://images.unsplash.com/photo-1520113412548-28564e292025?w=800&auto=format&fit=crop&q=80'
     }
   ];
 
-  const slidesToRender = heroSlides.length > 1 ? heroSlides : (heroSlides.length === 1 ? [...heroSlides, dummySlides[1], dummySlides[2]] : dummySlides);
+  const slidesToRender = [...heroSlides, ...dummySlides];
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -81,25 +106,56 @@ export default function MainMenuScreen() {
           onMomentumScrollEnd={handleScroll}
         >
           {slidesToRender.map(slide => (
-            <ImageBackground 
-                key={slide.id}
-                source={{ uri: slide.imageUrl }} 
-                style={[styles.heroImage, { width }]}
-                imageStyle={{ resizeMode: 'cover' }}
-            >
-            </ImageBackground>
+            <TouchableWithoutFeedback key={slide.id} onPress={toggleHero}>
+              <View style={[styles.heroImage, { width }]}>
+                <ImageBackground 
+                    source={{ uri: slide.imageUrl }} 
+                    style={{ flex: 1 }}
+                    imageStyle={{ resizeMode: 'cover' }}
+                >
+                  <LinearGradient
+                    colors={['transparent', 'rgba(27,27,47,0.8)', '#1B1B2F']}
+                    style={styles.heroGradient}
+                  />
+                </ImageBackground>
+              </View>
+            </TouchableWithoutFeedback>
           ))}
         </ScrollView>
+        {/* Info revealed when hero is expanded */}
+        <View style={styles.heroExpandedInfo}>
+          <View style={styles.expandedInfoContent}>
+            <View style={styles.expandedInfoTextGroup}>
+              <Text style={styles.expandedInfoTitle}>{slidesToRender[activeIndex]?.title}</Text>
+              <Text style={styles.expandedInfoSubtitle} numberOfLines={3}>{slidesToRender[activeIndex]?.subtitle}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.heroActionButton}
+              onPress={() => {
+                if (slidesToRender[activeIndex]?.id && !slidesToRender[activeIndex]?.id.startsWith('default')) {
+                   router.push({
+                     pathname: '/(tabs)/explore/island/events',
+                     params: { highlight: slidesToRender[activeIndex]?.id }
+                   });
+                } else {
+                   router.push('/(tabs)/explore/island/events');
+                }
+              }}
+            >
+              <Text style={styles.heroActionButtonText}>Detayları Gör</Text>
+              <IconSymbol name="chevron.right" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Top bar (Fixed over the slider) */}
         <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-           {/* Header buttons removed from here */}
-        </View>
+           {/* Header buttons removed from here */}</View>
       </View>
 
       {/* Body Content — uses flexGrow to fill space on big screens, but scrolls on smaller ones */}
-      <ScrollView 
-        style={styles.body} 
+      <Animated.ScrollView 
+        style={[styles.body, { transform: [{ translateY: slideAnim }] }]} 
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
@@ -151,9 +207,9 @@ export default function MainMenuScreen() {
           </View>
 
           <View style={styles.cardsContainer}>
-            <View style={[styles.gridRow, isLargeScreen && { flex: 3 }]}>
+            <View style={[styles.gridRow, { height: isLargeScreen ? 130 : 110 }]}>
               <GridCard
-                icon="megaphone.fill"
+                icon="tag.fill"
                 color="#3B82F6"
                 accentLight="#DBEAFE"
                 title={t('common.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}
@@ -163,7 +219,7 @@ export default function MainMenuScreen() {
                 large={isLargeScreen}
               />
               <GridCard
-                icon="calendar"
+                icon="ticket.fill"
                 color="#F59E0B"
                 accentLight="#FEF3C7"
                 title={t('common.events', { defaultValue: i18n.language.startsWith('en') ? 'Events' : 'Etkinlikler' })}
@@ -174,14 +230,14 @@ export default function MainMenuScreen() {
               />
             </View>
             <MenuCard
-              icon="sparkles"
+              icon="safari.fill"
               color="#EC4899"
               accentLight="#FDF2F8"
               title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI - Tour Guide' : 'Ada AI - Tur Rehberi' })}
               subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
               onPress={() => router.push('/guide')}
               large={isLargeScreen}
-              style={isLargeScreen ? { flex: 2 } : undefined}
+              style={isLargeScreen ? { height: 110 } : { height: 96 }}
             />
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
@@ -190,11 +246,11 @@ export default function MainMenuScreen() {
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Engage with the community' : 'Toplulukla etkileşime geç' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
-              style={isLargeScreen ? { flex: 2 } : undefined}
+              style={isLargeScreen ? { height: 110 } : { height: 96 }}
             />
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -216,12 +272,12 @@ function MenuCard({ icon, color, accentLight, title, subtitle, onPress, style, c
 
   const content = (
     <>
-      <View style={[styles.iconContainer, { width: containerSize, height: containerSize, backgroundColor: colors ? 'rgba(255,255,255,0.2)' : accentLight }]}>
-        <IconSymbol name={icon as any} size={iconSize} color={colors ? '#fff' : color!} />
+      <View style={[styles.iconContainer, { width: containerSize, height: containerSize, backgroundColor: colors ? 'rgba(255,255,255,0.2)' : color }]}>
+        <IconSymbol name={icon as any} size={iconSize} color="#fff" />
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, large && { fontSize: 20 }, colors && { color: '#fff' }]}>{title}</Text>
-        <Text style={[styles.cardSubtitle, large && { fontSize: 15, lineHeight: 22 }, colors && { color: 'rgba(255,255,255,0.85)' }]}>{subtitle}</Text>
+        <Text style={[styles.cardTitle, large && { fontSize: 20 }, colors && { color: '#fff' }]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.cardSubtitle, large && { fontSize: 15, lineHeight: 22 }, colors && { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={2}>{subtitle}</Text>
       </View>
       <IconSymbol name={"chevron.right" as any} size={20} color={colors ? '#fff' : "#C0C0C0"} />
     </>
@@ -260,8 +316,8 @@ function GridCard({ icon, color, accentLight, title, subtitle, onPress, style, l
 }) {
   return (
     <TouchableOpacity style={[styles.gridCard, large && { padding: 18 }, style]} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.gridIconContainer, { backgroundColor: accentLight }, large && { width: 50, height: 50, borderRadius: 14 }]}>
-        <IconSymbol name={icon as any} size={large ? 28 : 24} color={color} />
+      <View style={[styles.gridIconContainer, { backgroundColor: color }, large && { width: 50, height: 50, borderRadius: 14 }]}>
+        <IconSymbol name={icon as any} size={large ? 28 : 24} color="#fff" />
       </View>
       <Text style={[styles.gridCardTitle, large && { fontSize: 17 }]} numberOfLines={1} adjustsFontSizeToFit>{title}</Text>
       <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 17 }]} numberOfLines={1}>{subtitle}</Text>
@@ -279,11 +335,20 @@ const styles = StyleSheet.create({
   },
   heroWrapper: {
     width: '100%',
+    overflow: 'visible',
+    zIndex: 1,
   },
   heroImage: {
     width: '100%',
     height: '100%',
     justifyContent: 'flex-end',
+  },
+  heroGradient: {
+    position: 'absolute',
+    bottom: -1,
+    left: 0,
+    right: 0,
+    height: 120,
   },
   paginationUnderHero: {
     height: 20,
@@ -348,25 +413,52 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 50, // More padding to avoid being covered by body by default
   },
-  heroTitle: {
+  heroExpandedInfo: {
+    position: 'absolute',
+    bottom: -90, // Positioned partially outside the heroWrapper
+    left: 0,
+    right: 0,
+    height: 120,
+    backgroundColor: '#1B1B2F',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    zIndex: 10,
+  },
+  expandedInfoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  expandedInfoTextGroup: {
+    flex: 1,
+  },
+  expandedInfoTitle: {
     color: '#fff',
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -0.5,
+    fontSize: 18,
+    fontWeight: '800',
     marginBottom: 4,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
   },
-  heroSubtitle: {
-    color: 'rgba(255,255,255,0.85)',
+  expandedInfoSubtitle: {
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 13,
-    fontWeight: '500',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    lineHeight: 18,
+  },
+  heroActionButton: {
+    backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 4,
+  },
+  heroActionButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   body: {
     flex: 1,
@@ -374,6 +466,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     marginTop: -30,
+    zIndex: 2,
     paddingHorizontal: 16,
     paddingTop: 10,
   },
@@ -447,6 +540,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 16,
+    height: SCREEN_HEIGHT > 850 ? 110 : 96,
     marginBottom: SCREEN_HEIGHT > 850 ? 16 : 12,
     borderColor: '#f0f0f0',
     borderWidth: 1,

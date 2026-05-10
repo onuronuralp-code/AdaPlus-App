@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -71,7 +72,6 @@ export default function ContactScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header — matches Profile page style */}
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>{t('common.tabRequests')}</Text>
       </View>
@@ -80,30 +80,24 @@ export default function ContactScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Info banner */}
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+        >
+          {/* Separate Info Banner Component */}
           <View style={styles.infoBanner}>
-            <View style={styles.infoBannerIcon}>
-              <IconSymbol name={"info.circle.fill" as any} size={20} color="#3B82F6" />
+            <View style={styles.infoIconContainer}>
+              <IconSymbol name="info.circle.fill" size={18} color="#3B82F6" />
             </View>
             <Text style={styles.infoBannerText}>
               {t('common.contactSubtitle', { defaultValue: 'Görüş ve önerileriniz bizim için değerli.' })}
             </Text>
           </View>
 
-          {/* Form Card */}
+          {/* Main Contact Card */}
           <View style={styles.formCard}>
-            <View style={styles.formHeader}>
-              <View style={styles.formIconContainer}>
-                <IconSymbol name={"envelope.fill" as any} size={22} color="#3B82F6" />
-              </View>
-              <View>
-                <Text style={styles.formTitle}>{t('common.sendUsMessage', { defaultValue: 'Bize Mesaj Gönder' })}</Text>
-                <Text style={styles.formSubtitle}>{t('common.formHelp', { defaultValue: 'Tüm alanları doldurunuz' })}</Text>
-              </View>
-            </View>
 
-            <View style={styles.divider} />
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('common.fullName', { defaultValue: 'AD SOYAD' })}</Text>
@@ -120,7 +114,7 @@ export default function ContactScreen() {
               </View>
               {errors.fullName && (
                 <View style={styles.errorRow}>
-                  <IconSymbol name={"exclamationmark.circle.fill" as any} size={14} color="#EF4444" />
+                  <IconSymbol name="exclamationmark.circle.fill" size={12} color="#EF4444" />
                   <Text style={styles.errorText}>{errors.fullName}</Text>
                 </View>
               )}
@@ -143,7 +137,7 @@ export default function ContactScreen() {
               </View>
               {errors.email && (
                 <View style={styles.errorRow}>
-                  <IconSymbol name={"exclamationmark.circle.fill" as any} size={14} color="#EF4444" />
+                  <IconSymbol name="exclamationmark.circle.fill" size={12} color="#EF4444" />
                   <Text style={styles.errorText}>{errors.email}</Text>
                 </View>
               )}
@@ -165,12 +159,23 @@ export default function ContactScreen() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.8}>
-              <IconSymbol name={"paperplane.fill" as any} size={18} color="#fff" />
-              <Text style={styles.submitButtonText}>{t('common.send', { defaultValue: 'Gönder' })}</Text>
-            </TouchableOpacity>
           </View>
+
         </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={styles.submitButtonWrapper}>
+            <LinearGradient
+              colors={['#3B82F6', '#2563EB']} // Reverting to original blue gradient
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.submitButton}
+            >
+              <IconSymbol name="paperplane.fill" size={20} color="#fff" />
+              <Text style={styles.submitButtonText}>{t('common.send', { defaultValue: 'Gönder' })}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -179,7 +184,7 @@ export default function ContactScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#fff', 
   },
   header: {
     flexDirection: 'row',
@@ -190,151 +195,148 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: -0.3,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 40,
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#0F172A', 
+    letterSpacing: -0.8,
   },
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  infoBannerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#DBEAFE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  infoBannerText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#1E40AF',
-    fontWeight: '500',
-    lineHeight: 18,
-  },
-  formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F8FAFC', 
     borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 5,
+    padding: 18,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  formHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  formIconContainer: {
-    width: 48,
-    height: 48,
+  infoIconContainer: {
+    width: 40,
+    height: 40,
     borderRadius: 14,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
   },
+  infoBannerText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#475569', 
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 100, // Extra space for fixed footer
+  },
+  formCard: {
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+    marginBottom: 24,
+  },
+  formHeader: {
+    marginBottom: 24,
+  },
   formTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '800',
     color: '#0F172A',
-    marginBottom: 2,
-    letterSpacing: -0.2,
+    marginBottom: 6,
+    letterSpacing: -0.4,
   },
   formSubtitle: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F1F5F9',
-    marginBottom: 20,
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
   },
   inputGroup: {
-    marginBottom: 18,
+    marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    marginBottom: 8,
-    letterSpacing: 1,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#64748B', // Slate 500
+    marginBottom: 10,
+    letterSpacing: 0.8,
+    marginLeft: 4,
+    textTransform: 'uppercase',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
-    paddingHorizontal: 16,
+    backgroundColor: '#F8FAFC', 
+    borderRadius: 20,
+    paddingHorizontal: 18,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#F1F5F9',
   },
   inputWrapperError: {
-    borderColor: '#FECACA',
+    borderColor: '#FDA4AF',
     backgroundColor: '#FFF1F2',
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 12,
-    fontSize: 15,
-    color: '#1E293B',
-    fontWeight: '500',
+    fontSize: 16,
+    color: '#0F172A',
+    fontWeight: '600',
   },
   textAreaWrapper: {
     alignItems: 'flex-start',
   },
   textArea: {
-    minHeight: 100,
+    minHeight: 120,
     paddingTop: 14,
   },
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 6,
-    marginLeft: 4,
+    marginTop: 8,
+    marginLeft: 6,
   },
   errorText: {
     color: '#EF4444',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  submitButtonWrapper: {
+    // marginBottom removed to use footer padding
   },
   submitButton: {
     flexDirection: 'row',
-    backgroundColor: '#3B82F6',
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: 24,
+    paddingVertical: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
-    gap: 8,
+    gap: 12,
     shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 20,
+    elevation: 8,
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
 });

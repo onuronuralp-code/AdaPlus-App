@@ -112,7 +112,10 @@ export default function VerifyScreen() {
             >
                 <TouchableOpacity
                     style={[styles.backButton, { top: insets.top + 10 }]}
-                    onPress={() => router.back()}
+                    onPress={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/login');
+                    }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>

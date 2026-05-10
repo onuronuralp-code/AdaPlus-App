@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { PalmiyeIcon } from '@/components/PalmiyeIcon';
 
 interface NetworkContextType {
   showNetworkError: () => void;
@@ -93,7 +94,7 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
           <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
             {/* Icon circle */}
             <View style={styles.iconCircle}>
-              <IconSymbol name={"wifi.slash" as any} size={36} color="#EF4444" />
+              <IconSymbol name="wifi.exclamationmark" size={40} color="#EF4444" />
             </View>
 
             {/* Title */}
@@ -141,15 +142,20 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#FEF2F2',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,
-    borderWidth: 3,
-    borderColor: '#FECACA',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
     fontSize: 20,

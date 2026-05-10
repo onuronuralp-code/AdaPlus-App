@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -100,9 +100,21 @@ export default function SignUpScreen() {
                 colors={['#0D1B2A', '#1B263B']} 
                 style={styles.headerBackground}
             >
+                <Image 
+                    source={require('@/assets/images/begonvil.jpeg')}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                />
+                <LinearGradient 
+                    colors={['rgba(13, 27, 42, 0.4)', '#1B263B']} 
+                    style={StyleSheet.absoluteFillObject}
+                />
                 <TouchableOpacity 
                     style={[styles.backButton, { top: insets.top + 10 }]} 
-                    onPress={() => router.back()}
+                    onPress={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/login');
+                    }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
@@ -229,10 +241,10 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 20,
         zIndex: 10,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        width: 44,
+        height: 44,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
     },

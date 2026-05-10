@@ -1,69 +1,34 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '@/utils/i18n';
+import * as forumApi from '@/services/forumApi';
+import { PostDto, PostType, Island, UserType } from '@/services/forumApi';
+import { formatDistanceToNow } from 'date-fns';
+import { tr, enUS } from 'date-fns/locale';
+import * as ImagePicker from 'expo-image-picker';
+import * as mediaApi from '@/services/mediaApi';
+import { useAuth } from '@/context/AuthContext';
+import LoginPromptModal from '@/components/LoginPromptModal';
 
 export default function ForumScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { isLoggedIn } = useAuth();
 
-    const initialPosts = [
-        {
-            id: '1',
-            author: t('forum.post1.author', { defaultValue: i18n.language.startsWith('en') ? 'Temporary Visitor' : 'Geçici Ziyaretçi' }),
-            role: t('forum.role.visitor', { defaultValue: i18n.language.startsWith('en') ? 'Visitor' : 'Ziyaretçi' }),
-            tagColor: '#3B82F6', 
-            time: t('forum.time.2h', { defaultValue: i18n.language.startsWith('en') ? '2 hours ago' : '2 saat önce' }),
-            content: t('forum.post1.content', { defaultValue: i18n.language.startsWith('en') ? 'Is it better to take the motorboat or the ferry to Büyükada? Which one do you recommend, especially considering the weekend crowd?' : 'Büyükada\'ya gitmek için motor mu daha iyi yoksa vapur mu? Özellikle hafta sonu kalabalığını düşündüğümüzde hangisini önerirsiniz?' }),
-            likes: 24,
-            comments: 12,
-            isLiked: false,
-        },
-        {
-            id: '2',
-            author: t('forum.post2.author', { defaultValue: i18n.language.startsWith('en') ? 'Island Resident' : 'Ada Sakini' }),
-            role: t('forum.role.islander', { defaultValue: i18n.language.startsWith('en') ? 'Islander' : 'Adalı' }),
-            tagColor: '#F59E0B',
-            time: t('forum.time.5h', { defaultValue: i18n.language.startsWith('en') ? '5 hours ago' : '5 saat önce' }),
-            content: t('forum.post2.content', { defaultValue: i18n.language.startsWith('en') ? 'We had a great time today at Madam Marta bay in Burgazada. It gets a bit windy towards the evening but the view is totally worth it.' : 'Bugün Burgazada\'da Madam Marta koyunda harika vakit geçirdik. Akşama doğru hava biraz esiyor ama manzarası her şeye değer.' }),
-            likes: 156,
-            comments: 8,
-            isLiked: true,
-            image: 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=400&auto=format&fit=crop',
-        },
-        {
-            id: '3',
-            author: t('forum.post3.author', { defaultValue: i18n.language.startsWith('en') ? 'Adventurer' : 'Maceracı' }),
-            role: t('forum.role.visitor', { defaultValue: i18n.language.startsWith('en') ? 'Visitor' : 'Ziyaretçi' }),
-            tagColor: '#3B82F6',
-            time: t('forum.time.1d', { defaultValue: i18n.language.startsWith('en') ? '1 day ago' : '1 gün önce' }),
-            content: t('forum.post3.content', { defaultValue: i18n.language.startsWith('en') ? 'The guy playing the violin on the Heybeliada ferry is amazing again. Combined with the sunset as we approached the island, it felt like a movie scene...' : 'Heybeliada vapurunda keman çalan abi yine döktürüyor. Adaya yaklaşırken güneşin batışıyla birleşince film sahnesi gibi oldu...' }),
-            likes: 128,
-            comments: 41,
-            isLiked: false,
-        },
-        {
-            id: '4',
-            author: t('forum.post4.author', { defaultValue: i18n.language.startsWith('en') ? 'Sea Lover' : 'Deniz Tutkunu' }),
-            role: t('forum.role.islander', { defaultValue: i18n.language.startsWith('en') ? 'Islander' : 'Adalı' }),
-            tagColor: '#F59E0B',
-            time: t('forum.time.1d', { defaultValue: i18n.language.startsWith('en') ? '1 day ago' : '1 gün önce' }),
-            content: t('forum.post4.content', { defaultValue: i18n.language.startsWith('en') ? 'Getting lost in the empty streets among historic mansions is the best activity on the island.' : 'Tarihi köşklerin arasındaki ıssız sokaklarda kaybolmak adanın en güzel aktivitesi.' }),
-            likes: 67,
-            comments: 2,
-            isLiked: false,
-        },
-    ];
+    const [posts, setPosts] = useState<PostDto[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const [posts, setPosts] = useState(initialPosts);
     const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
     const [newPostType, setNewPostType] = useState('discussion');
     const [userRole, setUserRole] = useState<'visitor' | 'islander'>('visitor');
@@ -72,7 +37,12 @@ export default function ForumScreen() {
     const [activeTab, setActiveTab] = useState('all');
     const [selectedPost, setSelectedPost] = useState<any>(null);
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+    const [replies, setReplies] = useState<PostDto[]>([]);
     const [isAdModalVisible, setIsAdModalVisible] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isAnonymous, setIsAnonymous] = useState(false);
+    const [newReplyContent, setNewReplyContent] = useState('');
 
     // Ad Fields
     const [adTitle, setAdTitle] = useState('');
@@ -90,9 +60,40 @@ export default function ForumScreen() {
         { id: 'other', label: 'Diğer', icon: 'dots-horizontal-circle-outline' },
     ];
 
-    const openPostDetails = (post: any) => {
+    const openPostDetails = async (post: PostDto) => {
         setSelectedPost(post);
         setIsDetailModalVisible(true);
+        setReplies([]); // Clear old replies
+        const data = await forumApi.fetchReplies(post.id);
+        setReplies(data);
+    };
+
+    const handleSendReply = async () => {
+        if (!isLoggedIn) {
+            setShowLoginPrompt(true);
+            return;
+        }
+        if (!newReplyContent.trim() || !selectedPost) return;
+        
+        try {
+            const request: Partial<forumApi.CreatePostRequest> = {
+                content: newReplyContent.trim(),
+                postType: PostType.DISCUSSION,
+                island: selectedPost.island,
+                anonymous: false
+            };
+
+            const reply = await forumApi.postReply(selectedPost.id, request);
+            if (reply) {
+                setReplies([...replies, reply]);
+                setNewReplyContent('');
+                // Update main posts list to reflect new comment count
+                setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: p.replyCount + 1 } : p));
+            }
+        } catch (error) {
+            console.error('Failed to send reply:', error);
+            Alert.alert('Error', 'Failed to post reply. Please try again.');
+        }
     };
 
     const roles = [
@@ -111,43 +112,195 @@ export default function ForumScreen() {
         { id: 'all', icon: 'square.grid.2x2.fill', label: t('forum.tabs.all', { defaultValue: i18n.language.startsWith('en') ? 'All' : 'Tümü' }) },
         { id: 'liked', icon: 'heart.fill', label: t('forum.tabs.liked', { defaultValue: i18n.language.startsWith('en') ? 'Liked' : 'Beğenilenler' }) },
         { id: 'polls', icon: 'chart.bar.fill', label: t('forum.tabs.polls', { defaultValue: i18n.language.startsWith('en') ? 'Polls' : 'Oylamalar' }) },
-        { id: 'stats', icon: 'chart.pie.fill', label: t('forum.tabs.stats', { defaultValue: i18n.language.startsWith('en') ? 'Stats' : 'Grafikler' }) },
+        { id: 'hot', icon: 'flame.fill', label: t('forum.tabs.hot', { defaultValue: i18n.language.startsWith('en') ? 'Hot' : 'Popüler' }) },
     ] as const;
 
-    const handleCreatePost = () => {
-        if (!newPostContent.trim()) return;
-        const newPost = {
-            id: Date.now().toString(),
-            type: newPostType,
-            author: userRole === 'visitor' ? t('forum.newVisitor', { defaultValue: i18n.language.startsWith('en') ? 'New Visitor' : 'Yeni Ziyaretçi' }) : t('forum.newIslander', { defaultValue: i18n.language.startsWith('en') ? 'Island Resident' : 'Ada Sakini' }),
-            role: userRole === 'visitor' ? t('forum.role.visitor', { defaultValue: i18n.language.startsWith('en') ? 'Visitor' : 'Ziyaretçi' }) : t('forum.role.islander', { defaultValue: i18n.language.startsWith('en') ? 'Islander' : 'Adalı' }),
-            tagColor: userRole === 'visitor' ? '#3B82F6' : '#F59E0B',
-            time: t('forum.time.now', { defaultValue: i18n.language.startsWith('en') ? 'Just now' : 'Şimdi' }),
-            content: newPostType === 'poll' ? pollQuestion : newPostContent.trim(),
-            pollOptions: newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '').map(opt => ({ text: opt, votes: 0 })) : [],
-            likes: 0,
-            comments: 0,
-            isLiked: false,
-        };
-        setPosts([newPost, ...posts]);
-        setNewPostContent('');
-        setNewPostType('discussion');
-        setPollQuestion('');
-        setPollOptions(['', '']);
-        setIsWriteModalVisible(false);
+    const loadPosts = async (showLoading = true) => {
+        if (showLoading) setIsLoading(true);
+        const data = await (activeTab === 'hot' ? forumApi.fetchHotPosts() : forumApi.fetchPosts());
+        
+        // Add placeholder posts if none exist or for design preview
+        if (data.length === 0) {
+            const placeholders: PostDto[] = [
+                {
+                    id: 'p1',
+                    content: "Heybeliada'da gün batımı bir başka güzel... Bu akşamki manzara inanılmazdı! 🌅",
+                    authorName: "Selim Yılmaz",
+                    authorUserType: UserType.RESIDENT,
+                    island: Island.HEYBELIADA,
+                    postType: PostType.DISCUSSION,
+                    createdAt: new Date().toISOString(),
+                    likeCount: 24,
+                    replyCount: 5,
+                    isLiked: true,
+                    imageUrl: 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=600&auto=format&fit=crop'
+                },
+                {
+                    id: 'p2',
+                    content: "Vapur seferlerinin artırılması hakkında ne düşünüyorsunuz? Özellikle hafta sonları çok yoğun oluyor.",
+                    authorName: "Ayşe Demir",
+                    authorUserType: UserType.VISITOR,
+                    island: Island.BUYUKADA,
+                    postType: PostType.POLL,
+                    createdAt: new Date(Date.now() - 3600000).toISOString(),
+                    likeCount: 12,
+                    replyCount: 8,
+                    isLiked: false,
+                    pollOptions: [
+                        { id: 'o1', text: 'Kesinlikle artırılmalı', voteCount: 45, percentage: 75 },
+                        { id: 'o2', text: 'Mevcut seferler yeterli', voteCount: 15, percentage: 25 }
+                    ]
+                },
+                {
+                    id: 'p3',
+                    content: "Kınalıada'da yeni açılan 'Ada Mutfağı'nı denediniz mi? Mezeleri harika görünüyor! 🥗",
+                    authorName: "Ada Rehberi",
+                    authorUserType: UserType.ADMIN,
+                    island: Island.KINALIADA,
+                    postType: PostType.INFO,
+                    createdAt: new Date(Date.now() - 7200000).toISOString(),
+                    likeCount: 56,
+                    replyCount: 12,
+                    isLiked: false
+                },
+                {
+                    id: 'p4',
+                    content: "Bugün Burgazada sahilinde bir anahtarlık buldum. Sahibi benimle iletişime geçebilir. 🔑",
+                    authorName: "Mert Can",
+                    authorUserType: UserType.VISITOR,
+                    island: Island.BURGAZADA,
+                    postType: PostType.DISCUSSION,
+                    createdAt: new Date(Date.now() - 86400000).toISOString(),
+                    likeCount: 3,
+                    replyCount: 2,
+                    isLiked: false
+                }
+            ];
+            setPosts(placeholders);
+        } else {
+            setPosts(data);
+        }
+        
+        setIsLoading(false);
+        setIsRefreshing(false);
     };
 
-    const toggleLike = (id: string) => {
-        setPosts(posts.map(post => {
-            if (post.id === id) {
-                return {
-                    ...post,
-                    isLiked: !post.isLiked,
-                    likes: post.isLiked ? post.likes - 1 : post.likes + 1
-                };
-            }
-            return post;
-        }));
+    React.useEffect(() => {
+        loadPosts();
+    }, [activeTab]);
+
+    const onRefresh = () => {
+        setIsRefreshing(true);
+        loadPosts(false);
+    };
+
+    const getTagColor = (userType?: UserType) => {
+        switch (userType) {
+            case UserType.ADMIN: return '#EF4444';
+            case UserType.RESIDENT: return '#F59E0B';
+            default: return '#3B82F6';
+        }
+    };
+
+    const formatTime = (dateString: string) => {
+        try {
+            return formatDistanceToNow(new Date(dateString), { 
+                addSuffix: true, 
+                locale: i18n.language.startsWith('tr') ? tr : enUS 
+            });
+        } catch (e) {
+            return dateString;
+        }
+    };
+
+    const getIslandEnum = (islandName: string): Island => {
+        const mapping: Record<string, Island> = {
+            'Büyükada': Island.BUYUKADA,
+            'Heybeliada': Island.HEYBELIADA,
+            'Burgazada': Island.BURGAZADA,
+            'Kınalıada': Island.KINALIADA,
+            'Sedef Adası': Island.SEDEF_ADASI
+        };
+        return mapping[islandName] || Island.BUYUKADA;
+    };
+
+    const getIslandName = (island: Island): string => {
+        const mapping: Record<Island, string> = {
+            [Island.BUYUKADA]: 'Büyükada',
+            [Island.HEYBELIADA]: 'Heybeliada',
+            [Island.BURGAZADA]: 'Burgazada',
+            [Island.KINALIADA]: 'Kınalıada',
+            [Island.SEDEF_ADASI]: 'Sedef Adası'
+        };
+        return mapping[island] || island;
+    };
+
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setSelectedImage(result.assets[0].uri);
+        }
+    };
+
+    const isPublishActive = (newPostType === 'poll' ? (pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2) : newPostContent.trim()) && !isUploading;
+
+    const handleCreatePost = async () => {
+        const content = newPostType === 'poll' ? pollQuestion : newPostContent.trim();
+        if (!content) return;
+
+        setIsUploading(true);
+        let imageUrl = undefined;
+        if (selectedImage) {
+            imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
+        }
+
+        const request: forumApi.CreatePostRequest = {
+            content,
+            postType: newPostType.toUpperCase() as PostType,
+            island: getIslandEnum(selectedIsland),
+            anonymous: isAnonymous,
+            pollOptions: newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : undefined,
+            imageUrl: imageUrl
+        };
+
+        const createdPost = await forumApi.createPost(request);
+        setIsUploading(false);
+        
+        if (createdPost) {
+            setPosts([createdPost, ...posts]);
+            setNewPostContent('');
+            setNewPostType('discussion');
+            setPollQuestion('');
+            setIsAnonymous(false);
+            setIsWriteModalVisible(false);
+        }
+    };
+
+    const toggleLike = async (id: string) => {
+        if (!isLoggedIn) {
+            setShowLoginPrompt(true);
+            return;
+        }
+        const success = await forumApi.likePost(id);
+        if (success) {
+            setPosts(posts.map(post => {
+                if (post.id === id) {
+                    const isLiked = !post.isLiked;
+                    return {
+                        ...post,
+                        isLiked,
+                        likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1
+                    };
+                }
+                return post;
+            }));
+        }
     };
 
     const handleReport = (id: string) => {
@@ -156,91 +309,88 @@ export default function ForumScreen() {
             t('forum.reportDesc', { defaultValue: 'Bu gönderiyi şikayet etmek istediğinize emin misiniz?' }),
             [
                 { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
-                { text: t('common.report', { defaultValue: 'Bildir' }), style: 'destructive', onPress: () => Alert.alert(t('common.success', { defaultValue: 'Başarılı' }), t('forum.reportSuccess', { defaultValue: 'Şikayetiniz alındı. Teşekkürler.' })) }
+                { text: t('common.report', { defaultValue: 'Bildir' }), style: 'destructive', onPress: async () => {
+                    const success = await forumApi.reportPost(id, "User reported via mobile app");
+                    if (success) {
+                        Alert.alert(t('common.success', { defaultValue: 'Başarılı' }), t('forum.reportSuccess', { defaultValue: 'Şikayetiniz alındı. Teşekkürler.' }));
+                    }
+                }}
             ]
         );
     };
 
-    const renderPost = ({ item }: { item: typeof initialPosts[0] }) => {
+    const renderPost = ({ item }: { item: PostDto }) => {
+        const tagColor = getTagColor(item.authorUserType);
+        const authorName = item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' });
+        const roleName = item.authorUserType === UserType.RESIDENT ? t('forum.role.islander', { defaultValue: 'Adalı' }) : (item.authorUserType === UserType.ADMIN ? 'Admin' : t('forum.role.visitor', { defaultValue: 'Ziyaretçi' }));
+
         return (
-            <TouchableOpacity 
-                style={[styles.postCard, { shadowColor: item.tagColor }]}
-                activeOpacity={0.95}
-                onPress={() => openPostDetails(item)}
-            >
-                <View style={styles.postCardHeader}>
-                    <View style={styles.postAuthorInfo}>
-                        <LinearGradient 
-                            colors={[item.tagColor, item.tagColor + '80']} 
-                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                            style={styles.avatar}
-                        >
-                            <IconSymbol name="person.fill" size={24} color="#fff" />
-                        </LinearGradient>
-                        <View>
-                            <Text style={styles.authorName}>{item.author}</Text>
-                            <Text style={styles.timeText}>{item.time}</Text>
+            <View style={styles.postWrapper}>
+                <TouchableOpacity 
+                    style={[styles.bubbleContainer]}
+                    activeOpacity={0.9}
+                    onPress={() => openPostDetails(item)}
+                >
+                    <View style={styles.bubbleHeader}>
+                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={[styles.authorName, { color: tagColor }]}>{authorName}</Text>
+                            <View style={[styles.roleBadge, { backgroundColor: tagColor + '10', borderColor: tagColor + '20' }]}>
+                                <View style={[styles.roleDot, { backgroundColor: tagColor }]} />
+                                <Text style={[styles.roleText, { color: tagColor }]}>{roleName}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.islandBadge}>
+                            <IconSymbol name="mappin" size={10} color="#64748B" />
+                            <Text style={styles.islandBadgeText}>
+                                {t('places.' + getIslandName(item.island), { defaultValue: getIslandName(item.island) })}
+                            </Text>
                         </View>
                     </View>
-                    <View style={[styles.roleBadge, { backgroundColor: item.tagColor + '10', borderColor: item.tagColor + '20' }]}>
-                        <Text style={[styles.roleText, { color: item.tagColor }]}>{item.role}</Text>
-                    </View>
-                </View>
-                <View style={styles.postCardBody}>
-                    <Text style={styles.contentText}>{item.content}</Text>
-                    {item.type === 'poll' && item.pollOptions && (
-                        <View style={styles.renderedPollContainer}>
-                            {item.pollOptions.map((option: any, index: number) => (
-                                <TouchableOpacity key={index} style={styles.renderedPollOption}>
-                                    <View style={[styles.pollProgressFill, { width: '15%', backgroundColor: item.tagColor + '20' }]} />
-                                    <View style={styles.pollOptionTextRow}>
-                                        <Text style={styles.renderedPollOptionText}>{option.text}</Text>
-                                        <Text style={styles.pollPercentText}>15%</Text>
+
+                    <View style={styles.postCardBody}>
+                        <Text style={styles.contentText}>{item.content}</Text>
+                        {item.postType === PostType.POLL && item.pollOptions && (
+                            <View style={styles.renderedPollContainer}>
+                                {item.pollOptions.map((option) => (
+                                    <View key={option.id} style={styles.renderedPollOption}>
+                                        <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: tagColor + '15' }]} />
+                                        <View style={styles.pollOptionTextRow}>
+                                            <Text style={styles.renderedPollOptionText}>{option.text}</Text>
+                                            <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
+                                        </View>
                                     </View>
-                                </TouchableOpacity>
-                            ))}
-                            <Text style={styles.totalVotesText}>124 {t('forum.votes', { defaultValue: i18n.language.startsWith('en') ? 'votes' : 'oy' })}</Text>
-                        </View>
-                    )}
-                    {item.image && (
-                        <View style={styles.imageWrapper}>
-                            <Image source={{ uri: item.image }} style={styles.postImage} />
-                            <LinearGradient
-                                colors={['transparent', 'rgba(0,0,0,0.1)']}
-                                style={StyleSheet.absoluteFill}
-                            />
-                        </View>
-                    )}
-                </View>
-                <View style={styles.postCardFooter}>
-                    <View style={styles.interactionGroup}>
-                        <TouchableOpacity 
-                            style={[styles.interactionPill, item.isLiked && { backgroundColor: item.tagColor + '15' }]} 
-                            onPress={() => toggleLike(item.id)}
-                        >
-                            <IconSymbol 
-                                name={item.isLiked ? "heart.fill" : "heart"} 
-                                size={20} 
-                                color={item.isLiked ? item.tagColor : "#64748B"} 
-                            />
-                            <Text style={[styles.interactionCount, item.isLiked && { color: item.tagColor }]}>{item.likes}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.interactionPill}>
-                            <IconSymbol name="bubble.left.fill" size={20} color="#64748B" />
-                            <Text style={styles.interactionCount}>{item.comments}</Text>
-                        </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                        {item.image && (
+                            <View style={styles.bubbleImageWrapper}>
+                                <Image source={{ uri: item.image }} style={styles.postImage} />
+                            </View>
+                        )}
                     </View>
-                    <TouchableOpacity 
-                        style={styles.reportIconButton}
-                        onPress={(e) => {
-                            e.stopPropagation();
-                            handleReport(item.id);
-                        }}
-                    >
-                        <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#EF4444" />
-                    </TouchableOpacity>
-                </View>
-            </TouchableOpacity>
+                    
+                    <View style={styles.bubbleFooter}>
+                        <View style={styles.interactionGroup}>
+                            <TouchableOpacity 
+                                style={styles.chatInteraction} 
+                                onPress={() => toggleLike(item.id)}
+                            >
+                                <IconSymbol 
+                                    name={item.isLiked ? "heart.fill" : "heart"} 
+                                    size={14} 
+                                    color={item.isLiked ? "#EF4444" : "#94A3B8"} 
+                                />
+                                <Text style={[styles.interactionCount, item.isLiked && { color: "#EF4444" }]}>{item.likeCount}</Text>
+                            </TouchableOpacity>
+                            <View style={styles.chatInteraction}>
+                                <IconSymbol name="bubble.left.fill" size={12} color="#94A3B8" />
+                                <Text style={styles.interactionCount}>{item.replyCount}</Text>
+                            </View>
+                        </View>
+                        <Text style={styles.chatTime}>{formatTime(item.createdAt)}</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
         );
     };
 
@@ -282,16 +432,32 @@ export default function ForumScreen() {
                 data={posts}
                 renderItem={renderPost}
                 keyExtractor={item => item.id}
+                style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, posts.length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }]}
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                ListEmptyComponent={!isLoading ? (
+                    <View style={styles.emptyState}>
+                        <IconSymbol name="bubble.left.and.bubble.right" size={48} color="#CBD5E1" />
+                        <Text style={styles.emptyText}>Henüz gönderi yok.</Text>
+                        <Text style={styles.emptySubtext}>İlk paylaşımı sen yap!</Text>
+                    </View>
+                ) : null}
             />
             <TouchableOpacity 
                 style={[styles.fab, { bottom: insets.bottom + 20 }]} 
-                onPress={() => setIsWriteModalVisible(true)}
+                onPress={() => {
+                    if (!isLoggedIn) {
+                        setShowLoginPrompt(true);
+                        return;
+                    }
+                    setIsWriteModalVisible(true);
+                }}
                 activeOpacity={0.85}
             >
                 <LinearGradient
-                    colors={['#3B82F6', '#8B5CF6', '#EF4444', '#F97316', '#FACC15', '#22C55E']}
+                    colors={['#10B981', '#059669']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.fabGradient}
@@ -300,14 +466,14 @@ export default function ForumScreen() {
                         <IconSymbol 
                             name="pencil" 
                             size={24} 
-                            color="#fff" 
+                            color="#FFFFFF" 
                             style={{ transform: [{ rotate: '-10deg' }, { translateX: 2 }] }}
                         />
                         <View 
                             style={{ 
                                 width: 22, 
                                 height: 2, 
-                                backgroundColor: 'rgba(255,255,255,0.9)', 
+                                backgroundColor: 'rgba(255,255,255,0.4)', 
                                 borderRadius: 1.5,
                                 marginTop: -1,
                                 marginLeft: -2,
@@ -323,22 +489,40 @@ export default function ForumScreen() {
                 onRequestClose={() => setIsWriteModalVisible(false)}
             >
                 <View style={styles.modalContainer}>
-                    <View style={styles.modalHeader}>
+                    <View style={[styles.modalHeader, { paddingTop: insets.top > 0 ? insets.top : 16 }]}>
                         <TouchableOpacity onPress={() => setIsWriteModalVisible(false)} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
-                        <View style={{ flex: 1, alignItems: 'center' }}>
+                        <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
                             <Text style={styles.modalTitle}>{t('forum.createPost', { defaultValue: 'YENİ GÖNDERİ' })}</Text>
                         </View>
                         <TouchableOpacity 
                             onPress={handleCreatePost} 
-                            style={[styles.premiumPublishBtn, !(newPostType === 'poll' ? (pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2) : newPostContent.trim()) && styles.disabledBtn]}
-                            disabled={!(newPostType === 'poll' ? (pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2) : newPostContent.trim())}
+                            style={[styles.premiumPublishBtn, isPublishActive && styles.activePremiumPublishBtn, !isPublishActive && { opacity: 0.5 }]}
+                            disabled={!isPublishActive}
                         >
-                            <Text style={styles.premiumPublishText}>{t('common.send', { defaultValue: 'Paylaş' })}</Text>
+                            {isUploading ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Text style={styles.premiumPublishText}>{t('common.send', { defaultValue: 'Paylaş' })}</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                        <View style={styles.formSection}>
+                            <Text style={styles.inputLabel}>ADANIZI SEÇİN (LOKASYON)</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
+                                {islands.map(island => (
+                                    <TouchableOpacity 
+                                        key={island} 
+                                        style={[styles.writeChip, selectedIsland === island && styles.activeWriteChipPink]}
+                                        onPress={() => setSelectedIsland(island)}
+                                    >
+                                        <Text style={[styles.writeChipText, selectedIsland === island && styles.activeWriteChipPinkText]}>{island}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>GÖNDERİ TİPİ</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
@@ -353,20 +537,6 @@ export default function ForumScreen() {
                                 ))}
                             </ScrollView>
                         </View>
-                        <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>ADANIZI SEÇİN (LOKASYON)</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
-                                {islands.map(island => (
-                                    <TouchableOpacity 
-                                        key={island} 
-                                        style={[styles.writeChip, selectedIsland === island && styles.activeWriteChip]}
-                                        onPress={() => setSelectedIsland(island)}
-                                    >
-                                        <Text style={[styles.writeChipText, selectedIsland === island && styles.activeWriteChipText]}>{island}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
                         <View style={styles.writeOptionsDivider} />
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{newPostType === 'poll' ? 'ANKET BAŞLIĞI' : 'MESAJINIZ'}</Text>
@@ -375,7 +545,6 @@ export default function ForumScreen() {
                                 placeholder={newPostType === 'poll' ? 'Oylama sorunuzu buraya yazın...' : t('forum.whatsOnYourMind', { defaultValue: 'Neler anlatmak istersin?' })}
                                 placeholderTextColor="#CBD5E1"
                                 multiline={newPostType !== 'poll'}
-                                autoFocus
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
                                 onChangeText={newPostType === 'poll' ? setPollQuestion : setNewPostContent}
                                 textAlignVertical="top"
@@ -383,10 +552,25 @@ export default function ForumScreen() {
                         </View>
                         {newPostType !== 'poll' && (
                             <View style={styles.formSection}>
-                                <TouchableOpacity style={[styles.addPhotoBtn, { marginTop: -10, marginBottom: 10, height: 100, borderRadius: 20 }]}>
-                                    <IconSymbol name="photo.fill" size={28} color="#94A3B8" />
-                                    <Text style={[styles.addPhotoText, { color: '#94A3B8', fontSize: 14 }]}>Fotoğraf Ekle (Opsiyonel)</Text>
-                                </TouchableOpacity>
+                                {selectedImage ? (
+                                    <View style={styles.imagePreviewContainer}>
+                                        <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+                                        <TouchableOpacity 
+                                            style={styles.removeImageBtn} 
+                                            onPress={() => setSelectedImage(null)}
+                                        >
+                                            <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity 
+                                        style={[styles.addPhotoBtn, { marginTop: -10, marginBottom: 10, height: 100, borderRadius: 20 }]}
+                                        onPress={pickImage}
+                                    >
+                                        <IconSymbol name="photo.fill" size={28} color="#94A3B8" />
+                                        <Text style={[styles.addPhotoText, { color: '#94A3B8', fontSize: 14 }]}>Fotoğraf Ekle (Opsiyonel)</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         )}
                         {newPostType === 'poll' && (
@@ -428,6 +612,21 @@ export default function ForumScreen() {
                                 )}
                             </View>
                         )}
+                        <View style={styles.formSection}>
+                            <TouchableOpacity 
+                                style={styles.anonToggle} 
+                                onPress={() => setIsAnonymous(!isAnonymous)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.anonCheckbox, isAnonymous && styles.anonCheckboxActive]}>
+                                    {isAnonymous && <IconSymbol name="checkmark" size={14} color="#fff" />}
+                                </View>
+                                <View>
+                                    <Text style={styles.anonLabel}>Anonim Olarak Paylaş</Text>
+                                    <Text style={styles.anonSubtext}>İsminiz ve profiliniz gizlenecektir.</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
                     </ScrollView>
                 </View>
             </Modal>
@@ -455,66 +654,91 @@ export default function ForumScreen() {
                                 <View style={styles.postCardHeader}>
                                     <View style={styles.postAuthorInfo}>
                                         <LinearGradient 
-                                            colors={[selectedPost.tagColor, selectedPost.tagColor + '80']} 
+                                            colors={[getTagColor(selectedPost.authorUserType), getTagColor(selectedPost.authorUserType) + '80']} 
                                             style={styles.avatar}
                                         >
                                             <IconSymbol name="person.fill" size={24} color="#fff" />
                                         </LinearGradient>
-                                        <View>
-                                            <Text style={styles.authorName}>{selectedPost.author}</Text>
-                                            <Text style={styles.timeText}>{selectedPost.time}</Text>
+                                        <View style={{ flex: 1 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                <Text style={styles.authorName}>{selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' })}</Text>
+                                                <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
+                                                    <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>{selectedPost.authorUserType || 'VISITOR'}</Text>
+                                                </View>
+                                            </View>
+                                            <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
                                         </View>
-                                    </View>
-                                    <View style={[styles.roleBadge, { backgroundColor: selectedPost.tagColor + '10', borderColor: selectedPost.tagColor + '20' }]}>
-                                        <Text style={[styles.roleText, { color: selectedPost.tagColor }]}>{selectedPost.role}</Text>
                                     </View>
                                 </View>
                                 <Text style={styles.detailContentText}>{selectedPost.content}</Text>
-                                {selectedPost.image && (
+                                {selectedPost.imageUrl && (
                                     <View style={styles.detailImageWrapper}>
-                                        <Image source={{ uri: selectedPost.image }} style={styles.detailImage} />
+                                        <Image source={{ uri: selectedPost.imageUrl }} style={styles.detailImage} />
                                     </View>
                                 )}
-                                <View style={styles.detailFooter}>
+                                <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
                                     <View style={styles.interactionGroup}>
-                                        <TouchableOpacity style={styles.interactionPill}>
-                                            <IconSymbol name="heart" size={20} color="#64748B" />
-                                            <Text style={styles.interactionCount}>{selectedPost.likes}</Text>
+                                        <TouchableOpacity style={[styles.interactionPill, selectedPost.isLiked && { backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} onPress={() => toggleLike(selectedPost.id)}>
+                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? getTagColor(selectedPost.authorUserType) : "#64748B"} />
+                                            <Text style={[styles.interactionCount, selectedPost.isLiked && { color: getTagColor(selectedPost.authorUserType) }]}>{selectedPost.likeCount}</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.interactionPill}>
                                             <IconSymbol name="bubble.left.fill" size={20} color="#64748B" />
-                                            <Text style={styles.interactionCount}>{selectedPost.comments}</Text>
+                                            <Text style={styles.interactionCount}>{selectedPost.replyCount}</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity 
+                                    </View>
+                                    <TouchableOpacity 
                                         style={styles.reportIconButton}
                                         onPress={() => handleReport(selectedPost.id)}
                                     >
                                         <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#EF4444" />
                                     </TouchableOpacity>
                                 </View>
-                                </View>
                             </View>
                         )}
                         <View style={styles.commentsSection}>
                             <Text style={styles.commentsTitle}>{t('forum.comments', { defaultValue: i18n.language.startsWith('en') ? 'Comments' : 'Yorumlar' })}</Text>
-                            <View style={styles.emptyComments}>
-                                <IconSymbol name="bubble.left.and.bubble.right" size={48} color="#E2E8F0" />
-                                <Text style={styles.emptyCommentsText}>{t('forum.noCommentsYet', { defaultValue: i18n.language.startsWith('en') ? 'No comments yet. Be the first to reply!' : 'Henüz yorum yok. İlk sen yaz!' })}</Text>
-                            </View>
+                            {replies.length > 0 ? (
+                                replies.map(reply => (
+                                    <View key={reply.id} style={styles.replyItem}>
+                                        <View style={styles.replyHeader}>
+                                            <View style={[styles.replyAvatar, { backgroundColor: getTagColor(reply.authorUserType) }]}>
+                                                <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>
+                                                    {(reply.authorName || '?').charAt(0).toUpperCase()}
+                                                </Text>
+                                            </View>
+                                            <Text style={styles.replyAuthor}>{reply.authorName || 'Anonim'}</Text>
+                                            <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
+                                        </View>
+                                        <Text style={styles.replyContent}>{reply.content}</Text>
+                                    </View>
+                                ))
+                            ) : (
+                                <View style={styles.emptyComments}>
+                                    <IconSymbol name="bubble.left.and.bubble.right" size={48} color="#E2E8F0" />
+                                    <Text style={styles.emptyCommentsText}>{t('forum.noCommentsYet', { defaultValue: i18n.language.startsWith('en') ? 'No comments yet. Be the first to reply!' : 'Henüz yorum yok. İlk sen yaz!' })}</Text>
+                                </View>
+                            )}
                         </View>
                     </ScrollView>
                     <KeyboardAvoidingView 
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
                     >
-                        <View style={[styles.commentInputArea, { paddingBottom: insets.bottom + 10 }]}>
+                        <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                             <TextInput
                                 style={styles.commentInput}
                                 placeholder={t('forum.addComment', { defaultValue: i18n.language.startsWith('en') ? 'Add a comment...' : 'Bir yorum ekle...' })}
                                 placeholderTextColor="#94A3B8"
                                 multiline
+                                value={newReplyContent}
+                                onChangeText={setNewReplyContent}
                             />
-                            <TouchableOpacity style={styles.sendCommentBtn}>
+                            <TouchableOpacity 
+                                style={[styles.sendCommentBtn, !newReplyContent.trim() && { opacity: 0.5 }]} 
+                                onPress={handleSendReply}
+                                disabled={!newReplyContent.trim()}
+                            >
                                 <IconSymbol name="paperplane.fill" size={20} color="#3B82F6" />
                             </TouchableOpacity>
                         </View>
@@ -623,6 +847,15 @@ export default function ForumScreen() {
                     </ScrollView>
                 </KeyboardAvoidingView>
             </Modal>
+            <LoginPromptModal 
+                visible={showLoginPrompt} 
+                onClose={() => setShowLoginPrompt(false)} 
+                onLogin={() => {
+                    setShowLoginPrompt(false);
+                    router.push('/login');
+                }}
+                message={t('auth.loginToPost', { defaultValue: 'Paylaşım yapmak için giriş yapmalısınız.' })}
+            />
         </View>
     );
 }
@@ -630,14 +863,14 @@ export default function ForumScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FBFBFA',
+        backgroundColor: '#F8FAFC',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 16,
-        backgroundColor: '#FBFBFA',
+        backgroundColor: 'transparent',
         zIndex: 10,
     },
     backButton: {
@@ -660,12 +893,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '900',
-        color: '#1A1A1A',
+        color: '#0F172A',
         letterSpacing: -0.8,
     },
     tabsWrapper: {
         paddingVertical: 12,
-        backgroundColor: '#FBFBFA',
+        backgroundColor: 'transparent',
     },
     tabsContainer: {
         paddingHorizontal: 20,
@@ -675,18 +908,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
         paddingVertical: 10,
-        borderRadius: 20,
+        borderRadius: 22,
         gap: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.03,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
     },
     activeTabButton: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: '#0F172A',
+        borderColor: '#0F172A',
     },
     tabText: {
         fontSize: 14,
@@ -697,76 +933,133 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
     },
     listContent: {
-        paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 120,
+        paddingTop: 8,
+        paddingBottom: 100,
     },
-    postCard: {
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 200,
+    },
+    emptyText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#94A3B8',
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    emptySubtext: {
+        fontSize: 13,
+        color: '#CBD5E1',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    postWrapper: {
+        marginBottom: 16,
+        paddingHorizontal: 12,
+        alignItems: 'flex-start',
+    },
+    bubbleContainer: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 32,
-        padding: 20,
-        marginBottom: 20,
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.08,
-        shadowRadius: 24,
-        elevation: 6,
+        borderRadius: 24,
+        borderTopLeftRadius: 4,
+        padding: 16,
+        paddingHorizontal: 20,
+        width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 3,
     },
-    postCardHeader: {
+    bubbleHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 4,
+    },
+    bubbleFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 16,
+        alignItems: 'center',
+        marginTop: 6,
+        gap: 12,
+    },
+    chatTime: {
+        fontSize: 10,
+        color: '#94A3B8',
+        fontWeight: '500',
+    },
+    chatInteraction: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginRight: 8,
+    },
+    bubbleImageWrapper: {
+        borderRadius: 12,
+        overflow: 'hidden',
+        marginTop: 8,
+        marginBottom: 4,
     },
     postAuthorInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 8,
     },
     avatar: {
-        width: 52,
-        height: 52,
-        borderRadius: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
     },
     authorName: {
-        fontSize: 17,
-        fontWeight: '900',
-        color: '#1A1A1A',
-        letterSpacing: -0.4,
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#0F172A',
+        letterSpacing: -0.2,
     },
     timeText: {
-        fontSize: 13,
+        fontSize: 11,
         color: '#94A3B8',
-        fontWeight: '500',
-        marginTop: 2,
+        fontWeight: '600',
+        marginTop: 1,
     },
     roleBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 10,
         borderWidth: 1,
+        gap: 4,
+    },
+    roleDot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
     },
     roleText: {
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: '900',
         textTransform: 'uppercase',
         letterSpacing: 0.8,
     },
     postCardBody: {
-        marginBottom: 16,
+        marginBottom: 8,
     },
     contentText: {
-        fontSize: 17,
-        lineHeight: 28,
-        color: '#2D3748',
+        fontSize: 14,
+        lineHeight: 22,
+        color: '#334155',
         fontWeight: '500',
     },
     imageWrapper: {
-        marginTop: 16,
-        borderRadius: 24,
+        marginTop: 8,
+        borderRadius: 12,
         overflow: 'hidden',
-        height: 260,
+        height: 140,
         backgroundColor: '#F1F5F9',
     },
     postImage: {
@@ -777,32 +1070,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 16,
+        paddingTop: 12,
+        marginTop: 4,
         borderTopWidth: 1,
-        borderTopColor: '#F7F9FC',
+        borderTopColor: '#F8FAFC',
     },
     interactionGroup: {
         flexDirection: 'row',
-        gap: 12,
+        gap: 6,
     },
     interactionPill: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#F8FAFC',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 18,
-        gap: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 12,
+        gap: 5,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
     },
     interactionCount: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '700',
         color: '#475569',
     },
     reportIconButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 18,
+        width: 32,
+        height: 32,
+        borderRadius: 10,
         backgroundColor: '#FEF2F2',
         alignItems: 'center',
         justifyContent: 'center',
@@ -810,12 +1106,12 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 20,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
+        width: 64,
+        height: 64,
+        borderRadius: 32,
         overflow: 'hidden',
-        elevation: 10,
-        shadowColor: '#3B82F6',
+        elevation: 8,
+        shadowColor: '#10B981',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
         shadowRadius: 16,
@@ -870,8 +1166,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 24,
-        paddingVertical: 24,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
     },
     modalHeaderButton: {
         paddingVertical: 8,
@@ -928,8 +1224,8 @@ const styles = StyleSheet.create({
         borderColor: '#E2E8F0',
     },
     activeChip: {
-        backgroundColor: '#1A1A1A',
-        borderColor: '#1A1A1A',
+        backgroundColor: '#EC4899',
+        borderColor: '#EC4899',
     },
     chipText: {
         fontSize: 14,
@@ -991,18 +1287,18 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     detailPostContainer: {
-        paddingVertical: 24,
+        paddingVertical: 16,
         paddingHorizontal: 20,
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#F7F9FC',
     },
     detailContentText: {
-        fontSize: 18,
-        lineHeight: 30,
+        fontSize: 16,
+        lineHeight: 26,
         color: '#2D3748',
         fontWeight: '500',
-        marginVertical: 20,
+        marginVertical: 16,
         textAlign: 'left',
     },
     detailImageWrapper: {
@@ -1022,14 +1318,15 @@ const styles = StyleSheet.create({
         paddingTop: 16,
     },
     commentsSection: {
-        padding: 24,
+        paddingVertical: 16,
+        paddingHorizontal: 20,
         backgroundColor: '#FFFFFF',
     },
     commentsTitle: {
         fontSize: 18,
         fontWeight: '900',
         color: '#1A1A1A',
-        marginBottom: 24,
+        marginBottom: 16,
     },
     emptyComments: {
         alignItems: 'center',
@@ -1068,11 +1365,49 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    replyItem: {
+        marginBottom: 20,
+        paddingLeft: 4,
+        borderLeftWidth: 2,
+        borderLeftColor: '#F1F5F9',
+    },
+    replyHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    replyAvatar: {
+        width: 20,
+        height: 20,
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+    },
+    replyAuthor: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginRight: 8,
+    },
+    replyTime: {
+        fontSize: 11,
+        color: '#94A3B8',
+    },
+    replyContent: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#475569',
+        marginLeft: 28,
+    },
     premiumPublishBtn: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: '#CBD5E1',
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 16,
+    },
+    activePremiumPublishBtn: {
+        backgroundColor: '#10B981',
     },
     premiumPublishText: {
         color: '#FFFFFF',
@@ -1113,8 +1448,12 @@ const styles = StyleSheet.create({
         borderColor: '#F1F5F9',
     },
     activeWriteChip: {
-        backgroundColor: '#1A1A1A',
-        borderColor: '#1A1A1A',
+        backgroundColor: '#10B981',
+        borderColor: '#10B981',
+    },
+    activeWriteChipPink: {
+        backgroundColor: '#EC4899',
+        borderColor: '#EC4899',
     },
     writeChipText: {
         fontSize: 13,
@@ -1122,6 +1461,9 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     activeWriteChipText: {
+        color: '#FFFFFF',
+    },
+    activeWriteChipPinkText: {
         color: '#FFFFFF',
     },
     writeToolbar: {
@@ -1145,4 +1487,76 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#94A3B8',
     },
+    imagePreviewContainer: {
+        width: '100%',
+        height: 200,
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginBottom: 10,
+        marginTop: -10,
+    },
+    imagePreview: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    removeImageBtn: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+    },
+    anonToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        backgroundColor: '#F8FAFC',
+        padding: 16,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    anonCheckbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 8,
+        borderWidth: 2,
+        borderColor: '#CBD5E1',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    anonCheckboxActive: {
+        backgroundColor: '#10B981',
+        borderColor: '#10B981',
+    },
+    anonLabel: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#1A1A1A',
+    },
+    anonSubtext: {
+        fontSize: 12,
+        color: '#64748B',
+        marginTop: 1,
+    },
+    headerRightGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    islandBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 10,
+        gap: 4,
+    },
+    islandBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#64748B',
+    },
 });
+
