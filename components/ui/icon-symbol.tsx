@@ -89,6 +89,9 @@ const MAPPING = {
   'person.3.fill': 'groups',
   'phone.fill': 'phone',
   'exclamationmark.circle.fill': 'error',
+  'calendar.badge.exclamationmark': 'event-busy',
+  'doc.text.magnifyingglass': 'find-in-page',
+  'arrow.uturn.left.circle.fill': 'reply',
 } as Partial<IconMapping>;
 
 /**
