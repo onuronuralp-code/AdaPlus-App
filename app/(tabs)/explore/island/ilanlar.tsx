@@ -228,7 +228,7 @@ export default function IlanlarScreen() {
             icon="doc.text.magnifyingglass" 
             title="İlan Bulunamadı" 
             subtitle="Farklı bir kategori veya arama deneyin. İlk ilanı siz ekleyebilirsiniz!"
-            color="#10B981"
+            color="#3B82F6"
           />
         ) : (
           filteredListings.map(l => (

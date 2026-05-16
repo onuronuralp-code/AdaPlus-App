@@ -437,7 +437,14 @@ export default function ForumScreen() {
                 showsVerticalScrollIndicator={false}
                 bounces={false}
                 overScrollMode="never"
-                contentContainerStyle={[styles.listContent, posts.length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }]}
+                contentContainerStyle={[
+                    styles.listContent, 
+                    posts.filter(post => {
+                        if (activeTab === 'polls') return post.postType === PostType.POLL;
+                        if (activeTab === 'liked') return post.isLiked;
+                        return true;
+                    }).length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }
+                ]}
                 refreshing={isRefreshing}
                 onRefresh={onRefresh}
                 ListEmptyComponent={!isLoading ? (
@@ -740,7 +747,7 @@ export default function ForumScreen() {
                                     icon="bubble.left.and.bubble.right" 
                                     title="Henüz Yorum Yok" 
                                     subtitle="İlk yorumu sen yaparak tartışmaya katıl!"
-                                    color="#94A3B8"
+                                    color="#10B981"
                                 />
                             )}
                         </View>

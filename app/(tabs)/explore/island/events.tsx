@@ -167,7 +167,7 @@ export default function EventsScreen() {
                         icon="calendar.badge.exclamationmark" 
                         title="Etkinlik Bulunamadı" 
                         subtitle="Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!"
-                        color="#3B82F6"
+                        color="#F59E0B"
                     />
                 ) : (
                     events.map((event) => (
