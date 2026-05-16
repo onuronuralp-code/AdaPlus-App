@@ -23,7 +23,6 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
       body: formData,
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data',
       },
     });
 

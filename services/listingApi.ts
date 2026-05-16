@@ -1,6 +1,7 @@
 import { triggerNetworkError } from "./api";
 import { API_BASE_URL } from "./config";
 import { Island } from "./forumApi";
+import { getToken } from "@/utils/tokenStorage";
 
 export enum ListingCategory {
   SATILIK = "SATILIK",
@@ -67,9 +68,13 @@ export const createListing = async (
   request: SaveListingRequest,
 ): Promise<ListingDto | null> => {
   try {
+    const token = getToken();
     const response = await fetch(LISTING_API_BASE, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(request),
     });
 
@@ -99,9 +104,13 @@ export const updateListing = async (
   request: SaveListingRequest,
 ): Promise<ListingDto | null> => {
   try {
+    const token = getToken();
     const response = await fetch(`${LISTING_API_BASE}/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(request),
     });
 
@@ -116,8 +125,12 @@ export const updateListing = async (
 
 export const deleteListing = async (id: string): Promise<boolean> => {
   try {
+    const token = getToken();
     const response = await fetch(`${LISTING_API_BASE}/${id}`, {
       method: "DELETE",
+      headers: {
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      },
     });
 
     if (!response.ok) throw new Error(`API Error: ${response.status}`);

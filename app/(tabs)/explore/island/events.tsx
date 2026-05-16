@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -83,10 +83,20 @@ export default function EventsScreen() {
             return;
         }
 
+        if (endDate < startDate) {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.invalidDateRange', { defaultValue: 'Bitiş tarihi başlangıç tarihinden önce olamaz.' }));
+            return;
+        }
+
         setIsUploading(true);
         let imageUrl = undefined;
         if (selectedImage) {
             imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
+        }
+
+        let formattedSocialLink = socialLink.trim();
+        if (formattedSocialLink && !formattedSocialLink.startsWith('http')) {
+            formattedSocialLink = 'https://' + formattedSocialLink;
         }
 
         const request: CreateActivityRequest = {
@@ -96,7 +106,7 @@ export default function EventsScreen() {
             endDate: endDate.toISOString(),
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
-            instagramLink: socialLink.trim(),
+            instagramLink: formattedSocialLink,
             imageUrl: imageUrl,
         };
 
@@ -206,25 +216,35 @@ export default function EventsScreen() {
                 presentationStyle="pageSheet"
                 onRequestClose={() => setIsAddModalVisible(false)}
             >
-                <View style={styles.modalContainer}>
-                    <View style={[styles.modalHeader, { paddingTop: insets.top > 0 ? insets.top : 16 }]}>
-                        <TouchableOpacity onPress={() => setIsAddModalVisible(false)} style={styles.modalHeaderButton}>
-                            <IconSymbol name="xmark" size={24} color="#64748B" />
-                        </TouchableOpacity>
-                        <Text style={styles.modalTitle}>{t('common.addEvent', { defaultValue: 'Etkinlik Ekle' })}</Text>
-                        <TouchableOpacity 
-                            style={[styles.publishButton, isUploading && styles.publishButtonDisabled]} 
-                            onPress={handlePublishEvent}
-                            disabled={isUploading}
-                        >
-                            {isUploading ? (
-                                <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                                <Text style={styles.publishText}>{t('common.share', { defaultValue: 'Paylaş' })}</Text>
-                            )}
-                        </TouchableOpacity>
+                <KeyboardAvoidingView 
+                    style={styles.modalContainer} 
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View style={styles.modalHeader}>
+                        <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => setIsAddModalVisible(false)} style={styles.modalHeaderButton}>
+                                <Text style={styles.cancelText}>İPTAL</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={styles.modalTitle} numberOfLines={1}>YENİ ETKİNLİK</Text>
+                        </View>
+                        <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
+                            <TouchableOpacity 
+                                style={[styles.publishButton, isUploading && styles.publishButtonDisabled]} 
+                                onPress={handlePublishEvent}
+                                disabled={isUploading}
+                            >
+                                {isUploading ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <Text style={styles.publishText}>YAYINLA</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                    <ScrollView style={styles.modalBody} contentContainerStyle={{ padding: 20 }}>
+                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                        <View style={{ padding: 20 }}>
                         <Text style={styles.inputLabel}>ETKİNLİK ADI *</Text>
                         <TextInput 
                             style={styles.input}
@@ -259,29 +279,57 @@ export default function EventsScreen() {
                         </View>
 
                         {showStartPicker && (
-                            <DateTimePicker
-                                value={startDate}
-                                mode="datetime"
-                                is24Hour={true}
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                onChange={(event, selectedDate) => {
-                                    setShowStartPicker(Platform.OS === 'ios');
-                                    if (selectedDate) setStartDate(selectedDate);
-                                }}
-                            />
+                            <View>
+                                {Platform.OS === 'ios' && (
+                                    <TouchableOpacity 
+                                        style={styles.doneButton} 
+                                        onPress={() => setShowStartPicker(false)}
+                                    >
+                                        <Text style={styles.doneButtonText}>Tamam</Text>
+                                    </TouchableOpacity>
+                                )}
+                                <DateTimePicker
+                                    value={startDate}
+                                    mode="datetime"
+                                    is24Hour={true}
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={(event, selectedDate) => {
+                                        if (Platform.OS === 'android') {
+                                            setShowStartPicker(false);
+                                        }
+                                        if (selectedDate) {
+                                            setStartDate(selectedDate);
+                                        }
+                                    }}
+                                />
+                            </View>
                         )}
 
                         {showEndPicker && (
-                            <DateTimePicker
-                                value={endDate}
-                                mode="datetime"
-                                is24Hour={true}
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                onChange={(event, selectedDate) => {
-                                    setShowEndPicker(Platform.OS === 'ios');
-                                    if (selectedDate) setEndDate(selectedDate);
-                                }}
-                            />
+                            <View>
+                                {Platform.OS === 'ios' && (
+                                    <TouchableOpacity 
+                                        style={styles.doneButton} 
+                                        onPress={() => setShowEndPicker(false)}
+                                    >
+                                        <Text style={styles.doneButtonText}>Tamam</Text>
+                                    </TouchableOpacity>
+                                )}
+                                <DateTimePicker
+                                    value={endDate}
+                                    mode="datetime"
+                                    is24Hour={true}
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={(event, selectedDate) => {
+                                        if (Platform.OS === 'android') {
+                                            setShowEndPicker(false);
+                                        }
+                                        if (selectedDate) {
+                                            setEndDate(selectedDate);
+                                        }
+                                    }}
+                                />
+                            </View>
                         )}
 
                         <Text style={styles.inputLabel}>ETKİNLİK YERİ</Text>
@@ -351,8 +399,9 @@ export default function EventsScreen() {
                                 <Text style={styles.addPhotoText}>Fotoğraf Ekle</Text>
                             </TouchableOpacity>
                         )}
+                        </View>
                     </ScrollView>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             <LoginPromptModal 
@@ -493,33 +542,36 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingBottom: 16,
+        paddingVertical: 20,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
     },
     modalHeaderButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F1F5F9',
-        alignItems: 'center',
-        justifyContent: 'center',
+        paddingVertical: 8,
+    },
+    cancelText: {
+        fontSize: 12,
+        color: '#64748B',
+        fontWeight: '800',
+        letterSpacing: 1,
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: '900',
-        color: '#1A1A1A',
-        letterSpacing: -0.5,
+        color: '#1E293B',
+        letterSpacing: 1,
     },
     publishButton: {
-        backgroundColor: '#3B82F6',
-        paddingHorizontal: 16,
+        backgroundColor: '#10B981',
+        paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 12,
     },
     publishText: {
         color: '#fff',
-        fontWeight: '700',
+        fontWeight: '800',
+        fontSize: 12,
+        letterSpacing: 1,
     },
     modalBody: {
         flex: 1,
@@ -594,5 +646,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#64748B',
+    },
+    doneButton: {
+        alignSelf: 'flex-end',
+        padding: 10,
+        backgroundColor: '#F1F5F9',
+        borderRadius: 8,
+        marginBottom: 5,
+    },
+    doneButtonText: {
+        color: '#3B82F6',
+        fontWeight: '700',
     }
 });

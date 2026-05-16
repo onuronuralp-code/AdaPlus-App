@@ -1,5 +1,6 @@
 import { triggerNetworkError } from "@/context/NetworkContext";
 import { API_BASE_URL as BASE } from "./config";
+import { getToken } from "@/utils/tokenStorage";
 export { triggerNetworkError };
 
 export interface DepartureDto {
@@ -122,9 +123,13 @@ export const createActivity = async (
   try {
     // We should ideally use fetchWithAuth here if activities require authentication
     // but the file doesn't import it. We'll use a plain fetch for now.
+    const token = getToken();
     const response = await fetch(ACTIVITIES_API_BASE_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(request),
     });
     if (!response.ok) throw new Error("Activity creation error");
