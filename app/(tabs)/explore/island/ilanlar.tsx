@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { EmptyState } from '@/components/EmptyState';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { Modal, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
@@ -223,11 +224,11 @@ export default function IlanlarScreen() {
             <ActivityIndicator size="large" color="#3B82F6" />
           </View>
         ) : filteredListings.length === 0 ? (
-          <View style={styles.emptyState}>
-            <IconSymbol name="doc.text.magnifyingglass" size={48} color="#CBD5E1" />
-            <Text style={styles.emptyText}>İlan bulunamadı</Text>
-            <Text style={styles.emptySubtext}>Farklı bir kategori veya arama deneyin</Text>
-          </View>
+          <EmptyState 
+            icon="doc.text.magnifyingglass" 
+            title="İlan bulunamadı" 
+            subtitle="Farklı bir kategori veya arama deneyin" 
+          />
         ) : (
           filteredListings.map(l => (
             <ListingCard key={l.id} listing={l} router={router} />

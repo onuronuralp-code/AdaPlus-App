@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIn
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { EmptyState } from '@/components/EmptyState';
 import { fetchActivities, createActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
 import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
@@ -162,11 +163,11 @@ export default function EventsScreen() {
                         <ActivityIndicator size="large" color="#3B82F6" />
                     </View>
                 ) : events.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <IconSymbol name="calendar.badge.exclamationmark" size={48} color="#CBD5E1" />
-                        <Text style={styles.emptyText}>Etkinlik bulunamadı</Text>
-                        <Text style={styles.emptySubtext}>Şu an için aktif bir etkinlik bulunmamaktadır.</Text>
-                    </View>
+                    <EmptyState 
+                        icon="calendar.badge.exclamationmark" 
+                        title="Etkinlik bulunamadı" 
+                        subtitle="Şu an için aktif bir etkinlik bulunmamaktadır." 
+                    />
                 ) : (
                     events.map((event) => (
                         <TouchableOpacity key={event.id} style={styles.eventCard} activeOpacity={0.8}>
@@ -231,9 +232,9 @@ export default function EventsScreen() {
                         </View>
                         <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
-                                style={[styles.publishButton, isUploading && styles.publishButtonDisabled]} 
+                                style={[styles.publishButton, (isUploading || endDate < startDate) && styles.publishButtonDisabled]} 
                                 onPress={handlePublishEvent}
-                                disabled={isUploading}
+                                disabled={isUploading || endDate < startDate}
                             >
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
@@ -245,6 +246,12 @@ export default function EventsScreen() {
                     </View>
                     <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                         <View style={{ padding: 20 }}>
+                        {endDate < startDate && (
+                            <View style={styles.dateErrorBanner}>
+                                <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
+                                <Text style={styles.dateErrorText}>Bitiş tarihi başlangıçtan önce olamaz!</Text>
+                            </View>
+                        )}
                         <Text style={styles.inputLabel}>ETKİNLİK ADI *</Text>
                         <TextInput 
                             style={styles.input}
@@ -656,6 +663,22 @@ const styles = StyleSheet.create({
     },
     doneButtonText: {
         color: '#3B82F6',
+        fontWeight: '700',
+    },
+    dateErrorBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FEF2F2',
+        padding: 12,
+        borderRadius: 12,
+        marginBottom: 20,
+        gap: 8,
+        borderWidth: 1,
+        borderColor: '#FEE2E2',
+    },
+    dateErrorText: {
+        color: '#EF4444',
+        fontSize: 13,
         fontWeight: '700',
     }
 });

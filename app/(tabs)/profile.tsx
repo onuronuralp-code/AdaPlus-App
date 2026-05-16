@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { EmptyState } from '@/components/EmptyState';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto } from '@/services/forumApi';
@@ -82,11 +83,12 @@ export default function ProfileScreen() {
     };
 
     const renderEmpty = (icon: string, title: string, subtitle: string) => (
-        <View style={styles.emptyContainer}>
-            <IconSymbol name={icon as any} size={48} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>{t('common.notFound', { defaultValue: 'Bulunamadı' })}</Text>
-            <Text style={styles.emptySubtitle}>{subtitle}</Text>
-        </View>
+        <EmptyState 
+            icon={icon} 
+            title={title} 
+            subtitle={subtitle} 
+            style={{ backgroundColor: 'transparent', paddingVertical: 60 }} 
+        />
     );
 
     const renderPosts = () => {
