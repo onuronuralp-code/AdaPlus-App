@@ -113,3 +113,25 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     return [];
   }
 };
+
+export type CreateActivityRequest = Omit<AppActivityDto, "id">;
+
+export const createActivity = async (
+  request: CreateActivityRequest,
+): Promise<AppActivityDto | null> => {
+  try {
+    // We should ideally use fetchWithAuth here if activities require authentication
+    // but the file doesn't import it. We'll use a plain fetch for now.
+    const response = await fetch(ACTIVITIES_API_BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) throw new Error("Activity creation error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to create activity:", error);
+    triggerNetworkError();
+    return null;
+  }
+};

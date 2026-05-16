@@ -240,10 +240,6 @@ export default function IlanlarScreen() {
         style={[styles.fab, { bottom: insets.bottom + 20 }]}
         activeOpacity={0.85}
         onPress={() => {
-            if (!isLoggedIn) {
-                router.push('/login');
-                return;
-            }
             setIsAdModalVisible(true);
         }}
       >
@@ -421,14 +417,10 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
       ]} 
       activeOpacity={0.7}
       onPress={() => {
-          if (!isLoggedIn) {
-              router.push('/login');
-          } else {
-              router.push({
-                pathname: '/explore/island/ilan/[id]',
-                params: { id: listing.id }
-              });
-          }
+          router.push({
+            pathname: '/explore/island/ilan/[id]',
+            params: { id: listing.id }
+          });
       }}
     >
       <View style={styles.cardHeader}>

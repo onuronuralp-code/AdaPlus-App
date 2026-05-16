@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { fetchActivities, AppActivityDto } from '@/services/api';
+import { fetchActivities, createActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
+import * as ImagePicker from 'expo-image-picker';
+import * as mediaApi from '@/services/mediaApi';
 import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function EventsScreen() {
     const { t, i18n } = useTranslation();
@@ -21,10 +23,20 @@ export default function EventsScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    
+    // Form States
     const [newEventName, setNewEventName] = useState('');
-    const [newEventDate, setNewEventDate] = useState('');
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
+    const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showEndPicker, setShowEndPicker] = useState(false);
     const [newEventLocation, setNewEventLocation] = useState('');
     const [newEventDetails, setNewEventDetails] = useState('');
+    const [organizerName, setOrganizerName] = useState('');
+    const [contactNumber, setContactNumber] = useState('');
+    const [socialLink, setSocialLink] = useState('');
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         loadEvents();
@@ -52,23 +64,65 @@ export default function EventsScreen() {
         return d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
-    const handlePublishEvent = () => {
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setSelectedImage(result.assets[0].uri);
+        }
+    };
+
+    const handlePublishEvent = async () => {
         if (!newEventName.trim()) {
             Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.fillRequiredFields', { defaultValue: 'Lütfen zorunlu alanları doldurun.' }));
             return;
         }
 
-        // Mocking the creation process
-        setIsAddModalVisible(false);
-        setNewEventName('');
-        setNewEventDate('');
-        setNewEventLocation('');
-        setNewEventDetails('');
+        setIsUploading(true);
+        let imageUrl = undefined;
+        if (selectedImage) {
+            imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
+        }
 
-        Alert.alert(
-            t('common.success', { defaultValue: 'Başarılı' }), 
-            t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır' })
-        );
+        const request: CreateActivityRequest = {
+            name: newEventName.trim(),
+            description: newEventDetails.trim(),
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+            organizerName: organizerName.trim(),
+            organizerContact: contactNumber.trim(),
+            instagramLink: socialLink.trim(),
+            imageUrl: imageUrl,
+        };
+
+        const createdActivity = await createActivity(request);
+        setIsUploading(false);
+
+        if (createdActivity) {
+            setEvents([createdActivity, ...events]);
+            setIsAddModalVisible(false);
+            setNewEventName('');
+            setStartDate(new Date());
+            setEndDate(new Date());
+            setNewEventLocation('');
+            setNewEventDetails('');
+            setOrganizerName('');
+            setContactNumber('');
+            setSocialLink('');
+            setSelectedImage(null);
+
+            Alert.alert(
+                t('common.success', { defaultValue: 'Başarılı' }), 
+                t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır' })
+            );
+        } else {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Etkinlik oluşturulamadı.');
+        }
     };
 
     return (
@@ -133,10 +187,6 @@ export default function EventsScreen() {
                 style={[styles.fab, { bottom: insets.bottom + 20 }]} 
                 activeOpacity={0.8}
                 onPress={() => {
-                    if (!isLoggedIn) {
-                        setShowLoginPrompt(true);
-                        return;
-                    }
                     setIsAddModalVisible(true);
                 }}
             >
@@ -162,12 +212,20 @@ export default function EventsScreen() {
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
                         <Text style={styles.modalTitle}>{t('common.addEvent', { defaultValue: 'Etkinlik Ekle' })}</Text>
-                        <TouchableOpacity style={styles.publishButton} onPress={handlePublishEvent}>
-                            <Text style={styles.publishText}>{t('common.share', { defaultValue: 'Paylaş' })}</Text>
+                        <TouchableOpacity 
+                            style={[styles.publishButton, isUploading && styles.publishButtonDisabled]} 
+                            onPress={handlePublishEvent}
+                            disabled={isUploading}
+                        >
+                            {isUploading ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Text style={styles.publishText}>{t('common.share', { defaultValue: 'Paylaş' })}</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalBody} contentContainerStyle={{ padding: 20 }}>
-                        <Text style={styles.inputLabel}>ETKİNLİK ADI</Text>
+                        <Text style={styles.inputLabel}>ETKİNLİK ADI *</Text>
                         <TextInput 
                             style={styles.input}
                             placeholder="Etkinlik başlığı..."
@@ -176,14 +234,55 @@ export default function EventsScreen() {
                             onChangeText={setNewEventName}
                         />
 
-                        <Text style={styles.inputLabel}>TARİH VE SAAT</Text>
-                        <TextInput 
-                            style={styles.input}
-                            placeholder="Örn: 15 Haziran, 20:00"
-                            placeholderTextColor="#94A3B8"
-                            value={newEventDate}
-                            onChangeText={setNewEventDate}
-                        />
+                        <View style={{ flexDirection: 'row', gap: 15, marginBottom: 20 }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel}>BAŞLANGIÇ TARİHİ</Text>
+                                <TouchableOpacity 
+                                    style={styles.dateSelector} 
+                                    onPress={() => setShowStartPicker(true)}
+                                >
+                                    <Text style={styles.dateSelectorText}>{formatDate(startDate.toISOString())}</Text>
+                                    <IconSymbol name="calendar" size={16} color="#3B82F6" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel}>BİTİŞ TARİHİ</Text>
+                                <TouchableOpacity 
+                                    style={styles.dateSelector} 
+                                    onPress={() => setShowEndPicker(true)}
+                                >
+                                    <Text style={styles.dateSelectorText}>{formatDate(endDate.toISOString())}</Text>
+                                    <IconSymbol name="calendar" size={16} color="#64748B" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {showStartPicker && (
+                            <DateTimePicker
+                                value={startDate}
+                                mode="datetime"
+                                is24Hour={true}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, selectedDate) => {
+                                    setShowStartPicker(Platform.OS === 'ios');
+                                    if (selectedDate) setStartDate(selectedDate);
+                                }}
+                            />
+                        )}
+
+                        {showEndPicker && (
+                            <DateTimePicker
+                                value={endDate}
+                                mode="datetime"
+                                is24Hour={true}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, selectedDate) => {
+                                    setShowEndPicker(Platform.OS === 'ios');
+                                    if (selectedDate) setEndDate(selectedDate);
+                                }}
+                            />
+                        )}
 
                         <Text style={styles.inputLabel}>ETKİNLİK YERİ</Text>
                         <TextInput 
@@ -192,6 +291,35 @@ export default function EventsScreen() {
                             placeholderTextColor="#94A3B8"
                             value={newEventLocation}
                             onChangeText={setNewEventLocation}
+                        />
+
+                        <Text style={styles.inputLabel}>ORGANİZASYON ADI</Text>
+                        <TextInput 
+                            style={styles.input}
+                            placeholder="Örn: Ada Kültür Derneği"
+                            placeholderTextColor="#94A3B8"
+                            value={organizerName}
+                            onChangeText={setOrganizerName}
+                        />
+
+                        <Text style={styles.inputLabel}>İLETİŞİM NUMARASI</Text>
+                        <TextInput 
+                            style={styles.input}
+                            placeholder="Örn: 05xx xxx xx xx"
+                            placeholderTextColor="#94A3B8"
+                            keyboardType="phone-pad"
+                            value={contactNumber}
+                            onChangeText={setContactNumber}
+                        />
+
+                        <Text style={styles.inputLabel}>SOSYAL MEDYA LİNKİ (INSTAGRAM VB.)</Text>
+                        <TextInput 
+                            style={styles.input}
+                            placeholder="https://instagram.com/..."
+                            placeholderTextColor="#94A3B8"
+                            autoCapitalize="none"
+                            value={socialLink}
+                            onChangeText={setSocialLink}
                         />
 
                         <Text style={styles.inputLabel}>ETKİNLİK DETAYLARI</Text>
@@ -205,6 +333,24 @@ export default function EventsScreen() {
                             numberOfLines={4}
                             textAlignVertical="top"
                         />
+
+                        <Text style={styles.inputLabel}>ETKİNLİK FOTOĞRAFI</Text>
+                        {selectedImage ? (
+                            <View style={styles.imagePreviewContainer}>
+                                <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+                                <TouchableOpacity 
+                                    style={styles.removeImageBtn} 
+                                    onPress={() => setSelectedImage(null)}
+                                >
+                                    <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
+                                <IconSymbol name="camera.fill" size={24} color="#64748B" />
+                                <Text style={styles.addPhotoText}>Fotoğraf Ekle</Text>
+                            </TouchableOpacity>
+                        )}
                     </ScrollView>
                 </View>
             </Modal>
@@ -396,5 +542,57 @@ const styles = StyleSheet.create({
     textArea: {
         minHeight: 120,
         paddingTop: 16,
+    },
+    dateSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F8FAFC',
+        borderRadius: 14,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    dateSelectorText: {
+        fontSize: 14,
+        color: '#1A1A1A',
+        fontWeight: '600',
+    },
+    publishButtonDisabled: {
+        backgroundColor: '#94A3B8',
+    },
+    imagePreviewContainer: {
+        position: 'relative',
+        marginBottom: 20,
+    },
+    imagePreview: {
+        width: '100%',
+        height: 200,
+        borderRadius: 14,
+    },
+    removeImageBtn: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 2,
+    },
+    addPhotoBtn: {
+        height: 120,
+        borderRadius: 14,
+        borderWidth: 2,
+        borderColor: '#E2E8F0',
+        borderStyle: 'dashed',
+        backgroundColor: '#F8FAFC',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
+    addPhotoText: {
+        marginTop: 8,
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#64748B',
     }
 });
