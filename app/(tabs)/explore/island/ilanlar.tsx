@@ -14,7 +14,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { EmptyState } from '@/components/EmptyState';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { Modal, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
@@ -27,6 +26,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import * as ImagePicker from 'expo-image-picker';
+import { EmptyState } from '@/components/EmptyState';
 import * as mediaApi from '@/services/mediaApi';
 import LoginPromptModal from '@/components/LoginPromptModal';
 
@@ -226,8 +226,9 @@ export default function IlanlarScreen() {
         ) : filteredListings.length === 0 ? (
           <EmptyState 
             icon="doc.text.magnifyingglass" 
-            title="İlan bulunamadı" 
-            subtitle="Farklı bir kategori veya arama deneyin" 
+            title="İlan Bulunamadı" 
+            subtitle="Farklı bir kategori veya arama deneyin. İlk ilanı siz ekleyebilirsiniz!"
+            color="#10B981"
           />
         ) : (
           filteredListings.map(l => (

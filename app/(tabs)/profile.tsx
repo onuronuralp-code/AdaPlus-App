@@ -2,15 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { EmptyState } from '@/components/EmptyState';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { EmptyState } from '@/components/EmptyState';
 import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto } from '@/services/forumApi';
 import { fetchListings, ListingDto } from '@/services/listingApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useAuth } from '@/context/AuthContext';
+import { logout } from '@/utils/tokenStorage';
 
 type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -82,18 +83,18 @@ export default function ProfileScreen() {
         }
     };
 
-    const renderEmpty = (icon: string, title: string, subtitle: string) => (
+    const renderEmpty = (icon: string, title: string, subtitle: string, color?: string) => (
         <EmptyState 
             icon={icon} 
             title={title} 
-            subtitle={subtitle} 
-            style={{ backgroundColor: 'transparent', paddingVertical: 60 }} 
+            subtitle={subtitle}
+            color={color}
         />
     );
 
     const renderPosts = () => {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
-        if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', 'Henüz Paylaşım Yok', 'Toplulukla fikirlerini paylaşmaya başla!');
+        if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', 'Henüz Paylaşım Yok', 'Toplulukla fikirlerini paylaşmaya başla!', '#6366F1');
         return (
             <View style={styles.contentList}>
                 {posts.map(post => (
@@ -120,7 +121,7 @@ export default function ProfileScreen() {
 
     const renderReplies = () => {
         if (loadingReplies) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B5CF6" /></View>;
-        if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', 'Henüz Yanıt Yok', 'Paylaşımlara yorum yaparak etkileşime geç!');
+        if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', 'Henüz Yanıt Yok', 'Paylaşımlara yorum yaparak etkileşime geç!', '#8B5CF6');
         return (
             <View style={styles.contentList}>
                 {replies.map(reply => (
@@ -165,7 +166,7 @@ export default function ProfileScreen() {
 
     const renderListings = () => {
         if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#10B981" /></View>;
-        if (listings.length === 0) return renderEmpty('tag.fill', 'Henüz İlan Yok', 'İlk ilanınızı oluşturmak için İlanlar sayfasını ziyaret edin.');
+        if (listings.length === 0) return renderEmpty('tag.fill', 'Henüz İlan Yok', 'İlk ilanınızı oluşturmak için İlanlar sayfasını ziyaret edin.', '#10B981');
         return (
             <View style={styles.contentList}>
                 {listings.map(listing => (
@@ -192,12 +193,12 @@ export default function ProfileScreen() {
     };
 
     const renderEvents = () => {
-        return renderEmpty('calendar', 'Henüz Etkinlik Yok', 'Katıldığınız etkinlikler burada görünecek.');
+        return renderEmpty('calendar', 'Henüz Etkinlik Yok', 'Katıldığınız etkinlikler burada görünecek.', '#3B82F6');
     };
 
     const renderLikes = () => {
         if (loadingLikes) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#EC4899" /></View>;
-        if (likedPosts.length === 0) return renderEmpty('heart.fill', 'Henüz Beğeni Yok', 'Beğendiğiniz paylaşımlar burada görünecek.');
+        if (likedPosts.length === 0) return renderEmpty('heart.fill', 'Henüz Beğeni Yok', 'Beğendiğiniz paylaşımlar burada görünecek.', '#EC4899');
         return (
             <View style={styles.contentList}>
                 {likedPosts.map(post => (

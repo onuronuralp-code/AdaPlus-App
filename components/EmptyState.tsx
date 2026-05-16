@@ -1,19 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { IconSymbol } from './IconSymbol';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { IconSymbol } from './ui/icon-symbol';
 
 interface EmptyStateProps {
     icon: string;
     title: string;
     subtitle: string;
-    style?: ViewStyle;
+    color?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, subtitle, style }) => {
+const { width } = Dimensions.get('window');
+
+export const EmptyState: React.FC<EmptyStateProps> = ({ 
+    icon, 
+    title, 
+    subtitle, 
+    color = '#64748B' 
+}) => {
     return (
-        <View style={[styles.container, style]}>
-            <View style={styles.iconCircle}>
-                <IconSymbol name={icon as any} size={42} color="#94A3B8" />
+        <View style={styles.container}>
+            <View style={[styles.iconContainer, { backgroundColor: color + '10' }]}>
+                <IconSymbol name={icon as any} size={48} color={color} />
             </View>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>
@@ -26,29 +33,34 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 40,
-        backgroundColor: '#F8FAFC',
+        paddingHorizontal: 40,
+        paddingVertical: 60,
     },
-    iconCircle: {
+    iconContainer: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: '#F1F5F9',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.05,
+        shadowRadius: 20,
+        elevation: 2,
     },
     title: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#1E293B',
-        marginBottom: 10,
+        fontWeight: '800',
+        color: '#0F172A',
         textAlign: 'center',
+        marginBottom: 10,
+        letterSpacing: -0.5,
     },
     subtitle: {
         fontSize: 15,
         color: '#64748B',
         textAlign: 'center',
         lineHeight: 22,
-    },
+    }
 });

@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIn
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { EmptyState } from '@/components/EmptyState';
 import { fetchActivities, createActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
 import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
+import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
@@ -165,8 +165,9 @@ export default function EventsScreen() {
                 ) : events.length === 0 ? (
                     <EmptyState 
                         icon="calendar.badge.exclamationmark" 
-                        title="Etkinlik bulunamadı" 
-                        subtitle="Şu an için aktif bir etkinlik bulunmamaktadır." 
+                        title="Etkinlik Bulunamadı" 
+                        subtitle="Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!"
+                        color="#3B82F6"
                     />
                 ) : (
                     events.map((event) => (

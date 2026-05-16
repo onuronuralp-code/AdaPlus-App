@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
 import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
+import { EmptyState } from '@/components/EmptyState';
 
 export default function ForumScreen() {
     const { t } = useTranslation();
@@ -440,11 +441,12 @@ export default function ForumScreen() {
                 refreshing={isRefreshing}
                 onRefresh={onRefresh}
                 ListEmptyComponent={!isLoading ? (
-                    <View style={styles.emptyState}>
-                        <IconSymbol name="bubble.left.and.bubble.right" size={48} color="#CBD5E1" />
-                        <Text style={styles.emptyText}>Henüz gönderi yok.</Text>
-                        <Text style={styles.emptySubtext}>İlk paylaşımı sen yap!</Text>
-                    </View>
+                    <EmptyState 
+                        icon="bubble.left.and.bubble.right" 
+                        title="Henüz Gönderi Yok" 
+                        subtitle="Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!"
+                        color="#10B981"
+                    />
                 ) : null}
             />
             <TouchableOpacity 
@@ -734,10 +736,12 @@ export default function ForumScreen() {
                                     </View>
                                 ))
                             ) : (
-                                <View style={styles.emptyComments}>
-                                    <IconSymbol name="bubble.left.and.bubble.right" size={48} color="#E2E8F0" />
-                                    <Text style={styles.emptyCommentsText}>{t('forum.noCommentsYet', { defaultValue: i18n.language.startsWith('en') ? 'No comments yet. Be the first to reply!' : 'Henüz yorum yok. İlk sen yaz!' })}</Text>
-                                </View>
+                                <EmptyState 
+                                    icon="bubble.left.and.bubble.right" 
+                                    title="Henüz Yorum Yok" 
+                                    subtitle="İlk yorumu sen yaparak tartışmaya katıl!"
+                                    color="#94A3B8"
+                                />
                             )}
                         </View>
                     </ScrollView>
