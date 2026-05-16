@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 
 import { useTranslation } from 'react-i18next';
+import { KVKKModal } from '@/components/KVKKModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -20,6 +21,7 @@ export default function SignUpScreen() {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; password?: boolean }>({});
+    const [kvkkVisible, setKvkkVisible] = useState(false);
 
     const validateName = (val: string): string | undefined => {
         const trimmed = val.trim();
@@ -80,6 +82,11 @@ export default function SignUpScreen() {
         setErrors({ name: nameError, email: emailError, password: passwordError });
         if (nameError || emailError || passwordError) return;
 
+        setKvkkVisible(true);
+    };
+
+    const handleSignupAfterKVKK = async () => {
+        setKvkkVisible(false);
         setLoading(true);
         try {
             await authApi.signup(name.trim(), email.trim(), password);
@@ -223,6 +230,12 @@ export default function SignUpScreen() {
                     </View>
                 </View>
             </View>
+
+            <KVKKModal 
+                isVisible={kvkkVisible} 
+                onClose={() => setKvkkVisible(false)} 
+                onAccept={handleSignupAfterKVKK}
+            />
         </View>
         </TouchableWithoutFeedback>
     );

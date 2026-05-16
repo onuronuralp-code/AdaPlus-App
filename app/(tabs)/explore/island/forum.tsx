@@ -253,19 +253,28 @@ export default function ForumScreen() {
             router.push('/login');
             return;
         }
-        const success = await forumApi.likePost(id);
-        if (success) {
+        const data = await forumApi.likePost(id);
+        if (data) {
+            // Update main list
             setPosts(posts.map(post => {
                 if (post.id === id) {
-                    const isLiked = !post.isLiked;
                     return {
                         ...post,
-                        isLiked,
-                        likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1
+                        isLiked: data.liked,
+                        likeCount: data.likeCount
                     };
                 }
                 return post;
             }));
+
+            // Update selectedPost state if it's currently open
+            if (selectedPost && selectedPost.id === id) {
+                setSelectedPost({
+                    ...selectedPost,
+                    isLiked: data.liked,
+                    likeCount: data.likeCount
+                });
+            }
         }
     };
 
@@ -391,26 +400,28 @@ export default function ForumScreen() {
                     horizontal 
                     showsHorizontalScrollIndicator={false} 
                     contentContainerStyle={styles.tabsContainer} 
-                    bounces={false}
-                    overScrollMode="never"
+                    bounces={true}
                 >
-                    {tabs.map(tab => (
-                        <TouchableOpacity 
-                            key={tab.id}
-                            style={[styles.tabButton, activeTab === tab.id && styles.activeTabButton]}
-                            onPress={() => setActiveTab(tab.id)}
-                            activeOpacity={0.7}
-                        >
-                            <IconSymbol 
-                                name={tab.icon} 
-                                size={14} 
-                                color={activeTab === tab.id ? '#FFFFFF' : '#64748B'} 
-                            />
-                            <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>
-                                {tab.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    {tabs.map(tab => {
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <TouchableOpacity 
+                                key={tab.id}
+                                style={[styles.tabItem, isActive && styles.activeTabItem]}
+                                onPress={() => setActiveTab(tab.id)}
+                                activeOpacity={0.7}
+                            >
+                                <IconSymbol 
+                                    name={tab.icon} 
+                                    size={14} 
+                                    color={isActive ? '#FFFFFF' : '#475569'} 
+                                />
+                                <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
+                                    {tab.label}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </ScrollView>
             </View>
             <FlatList
@@ -520,10 +531,10 @@ export default function ForumScreen() {
                                 {postTypes.map(type => (
                                     <TouchableOpacity 
                                         key={type.id} 
-                                        style={[styles.writeChip, newPostType === type.id && styles.activeWriteChip]}
+                                        style={[styles.writeChip, newPostType === type.id && styles.activeWriteChipPink]}
                                         onPress={() => setNewPostType(type.id)}
                                     >
-                                        <Text style={[styles.writeChipText, newPostType === type.id && styles.activeWriteChipText]}>{type.label}</Text>
+                                        <Text style={[styles.writeChipText, newPostType === type.id && styles.activeWriteChipPinkText]}>{type.label}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -906,39 +917,40 @@ const styles = StyleSheet.create({
         letterSpacing: -0.8,
     },
     tabsWrapper: {
-        paddingVertical: 12,
+        paddingVertical: 16,
         backgroundColor: 'transparent',
     },
     tabsContainer: {
         paddingHorizontal: 20,
-        gap: 12,
+        gap: 10,
     },
-    tabButton: {
+    tabItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 22,
         gap: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 14,
+        backgroundColor: '#fff',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+        elevation: 1,
         borderWidth: 1,
         borderColor: '#F1F5F9',
     },
-    activeTabButton: {
+    activeTabItem: {
         backgroundColor: '#0F172A',
         borderColor: '#0F172A',
+        shadowOpacity: 0.1,
     },
-    tabText: {
-        fontSize: 14,
+    tabLabel: {
+        fontSize: 13,
         fontWeight: '700',
-        color: '#64748B',
+        color: '#475569',
     },
-    activeTabText: {
+    activeTabLabel: {
         color: '#FFFFFF',
     },
     listContent: {
@@ -1422,7 +1434,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     activePremiumPublishBtn: {
-        backgroundColor: '#10B981',
+        backgroundColor: '#EC4899',
     },
     premiumPublishText: {
         color: '#FFFFFF',

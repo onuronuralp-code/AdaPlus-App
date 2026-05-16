@@ -65,6 +65,9 @@ export default function ProfileScreen() {
             setListings(allListings);
             setLoadingListings(false);
         });
+
+        // Notifications logic (placeholder for now)
+        setLoadingNotifications(false);
     }, [user]);
 
     const timeAgo = (dateStr: string) => {

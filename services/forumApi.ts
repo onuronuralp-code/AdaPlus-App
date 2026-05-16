@@ -136,18 +136,21 @@ export const createPost = async (
   }
 };
 
-export const likePost = async (postId: string): Promise<boolean> => {
+export interface LikeResponse {
+  liked: boolean;
+  likeCount: number;
+}
+
+export const likePost = async (postId: string): Promise<LikeResponse | null> => {
   try {
-    const response = await fetchWithAuth(
-      `${FORUM_API_BASE}/posts/${postId}/like`,
-      {
-        method: "POST",
-      },
-    );
-    return response.ok;
+    const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/${postId}/like`, {
+      method: 'POST',
+    });
+    if (!response.ok) return null;
+    return await response.json();
   } catch (error) {
-    console.error("Failed to like post:", error);
-    return false;
+    console.error('Failed to like post:', error);
+    return null;
   }
 };
 

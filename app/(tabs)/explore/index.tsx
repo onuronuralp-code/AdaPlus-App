@@ -214,7 +214,7 @@ export default function MainMenuScreen() {
             />
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
-              colors={['#8E2DE2', '#4A00E0', '#FF0080', '#FF8C00']}
+              colors={['#10B981', '#059669']} // Changed from purple/orange to green
               title={t('common.agoraForum', { defaultValue: 'Agora Forum' })}
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Engage with the community' : 'Toplulukla etkileşime geç' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
