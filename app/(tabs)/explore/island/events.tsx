@@ -52,6 +52,25 @@ export default function EventsScreen() {
         return d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
+    const handlePublishEvent = () => {
+        if (!newEventName.trim()) {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.fillRequiredFields', { defaultValue: 'Lütfen zorunlu alanları doldurun.' }));
+            return;
+        }
+
+        // Mocking the creation process
+        setIsAddModalVisible(false);
+        setNewEventName('');
+        setNewEventDate('');
+        setNewEventLocation('');
+        setNewEventDetails('');
+
+        Alert.alert(
+            t('common.success', { defaultValue: 'Başarılı' }), 
+            t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır' })
+        );
+    };
+
     return (
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
@@ -143,7 +162,7 @@ export default function EventsScreen() {
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
                         <Text style={styles.modalTitle}>{t('common.addEvent', { defaultValue: 'Etkinlik Ekle' })}</Text>
-                        <TouchableOpacity style={styles.publishButton}>
+                        <TouchableOpacity style={styles.publishButton} onPress={handlePublishEvent}>
                             <Text style={styles.publishText}>{t('common.share', { defaultValue: 'Paylaş' })}</Text>
                         </TouchableOpacity>
                     </View>

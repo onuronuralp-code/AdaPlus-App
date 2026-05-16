@@ -148,6 +148,11 @@ export default function IlanlarScreen() {
       setAdPrice('');
       setAdDesc('');
       setSelectedImage(null);
+      
+      Alert.alert(
+        t('common.success', { defaultValue: 'Başarılı' }), 
+        t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır' })
+      );
     }
   };
 
@@ -391,6 +396,7 @@ export default function IlanlarScreen() {
 }
 
 function ListingCard({ listing, router }: { listing: ListingDto, router: any }) {
+  const { isLoggedIn } = useAuth();
   const backendToFrontend: Record<ListingCategory, IlanCategory> = {
     [ListingCategory.SATILIK]: 'emlak',
     [ListingCategory.KIRALIK]: 'emlak',

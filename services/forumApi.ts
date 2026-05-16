@@ -237,7 +237,7 @@ export const fetchTopics = async (): Promise<ForumTopicDto[]> => {
 
 export const fetchUserPosts = async (userId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${API_URL}/api/v1/users/${userId}/posts`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/api/v1/users/${userId}/posts`);
     const data = await response.json();
     return data.content || [];
   } catch (error) {
@@ -248,7 +248,7 @@ export const fetchUserPosts = async (userId: string): Promise<PostDto[]> => {
 
 export const fetchUserReplies = async (userId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${API_URL}/api/v1/users/${userId}/replies`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/api/v1/users/${userId}/replies`);
     const data = await response.json();
     return data.content || [];
   } catch (error) {
@@ -259,7 +259,7 @@ export const fetchUserReplies = async (userId: string): Promise<PostDto[]> => {
 
 export const fetchUserLikes = async (userId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${API_URL}/api/v1/users/${userId}/likes`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/api/v1/users/${userId}/likes`);
     const data = await response.json();
     return data.content || [];
   } catch (error) {

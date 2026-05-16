@@ -1,4 +1,4 @@
-import { API_URL } from './api';
+import { API_BASE_URL } from './config';
 
 export interface ContactRequest {
   fullName: string;
@@ -8,7 +8,7 @@ export interface ContactRequest {
 
 export const contactApi = {
   send: async (data: ContactRequest) => {
-    const response = await fetch(`${API_URL}/api/v1/contact`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
