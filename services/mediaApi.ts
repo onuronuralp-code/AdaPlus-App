@@ -1,15 +1,15 @@
 import { triggerNetworkError } from './api';
 import { API_BASE_URL } from './config';
+import { getToken } from '@/utils/tokenStorage';
 
 const MEDIA_API_BASE = `${API_BASE_URL}/api/v1/media`;
 
 export const uploadImage = async (uri: string): Promise<string | null> => {
   try {
     const formData = new FormData();
-    // In React Native, we need to provide name, type, and uri for the file
     const filename = uri.split('/').pop() || 'image.jpg';
     const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : `image`;
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
 
     // @ts-ignore - FormData issue in RN
     formData.append('file', {
@@ -18,11 +18,13 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
       type,
     });
 
+    const token = getToken();
     const response = await fetch(`${MEDIA_API_BASE}/upload`, {
       method: 'POST',
       body: formData,
       headers: {
         'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
     });
 

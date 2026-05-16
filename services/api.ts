@@ -97,6 +97,7 @@ export interface AppActivityDto {
   endDate?: string;
   organizerName: string;
   organizerContact?: string;
+  eventPlace?: string;
   instagramLink?: string;
   imageUrl?: string;
 }

@@ -107,6 +107,7 @@ export default function EventsScreen() {
             endDate: endDate.toISOString(),
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
+            eventPlace: newEventLocation.trim() || undefined,
             instagramLink: formattedSocialLink,
             imageUrl: imageUrl,
         };
@@ -115,7 +116,6 @@ export default function EventsScreen() {
         setIsUploading(false);
 
         if (createdActivity) {
-            setEvents([createdActivity, ...events]);
             setIsAddModalVisible(false);
             setNewEventName('');
             setStartDate(new Date());
@@ -128,8 +128,8 @@ export default function EventsScreen() {
             setSelectedImage(null);
 
             Alert.alert(
-                t('common.success', { defaultValue: 'Başarılı' }), 
-                t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır' })
+                t('common.success', { defaultValue: 'Başarılı' }),
+                t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
             );
         } else {
             Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Etkinlik oluşturulamadı.');
