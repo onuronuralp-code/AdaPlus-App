@@ -89,7 +89,8 @@ export default function SignUpScreen() {
         setKvkkVisible(false);
         setLoading(true);
         try {
-            await authApi.signup(name.trim(), email.trim(), password);
+            // Backend expects kvkkAccepted and termsAccepted as true
+            await authApi.signup(name.trim(), email.trim(), password, true, true);
             router.push({ pathname: '/verify', params: { email: email.trim() } });
         } catch (error: any) {
             Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');

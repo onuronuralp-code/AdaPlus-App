@@ -29,12 +29,14 @@ export const authApi = {
     fullName: string,
     email: string,
     password: string,
+    kvkkAccepted: boolean = true,
+    termsAccepted: boolean = true,
   ): Promise<{ message: string }> => {
     try {
       const response = await fetch(`${AUTH_BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password }),
+        body: JSON.stringify({ fullName, email, password, kvkkAccepted, termsAccepted }),
       });
       const data = await response.json();
       if (!response.ok)

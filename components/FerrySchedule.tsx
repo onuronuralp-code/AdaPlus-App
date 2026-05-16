@@ -622,10 +622,6 @@ function TripDetailPopup({ trip, onClose, onTrack, status, i18n, t }: any) {
                         </View>
                     )}
 
-                    <TouchableOpacity style={[styles.trackBtn, !status.trackable && styles.trackOff]} onPress={onTrack} disabled={!status.trackable}>
-                        <IconSymbol name="location.fill" size={18} color="#fff" />
-                        <Text style={styles.trackBtnText}>{i18n.language === 'tr' ? "Canlı Takip Et" : "Track Live"}</Text>
-                    </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
         </Modal>
