@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import CustomDateTimePicker from '@/components/CustomDateTimePicker';
 
 export default function EventsScreen() {
     const { t, i18n } = useTranslation();
@@ -38,6 +38,17 @@ export default function EventsScreen() {
     const [socialLink, setSocialLink] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    
+    const isValidPhone = /^[0-9]{10,11}$/.test(contactNumber.replace(/\s/g, ''));
+    
+    const isPublishDisabled = 
+        newEventName.trim().length < 3 || 
+        newEventDetails.trim().length < 10 || 
+        !newEventLocation.trim() ||
+        !organizerName.trim() || 
+        !isValidPhone || 
+        endDate < startDate || 
+        isUploading;
 
     useEffect(() => {
         loadEvents();
@@ -163,12 +174,31 @@ export default function EventsScreen() {
                         <ActivityIndicator size="large" color="#3B82F6" />
                     </View>
                 ) : events.length === 0 ? (
-                    <EmptyState 
-                        icon="calendar.badge.exclamationmark" 
-                        title="Etkinlik Bulunamadı" 
-                        subtitle="Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!"
-                        color="#F59E0B"
-                    />
+                    <View style={{ flex: 1, justifyContent: 'center' }}>
+                        <EmptyState 
+                            icon="calendar.badge.exclamationmark" 
+                            title="Etkinlik Bulunamadı" 
+                            subtitle="Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!"
+                            color="#F59E0B"
+                        />
+                        <TouchableOpacity 
+                            style={styles.emptyStateButton} 
+                            onPress={() => {
+                                if (!isLoggedIn) {
+                                    setShowLoginPrompt(true);
+                                } else {
+                                    setIsAddModalVisible(true);
+                                }
+                            }}
+                        >
+                            <LinearGradient
+                                colors={['#1E293B', '#0F172A']}
+                                style={styles.emptyStateButtonGradient}
+                            >
+                                <Text style={styles.emptyStateButtonText}>ETKİNLİK EKLE</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     events.map((event) => (
                         <TouchableOpacity key={event.id} style={styles.eventCard} activeOpacity={0.8}>
@@ -199,16 +229,20 @@ export default function EventsScreen() {
                 style={[styles.fab, { bottom: insets.bottom + 20 }]} 
                 activeOpacity={0.8}
                 onPress={() => {
-                    setIsAddModalVisible(true);
+                    if (!isLoggedIn) {
+                        setShowLoginPrompt(true);
+                    } else {
+                        setIsAddModalVisible(true);
+                    }
                 }}
             >
                 <LinearGradient
-                    colors={['#10B981', '#059669']}
+                    colors={['#64748B', '#475569']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.fabGradient}
                 >
-                    <IconSymbol name="plus" size={24} color="#fff" />
+                    <IconSymbol name="plus" size={32} color="#fff" />
                 </LinearGradient>
             </TouchableOpacity>
 
@@ -233,9 +267,9 @@ export default function EventsScreen() {
                         </View>
                         <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
-                                style={[styles.publishButton, (isUploading || endDate < startDate) && styles.publishButtonDisabled]} 
+                                style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                                 onPress={handlePublishEvent}
-                                disabled={isUploading || endDate < startDate}
+                                disabled={isPublishDisabled}
                             >
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
@@ -262,85 +296,51 @@ export default function EventsScreen() {
                             onChangeText={setNewEventName}
                         />
 
-                        <View style={{ flexDirection: 'row', gap: 15, marginBottom: 20 }}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.inputLabel}>BAŞLANGIÇ TARİHİ</Text>
-                                <TouchableOpacity 
-                                    style={styles.dateSelector} 
-                                    onPress={() => setShowStartPicker(true)}
-                                >
-                                    <Text style={styles.dateSelectorText}>{formatDate(startDate.toISOString())}</Text>
-                                    <IconSymbol name="calendar" size={16} color="#3B82F6" />
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.inputLabel}>BİTİŞ TARİHİ</Text>
-                                <TouchableOpacity 
-                                    style={styles.dateSelector} 
-                                    onPress={() => setShowEndPicker(true)}
-                                >
-                                    <Text style={styles.dateSelectorText}>{formatDate(endDate.toISOString())}</Text>
-                                    <IconSymbol name="calendar" size={16} color="#64748B" />
-                                </TouchableOpacity>
-                            </View>
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={styles.inputLabel}>BAŞLANGIÇ TARİHİ VE SAATİ</Text>
+                            <TouchableOpacity 
+                                style={styles.dateSelector} 
+                                onPress={() => setShowStartPicker(true)}
+                            >
+                                <Text style={styles.dateSelectorText}>
+                                    {startDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </Text>
+                                <IconSymbol name="calendar" size={16} color="#3B82F6" />
+                            </TouchableOpacity>
                         </View>
 
-                        {showStartPicker && (
-                            <View>
-                                {Platform.OS === 'ios' && (
-                                    <TouchableOpacity 
-                                        style={styles.doneButton} 
-                                        onPress={() => setShowStartPicker(false)}
-                                    >
-                                        <Text style={styles.doneButtonText}>Tamam</Text>
-                                    </TouchableOpacity>
-                                )}
-                                <DateTimePicker
-                                    value={startDate}
-                                    mode="datetime"
-                                    is24Hour={true}
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                    onChange={(event, selectedDate) => {
-                                        if (Platform.OS === 'android') {
-                                            setShowStartPicker(false);
-                                        }
-                                        if (selectedDate) {
-                                            setStartDate(selectedDate);
-                                        }
-                                    }}
-                                />
-                            </View>
-                        )}
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={styles.inputLabel}>BİTİŞ TARİHİ VE SAATİ</Text>
+                            <TouchableOpacity 
+                                style={styles.dateSelector} 
+                                onPress={() => setShowEndPicker(true)}
+                            >
+                                <Text style={styles.dateSelectorText}>
+                                    {endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </Text>
+                                <IconSymbol name="calendar" size={16} color="#64748B" />
+                            </TouchableOpacity>
+                        </View>
 
-                        {showEndPicker && (
-                            <View>
-                                {Platform.OS === 'ios' && (
-                                    <TouchableOpacity 
-                                        style={styles.doneButton} 
-                                        onPress={() => setShowEndPicker(false)}
-                                    >
-                                        <Text style={styles.doneButtonText}>Tamam</Text>
-                                    </TouchableOpacity>
-                                )}
-                                <DateTimePicker
-                                    value={endDate}
-                                    mode="datetime"
-                                    is24Hour={true}
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                    onChange={(event, selectedDate) => {
-                                        if (Platform.OS === 'android') {
-                                            setShowEndPicker(false);
-                                        }
-                                        if (selectedDate) {
-                                            setEndDate(selectedDate);
-                                        }
-                                    }}
-                                />
-                            </View>
-                        )}
+                        <CustomDateTimePicker
+                            visible={showStartPicker}
+                            value={startDate}
+                            title="Başlangıç Tarihi ve Saati"
+                            accentColor="#3B82F6"
+                            onConfirm={(date) => { setStartDate(date); setShowStartPicker(false); }}
+                            onCancel={() => setShowStartPicker(false)}
+                        />
 
-                        <Text style={styles.inputLabel}>ETKİNLİK YERİ</Text>
+                        <CustomDateTimePicker
+                            visible={showEndPicker}
+                            value={endDate}
+                            title="Bitiş Tarihi ve Saati"
+                            accentColor="#64748B"
+                            onConfirm={(date) => { setEndDate(date); setShowEndPicker(false); }}
+                            onCancel={() => setShowEndPicker(false)}
+                        />
+
+                        <Text style={styles.inputLabel}>ETKİNLİK YERİ *</Text>
                         <TextInput 
                             style={styles.input}
                             placeholder="Örn: Büyükada Meydan"
@@ -349,7 +349,7 @@ export default function EventsScreen() {
                             onChangeText={setNewEventLocation}
                         />
 
-                        <Text style={styles.inputLabel}>ORGANİZASYON ADI</Text>
+                        <Text style={styles.inputLabel}>ORGANİZASYON ADI *</Text>
                         <TextInput 
                             style={styles.input}
                             placeholder="Örn: Ada Kültür Derneği"
@@ -358,15 +358,18 @@ export default function EventsScreen() {
                             onChangeText={setOrganizerName}
                         />
 
-                        <Text style={styles.inputLabel}>İLETİŞİM NUMARASI</Text>
+                        <Text style={styles.inputLabel}>İLETİŞİM NUMARASI *</Text>
                         <TextInput 
-                            style={styles.input}
+                            style={[styles.input, contactNumber.length > 0 && !isValidPhone && { borderColor: '#EF4444', borderWidth: 1 }]}
                             placeholder="Örn: 05xx xxx xx xx"
                             placeholderTextColor="#94A3B8"
                             keyboardType="phone-pad"
                             value={contactNumber}
                             onChangeText={setContactNumber}
                         />
+                        {contactNumber.length > 0 && !isValidPhone && (
+                            <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4, fontWeight: '500' }}>Geçerli bir telefon numarası girin (10-11 hane)</Text>
+                        )}
 
                         <Text style={styles.inputLabel}>SOSYAL MEDYA LİNKİ (INSTAGRAM VB.)</Text>
                         <TextInput 
@@ -378,7 +381,7 @@ export default function EventsScreen() {
                             onChangeText={setSocialLink}
                         />
 
-                        <Text style={styles.inputLabel}>ETKİNLİK DETAYLARI</Text>
+                        <Text style={styles.inputLabel}>ETKİNLİK DETAYLARI *</Text>
                         <TextInput 
                             style={[styles.input, styles.textArea]}
                             placeholder="Etkinlik hakkında bilgi verin..."
@@ -388,7 +391,9 @@ export default function EventsScreen() {
                             multiline
                             numberOfLines={4}
                             textAlignVertical="top"
+                            maxLength={500}
                         />
+                        <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{newEventDetails.length}/500</Text>
 
                         <Text style={styles.inputLabel}>ETKİNLİK FOTOĞRAFI</Text>
                         {selectedImage ? (
@@ -530,7 +535,7 @@ const styles = StyleSheet.create({
         borderRadius: 32,
         overflow: 'hidden',
         elevation: 8,
-        shadowColor: '#10B981',
+        shadowColor: '#F59E0B',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
         shadowRadius: 16,
@@ -547,12 +552,12 @@ const styles = StyleSheet.create({
     },
     modalHeader: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        height: 64,
         paddingHorizontal: 20,
-        paddingVertical: 20,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
+        alignItems: 'center',
+        backgroundColor: '#fff',
     },
     modalHeaderButton: {
         paddingVertical: 8,
@@ -681,5 +686,27 @@ const styles = StyleSheet.create({
         color: '#EF4444',
         fontSize: 13,
         fontWeight: '700',
+    },
+    emptyStateButton: {
+        marginHorizontal: 60,
+        marginTop: -20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    emptyStateButtonGradient: {
+        paddingVertical: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyStateButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '800',
+        letterSpacing: 1,
     }
 });

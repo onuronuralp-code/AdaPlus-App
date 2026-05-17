@@ -125,11 +125,15 @@ export const createActivity = async (
     // We should ideally use fetchWithAuth here if activities require authentication
     // but the file doesn't import it. We'll use a plain fetch for now.
     const token = getToken();
+    if (!token) {
+      console.warn("No JWT token found. Aborting activity creation.");
+      return null;
+    }
     const response = await fetch(ACTIVITIES_API_BASE_URL, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
-        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(request),
     });

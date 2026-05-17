@@ -151,20 +151,13 @@ export default function MainMenuScreen() {
 
         {/* Services Section */}
         <View style={styles.servicesSection}>
-          <View style={styles.welcomeContainer}>
-            <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 28 }]}>
-              {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
-            </Text>
-            <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 16 }]}>
-              {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
-            </Text>
-          </View>
-
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
-              <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 21 }]}>
-                {t('common.servicesAndActivities', { defaultValue: i18n.language.startsWith('tr') ? 'Servisler ve Aktiviteler' : 'Services and Activities' })}
+          <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 28 }]}>
+                {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
+              </Text>
+              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 16 }]}>
+                {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
               </Text>
             </View>
             {/* Language Toggle */}
@@ -180,6 +173,15 @@ export default function MainMenuScreen() {
               </View>
               <Text style={styles.langValue}>{t('common.currentLang').toUpperCase()}</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
+              <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 21 }]}>
+                {t('common.servicesAndActivities', { defaultValue: i18n.language.startsWith('tr') ? 'Servisler ve Aktiviteler' : 'Services and Activities' })}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.cardsContainer}>

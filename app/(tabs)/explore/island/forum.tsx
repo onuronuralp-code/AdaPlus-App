@@ -453,6 +453,7 @@ export default function ForumScreen() {
                         title="Henüz Gönderi Yok" 
                         subtitle="Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!"
                         color="#10B981"
+                        style={{ marginTop: -140 }}
                     />
                 ) : null}
             />
@@ -748,6 +749,7 @@ export default function ForumScreen() {
                                     title="Henüz Yorum Yok" 
                                     subtitle="İlk yorumu sen yaparak tartışmaya katıl!"
                                     color="#10B981"
+                                    compact={true}
                                 />
                             )}
                         </View>
@@ -900,7 +902,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 16,
+        paddingBottom: 8,
         backgroundColor: 'transparent',
         zIndex: 10,
     },
@@ -928,7 +930,8 @@ const styles = StyleSheet.create({
         letterSpacing: -0.8,
     },
     tabsWrapper: {
-        paddingVertical: 16,
+        paddingTop: 20,
+        paddingBottom: 16,
         backgroundColor: 'transparent',
     },
     tabsContainer: {
@@ -1592,9 +1595,30 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     islandBadgeText: {
-        fontSize: 10,
-        fontWeight: '700',
-        color: '#64748B',
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#fff',
     },
+    emptyStateButton: {
+        marginHorizontal: 60,
+        marginTop: -20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    emptyStateButtonGradient: {
+        paddingVertical: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyStateButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '800',
+        letterSpacing: 1,
+    }
 });
-

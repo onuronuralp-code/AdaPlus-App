@@ -79,6 +79,12 @@ export default function IlanlarScreen() {
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
   const [adIsland, setAdIsland] = useState('Büyükada');
 
+  const isPublishDisabled = 
+    adTitle.trim().length < 3 ||
+    adPrice.trim().length === 0 ||
+    adDesc.trim().length < 10 ||
+    isUploading;
+
   const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Sedef Adası'];
 
   const loadListings = async (showLoading = true) => {
@@ -242,16 +248,20 @@ export default function IlanlarScreen() {
         style={[styles.fab, { bottom: insets.bottom + 20 }]}
         activeOpacity={0.85}
         onPress={() => {
-            setIsAdModalVisible(true);
+            if (!isLoggedIn) {
+                setShowLoginPrompt(true);
+            } else {
+                setIsAdModalVisible(true);
+            }
         }}
       >
         <LinearGradient
-          colors={['#10B981', '#059669']}
+          colors={['#64748B', '#475569']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.fabGradient}
         >
-          <IconSymbol name="plus" size={24} color="#fff" />
+          <IconSymbol name="plus" size={32} color="#fff" />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -273,13 +283,13 @@ export default function IlanlarScreen() {
               </TouchableOpacity>
             </View>
             <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={styles.modalTitle} numberOfLines={1}>YENİ İLAN VER</Text>
+              <Text style={styles.modalTitle} numberOfLines={1}>YENİ İLAN</Text>
             </View>
             <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
               <TouchableOpacity 
-                onPress={handlePublish} 
-                style={[styles.publishButton, (!adTitle.trim() || !adPrice.trim() || isUploading) && styles.publishButtonDisabled]}
-                disabled={!adTitle.trim() || !adPrice.trim() || isUploading}
+                style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
+                onPress={handlePublish}
+                disabled={isPublishDisabled}
               >
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -307,7 +317,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>İLAN BAŞLIĞI</Text>
+              <Text style={styles.inputLabel}>İLAN BAŞLIĞI *</Text>
               <TextInput
                 style={styles.adTitleInput}
                 placeholder="Ne satıyorsun veya arıyorsun?"
@@ -338,7 +348,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>FİYAT (₺)</Text>
+              <Text style={styles.inputLabel}>FİYAT (₺) *</Text>
               <TextInput
                 style={styles.adTitleInput}
                 placeholder="0.00"
@@ -350,7 +360,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>AÇIKLAMA</Text>
+              <Text style={styles.inputLabel}>AÇIKLAMA *</Text>
               <TextInput
                 style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
                 placeholder="Ürün veya hizmet detaylarını yaz..."
@@ -358,7 +368,9 @@ export default function IlanlarScreen() {
                 multiline
                 value={adDesc}
                 onChangeText={setAdDesc}
+                maxLength={500}
               />
+              <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
             </View>
 
             {selectedImage ? (
@@ -508,7 +520,8 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   tabsWrapper: {
-    paddingVertical: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
     backgroundColor: 'transparent',
   },
   tabsContainer: {
@@ -674,7 +687,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     overflow: 'hidden',
-    shadowColor: '#10B981',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -686,18 +699,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  emptyStateButton: {
+    marginHorizontal: 60,
+    marginTop: -20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  emptyStateButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
   modalContainer: {
     flex: 1,
     backgroundColor: '#fff',
   },
   modalHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    height: 64,
     paddingHorizontal: 20,
-    paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   modalHeaderButton: {
     paddingVertical: 8,

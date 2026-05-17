@@ -69,11 +69,15 @@ export const createListing = async (
 ): Promise<ListingDto | null> => {
   try {
     const token = getToken();
+    if (!token) {
+      console.warn("No JWT token found. Aborting listing creation.");
+      return null;
+    }
     const response = await fetch(LISTING_API_BASE, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
-        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(request),
     });

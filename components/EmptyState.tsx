@@ -7,6 +7,8 @@ interface EmptyStateProps {
     title: string;
     subtitle: string;
     color?: string;
+    compact?: boolean;
+    style?: any;
 }
 
 const { width } = Dimensions.get('window');
@@ -15,15 +17,21 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     icon, 
     title, 
     subtitle, 
-    color = '#64748B' 
+    color = '#64748B',
+    compact = false,
+    style
 }) => {
     return (
-        <View style={styles.container}>
-            <View style={[styles.iconContainer, { backgroundColor: color + '10' }]}>
-                <IconSymbol name={icon as any} size={48} color={color} />
+        <View style={[styles.container, compact && styles.compactContainer, style]}>
+            <View style={[
+                styles.iconContainer, 
+                { backgroundColor: color + '10' },
+                compact && styles.compactIconContainer
+            ]}>
+                <IconSymbol name={icon as any} size={compact ? 32 : 48} color={color} />
             </View>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text style={[styles.title, compact && styles.compactTitle]}>{title}</Text>
+            <Text style={[styles.subtitle, compact && styles.compactSubtitle]}>{subtitle}</Text>
         </View>
     );
 };
@@ -35,6 +43,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 40,
         paddingVertical: 60,
+    },
+    compactContainer: {
+        paddingTop: 80,
+        paddingBottom: 40,
     },
     iconContainer: {
         width: 100,
@@ -49,6 +61,12 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 2,
     },
+    compactIconContainer: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        marginBottom: 12,
+    },
     title: {
         fontSize: 20,
         fontWeight: '800',
@@ -57,10 +75,19 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         letterSpacing: -0.5,
     },
+    compactTitle: {
+        fontSize: 17,
+        marginBottom: 4,
+    },
     subtitle: {
         fontSize: 15,
         color: '#64748B',
         textAlign: 'center',
         lineHeight: 22,
+    },
+    compactSubtitle: {
+        fontSize: 13,
+        lineHeight: 18,
+        paddingHorizontal: 20,
     }
 });

@@ -89,6 +89,7 @@ export default function ProfileScreen() {
             title={title} 
             subtitle={subtitle}
             color={color}
+            compact={true}
         />
     );
 
