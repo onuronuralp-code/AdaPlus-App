@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '../services/authApi';
 import { setToken, loadAuthData, setUserStorage } from '../utils/tokenStorage';
+import { registerForPushNotifications, unregisterPushNotifications } from '../services/notificationService';
 
 interface AuthContextType {
     user: UserProfile | null;
@@ -21,6 +22,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { token, user: storedUser } = await loadAuthData();
             if (token && storedUser) {
                 setUser(storedUser);
+                // Re-register push token on app start (token may have refreshed)
+                registerForPushNotifications();
             }
             setIsInitialized(true);
         };
@@ -31,9 +34,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         await setToken(token);
         await setUserStorage(userData);
+        // Register after token is stored so the API call includes the Authorization header
+        registerForPushNotifications();
     };
 
     const logout = async () => {
+        await unregisterPushNotifications();
         setUser(null);
         await setToken(null); // This also clears user storage in my implementation
     };

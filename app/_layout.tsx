@@ -9,6 +9,17 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import * as Notifications from "expo-notifications";
+
+// Show push notifications as alerts even when the app is in the foreground.
+// Without this handler, Expo drops all incoming notifications silently.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ThemeProvider as CustomThemeProvider } from "../context/ThemeContext";
