@@ -6,7 +6,8 @@ import {
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import * as Notifications from "expo-notifications";
@@ -36,9 +37,18 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const notificationListener = useRef<Notifications.EventSubscription>();
 
   useEffect(() => {
-    // Native splash screen is handled in index.tsx
+    // Show an in-app Alert when a push notification arrives while the app is open.
+    notificationListener.current = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        const title = notification.request.content.title ?? "Bildirim";
+        const body = notification.request.content.body ?? "";
+        Alert.alert(title, body);
+      },
+    );
+    return () => notificationListener.current?.remove();
   }, []);
 
   return (

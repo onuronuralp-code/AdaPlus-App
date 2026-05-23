@@ -22,8 +22,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { token, user: storedUser } = await loadAuthData();
             if (token && storedUser) {
                 setUser(storedUser);
-                // Re-register push token on app start (token may have refreshed)
-                registerForPushNotifications();
             }
             setIsInitialized(true);
         };
@@ -39,9 +37,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        await unregisterPushNotifications();
         setUser(null);
-        await setToken(null); // This also clears user storage in my implementation
+        await setToken(null);
+        unregisterPushNotifications(); // fire-and-forget — don't block logout on this
     };
     
     const updateProfile = async (updatedUser: UserProfile) => {

@@ -112,9 +112,8 @@ export default function ForumScreen() {
                 // Update main posts list to reflect new comment count
                 setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: p.replyCount + 1 } : p));
             }
-        } catch (error) {
-            console.error('Failed to send reply:', error);
-            Alert.alert('Error', 'Failed to post reply. Please try again.');
+        } catch (error: any) {
+            Alert.alert('Yanıt Gönderilemedi', error?.message || 'Bir hata oluştu.');
         }
     };
 
@@ -236,16 +235,18 @@ export default function ForumScreen() {
             imageUrl: imageUrl
         };
 
-        const createdPost = await forumApi.createPost(request);
-        setIsUploading(false);
-        
-        if (createdPost) {
+        try {
+            const createdPost = await forumApi.createPost(request);
             setPosts([createdPost, ...posts]);
             setNewPostContent('');
             setNewPostType('discussion');
             setPollQuestion('');
             setIsAnonymous(false);
             setIsWriteModalVisible(false);
+        } catch (error: any) {
+            Alert.alert('Gönderi Oluşturulamadı', error?.message || 'Bir hata oluştu.');
+        } finally {
+            setIsUploading(false);
         }
     };
 

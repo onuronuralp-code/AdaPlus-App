@@ -52,6 +52,8 @@ export default function EventsScreen() {
 
     useEffect(() => {
         loadEvents();
+        const id = setInterval(() => loadEvents(false), 60_000);
+        return () => clearInterval(id);
     }, []);
 
     const loadEvents = async (showLoading = true) => {

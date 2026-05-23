@@ -100,6 +100,7 @@ export interface AppActivityDto {
   eventPlace?: string;
   instagramLink?: string;
   imageUrl?: string;
+  status?: string;
 }
 
 const ACTIVITIES_API_BASE_URL = `${BASE}/api/v1/activities`;
@@ -116,7 +117,23 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   }
 };
 
-export type CreateActivityRequest = Omit<AppActivityDto, "id">;
+export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
+  try {
+    const token = getToken();
+    if (!token) return [];
+    const response = await fetch(`${BASE}/api/v1/users/me/activities`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Failed to fetch my activities:', error);
+    return [];
+  }
+};
+
+export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status">;
 
 export const createActivity = async (
   request: CreateActivityRequest,

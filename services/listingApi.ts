@@ -22,6 +22,7 @@ export interface ListingDto {
   imageUrl?: string;
   contactInfo?: string;
   active: boolean;
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -124,6 +125,22 @@ export const updateListing = async (
     console.error("Failed to update listing:", error);
     triggerNetworkError();
     return null;
+  }
+};
+
+export const fetchMyListings = async (): Promise<ListingDto[]> => {
+  try {
+    const token = getToken();
+    if (!token) return [];
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/me/listings`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Failed to fetch my listings:', error);
+    return [];
   }
 };
 

@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/EmptyState';
 import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto } from '@/services/forumApi';
-import { fetchListings, ListingDto } from '@/services/listingApi';
+import { fetchMyListings, ListingDto } from '@/services/listingApi';
+import { fetchMyActivities, AppActivityDto } from '@/services/api';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useAuth } from '@/context/AuthContext';
-import { logout } from '@/utils/tokenStorage';
 
 type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -35,42 +36,50 @@ export default function ProfileScreen() {
     const [likedPosts, setLikedPosts] = useState<PostDto[]>([]);
     const [notifications, setNotifications] = useState<PostDto[]>([]);
     const [listings, setListings] = useState<ListingDto[]>([]);
+    const [activities, setActivities] = useState<AppActivityDto[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [loadingReplies, setLoadingReplies] = useState(true);
     const [loadingLikes, setLoadingLikes] = useState(true);
     const [loadingNotifications, setLoadingNotifications] = useState(true);
     const [loadingListings, setLoadingListings] = useState(true);
+    const [loadingActivities, setLoadingActivities] = useState(true);
 
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         if (!user) return;
 
         setLoadingPosts(true);
         setLoadingReplies(true);
         setLoadingLikes(true);
+        setLoadingListings(true);
+        setLoadingActivities(true);
 
-        fetchUserPosts(user.id).then(data => {
-            setPosts(data);
-            setLoadingPosts(false);
-        });
+        fetchUserPosts(user.id)
+            .then(data => setPosts(data))
+            .catch(() => setPosts([]))
+            .finally(() => setLoadingPosts(false));
 
-        fetchUserReplies(user.id).then(data => {
-            setReplies(data);
-            setLoadingReplies(false);
-        });
+        fetchUserReplies(user.id)
+            .then(data => setReplies(data))
+            .catch(() => setReplies([]))
+            .finally(() => setLoadingReplies(false));
 
-        fetchUserLikes(user.id).then(data => {
-            setLikedPosts(data);
-            setLoadingLikes(false);
-        });
+        fetchUserLikes(user.id)
+            .then(data => setLikedPosts(data))
+            .catch(() => setLikedPosts([]))
+            .finally(() => setLoadingLikes(false));
 
-        fetchListings().then(allListings => {
-            setListings(allListings);
-            setLoadingListings(false);
-        });
+        fetchMyListings()
+            .then(data => setListings(data))
+            .catch(() => setListings([]))
+            .finally(() => setLoadingListings(false));
 
-        // Notifications logic (placeholder for now)
+        fetchMyActivities()
+            .then(data => setActivities(data))
+            .catch(() => setActivities([]))
+            .finally(() => setLoadingActivities(false));
+
         setLoadingNotifications(false);
-    }, [user]);
+    }, [user?.id]));
 
     const timeAgo = (dateStr: string) => {
         try {
@@ -178,7 +187,14 @@ export default function ProfileScreen() {
                         onPress={() => router.push(`/(tabs)/explore/island/ilan/${listing.id}`)}
                     >
                         <View style={styles.listingInfo}>
-                            <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }]} numberOfLines={1}>{listing.title}</Text>
+                                {listing.status && listing.status !== 'APPROVED' && (() => {
+                                    const c = listing.status === 'REJECTED' ? '#EF4444' : '#F59E0B';
+                                    const l = listing.status === 'REJECTED' ? 'Reddedildi' : 'Beklemede';
+                                    return <View style={{ backgroundColor: c + '20', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}><Text style={{ fontSize: 10, fontWeight: '700', color: c }}>{l}</Text></View>;
+                                })()}
+                            </View>
                             <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
                             <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
                         </View>
@@ -194,7 +210,28 @@ export default function ProfileScreen() {
     };
 
     const renderEvents = () => {
-        return renderEmpty('calendar', 'Henüz Etkinlik Yok', 'Katıldığınız etkinlikler burada görünecek.', '#3B82F6');
+        if (loadingActivities) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F59E0B" /></View>;
+        if (activities.length === 0) return renderEmpty('calendar', 'Henüz Etkinlik Yok', 'Oluşturduğunuz etkinlikler burada görünecek.', '#F59E0B');
+        return (
+            <View style={styles.contentList}>
+                {activities.map(activity => {
+                    const statusColor = activity.status === 'APPROVED' ? '#10B981' : activity.status === 'REJECTED' ? '#EF4444' : '#F59E0B';
+                    const statusLabel = activity.status === 'APPROVED' ? 'Onaylı' : activity.status === 'REJECTED' ? 'Reddedildi' : 'Beklemede';
+                    return (
+                        <View key={activity.id} style={styles.postCard}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                                <Text style={[styles.listingTitle, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{activity.name}</Text>
+                                <View style={{ backgroundColor: statusColor + '20', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '700', color: statusColor }}>{statusLabel}</Text>
+                                </View>
+                            </View>
+                            {activity.eventPlace ? <Text style={styles.listingDesc} numberOfLines={1}>{activity.eventPlace}</Text> : null}
+                            <Text style={styles.postTime}>{timeAgo(activity.startDate)}</Text>
+                        </View>
+                    );
+                })}
+            </View>
+        );
     };
 
     const renderLikes = () => {
@@ -240,11 +277,13 @@ export default function ProfileScreen() {
             <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile')}</Text>
                 {isLoggedIn && (
-                    <TouchableOpacity 
-                        onPress={async () => {
-                            await logout();
-                            router.replace('/login');
-                        }} 
+                    <TouchableOpacity
+                        onPress={() => {
+                            Alert.alert('Çıkış Yap', 'Hesabınızdan çıkmak istediğinizden emin misiniz?', [
+                                { text: 'İptal', style: 'cancel' },
+                                { text: 'Çıkış Yap', style: 'destructive', onPress: () => logout() },
+                            ]);
+                        }}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         style={{ marginTop: 4 }}
                     >

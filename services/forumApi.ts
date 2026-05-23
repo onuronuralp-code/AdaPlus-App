@@ -121,19 +121,21 @@ export const fetchHotPosts = async (): Promise<PostDto[]> => {
 
 export const createPost = async (
   request: CreatePostRequest,
-): Promise<PostDto | null> => {
-  try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/posts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to create post:", error);
-    triggerNetworkError();
-    return null;
+): Promise<PostDto> => {
+  const token = getToken();
+  const response = await fetch(`${FORUM_API_BASE}/posts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
   }
+  return response.json();
 };
 
 export interface LikeResponse {
@@ -210,19 +212,21 @@ export const fetchReplies = async (postId: string): Promise<PostDto[]> => {
 export const postReply = async (
   postId: string,
   request: Partial<CreatePostRequest>,
-): Promise<PostDto | null> => {
-  try {
-    const response = await fetchWithAuth(`${FORUM_API_BASE}/posts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...request, parentId: postId }),
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to post reply:", error);
-    triggerNetworkError();
-    return null;
+): Promise<PostDto> => {
+  const token = getToken();
+  const response = await fetch(`${FORUM_API_BASE}/posts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ ...request, parentId: postId }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
   }
+  return response.json();
 };
 
 export const fetchTopics = async (): Promise<ForumTopicDto[]> => {
@@ -237,33 +241,33 @@ export const fetchTopics = async (): Promise<ForumTopicDto[]> => {
 
 export const fetchUserPosts = async (userId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/api/v1/users/${userId}/posts`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/posts`);
+    if (!response.ok) return [];
     const data = await response.json();
     return data.content || [];
-  } catch (error) {
-    console.error('Failed to fetch user posts:', error);
+  } catch {
     return [];
   }
 };
 
 export const fetchUserReplies = async (userId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/api/v1/users/${userId}/replies`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/replies`);
+    if (!response.ok) return [];
     const data = await response.json();
     return data.content || [];
-  } catch (error) {
-    console.error('Failed to fetch user replies:', error);
+  } catch {
     return [];
   }
 };
 
 export const fetchUserLikes = async (userId: string): Promise<PostDto[]> => {
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/api/v1/users/${userId}/likes`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/likes`);
+    if (!response.ok) return [];
     const data = await response.json();
     return data.content || [];
-  } catch (error) {
-    console.error('Failed to fetch user likes:', error);
+  } catch {
     return [];
   }
 };

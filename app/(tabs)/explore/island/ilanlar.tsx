@@ -75,14 +75,16 @@ export default function IlanlarScreen() {
   const [adTitle, setAdTitle] = useState('');
   const [adPrice, setAdPrice] = useState('');
   const [adDesc, setAdDesc] = useState('');
+  const [adContact, setAdContact] = useState('');
   const [adCat, setAdCat] = useState<IlanCategory>('emlak');
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
   const [adIsland, setAdIsland] = useState('Büyükada');
 
-  const isPublishDisabled = 
+  const isPublishDisabled =
     adTitle.trim().length < 3 ||
     adPrice.trim().length === 0 ||
     adDesc.trim().length < 10 ||
+    !/^\d{11}$/.test(adContact.trim()) ||
     isUploading;
 
   const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Sedef Adası'];
@@ -104,6 +106,8 @@ export default function IlanlarScreen() {
 
   React.useEffect(() => {
     loadListings();
+    const id = setInterval(() => loadListings(false), 60_000);
+    return () => clearInterval(id);
   }, [selectedCategory]);
 
   const onRefresh = () => {
@@ -140,7 +144,7 @@ export default function IlanlarScreen() {
       island: getIslandEnum(adIsland),
       price: parseFloat(adPrice),
       active: true,
-      contactInfo: 'Shared via Ada+ app',
+      contactInfo: adContact.trim(),
       imageUrl: imageUrl
     };
 
@@ -148,17 +152,15 @@ export default function IlanlarScreen() {
     setIsUploading(false);
 
     if (createdListing) {
-      setListings([createdListing, ...listings]);
       setIsAdModalVisible(false);
-      // Reset form
       setAdTitle('');
       setAdPrice('');
       setAdDesc('');
+      setAdContact('');
       setSelectedImage(null);
-      
       Alert.alert(
-        t('common.success', { defaultValue: 'Başarılı' }), 
-        t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır' })
+        t('common.success', { defaultValue: 'Başarılı' }),
+        t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
       );
     }
   };
@@ -371,6 +373,22 @@ export default function IlanlarScreen() {
                 maxLength={500}
               />
               <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>İLETİŞİM NUMARASI * <Text style={{ color: '#94A3B8', fontWeight: '400' }}>(11 haneli)</Text></Text>
+              <TextInput
+                style={styles.adTitleInput}
+                placeholder="05XXXXXXXXX"
+                placeholderTextColor="#94A3B8"
+                keyboardType="phone-pad"
+                value={adContact}
+                onChangeText={t => setAdContact(t.replace(/\D/g, '').slice(0, 11))}
+                maxLength={11}
+              />
+              {adContact.length > 0 && !/^\d{11}$/.test(adContact) && (
+                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>Geçerli bir 11 haneli numara girin</Text>
+              )}
             </View>
 
             {selectedImage ? (
