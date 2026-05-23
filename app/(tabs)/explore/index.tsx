@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { fetchActivities } from '@/services/api';
+import { resolveImageUrl } from '@/services/config';
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -45,7 +46,7 @@ export default function MainMenuScreen() {
           id: a.id,
           title: a.name,
           subtitle: a.description || t('common.exploreServices', { defaultValue: 'Explore services & activities' }),
-          imageUrl: a.imageUrl
+          imageUrl: resolveImageUrl(a.imageUrl)
         })));
       }
     });

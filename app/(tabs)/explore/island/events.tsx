@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { fetchActivities, createActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
+import { resolveImageUrl } from '@/services/config';
 import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
 import { EmptyState } from '@/components/EmptyState';
@@ -205,7 +206,7 @@ export default function EventsScreen() {
                     events.map((event) => (
                         <TouchableOpacity key={event.id} style={styles.eventCard} activeOpacity={0.8}>
                             <Image 
-                                source={{ uri: event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }} 
+                                source={{ uri: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }} 
                                 style={styles.eventImage} 
                             />
                             <View style={styles.eventInfo}>

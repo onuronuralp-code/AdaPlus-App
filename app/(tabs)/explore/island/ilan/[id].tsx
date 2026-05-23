@@ -18,6 +18,7 @@ import { ListingDto, ListingCategory } from '@/services/listingApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
+import { resolveImageUrl } from '@/services/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -110,7 +111,7 @@ export default function IlanDetailScreen() {
             style={StyleSheet.absoluteFill}
           />
           {listing.imageUrl ? (
-            <Image source={{ uri: listing.imageUrl }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+            <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
           ) : (
             <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />
           )}

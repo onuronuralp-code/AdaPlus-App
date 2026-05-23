@@ -17,6 +17,7 @@ import * as mediaApi from '@/services/mediaApi';
 import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { EmptyState } from '@/components/EmptyState';
+import { resolveImageUrl } from '@/services/config';
 
 export default function ForumScreen() {
     const { t } = useTranslation();
@@ -354,7 +355,7 @@ export default function ForumScreen() {
                         )}
                         {item.imageUrl && (
                             <View style={styles.bubbleImageWrapper}>
-                                <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+                                <Image source={{ uri: resolveImageUrl(item.imageUrl) }} style={styles.postImage} />
                             </View>
                         )}
                     </View>
@@ -704,7 +705,7 @@ export default function ForumScreen() {
                                 )}
                                 {selectedPost.imageUrl && (
                                     <View style={styles.detailImageWrapper}>
-                                        <Image source={{ uri: selectedPost.imageUrl }} style={styles.detailImage} />
+                                        <Image source={{ uri: resolveImageUrl(selectedPost.imageUrl) }} style={styles.detailImage} />
                                     </View>
                                 )}
                                 <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
