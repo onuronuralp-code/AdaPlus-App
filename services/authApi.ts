@@ -144,4 +144,19 @@ export const authApi = {
       return wrapNetworkError(error);
     }
   },
+
+  // Exchanges a still-valid JWT for a fresh 30-day token.
+  // Called silently on every app launch — zero UX impact.
+  refresh: async (currentToken: string): Promise<LoginResponse | null> => {
+    try {
+      const response = await fetch(`${AUTH_BASE_URL}/refresh`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${currentToken}` },
+      });
+      if (!response.ok) return null;
+      return response.json();
+    } catch {
+      return null;
+    }
+  },
 };

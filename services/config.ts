@@ -18,13 +18,15 @@ export const authFetch = async (input: RequestInfo, init?: RequestInit): Promise
 };
 
 /**
- * Rewrites a locally-stored image URL to use the current API host.
- * Handles IP address changes between dev sessions (e.g. DHCP reassignment).
- * HTTPS URLs (S3, CDN, Unsplash) are returned unchanged.
+ * Resolves a stored image URL to a fully qualified URL for display.
+ * - HTTPS (S3, CDN, Unsplash): returned unchanged
+ * - Relative path (new format, e.g. /api/v1/media/uuid.jpg): prepend API_BASE_URL
+ * - Legacy absolute HTTP URL: rewrite host to current API server (handles IP/port changes)
  */
 export const resolveImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
   if (url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
   try {
     const apiBase = new URL(API_BASE_URL);
     const imgUrl = new URL(url);

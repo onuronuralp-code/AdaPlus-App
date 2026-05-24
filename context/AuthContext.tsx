@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { UserProfile } from '../services/authApi';
+import { authApi, UserProfile } from '../services/authApi';
 import { setToken, loadAuthData, setUserStorage } from '../utils/tokenStorage';
 import { registerForPushNotifications, unregisterPushNotifications } from '../services/notificationService';
 
@@ -31,7 +31,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const initializeAuth = async () => {
             const { token, user: storedUser } = await loadAuthData();
             if (token && storedUser) {
-                setUser(storedUser);
+                // Silently refresh the token on every app launch.
+                // If the stored token is still valid, we get back a fresh 30-day token
+                // so the user is never forced to re-login (Instagram pattern).
+                // If the token is already expired the refresh returns null → logout.
+                const refreshed = await authApi.refresh(token);
+                if (refreshed) {
+                    await setToken(refreshed.token);
+                    await setUserStorage(refreshed.user);
+                    setUser(refreshed.user);
+                }
+                // If refresh failed silently, user stays logged-out; no forced logout UX.
             }
             setIsInitialized(true);
         };

@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto } from '@/services/forumApi';
 import { fetchMyListings, ListingDto } from '@/services/listingApi';
 import { fetchMyActivities, AppActivityDto } from '@/services/api';
+import { fetchNotifications, markNotificationRead, NotificationDto, NotificationType } from '@/services/notificationApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
@@ -34,7 +35,7 @@ export default function ProfileScreen() {
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [replies, setReplies] = useState<PostDto[]>([]);
     const [likedPosts, setLikedPosts] = useState<PostDto[]>([]);
-    const [notifications, setNotifications] = useState<PostDto[]>([]);
+    const [notifications, setNotifications] = useState<NotificationDto[]>([]);
     const [listings, setListings] = useState<ListingDto[]>([]);
     const [activities, setActivities] = useState<AppActivityDto[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
@@ -50,8 +51,14 @@ export default function ProfileScreen() {
         setLoadingPosts(true);
         setLoadingReplies(true);
         setLoadingLikes(true);
+        setLoadingNotifications(true);
         setLoadingListings(true);
         setLoadingActivities(true);
+
+        fetchNotifications()
+            .then(data => setNotifications(data))
+            .catch(() => setNotifications([]))
+            .finally(() => setLoadingNotifications(false));
 
         fetchUserPosts(user.id)
             .then(data => setPosts(data))
@@ -77,8 +84,6 @@ export default function ProfileScreen() {
             .then(data => setActivities(data))
             .catch(() => setActivities([]))
             .finally(() => setLoadingActivities(false));
-
-        setLoadingNotifications(false);
     }, [user?.id]));
 
     const timeAgo = (dateStr: string) => {
@@ -150,26 +155,48 @@ export default function ProfileScreen() {
         );
     };
 
+    const getNotifIcon = (type: NotificationType): { name: string; color: string; bg: string } => {
+        switch (type) {
+            case NotificationType.REPLY:    return { name: 'bubble.left.fill',        color: '#6366F1', bg: '#EEF2FF' };
+            case NotificationType.LIKE:     return { name: 'heart.fill',               color: '#EC4899', bg: '#FDF2F8' };
+            case NotificationType.ACTIVITY: return { name: 'calendar.circle.fill',     color: '#F59E0B', bg: '#FFFBEB' };
+            default:                        return { name: 'bell.fill',                color: '#F43F5E', bg: '#FFF1F2' };
+        }
+    };
+
     const renderNotifications = () => {
         if (loadingNotifications) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F43F5E" /></View>;
-        if (notifications.length === 0) return renderEmpty('bell.fill', 'Bildirim Yok', 'Gönderilerine yanıt geldiğinde burada görünecek.');
+        if (notifications.length === 0) return renderEmpty('bell.fill', 'Bildirim Yok', 'Etkinlik onayları ve gönderi yanıtları burada görünecek.');
         return (
             <View style={styles.contentList}>
-                {notifications.map(notif => (
-                    <View key={notif.id} style={styles.notifCard}>
-                        <View style={styles.notifIcon}>
-                            <IconSymbol name="bubble.left.fill" size={16} color="#F43F5E" />
-                        </View>
-                        <View style={styles.notifBody}>
-                            <Text style={styles.notifTitle}>
-                                <Text style={styles.notifAuthor}>{notif.authorName}</Text> gönderine yanıt verdi
-                            </Text>
-                            <Text style={styles.notifContent} numberOfLines={2}>"{notif.content}"</Text>
-                            <Text style={styles.postTime}>{timeAgo(notif.createdAt)}</Text>
-                        </View>
-                        <View style={styles.notifDot} />
-                    </View>
-                ))}
+                {notifications.map(notif => {
+                    const { name, color, bg } = getNotifIcon(notif.type);
+                    return (
+                        <TouchableOpacity
+                            key={notif.id}
+                            style={[styles.notifCard, !notif.read && styles.notifCardUnread]}
+                            activeOpacity={0.7}
+                            onPress={() => {
+                                if (!notif.read) {
+                                    markNotificationRead(notif.id);
+                                    setNotifications(prev =>
+                                        prev.map(n => n.id === notif.id ? { ...n, read: true } : n)
+                                    );
+                                }
+                            }}
+                        >
+                            <View style={[styles.notifIcon, { backgroundColor: bg }]}>
+                                <IconSymbol name={name as any} size={16} color={color} />
+                            </View>
+                            <View style={styles.notifBody}>
+                                <Text style={styles.notifTitle}>{notif.title}</Text>
+                                <Text style={styles.notifContent} numberOfLines={2}>{notif.body}</Text>
+                                <Text style={styles.postTime}>{timeAgo(notif.createdAt)}</Text>
+                            </View>
+                            {!notif.read && <View style={[styles.notifDot, { backgroundColor: color }]} />}
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         );
     };
@@ -409,6 +436,9 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F1F5F9',
         alignItems: 'flex-start',
         gap: 12,
+    },
+    notifCardUnread: {
+        backgroundColor: '#FAFAFA',
     },
     notifIcon: {
         width: 32,
