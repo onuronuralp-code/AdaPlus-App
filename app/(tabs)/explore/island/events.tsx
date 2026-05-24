@@ -184,23 +184,6 @@ export default function EventsScreen() {
                             subtitle="Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!"
                             color="#F59E0B"
                         />
-                        <TouchableOpacity 
-                            style={styles.emptyStateButton} 
-                            onPress={() => {
-                                if (!isLoggedIn) {
-                                    setShowLoginPrompt(true);
-                                } else {
-                                    setIsAddModalVisible(true);
-                                }
-                            }}
-                        >
-                            <LinearGradient
-                                colors={['#1E293B', '#0F172A']}
-                                style={styles.emptyStateButtonGradient}
-                            >
-                                <Text style={styles.emptyStateButtonText}>ETKİNLİK EKLE</Text>
-                            </LinearGradient>
-                        </TouchableOpacity>
                     </View>
                 ) : (
                     events.map((event) => (
@@ -690,26 +673,4 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '700',
     },
-    emptyStateButton: {
-        marginHorizontal: 60,
-        marginTop: -20,
-        borderRadius: 20,
-        overflow: 'hidden',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    emptyStateButtonGradient: {
-        paddingVertical: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    emptyStateButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '800',
-        letterSpacing: 1,
-    }
 });
