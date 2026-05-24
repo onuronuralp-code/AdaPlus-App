@@ -1,6 +1,7 @@
 import { getToken } from "../utils/tokenStorage";
 import { triggerNetworkError } from "./api";
 import { API_BASE_URL } from "./config";
+import { handleUnauthorized } from "../context/AuthContext";
 
 export enum PostType {
   DISCUSSION = "DISCUSSION",
@@ -80,6 +81,10 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 
   const response = await fetch(url, { ...options, headers });
 
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new Error('Session expired');
+  }
   if (!response.ok) {
     throw new Error(`API Error: ${response.status}`);
   }

@@ -5,6 +5,19 @@ if (!process.env.EXPO_PUBLIC_API_URL) {
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
 /**
+ * Drop-in replacement for fetch() that automatically calls handleUnauthorized()
+ * on 401 so any expired-token response triggers a silent logout across the app.
+ */
+export const authFetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+  const { handleUnauthorized } = await import('../context/AuthContext');
+  const response = await fetch(input, init);
+  if (response.status === 401) {
+    handleUnauthorized();
+  }
+  return response;
+};
+
+/**
  * Rewrites a locally-stored image URL to use the current API host.
  * Handles IP address changes between dev sessions (e.g. DHCP reassignment).
  * HTTPS URLs (S3, CDN, Unsplash) are returned unchanged.

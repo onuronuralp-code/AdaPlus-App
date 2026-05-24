@@ -1,7 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { UserProfile } from '../services/authApi';
 import { setToken, loadAuthData, setUserStorage } from '../utils/tokenStorage';
 import { registerForPushNotifications, unregisterPushNotifications } from '../services/notificationService';
+
+// Called by any API service that receives a 401 — triggers silent logout.
+let _onUnauthorized: (() => void) | null = null;
+export const handleUnauthorized = () => _onUnauthorized?.();
 
 interface AuthContextType {
     user: UserProfile | null;
@@ -16,6 +20,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const logoutRef = useRef<() => Promise<void>>();
+
+    useEffect(() => {
+        _onUnauthorized = () => logoutRef.current?.();
+        return () => { _onUnauthorized = null; };
+    }, []);
 
     useEffect(() => {
         const initializeAuth = async () => {
@@ -41,6 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await setToken(null);
         unregisterPushNotifications(); // fire-and-forget — don't block logout on this
     };
+
+    // Keep ref in sync so _onUnauthorized can call the latest logout closure
+    logoutRef.current = logout;
     
     const updateProfile = async (updatedUser: UserProfile) => {
         setUser(updatedUser);
