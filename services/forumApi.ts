@@ -48,8 +48,9 @@ export interface PostDto {
   replyCount: number;
   likeCount: number;
   pollOptions?: PollOptionDto[];
+  pollEndsAt?: string;
   createdAt: string;
-  isLiked?: boolean; // Added for frontend state
+  isLiked?: boolean;
 }
 
 export interface ForumTopicDto {
@@ -67,6 +68,7 @@ export interface CreatePostRequest {
   topicId?: string;
   parentId?: string;
   anonymous: boolean;
+  pollDurationHours?: number;
 }
 
 const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;

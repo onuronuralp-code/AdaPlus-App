@@ -45,6 +45,7 @@ export default function ForumScreen() {
     const [isUploading, setIsUploading] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [newReplyContent, setNewReplyContent] = useState('');
+    const [pollDurationHours, setPollDurationHours] = useState(24);
 
     // Ad Fields
     const [adTitle, setAdTitle] = useState('');
@@ -233,7 +234,8 @@ export default function ForumScreen() {
             island: getIslandEnum(selectedIsland),
             anonymous: isAnonymous,
             pollOptions: newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : undefined,
-            imageUrl: imageUrl
+            imageUrl: imageUrl,
+            pollDurationHours: newPostType === 'poll' ? pollDurationHours : undefined,
         };
 
         try {
@@ -242,6 +244,8 @@ export default function ForumScreen() {
             setNewPostContent('');
             setNewPostType('discussion');
             setPollQuestion('');
+            setPollOptions(['', '']);
+            setPollDurationHours(24);
             setIsAnonymous(false);
             setIsWriteModalVisible(false);
         } catch (error: any) {
@@ -297,6 +301,23 @@ export default function ForumScreen() {
         );
     };
 
+    const isPollEnded = (pollEndsAt?: string): boolean => {
+        if (!pollEndsAt) return false;
+        return new Date(pollEndsAt) < new Date();
+    };
+
+    const getPollCountdown = (pollEndsAt?: string): string | null => {
+        if (!pollEndsAt) return null;
+        const diff = new Date(pollEndsAt).getTime() - Date.now();
+        if (diff <= 0) return 'Anket Sona Erdi';
+        const totalMinutes = Math.floor(diff / 60000);
+        if (totalMinutes < 60) return `${totalMinutes} dk kaldı`;
+        const hours = Math.floor(diff / 3600000);
+        if (hours < 24) return `${hours} saat kaldı`;
+        const days = Math.floor(hours / 24);
+        return `${days} gün kaldı`;
+    };
+
     const renderPost = ({ item }: { item: PostDto }) => {
         const tagColor = getTagColor(item.authorUserType);
         const authorName = item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' });
@@ -337,20 +358,35 @@ export default function ForumScreen() {
                         <Text style={styles.contentText}>{item.content}</Text>
                         {item.postType === PostType.POLL && item.pollOptions && (
                             <View style={styles.renderedPollContainer}>
-                                {item.pollOptions.map((option) => (
-                                    <TouchableOpacity 
-                                        key={option.id} 
-                                        style={styles.renderedPollOption}
-                                        onPress={() => handlePollVote(item.id, option.id)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: tagColor + '15' }]} />
-                                        <View style={styles.pollOptionTextRow}>
-                                            <Text style={styles.renderedPollOptionText}>{option.text}</Text>
-                                            <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
+                                {(() => {
+                                    const ended = isPollEnded(item.pollEndsAt);
+                                    const countdown = getPollCountdown(item.pollEndsAt);
+                                    return (
+                                        <>
+                                            {item.pollOptions!.map((option) => (
+                                                <TouchableOpacity
+                                                    key={option.id}
+                                                    style={[styles.renderedPollOption, ended && { opacity: 0.6 }]}
+                                                    onPress={() => !ended && handlePollVote(item.id, option.id)}
+                                                    activeOpacity={ended ? 1 : 0.7}
+                                                    disabled={ended}
+                                                >
+                                                    <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: tagColor + '15' }]} />
+                                                    <View style={styles.pollOptionTextRow}>
+                                                        <Text style={styles.renderedPollOptionText}>{option.text}</Text>
+                                                        <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            ))}
+                                            {countdown && (
+                                                <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
+                                                    <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                    <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                                </View>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </View>
                         )}
                         {item.imageUrl && (
@@ -366,12 +402,12 @@ export default function ForumScreen() {
                                 style={styles.chatInteraction} 
                                 onPress={() => toggleLike(item.id)}
                             >
-                                <IconSymbol 
-                                    name={item.isLiked ? "heart.fill" : "heart"} 
-                                    size={14} 
-                                    color={item.isLiked ? "#EF4444" : "#94A3B8"} 
+                                <IconSymbol
+                                    name={item.isLiked ? "heart.fill" : "heart"}
+                                    size={14}
+                                    color={item.isLiked || item.likeCount > 0 ? "#EF4444" : "#94A3B8"}
                                 />
-                                <Text style={[styles.interactionCount, item.isLiked && { color: "#EF4444" }]}>{item.likeCount}</Text>
+                                <Text style={[styles.interactionCount, (item.isLiked || item.likeCount > 0) && { color: "#EF4444" }]}>{item.likeCount}</Text>
                             </TouchableOpacity>
                             <View style={styles.chatInteraction}>
                                 <IconSymbol name="bubble.left.fill" size={12} color="#94A3B8" />
@@ -588,6 +624,7 @@ export default function ForumScreen() {
                             </View>
                         )}
                         {newPostType === 'poll' && (
+                            <>
                             <View style={styles.formSection}>
                                 <Text style={styles.inputLabel}>SEÇENEKLER</Text>
                                 {pollOptions.map((opt, index) => (
@@ -617,7 +654,7 @@ export default function ForumScreen() {
                                     </View>
                                 ))}
                                 {pollOptions.length < 5 && (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={{ marginTop: 10, alignSelf: 'flex-start', paddingVertical: 5 }}
                                         onPress={() => setPollOptions([...pollOptions, ''])}
                                     >
@@ -625,9 +662,29 @@ export default function ForumScreen() {
                                     </TouchableOpacity>
                                 )}
                             </View>
+                            <View style={styles.formSection}>
+                                <Text style={styles.inputLabel}>ANKET SÜRESİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
+                                    {[
+                                        { value: 1, label: '1 Saat' },
+                                        { value: 24, label: '1 Gün' },
+                                        { value: 72, label: '3 Gün' },
+                                        { value: 168, label: '7 Gün' },
+                                    ].map(opt => (
+                                        <TouchableOpacity
+                                            key={opt.value}
+                                            style={[styles.writeChip, pollDurationHours === opt.value && styles.activeWriteChipPink]}
+                                            onPress={() => setPollDurationHours(opt.value)}
+                                        >
+                                            <Text style={[styles.writeChipText, pollDurationHours === opt.value && styles.activeWriteChipPinkText]}>{opt.label}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                            </>
                         )}
                         <View style={styles.formSection}>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.anonToggle} 
                                 onPress={() => setIsAnonymous(!isAnonymous)}
                                 activeOpacity={0.7}
@@ -687,20 +744,35 @@ export default function ForumScreen() {
                                 <Text style={styles.detailContentText}>{selectedPost.content}</Text>
                                 {selectedPost.postType === PostType.POLL && selectedPost.pollOptions && (
                                     <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
-                                        {selectedPost.pollOptions.map((option: any) => (
-                                            <TouchableOpacity 
-                                                key={option.id} 
-                                                style={styles.renderedPollOption}
-                                                onPress={() => handlePollVote(selectedPost.id, option.id)}
-                                                activeOpacity={0.7}
-                                            >
-                                                <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} />
-                                                <View style={styles.pollOptionTextRow}>
-                                                    <Text style={styles.renderedPollOptionText}>{option.text}</Text>
-                                                    <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ))}
+                                        {(() => {
+                                            const ended = isPollEnded(selectedPost.pollEndsAt);
+                                            const countdown = getPollCountdown(selectedPost.pollEndsAt);
+                                            return (
+                                                <>
+                                                    {selectedPost.pollOptions.map((option: any) => (
+                                                        <TouchableOpacity
+                                                            key={option.id}
+                                                            style={[styles.renderedPollOption, ended && { opacity: 0.6 }]}
+                                                            onPress={() => !ended && handlePollVote(selectedPost.id, option.id)}
+                                                            activeOpacity={ended ? 1 : 0.7}
+                                                            disabled={ended}
+                                                        >
+                                                            <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} />
+                                                            <View style={styles.pollOptionTextRow}>
+                                                                <Text style={styles.renderedPollOptionText}>{option.text}</Text>
+                                                                <Text style={styles.pollPercentText}>{Math.round(option.percentage)}%</Text>
+                                                            </View>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                    {countdown && (
+                                                        <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
+                                                            <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                            <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                                        </View>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </View>
                                 )}
                                 {selectedPost.imageUrl && (
@@ -710,9 +782,9 @@ export default function ForumScreen() {
                                 )}
                                 <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
                                     <View style={styles.interactionGroup}>
-                                        <TouchableOpacity style={[styles.interactionPill, selectedPost.isLiked && { backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} onPress={() => toggleLike(selectedPost.id)}>
-                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? getTagColor(selectedPost.authorUserType) : "#64748B"} />
-                                            <Text style={[styles.interactionCount, selectedPost.isLiked && { color: getTagColor(selectedPost.authorUserType) }]}>{selectedPost.likeCount}</Text>
+                                        <TouchableOpacity style={[styles.interactionPill, (selectedPost.isLiked || selectedPost.likeCount > 0) && { backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} onPress={() => toggleLike(selectedPost.id)}>
+                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={(selectedPost.isLiked || selectedPost.likeCount > 0) ? getTagColor(selectedPost.authorUserType) : "#64748B"} />
+                                            <Text style={[styles.interactionCount, (selectedPost.isLiked || selectedPost.likeCount > 0) && { color: getTagColor(selectedPost.authorUserType) }]}>{selectedPost.likeCount}</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.interactionPill}>
                                             <IconSymbol name="bubble.left.fill" size={20} color="#64748B" />
@@ -1622,5 +1694,27 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '800',
         letterSpacing: 1,
-    }
+    },
+    pollCountdownBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        backgroundColor: '#FEF9C3',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
+        gap: 5,
+        marginTop: 6,
+    },
+    pollEndedBadge: {
+        backgroundColor: '#FEF2F2',
+    },
+    pollCountdownText: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#F59E0B',
+    },
+    pollEndedText: {
+        color: '#EF4444',
+    },
 });
