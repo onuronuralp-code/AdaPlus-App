@@ -40,7 +40,7 @@ export default function EventsScreen() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     
-    const isValidPhone = /^[0-9]{10,11}$/.test(contactNumber.replace(/\s/g, ''));
+    const isValidPhone = contactNumber.replace(/\D/g, '').length >= 10;
     
     const isPublishDisabled = 
         newEventName.trim().length < 3 || 
@@ -81,7 +81,7 @@ export default function EventsScreen() {
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [4, 3],
             quality: 0.8,
@@ -120,7 +120,7 @@ export default function EventsScreen() {
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
             organizerName: organizerName.trim(),
-            organizerContact: contactNumber.trim(),
+            organizerContact: contactNumber.replace(/\D/g, ''),
             eventPlace: newEventLocation.trim() || undefined,
             instagramLink: formattedSocialLink,
             imageUrl: imageUrl,
@@ -354,7 +354,7 @@ export default function EventsScreen() {
                             onChangeText={setContactNumber}
                         />
                         {contactNumber.length > 0 && !isValidPhone && (
-                            <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4, fontWeight: '500' }}>Geçerli bir telefon numarası girin (10-11 hane)</Text>
+                            <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4, fontWeight: '500' }}>En az 10 haneli bir numara girin</Text>
                         )}
 
                         <Text style={styles.inputLabel}>SOSYAL MEDYA LİNKİ (INSTAGRAM VB.)</Text>
