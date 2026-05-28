@@ -346,7 +346,7 @@ export default function ProfileScreen() {
                         <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
                         <Text style={styles.userBio}>{user?.email || ''}</Text>
                         <View style={styles.roleBadge}>
-                            <Text style={styles.roleText}>{user?.role === 'ADMIN' ? 'Yönetici' : (user?.role === 'RESIDENT' ? 'Sakin' : 'Ziyaretçi')}</Text>
+                            <Text style={styles.roleText}>{user?.userType === 'ADMIN' ? 'Yönetici' : (user?.userType === 'ISLAND_RESIDENT' ? 'Adalı' : 'Ziyaretçi')}</Text>
                         </View>
                     </View>
 

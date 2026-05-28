@@ -1671,7 +1671,7 @@ const styles = StyleSheet.create({
     islandBadgeText: {
         fontSize: 12,
         fontWeight: '800',
-        color: '#fff',
+        color: '#64748B',
     },
     emptyStateButton: {
         marginHorizontal: 60,

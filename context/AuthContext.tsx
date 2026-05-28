@@ -40,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await setToken(refreshed.token);
                     await setUserStorage(refreshed.user);
                     setUser(refreshed.user);
+                    registerForPushNotifications();
                 }
                 // If refresh failed silently, user stays logged-out; no forced logout UX.
             }
