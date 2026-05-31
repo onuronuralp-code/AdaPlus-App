@@ -101,6 +101,13 @@ export interface AppActivityDto {
   instagramLink?: string;
   imageUrl?: string;
   status?: string;
+  rsvpCount?: number;
+  userHasRsvp?: boolean;
+}
+
+export interface RsvpResponse {
+  going: boolean;
+  rsvpCount: number;
 }
 
 const ACTIVITIES_API_BASE_URL = `${BASE}/api/v1/activities`;
@@ -134,6 +141,37 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
 };
 
 export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status">;
+
+export const getActivity = async (id: string): Promise<AppActivityDto | null> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, { headers });
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch activity:', error);
+    triggerNetworkError();
+    return null;
+  }
+};
+
+export const toggleActivityRsvp = async (id: string): Promise<RsvpResponse | null> => {
+  try {
+    const token = getToken();
+    if (!token) return null;
+    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}/rsvp`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to toggle RSVP:', error);
+    return null;
+  }
+};
 
 export const createActivity = async (
   request: CreateActivityRequest,

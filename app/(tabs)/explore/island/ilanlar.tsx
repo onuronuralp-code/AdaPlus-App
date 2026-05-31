@@ -221,7 +221,7 @@ export default function IlanlarScreen() {
       {/* İlan List */}
       <ScrollView 
         style={styles.listContainer} 
-        contentContainerStyle={[styles.listContent, ((isLoading && !isRefreshing) || filteredListings.length === 0) && { flex: 1 }]} 
+        contentContainerStyle={[styles.listContent, { paddingBottom: 100 }, ((isLoading && !isRefreshing) || filteredListings.length === 0) && { flex: 1 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#3B82F6" />
@@ -247,7 +247,7 @@ export default function IlanlarScreen() {
 
       {/* FAB — New Listing */}
       <TouchableOpacity
-        style={[styles.fab, { bottom: insets.bottom + 20 }]}
+        style={[styles.fab, { bottom: 20 }]}
         activeOpacity={0.85}
         onPress={() => {
             if (!isLoggedIn) {
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 100,
+    paddingBottom: 0, // overridden inline with tabBarHeight
   },
   card: {
     backgroundColor: '#fff',

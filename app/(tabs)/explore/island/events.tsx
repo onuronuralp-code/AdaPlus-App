@@ -161,12 +161,12 @@ export default function EventsScreen() {
                 <Text style={styles.headerTitle}>{t('common.events')}</Text>
             </View>
 
-            <ScrollView 
-                style={styles.content} 
+            <ScrollView
+                style={styles.content}
                 contentContainerStyle={[
-                    { paddingBottom: 40 },
+                    { paddingBottom: 100 },
                     (loading || events.length === 0) && { flex: 1 }
-                ]} 
+                ]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#3B82F6" />
@@ -187,7 +187,12 @@ export default function EventsScreen() {
                     </View>
                 ) : (
                     events.map((event) => (
-                        <TouchableOpacity key={event.id} style={styles.eventCard} activeOpacity={0.8}>
+                        <TouchableOpacity
+                            key={event.id}
+                            style={styles.eventCard}
+                            activeOpacity={0.8}
+                            onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
+                        >
                             <Image 
                                 source={{ uri: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }} 
                                 style={styles.eventImage} 
@@ -211,8 +216,8 @@ export default function EventsScreen() {
                 )}
             </ScrollView>
 
-            <TouchableOpacity 
-                style={[styles.fab, { bottom: insets.bottom + 20 }]} 
+            <TouchableOpacity
+                style={[styles.fab, { bottom: 20 }]}
                 activeOpacity={0.8}
                 onPress={() => {
                     if (!isLoggedIn) {

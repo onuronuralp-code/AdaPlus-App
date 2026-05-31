@@ -17,6 +17,8 @@ export default function MainMenuScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const gridCardHeight = Math.round(width * 0.30);
+  const menuCardHeight = Math.round(width * 0.245);
 
   const [selectedIsland, setSelectedIsland] = useState("Büyükada");
   const isLargeScreen = height > 890;
@@ -104,16 +106,14 @@ export default function MainMenuScreen() {
               <Text style={styles.expandedInfoTitle}>{slidesToRender[activeIndex]?.title}</Text>
               <Text style={styles.expandedInfoSubtitle} numberOfLines={3}>{slidesToRender[activeIndex]?.subtitle}</Text>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.heroActionButton}
               onPress={() => {
-                if (slidesToRender[activeIndex]?.id && !slidesToRender[activeIndex]?.id.startsWith('default')) {
-                   router.push({
-                     pathname: '/(tabs)/explore/island/events',
-                     params: { highlight: slidesToRender[activeIndex]?.id }
-                   });
+                const slide = slidesToRender[activeIndex];
+                if (slide?.id && !slide.id.startsWith('default')) {
+                  router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
                 } else {
-                   router.push('/(tabs)/explore/island/events');
+                  router.push('/(tabs)/explore/island/events');
                 }
               }}
             >
@@ -186,7 +186,7 @@ export default function MainMenuScreen() {
           </View>
 
           <View style={styles.cardsContainer}>
-            <View style={[styles.gridRow, { height: isLargeScreen ? 130 : 110 }]}>
+            <View style={[styles.gridRow, { height: gridCardHeight }]}>
               <GridCard
                 icon="tag.fill"
                 colors={['#3B82F6', '#2563EB']}
@@ -213,16 +213,16 @@ export default function MainMenuScreen() {
               subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
               onPress={() => router.push('/guide')}
               large={isLargeScreen}
-              style={isLargeScreen ? { height: 110 } : { height: 96 }}
+              style={{ height: menuCardHeight }}
             />
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
-              colors={['#10B981', '#059669']} // Changed from purple/orange to green
+              colors={['#10B981', '#059669']}
               title={t('common.agoraForum', { defaultValue: 'Agora Forum' })}
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Engage with the community' : 'Toplulukla etkileşime geç' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
-              style={isLargeScreen ? { height: 110 } : { height: 96 }}
+              style={{ height: menuCardHeight }}
             />
           </View>
         </View>
@@ -537,8 +537,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 16,
-    height: SCREEN_HEIGHT > 850 ? 110 : 96,
-    marginBottom: SCREEN_HEIGHT > 850 ? 16 : 12,
+    marginBottom: 12,
     borderColor: '#f0f0f0',
     borderWidth: 1,
     shadowColor: '#000',
