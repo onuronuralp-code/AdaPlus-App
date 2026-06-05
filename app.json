@@ -4,14 +4,14 @@
     "slug": "ADA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/palmiye-splash.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "ada",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/marti-splash.png",
+      "image": "./assets/images/splash-mark.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": true,
@@ -22,9 +22,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/palmiye-splash.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
+        "backgroundColor": "#D84A35",
+        "foregroundImage": "./assets/images/icon.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
@@ -39,10 +38,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/marti-splash.png",
-          "backgroundColor": "#ffffff",
+          "image": "./assets/images/splash-mark.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF",
           "dark": {
-            "backgroundColor": "#ffffff"
+            "backgroundColor": "#FFFFFF"
           }
         }
       ],
@@ -54,8 +55,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/palmiye-splash.png",
-          "color": "#10B981"
+          "icon": "./assets/images/icon.png",
+          "color": "#EC5C46"
         }
       ]
     ],

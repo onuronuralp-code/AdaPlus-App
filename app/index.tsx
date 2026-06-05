@@ -1,90 +1,106 @@
 import { useRouter } from "expo-router";
-import { useVideoPlayer, VideoView } from "expo-video";
 import * as ExpoSplashScreen from "expo-splash-screen";
+import {
+  Poppins_500Medium,
+  Poppins_800ExtraBold,
+  useFonts,
+} from "@expo-google-fonts/poppins";
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path, Rect } from "react-native-svg";
 
-const CORAL = "#EA580C";
-const NAVY = "#0D1B2A";
+const CORAL = "#EC5C46";
+const INK = "#23262B";
+
+function AdaPlusMark({ width }: { width: number }) {
+  return (
+    <Svg width={width} height={width * 0.44} viewBox="0 32 100 44">
+      <Path
+        d="M6 67 C10 60 15 59 19 61 C23 63 25 55 31 50 C37 45 41 35 48 34 C53 33 56 39 60 44 C65 50 71 54 77 52 C83 50 87 59 94 67 Z"
+        fill={CORAL}
+      />
+      <Rect x="6" y="71" width="30" height="3.2" rx="1.6" fill={CORAL} />
+      <Rect x="42" y="71" width="20" height="3.2" rx="1.6" fill={CORAL} />
+      <Rect x="68" y="71" width="26" height="3.2" rx="1.6" fill={CORAL} />
+    </Svg>
+  );
+}
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
-  const player = useVideoPlayer(require("../assets/video.mp4"), (p) => {
-    p.loop = false;
-    p.muted = true;
-    p.play();
-  });
+  const [fontsLoaded] = useFonts({ Poppins_500Medium, Poppins_800ExtraBold });
 
   useEffect(() => {
+    if (!fontsLoaded) return;
     ExpoSplashScreen.hideAsync();
-    const t = setTimeout(() => router.replace("/(tabs)/explore"), 3000);
+    const t = setTimeout(() => router.replace("/(tabs)/explore"), 2500);
     return () => clearTimeout(t);
-  }, []);
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return <View style={styles.screen} />;
+
+  const markW = Math.max(120, Math.min(width * 0.42, 196));
+  const wmSize = Math.max(40, Math.min(width * 0.16, 64));
+  const tagSize = Math.max(14, Math.min(width * 0.045, 19));
 
   return (
-    <View style={styles.container}>
-      <VideoView
-        player={player}
-        style={styles.video}
-        nativeControls={false}
-        contentFit="contain"
-      />
-
-      <View style={styles.textWrap}>
-        <View style={styles.logoRow}>
-          <Text style={[styles.logoText, { color: NAVY }]}>Ada</Text>
-          <Text style={[styles.logoText, { color: CORAL }]}>Plus</Text>
-        </View>
-        <Text style={styles.tagline}>Adaları keşfet</Text>
+    <SafeAreaView style={styles.screen}>
+      <View style={styles.center}>
+        <AdaPlusMark width={markW} />
+        <Text style={[styles.wm, { fontSize: wmSize, marginTop: markW * 0.12 }]}>
+          <Text style={{ color: INK }}>Ada</Text>
+          <Text style={{ color: CORAL }}>Plus</Text>
+        </Text>
+        <Text style={[styles.tag, { fontSize: tagSize }]}>
+          Adaları keşfetmeye hazır mısın?
+        </Text>
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>POWERED BY ADAPPLUS</Text>
+      <View style={[styles.dots, { bottom: insets.bottom + 32 }]}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={[styles.dot, i === 0 ? styles.dotOn : styles.dotOff]} />
+        ))}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
+  },
+  center: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 28,
+    paddingHorizontal: 24,
   },
-  video: {
-    width: 270,
-    height: 180,
-  },
-  textWrap: {
-    alignItems: "center",
-  },
-  logoRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-  },
-  logoText: {
-    fontSize: 54,
-    fontWeight: "900",
+  wm: {
+    fontFamily: "Poppins_800ExtraBold",
     letterSpacing: -1.5,
   },
-  tagline: {
-    fontSize: 15,
-    color: "#8FA3B8",
-    fontWeight: "600",
-    marginTop: 6,
-    letterSpacing: 0.5,
+  tag: {
+    fontFamily: "Poppins_500Medium",
+    color: INK,
+    opacity: 0.6,
+    textAlign: "center",
+    marginTop: 10,
   },
-  footer: {
+  dots: {
     position: "absolute",
-    bottom: 60,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
   },
-  footerText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#C8D6E0",
-    letterSpacing: 2.5,
-  },
+  dot: { height: 8, borderRadius: 4 },
+  dotOn: { width: 26, borderRadius: 5, backgroundColor: CORAL },
+  dotOff: { width: 8, backgroundColor: INK, opacity: 0.22 },
 });

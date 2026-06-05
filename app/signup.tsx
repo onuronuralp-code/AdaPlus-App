@@ -128,9 +128,10 @@ export default function SignUpScreen() {
                 </TouchableOpacity>
 
                 <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
-                    <View style={styles.logoCircle}>
-                        <IconSymbol name="plus" size={30} color="#3B82F6" />
-                    </View>
+                    <Image
+                        source={require('@/assets/images/icon.png')}
+                        style={styles.logoCircle}
+                    />
                     <Text style={styles.welcomeTitle}>{t('auth.signupTitle')}</Text>
                     <Text style={styles.welcomeSubtitle}>{t('auth.signupSubtitle')}</Text>
                 </View>
@@ -266,16 +267,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logoCircle: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: 72,
+        height: 72,
+        borderRadius: 36,
         marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.3,
         shadowRadius: 20,
     },
     welcomeTitle: {
