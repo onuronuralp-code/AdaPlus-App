@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ADA",
+    "name": "AdaPlus",
     "slug": "ADA",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -39,7 +39,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-mark.png",
-          "imageWidth": 200,
+          "imageWidth": 240,
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF",
           "dark": {
@@ -56,7 +56,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#EC5C46"
+          "color": "#2F84C8"
         }
       ]
     ],
