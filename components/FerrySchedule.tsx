@@ -71,7 +71,7 @@ const getRouteTimeValue = (time: string): number => {
   return h * 60 + m;
 };
 
-const DEV_ALWAYS_TRACKABLE = true;
+const DEV_ALWAYS_TRACKABLE = false;
 
 const getTrackingStatus = (route: FerryRoute, selectedDate: Date) => {
   if (DEV_ALWAYS_TRACKABLE) return { trackable: true, message: "Live tracking active" };

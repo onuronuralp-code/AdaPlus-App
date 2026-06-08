@@ -1,8 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { fetchActivities } from '@/services/api';
-import { resolveImageUrl } from '@/services/config';
+import React, { useState } from 'react';
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,13 +22,13 @@ export default function MainMenuScreen() {
   const isLargeScreen = height > 890;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
 
-  const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [heroSlides] = useState<any[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(0)).current;
 
   const toggleHero = () => {
-    const toValue = isHeroExpanded ? 0 : 120; // 120px aşağı kaydır
+    const toValue = isHeroExpanded ? 0 : 120;
     Animated.spring(slideAnim, {
       toValue,
       useNativeDriver: true,
@@ -39,20 +37,6 @@ export default function MainMenuScreen() {
     }).start();
     setIsHeroExpanded(!isHeroExpanded);
   };
-
-  useEffect(() => {
-    fetchActivities().then(activities => {
-      const validActivities = activities.filter((a: any) => a.imageUrl);
-      if (validActivities.length > 0) {
-        setHeroSlides(validActivities.map((a: any) => ({
-          id: a.id,
-          title: a.name,
-          subtitle: a.description || t('common.exploreServices', { defaultValue: 'Explore services & activities' }),
-          imageUrl: resolveImageUrl(a.imageUrl)
-        })));
-      }
-    });
-  }, []);
 
   const defaultSlide = {
     id: 'default_welcome',

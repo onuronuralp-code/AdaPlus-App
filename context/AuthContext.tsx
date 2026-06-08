@@ -35,14 +35,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // If the stored token is still valid, we get back a fresh 30-day token
                 // so the user is never forced to re-login (Instagram pattern).
                 // If the token is already expired the refresh returns null → logout.
-                const refreshed = await authApi.refresh(token);
-                if (refreshed) {
-                    await setToken(refreshed.token);
-                    await setUserStorage(refreshed.user);
-                    setUser(refreshed.user);
-                    registerForPushNotifications();
+                try {
+                    const refreshed = await authApi.refresh(token);
+                    if (refreshed) {
+                        await setToken(refreshed.token);
+                        await setUserStorage(refreshed.user);
+                        setUser(refreshed.user);
+                        registerForPushNotifications();
+                    }
+                } catch {
+                    // Network error on refresh — leave user logged out silently
                 }
-                // If refresh failed silently, user stays logged-out; no forced logout UX.
             }
             setIsInitialized(true);
         };

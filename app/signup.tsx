@@ -177,7 +177,7 @@ export default function SignUpScreen() {
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="plus" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
+                            <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder={t('auth.passwordPlaceholder')}

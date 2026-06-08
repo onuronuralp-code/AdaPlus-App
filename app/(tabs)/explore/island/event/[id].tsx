@@ -31,6 +31,7 @@ export default function EventDetailScreen() {
 
     const [activity, setActivity] = useState<AppActivityDto | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [going, setGoing] = useState(false);
     const [rsvpCount, setRsvpCount] = useState(0);
     const [rsvpLoading, setRsvpLoading] = useState(false);
@@ -39,14 +40,16 @@ export default function EventDetailScreen() {
 
     useEffect(() => {
         if (!id) return;
-        getActivity(id as string).then((data) => {
-            if (data) {
-                setActivity(data);
-                setGoing(data.userHasRsvp ?? false);
-                setRsvpCount(data.rsvpCount ?? 0);
-            }
-            setIsLoading(false);
-        });
+        getActivity(id as string)
+            .then((data) => {
+                if (data) {
+                    setActivity(data);
+                    setGoing(data.userHasRsvp ?? false);
+                    setRsvpCount(data.rsvpCount ?? 0);
+                }
+            })
+            .catch(() => setLoadError(true))
+            .finally(() => setIsLoading(false));
     }, [id]);
 
     const handleRsvp = async () => {
@@ -101,9 +104,13 @@ export default function EventDetailScreen() {
         return (
             <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
                 <IconSymbol name="exclamationmark.triangle.fill" size={64} color="#CBD5E1" />
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }}>Etkinlik bulunamadı.</Text>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }}>
+                    {loadError ? 'Bağlantı hatası.' : 'Etkinlik bulunamadı.'}
+                </Text>
                 <Text style={{ fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8 }}>
-                    Bu etkinlik silinmiş veya yayından kaldırılmış olabilir.
+                    {loadError
+                        ? 'Etkinlik yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.'
+                        : 'Bu etkinlik silinmiş veya yayından kaldırılmış olabilir.'}
                 </Text>
                 <TouchableOpacity
                     onPress={() => router.navigate('/(tabs)/explore/island/events')}

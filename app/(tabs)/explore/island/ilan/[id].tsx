@@ -39,13 +39,14 @@ export default function IlanDetailScreen() {
   
   const [listing, setListing] = React.useState<ListingDto | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState(false);
 
   React.useEffect(() => {
     if (id) {
-      listingApi.getListing(id as string).then(data => {
-        setListing(data);
-        setIsLoading(false);
-      });
+      listingApi.getListing(id as string)
+        .then(data => setListing(data))
+        .catch(() => setLoadError(true))
+        .finally(() => setIsLoading(false));
     }
   }, [id]);
   
@@ -61,15 +62,21 @@ export default function IlanDetailScreen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
         <IconSymbol name="exclamationmark.triangle.fill" size={64} color="#CBD5E1" />
-        <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }}>İlan bulunamadı.</Text>
-        <Text style={{ fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8 }}>
-          Aradığınız ilan silinmiş veya yayından kaldırılmış olabilir.
+        <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }}>
+          {loadError ? 'Bağlantı hatası.' : 'İlan bulunamadı.'}
         </Text>
-        <TouchableOpacity 
-          onPress={() => router.navigate('/(tabs)/explore/island/ilanlar')}
+        <Text style={{ fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8 }}>
+          {loadError
+            ? 'İlan yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.'
+            : 'Aradığınız ilan silinmiş veya yayından kaldırılmış olabilir.'}
+        </Text>
+        <TouchableOpacity
+          onPress={() => loadError
+            ? listingApi.getListing(id as string).then(d => d && (setListing(d), setLoadError(false))).catch(() => {})
+            : router.navigate('/(tabs)/explore/island/ilanlar')}
           style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 }}
         >
-          <Text style={{ color: '#3B82F6', fontWeight: '700' }}>Geri Dön</Text>
+          <Text style={{ color: '#3B82F6', fontWeight: '700' }}>{loadError ? 'Tekrar Dene' : 'Geri Dön'}</Text>
         </TouchableOpacity>
       </View>
     );

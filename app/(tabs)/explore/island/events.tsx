@@ -62,6 +62,9 @@ export default function EventsScreen() {
         try {
             const data = await fetchActivities();
             setEvents(data);
+        } catch {
+            // keep existing list on background poll failure; only show error on initial load
+            if (showLoading) Alert.alert('Bağlantı Hatası', 'Etkinlikler yüklenemedi. Lütfen tekrar deneyin.');
         } finally {
             setLoading(false);
             setIsRefreshing(false);
@@ -104,11 +107,30 @@ export default function EventsScreen() {
         }
 
         setIsUploading(true);
-        let imageUrl = undefined;
-        if (selectedImage) {
-            imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
+        try {
+            let imageUrl = undefined;
+            if (selectedImage) {
+                const uploaded = await mediaApi.uploadImage(selectedImage);
+                if (!uploaded) {
+                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?', [
+                        { text: 'İptal', style: 'cancel', onPress: () => setIsUploading(false) },
+                        { text: 'Devam Et', onPress: async () => {
+                            await publishEvent(undefined);
+                        }},
+                    ]);
+                    return;
+                }
+                imageUrl = uploaded;
+            }
+            await publishEvent(imageUrl);
+        } catch {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Etkinlik oluşturulamadı. Lütfen tekrar deneyin.');
+        } finally {
+            setIsUploading(false);
         }
+    };
 
+    const publishEvent = async (imageUrl: string | undefined) => {
         let formattedSocialLink = socialLink.trim();
         if (formattedSocialLink && !formattedSocialLink.startsWith('http')) {
             formattedSocialLink = 'https://' + formattedSocialLink;
@@ -127,27 +149,22 @@ export default function EventsScreen() {
         };
 
         const createdActivity = await createActivity(request);
-        setIsUploading(false);
+        if (!createdActivity) throw new Error('create failed');
 
-        if (createdActivity) {
-            setIsAddModalVisible(false);
-            setNewEventName('');
-            setStartDate(new Date());
-            setEndDate(new Date());
-            setNewEventLocation('');
-            setNewEventDetails('');
-            setOrganizerName('');
-            setContactNumber('');
-            setSocialLink('');
-            setSelectedImage(null);
-
-            Alert.alert(
-                t('common.success', { defaultValue: 'Başarılı' }),
-                t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
-            );
-        } else {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Etkinlik oluşturulamadı.');
-        }
+        setIsAddModalVisible(false);
+        setNewEventName('');
+        setStartDate(new Date());
+        setEndDate(new Date());
+        setNewEventLocation('');
+        setNewEventDetails('');
+        setOrganizerName('');
+        setContactNumber('');
+        setSocialLink('');
+        setSelectedImage(null);
+        Alert.alert(
+            t('common.success', { defaultValue: 'Başarılı' }),
+            t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+        );
     };
 
     return (

@@ -91,17 +91,21 @@ export default function IlanlarScreen() {
 
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
-    if (selectedCategory === 'emlak') {
-      // Fetch all and filter for SATILIK + KIRALIK
-      const data = await listingApi.fetchListings();
-      setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
-    } else {
-      const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
-      const data = await listingApi.fetchListings(backendCat);
-      setListings(data);
+    try {
+      if (selectedCategory === 'emlak') {
+        const data = await listingApi.fetchListings();
+        setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
+      } else {
+        const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
+        const data = await listingApi.fetchListings(backendCat);
+        setListings(data);
+      }
+    } catch {
+      if (showLoading) Alert.alert('Bağlantı Hatası', 'İlanlar yüklenemedi. Lütfen tekrar deneyin.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-    setIsLoading(false);
-    setIsRefreshing(false);
   };
 
   React.useEffect(() => {
@@ -132,11 +136,28 @@ export default function IlanlarScreen() {
     if (!adTitle.trim() || !adPrice.trim()) return;
 
     setIsUploading(true);
-    let imageUrl = undefined;
-    if (selectedImage) {
-      imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
+    try {
+      let imageUrl = undefined;
+      if (selectedImage) {
+        const uploaded = await mediaApi.uploadImage(selectedImage);
+        if (!uploaded) {
+          Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?', [
+            { text: 'İptal', style: 'cancel', onPress: () => setIsUploading(false) },
+            { text: 'Devam Et', onPress: async () => { await submitListing(undefined); } },
+          ]);
+          return;
+        }
+        imageUrl = uploaded;
+      }
+      await submitListing(imageUrl);
+    } catch {
+      Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'İlan oluşturulamadı. Lütfen tekrar deneyin.');
+    } finally {
+      setIsUploading(false);
     }
+  };
 
+  const submitListing = async (imageUrl: string | undefined) => {
     const request: listingApi.SaveListingRequest = {
       title: adTitle.trim(),
       description: adDesc.trim(),
@@ -149,20 +170,18 @@ export default function IlanlarScreen() {
     };
 
     const createdListing = await listingApi.createListing(request);
-    setIsUploading(false);
+    if (!createdListing) throw new Error('create failed');
 
-    if (createdListing) {
-      setIsAdModalVisible(false);
-      setAdTitle('');
-      setAdPrice('');
-      setAdDesc('');
-      setAdContact('');
-      setSelectedImage(null);
-      Alert.alert(
-        t('common.success', { defaultValue: 'Başarılı' }),
-        t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
-      );
-    }
+    setIsAdModalVisible(false);
+    setAdTitle('');
+    setAdPrice('');
+    setAdDesc('');
+    setAdContact('');
+    setSelectedImage(null);
+    Alert.alert(
+      t('common.success', { defaultValue: 'Başarılı' }),
+      t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+    );
   };
 
   const adCategories = [

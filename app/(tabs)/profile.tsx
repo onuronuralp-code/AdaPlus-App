@@ -44,10 +44,12 @@ export default function ProfileScreen() {
     const [loadingNotifications, setLoadingNotifications] = useState(true);
     const [loadingListings, setLoadingListings] = useState(true);
     const [loadingActivities, setLoadingActivities] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
 
-    useFocusEffect(useCallback(() => {
+    const loadAll = useCallback(() => {
         if (!user) return;
 
+        setFetchError(false);
         setLoadingPosts(true);
         setLoadingReplies(true);
         setLoadingLikes(true);
@@ -57,34 +59,36 @@ export default function ProfileScreen() {
 
         fetchNotifications()
             .then(data => setNotifications(data))
-            .catch(() => setNotifications([]))
+            .catch(() => { setNotifications([]); setFetchError(true); })
             .finally(() => setLoadingNotifications(false));
 
         fetchUserPosts(user.id)
             .then(data => setPosts(data))
-            .catch(() => setPosts([]))
+            .catch(() => { setPosts([]); setFetchError(true); })
             .finally(() => setLoadingPosts(false));
 
         fetchUserReplies(user.id)
             .then(data => setReplies(data))
-            .catch(() => setReplies([]))
+            .catch(() => { setReplies([]); setFetchError(true); })
             .finally(() => setLoadingReplies(false));
 
         fetchUserLikes(user.id)
             .then(data => setLikedPosts(data))
-            .catch(() => setLikedPosts([]))
+            .catch(() => { setLikedPosts([]); setFetchError(true); })
             .finally(() => setLoadingLikes(false));
 
         fetchMyListings()
             .then(data => setListings(data))
-            .catch(() => setListings([]))
+            .catch(() => { setListings([]); setFetchError(true); })
             .finally(() => setLoadingListings(false));
 
         fetchMyActivities()
             .then(data => setActivities(data))
-            .catch(() => setActivities([]))
+            .catch(() => { setActivities([]); setFetchError(true); })
             .finally(() => setLoadingActivities(false));
-    }, [user?.id]));
+    }, [user?.id]);
+
+    useFocusEffect(useCallback(() => { loadAll(); }, [loadAll]));
 
     const timeAgo = (dateStr: string) => {
         try {
@@ -350,6 +354,17 @@ export default function ProfileScreen() {
                         </View>
                     </View>
 
+                {fetchError && (
+                    <TouchableOpacity
+                        style={styles.errorBanner}
+                        onPress={loadAll}
+                        activeOpacity={0.8}
+                    >
+                        <IconSymbol name="exclamationmark.triangle.fill" size={14} color="#92400E" />
+                        <Text style={styles.errorBannerText}>Veriler yüklenirken hata oluştu. Tekrar denemek için dokun.</Text>
+                    </TouchableOpacity>
+                )}
+
                 {/* Tab Bar */}
                 <View style={styles.tabBar}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
@@ -486,5 +501,24 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '700',
         color: '#6366F1',
+    },
+    errorBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: '#FFFBEB',
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+        marginHorizontal: 16,
+        marginBottom: 4,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 12,
+    },
+    errorBannerText: {
+        flex: 1,
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#92400E',
     },
 });
