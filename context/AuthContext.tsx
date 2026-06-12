@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
-    const logoutRef = useRef<() => Promise<void>>();
+    const logoutRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
     useEffect(() => {
         _onUnauthorized = () => logoutRef.current?.();

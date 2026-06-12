@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppActivityDto, getActivity, toggleActivityRsvp } from '@/services/api';
-import { resolveImageUrl } from '@/services/config';
+import { resolveImageUrl, safeOpenUrl } from '@/services/config';
 import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
@@ -214,7 +214,7 @@ export default function EventDetailScreen() {
                             </View>
                             <TouchableOpacity
                                 style={{ flex: 1 }}
-                                onPress={() => Linking.openURL(activity.instagramLink!)}
+                                onPress={() => safeOpenUrl(activity.instagramLink)}
                                 activeOpacity={0.7}
                             >
                                 <Text style={styles.infoLabel}>SOSYAL MEDYA</Text>

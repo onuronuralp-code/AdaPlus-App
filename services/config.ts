@@ -18,6 +18,27 @@ export const authFetch = async (input: RequestInfo, init?: RequestInit): Promise
 };
 
 /**
+ * Opens a URL only if its scheme is in the allowed list.
+ * Prevents API-supplied URLs from triggering tel:, sms:, file://, or
+ * other unexpected native URI handlers (OWASP A03 – Injection).
+ */
+const ALLOWED_URL_SCHEMES = ['http:', 'https:', 'instagram:'];
+export const safeOpenUrl = async (url: string | null | undefined): Promise<void> => {
+  if (!url) return;
+  try {
+    const { protocol } = new URL(url);
+    if (!ALLOWED_URL_SCHEMES.includes(protocol)) {
+      console.warn(`[safeOpenUrl] Blocked disallowed scheme: ${protocol}`);
+      return;
+    }
+    const { Linking } = await import('react-native');
+    await Linking.openURL(url);
+  } catch {
+    console.warn('[safeOpenUrl] Invalid URL:', url);
+  }
+};
+
+/**
  * Resolves a stored image URL to a fully qualified URL for display.
  * - HTTPS (S3, CDN, Unsplash): returned unchanged
  * - Relative path (new format, e.g. /api/v1/media/uuid.jpg): prepend API_BASE_URL

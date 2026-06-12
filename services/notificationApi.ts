@@ -21,7 +21,7 @@ export interface NotificationDto {
 
 const BASE = `${API_BASE_URL}/api/v1/users/me/notifications`;
 
-const authHeaders = () => {
+const authHeaders = (): Record<string, string> => {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
