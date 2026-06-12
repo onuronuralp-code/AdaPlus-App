@@ -2,6 +2,8 @@ import { API_BASE_URL } from "./config";
 
 const AUTH_BASE_URL = `${API_BASE_URL}/api/v1/auth`;
 
+const sanitizeEmail = (email: string) => email.trim().toLowerCase();
+
 const wrapNetworkError = (error: unknown): never => {
   if (error instanceof TypeError) {
     throw new Error(
@@ -37,7 +39,7 @@ export const authApi = {
       const response = await fetch(`${AUTH_BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password, kvkkAccepted, termsAccepted }),
+        body: JSON.stringify({ fullName: fullName.trim(), email: sanitizeEmail(email), password, kvkkAccepted, termsAccepted }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -58,7 +60,7 @@ export const authApi = {
       const response = await fetch(`${AUTH_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email: sanitizeEmail(email), code }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -76,7 +78,7 @@ export const authApi = {
       const response = await fetch(`${AUTH_BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: sanitizeEmail(email), password }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -92,7 +94,7 @@ export const authApi = {
       const response = await fetch(`${AUTH_BASE_URL}/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: sanitizeEmail(email) }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -108,7 +110,7 @@ export const authApi = {
       const response = await fetch(`${AUTH_BASE_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: sanitizeEmail(email) }),
       });
       const data = await response.json();
       if (!response.ok)

@@ -216,11 +216,18 @@ export default function ForumScreen() {
         }
     };
 
-    const isPublishActive = (newPostType === 'poll' ? (pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2) : newPostContent.trim()) && !isUploading;
+    const MIN_POST_LENGTH = 10;
+    const trimmedPostContent = newPostContent.trim();
+    const postContentTooShort = newPostType !== 'poll' && trimmedPostContent.length > 0 && trimmedPostContent.length < MIN_POST_LENGTH;
+    const isPublishActive = (
+      newPostType === 'poll'
+        ? (pollQuestion.trim().length >= MIN_POST_LENGTH && pollOptions.filter(o => o.trim()).length >= 2)
+        : trimmedPostContent.length >= MIN_POST_LENGTH
+    ) && !isUploading;
 
     const handleCreatePost = async () => {
-        const content = newPostType === 'poll' ? pollQuestion : newPostContent.trim();
-        if (!content) return;
+        const content = newPostType === 'poll' ? pollQuestion.trim() : trimmedPostContent;
+        if (!content || content.length < MIN_POST_LENGTH) return;
 
         setIsUploading(true);
         let imageUrl = undefined;
@@ -599,6 +606,16 @@ export default function ForumScreen() {
                                 onChangeText={newPostType === 'poll' ? setPollQuestion : setNewPostContent}
                                 textAlignVertical="top"
                             />
+                            {postContentTooShort && (
+                                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>
+                                    En az {MIN_POST_LENGTH} karakter gerekli ({trimmedPostContent.length}/{MIN_POST_LENGTH})
+                                </Text>
+                            )}
+                            {newPostType !== 'poll' && trimmedPostContent.length >= MIN_POST_LENGTH && (
+                                <Text style={{ color: '#94A3B8', fontSize: 11, marginTop: 4, textAlign: 'right' }}>
+                                    {trimmedPostContent.length} karakter
+                                </Text>
+                            )}
                         </View>
                         {newPostType !== 'poll' && (
                             <View style={styles.formSection}>

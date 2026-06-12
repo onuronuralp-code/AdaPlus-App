@@ -80,11 +80,15 @@ export default function IlanlarScreen() {
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
   const [adIsland, setAdIsland] = useState('Büyükada');
 
+  const parsedPrice = parseFloat(adPrice);
+  const isPriceValid = !isNaN(parsedPrice) && parsedPrice > 0;
+  const cleanedContact = adContact.replace(/\D/g, '');
+
   const isPublishDisabled =
     adTitle.trim().length < 3 ||
-    adPrice.trim().length === 0 ||
+    !isPriceValid ||
     adDesc.trim().length < 10 ||
-    !/^\d{11}$/.test(adContact.trim()) ||
+    cleanedContact.length !== 11 ||
     isUploading;
 
   const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Sedef Adası'];
@@ -158,14 +162,18 @@ export default function IlanlarScreen() {
   };
 
   const submitListing = async (imageUrl: string | undefined) => {
+    const finalPrice = parseFloat(adPrice);
+    const finalContact = adContact.replace(/\D/g, '');
+    if (isNaN(finalPrice) || finalPrice <= 0 || finalContact.length !== 11) return;
+
     const request: listingApi.SaveListingRequest = {
       title: adTitle.trim(),
       description: adDesc.trim(),
       category: adCat === 'emlak' ? (adSubCat === 'rent' ? ListingCategory.KIRALIK : ListingCategory.SATILIK) : (CATEGORY_CONFIG[adCat].backend || ListingCategory.SATILIK),
       island: getIslandEnum(adIsland),
-      price: parseFloat(adPrice),
+      price: finalPrice,
       active: true,
-      contactInfo: adContact.trim(),
+      contactInfo: finalContact,
       imageUrl: imageUrl
     };
 
@@ -374,10 +382,17 @@ export default function IlanlarScreen() {
                 style={styles.adTitleInput}
                 placeholder="0.00"
                 placeholderTextColor="#94A3B8"
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
                 value={adPrice}
-                onChangeText={setAdPrice}
+                onChangeText={t => {
+                  // Allow digits and a single decimal point only
+                  const clean = t.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                  setAdPrice(clean);
+                }}
               />
+              {adPrice.length > 0 && !isPriceValid && (
+                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>Geçerli bir fiyat girin (0'dan büyük olmalı)</Text>
+              )}
             </View>
 
             <View style={styles.inputSection}>
