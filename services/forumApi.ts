@@ -1,7 +1,8 @@
 import { getToken } from "../utils/tokenStorage";
 import { triggerNetworkError } from "./api";
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, fetchWithTimeout } from "./config";
 import { handleUnauthorized } from "../context/AuthContext";
+import i18n from "../utils/i18n";
 
 export enum PostType {
   DISCUSSION = "DISCUSSION",
@@ -81,7 +82,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetchWithTimeout(url, { ...options, headers });
 
   if (response.status === 401) {
     handleUnauthorized();
@@ -140,7 +141,7 @@ export const createPost = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
+    throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
   }
   return response.json();
 };
@@ -231,7 +232,7 @@ export const postReply = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
+    throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
   }
   return response.json();
 };

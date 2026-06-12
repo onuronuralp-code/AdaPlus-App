@@ -1,5 +1,5 @@
 import { triggerNetworkError } from "./api";
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, fetchWithTimeout } from "./config";
 import { Island } from "./forumApi";
 import { getToken } from "@/utils/tokenStorage";
 
@@ -47,7 +47,7 @@ export const fetchListings = async (
     const url = new URL(LISTING_API_BASE);
     if (category) url.searchParams.append("category", category);
 
-    const response = await fetch(url.toString());
+    const response = await fetchWithTimeout(url.toString());
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
     const data = await response.json();
@@ -74,7 +74,7 @@ export const createListing = async (
       console.warn("No JWT token found. Aborting listing creation.");
       return null;
     }
-    const response = await fetch(LISTING_API_BASE, {
+    const response = await fetchWithTimeout(LISTING_API_BASE, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -94,7 +94,7 @@ export const createListing = async (
 
 export const getListing = async (id: string): Promise<ListingDto | null> => {
   try {
-    const response = await fetch(`${LISTING_API_BASE}/${id}`);
+    const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`);
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
@@ -110,7 +110,7 @@ export const updateListing = async (
 ): Promise<ListingDto | null> => {
   try {
     const token = getToken();
-    const response = await fetch(`${LISTING_API_BASE}/${id}`, {
+    const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`, {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",
@@ -132,7 +132,7 @@ export const fetchMyListings = async (): Promise<ListingDto[]> => {
   try {
     const token = getToken();
     if (!token) return [];
-    const response = await fetch(`${API_BASE_URL}/api/v1/users/me/listings`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me/listings`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
@@ -147,7 +147,7 @@ export const fetchMyListings = async (): Promise<ListingDto[]> => {
 export const deleteListing = async (id: string): Promise<boolean> => {
   try {
     const token = getToken();
-    const response = await fetch(`${LISTING_API_BASE}/${id}`, {
+    const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`, {
       method: "DELETE",
       headers: {
         ...(token ? { "Authorization": `Bearer ${token}` } : {})

@@ -1,4 +1,5 @@
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, fetchWithTimeout } from "./config";
+import i18n from "../utils/i18n";
 
 const AUTH_BASE_URL = `${API_BASE_URL}/api/v1/auth`;
 
@@ -6,9 +7,7 @@ const sanitizeEmail = (email: string) => email.trim().toLowerCase();
 
 const wrapNetworkError = (error: unknown): never => {
   if (error instanceof TypeError) {
-    throw new Error(
-      "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.",
-    );
+    throw new Error(i18n.t('errors.networkError'));
   }
   throw error;
 };
@@ -36,7 +35,7 @@ export const authApi = {
     termsAccepted: boolean = true,
   ): Promise<{ message: string }> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/signup`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fullName: fullName.trim(), email: sanitizeEmail(email), password, kvkkAccepted, termsAccepted }),
@@ -44,7 +43,7 @@ export const authApi = {
       const data = await response.json();
       if (!response.ok)
         throw new Error(
-          data.message || data.error || "Kayıt sırasında bir hata oluştu.",
+          data.message || data.error || i18n.t('errors.signupFailed'),
         );
       return data;
     } catch (error) {
@@ -57,7 +56,7 @@ export const authApi = {
     code: string,
   ): Promise<{ message: string }> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/verify-otp`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: sanitizeEmail(email), code }),
@@ -65,7 +64,7 @@ export const authApi = {
       const data = await response.json();
       if (!response.ok)
         throw new Error(
-          data.message || data.error || "Doğrulama kodu geçersiz.",
+          data.message || data.error || i18n.t('errors.otpInvalid'),
         );
       return data;
     } catch (error) {
@@ -75,14 +74,14 @@ export const authApi = {
 
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/login`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: sanitizeEmail(email), password }),
       });
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.message || data.error || "Giriş yapılamadı.");
+        throw new Error(data.message || data.error || i18n.t('errors.loginFailed'));
       return data;
     } catch (error) {
       return wrapNetworkError(error);
@@ -91,14 +90,14 @@ export const authApi = {
 
   resendVerification: async (email: string): Promise<{ message: string }> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/resend-verification`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: sanitizeEmail(email) }),
       });
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.message || data.error || "Kod gönderilemedi.");
+        throw new Error(data.message || data.error || i18n.t('errors.resendFailed'));
       return data;
     } catch (error) {
       return wrapNetworkError(error);
@@ -107,7 +106,7 @@ export const authApi = {
 
   forgotPassword: async (email: string): Promise<{ message: string }> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/forgot-password`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: sanitizeEmail(email) }),
@@ -117,7 +116,7 @@ export const authApi = {
         throw new Error(
           data.message ||
             data.error ||
-            "Şifre sıfırlama bağlantısı gönderilemedi.",
+            i18n.t('errors.forgotPasswordFailed'),
         );
       return data;
     } catch (error) {
@@ -130,7 +129,7 @@ export const authApi = {
     newPassword: string,
   ): Promise<{ message: string }> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/reset-password`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, newPassword }),
@@ -140,7 +139,7 @@ export const authApi = {
         throw new Error(
           data.message ||
             data.error ||
-            "Şifre sıfırlanamadı. Bağlantı geçersiz veya süresi dolmuş olabilir.",
+            i18n.t('errors.resetPasswordFailed'),
         );
       return data;
     } catch (error) {

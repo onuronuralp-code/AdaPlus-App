@@ -83,6 +83,27 @@ export default function IlanlarScreen() {
   const parsedPrice = parseFloat(adPrice);
   const isPriceValid = !isNaN(parsedPrice) && parsedPrice > 0;
   const cleanedContact = adContact.replace(/\D/g, '');
+  const isFormDirty = adTitle.trim().length > 0 || adDesc.trim().length > 0 || adContact.length > 0 || adPrice.length > 0 || !!selectedImage;
+
+  const resetAndCloseModal = () => {
+    setIsAdModalVisible(false);
+    setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(''); setSelectedImage(null);
+  };
+
+  const handleCloseModal = () => {
+    if (isFormDirty) {
+      Alert.alert(
+        t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
+        t('common.unsavedChangesMsg', { defaultValue: 'Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?' }),
+        [
+          { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+          { text: t('common.closeAnyway', { defaultValue: 'Evet, Kapat' }), style: 'destructive', onPress: resetAndCloseModal },
+        ]
+      );
+    } else {
+      resetAndCloseModal();
+    }
+  };
 
   const isPublishDisabled =
     adTitle.trim().length < 3 ||
@@ -105,7 +126,7 @@ export default function IlanlarScreen() {
         setListings(data);
       }
     } catch {
-      if (showLoading) Alert.alert('Bağlantı Hatası', 'İlanlar yüklenemedi. Lütfen tekrar deneyin.');
+      if (showLoading) Alert.alert(t('errors.connectionError', { defaultValue: 'Bağlantı Hatası' }), t('errors.listingsLoadFailed', { defaultValue: 'İlanlar yüklenemedi. Lütfen tekrar deneyin.' }));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -145,9 +166,9 @@ export default function IlanlarScreen() {
       if (selectedImage) {
         const uploaded = await mediaApi.uploadImage(selectedImage);
         if (!uploaded) {
-          Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?', [
-            { text: 'İptal', style: 'cancel', onPress: () => setIsUploading(false) },
-            { text: 'Devam Et', onPress: async () => { await submitListing(undefined); } },
+          Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.photoUploadFailed', { defaultValue: 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?' }), [
+            { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel', onPress: () => setIsUploading(false) },
+            { text: t('common.continueAction', { defaultValue: 'Devam Et' }), onPress: async () => { await submitListing(undefined); } },
           ]);
           return;
         }
@@ -155,7 +176,7 @@ export default function IlanlarScreen() {
       }
       await submitListing(imageUrl);
     } catch {
-      Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'İlan oluşturulamadı. Lütfen tekrar deneyin.');
+      Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' }));
     } finally {
       setIsUploading(false);
     }
@@ -180,12 +201,7 @@ export default function IlanlarScreen() {
     const createdListing = await listingApi.createListing(request);
     if (!createdListing) throw new Error('create failed');
 
-    setIsAdModalVisible(false);
-    setAdTitle('');
-    setAdPrice('');
-    setAdDesc('');
-    setAdContact('');
-    setSelectedImage(null);
+    resetAndCloseModal();
     Alert.alert(
       t('common.success', { defaultValue: 'Başarılı' }),
       t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
@@ -299,7 +315,7 @@ export default function IlanlarScreen() {
         visible={isAdModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setIsAdModalVisible(false)}
+        onRequestClose={handleCloseModal}
       >
         <KeyboardAvoidingView 
           style={styles.modalContainer} 
@@ -307,7 +323,7 @@ export default function IlanlarScreen() {
         >
           <View style={styles.modalHeader}>
             <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
-              <TouchableOpacity onPress={() => setIsAdModalVisible(false)} style={styles.modalHeaderButton}>
+              <TouchableOpacity onPress={handleCloseModal} style={styles.modalHeaderButton}>
                 <Text style={styles.cancelText}>İPTAL</Text>
               </TouchableOpacity>
             </View>

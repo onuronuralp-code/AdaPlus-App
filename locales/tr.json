@@ -38,7 +38,18 @@
         "islandEvents": "Etkinlikleri keşfet",
         "yourSmartGuide": "Adalar için akıllı seyahat asistanın",
         "agoraForum": "Topluluk",
-        "shareExperiences": "Diğer gezginlerle deneyimlerinizi paylaşın"
+        "shareExperiences": "Diğer gezginlerle deneyimlerinizi paylaşın",
+        "error": "Hata",
+        "success": "Başarılı",
+        "cancel": "İptal",
+        "continueAction": "Devam Et",
+        "send": "Paylaş",
+        "closeAnyway": "Evet, Kapat",
+        "listingReceived": "İlan isteğiniz alınmıştır ve incelemeye alınmıştır.",
+        "unsavedChanges": "Değişiklikler Kaydedilmedi",
+        "unsavedChangesMsg": "Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?",
+        "kvkkAccept": "Okudum, Anladım",
+        "kvkkReadFirst": "Onaylamak için metni sonuna kadar okuyun"
     },
     "islands": {
         "kinaliada": {
@@ -132,6 +143,21 @@
             "tokenRequired": "Sıfırlama kodu gereklidir.",
             "passwordMismatch": "Şifreler eşleşmiyor."
         }
+    },
+    "errors": {
+        "networkError": "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.",
+        "signupFailed": "Kayıt sırasında bir hata oluştu.",
+        "otpInvalid": "Doğrulama kodu geçersiz.",
+        "loginFailed": "Giriş yapılamadı.",
+        "resendFailed": "Kod gönderilemedi.",
+        "forgotPasswordFailed": "Şifre sıfırlama bağlantısı gönderilemedi.",
+        "resetPasswordFailed": "Şifre sıfırlanamadı. Bağlantı geçersiz veya süresi dolmuş olabilir.",
+        "requestFailed": "İstek başarısız oldu",
+        "sessionExpired": "Oturum süreniz doldu.",
+        "connectionError": "Bağlantı Hatası",
+        "listingsLoadFailed": "İlanlar yüklenemedi. Lütfen tekrar deneyin.",
+        "photoUploadFailed": "Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?",
+        "listingCreateFailed": "İlan oluşturulamadı. Lütfen tekrar deneyin."
     },
     "places": {
         "Kınalıada": "Kınalıada",

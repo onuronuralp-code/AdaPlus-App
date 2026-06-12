@@ -1,8 +1,9 @@
-import React from 'react';
-import { Modal, View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Modal, View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { IconSymbol } from './ui/icon-symbol';
+import { useTranslation } from 'react-i18next';
 
 interface KVKKModalProps {
     isVisible: boolean;
@@ -11,9 +12,22 @@ interface KVKKModalProps {
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const SCROLL_BOTTOM_THRESHOLD = 40;
 
 export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAccept }) => {
     const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
+    const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+
+    useEffect(() => {
+        if (isVisible) setIsScrolledToBottom(false);
+    }, [isVisible]);
+
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+        const atBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - SCROLL_BOTTOM_THRESHOLD;
+        if (atBottom) setIsScrolledToBottom(true);
+    };
 
     return (
         <Modal
@@ -24,12 +38,12 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
         >
             <View style={styles.overlay}>
                 <BlurView intensity={20} style={StyleSheet.absoluteFill} tint="dark" />
-                <TouchableOpacity 
-                    style={styles.backdrop} 
-                    activeOpacity={1} 
-                    onPress={onClose} 
+                <TouchableOpacity
+                    style={styles.backdrop}
+                    activeOpacity={1}
+                    onPress={onClose}
                 />
-                
+
                 <View style={[styles.modalContainer, { maxHeight: SCREEN_HEIGHT * 0.8, marginBottom: insets.bottom + 20 }]}>
                     <View style={styles.header}>
                         <Text style={styles.headerTitle}>KVKK ve Aydınlatma Metni</Text>
@@ -38,9 +52,14 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView style={styles.content} showsVerticalScrollIndicator={true}>
+                    <ScrollView
+                        style={styles.content}
+                        showsVerticalScrollIndicator={true}
+                        onScroll={handleScroll}
+                        scrollEventThrottle={16}
+                    >
                         <Text style={styles.title}>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU KAPSAMINDA ADAPLUS UYGULAMASI KULLANICILARI İÇİN AYDINLATMA METNİ</Text>
-                        
+
                         <Text style={styles.sectionTitle}>1. Veri Sorumlusu</Text>
                         <Text style={styles.text}>AdaPlus, bir girişim projesi olup aşağıdaki gerçek kişiler tarafından yürütülmektedir:</Text>
                         <Text style={styles.bullet}>• Onur Önüralp — İstanbul</Text>
@@ -70,13 +89,25 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
 
                         <Text style={styles.sectionTitle}>6. KVKK Kapsamındaki Haklarınız</Text>
                         <Text style={styles.text}>KVKK m.11 uyarınca şu haklara sahipsiniz: verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, işlenme amacını öğrenme, aktarıldığı kişileri öğrenme, düzeltilmesini isteme, silinmesini isteme, otomatik analiz sonucu aleyhine karara itiraz etme, zararın giderilmesini talep etme.</Text>
-                        
+
                         <View style={{ height: 20 }} />
                     </ScrollView>
 
                     <View style={styles.footer}>
-                        <TouchableOpacity style={styles.acceptButton} onPress={onAccept || onClose}>
-                            <Text style={styles.acceptButtonText}>Okudum, Anladım</Text>
+                        {!isScrolledToBottom && (
+                            <Text style={styles.scrollHint}>
+                                {t('common.kvkkReadFirst', { defaultValue: 'Onaylamak için metni sonuna kadar okuyun' })}
+                            </Text>
+                        )}
+                        <TouchableOpacity
+                            style={[styles.acceptButton, !isScrolledToBottom && styles.acceptButtonDisabled]}
+                            onPress={isScrolledToBottom ? (onAccept || onClose) : undefined}
+                            disabled={!isScrolledToBottom}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.acceptButtonText}>
+                                {t('common.kvkkAccept', { defaultValue: 'Okudum, Anladım' })}
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -88,10 +119,10 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        justifyContent: 'flex-end', // Moved from center to bottom
+        justifyContent: 'flex-end',
         alignItems: 'center',
         backgroundColor: 'rgba(0,0,0,0.5)',
-        paddingBottom: 40, // Added padding to position it slightly above the very bottom
+        paddingBottom: 40,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
@@ -110,12 +141,12 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center', // Center content horizontally
+        justifyContent: 'center',
         paddingHorizontal: 20,
         paddingVertical: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
-        position: 'relative', // For absolute positioning of close button
+        position: 'relative',
     },
     headerTitle: {
         fontSize: 18,
@@ -145,7 +176,7 @@ const styles = StyleSheet.create({
         color: '#334155',
         marginTop: 16,
         marginBottom: 8,
-        textAlign: 'center', // Center section titles too for consistency if desired, or just the main ones
+        textAlign: 'center',
     },
     text: {
         fontSize: 14,
@@ -165,12 +196,22 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#F1F5F9',
     },
+    scrollHint: {
+        fontSize: 12,
+        color: '#94A3B8',
+        textAlign: 'center',
+        marginBottom: 10,
+        fontStyle: 'italic',
+    },
     acceptButton: {
         backgroundColor: '#10B981',
         borderRadius: 12,
         paddingVertical: 14,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    acceptButtonDisabled: {
+        backgroundColor: '#D1D5DB',
     },
     acceptButtonText: {
         color: '#fff',

@@ -4,6 +4,14 @@ if (!process.env.EXPO_PUBLIC_API_URL) {
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
+const FETCH_TIMEOUT_MS = 15_000;
+
+export const fetchWithTimeout = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(id));
+};
+
 /**
  * Drop-in replacement for fetch() that automatically calls handleUnauthorized()
  * on 401 so any expired-token response triggers a silent logout across the app.

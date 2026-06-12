@@ -225,6 +225,31 @@ export default function ForumScreen() {
         : trimmedPostContent.length >= MIN_POST_LENGTH
     ) && !isUploading;
 
+    const isWriteFormDirty = newPostContent.trim().length > 0 || pollQuestion.trim().length > 0 || !!selectedImage;
+
+    const resetWriteForm = () => {
+        setNewPostContent('');
+        setPollQuestion('');
+        setPollOptions(['', '']);
+        setSelectedImage(null);
+        setIsWriteModalVisible(false);
+    };
+
+    const handleCloseWriteModal = () => {
+        if (isWriteFormDirty) {
+            Alert.alert(
+                t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
+                t('common.unsavedChangesMsg', { defaultValue: 'Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?' }),
+                [
+                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                    { text: t('common.closeAnyway', { defaultValue: 'Evet, Kapat' }), style: 'destructive', onPress: resetWriteForm },
+                ]
+            );
+        } else {
+            resetWriteForm();
+        }
+    };
+
     const handleCreatePost = async () => {
         const content = newPostType === 'poll' ? pollQuestion.trim() : trimmedPostContent;
         if (!content || content.length < MIN_POST_LENGTH) return;
@@ -543,11 +568,11 @@ export default function ForumScreen() {
                 visible={isWriteModalVisible}
                 animationType="slide"
                 presentationStyle="pageSheet"
-                onRequestClose={() => setIsWriteModalVisible(false)}
+                onRequestClose={handleCloseWriteModal}
             >
                 <View style={styles.modalContainer}>
                     <View style={[styles.modalHeader, { paddingTop: insets.top > 0 ? insets.top : 16 }]}>
-                        <TouchableOpacity onPress={() => setIsWriteModalVisible(false)} style={styles.modalHeaderButton}>
+                        <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
                         <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
