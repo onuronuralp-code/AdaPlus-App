@@ -1,0 +1,7 @@
+appId: com.onurx.ADA
+---
+# Profile tab — 4th of 4 equal tabs, center x≈344 on 393pt-wide screen
+- tapOn:
+    point: "344, 800"
+- waitForAnimationToEnd:
+    timeout: 3000

@@ -111,7 +111,7 @@ NO_SHUTDOWN = "$NO_SHUTDOWN" == "true"
 BUNDLE_ID   = "$BUNDLE_ID"
 DEV_SERVER  = "$DEV_SERVER"
 EXPO_GO_ID  = "$EXPO_GO_ID"
-SCREENS     = [s.split(":") for s in "splash:3 explore:6 forum:10 ilanlar:14 profile:18".split()]
+SCREENS     = [s.split(":") for s in "splash:18 explore:22 forum:26 ilanlar:30 profile:34".split()]
 
 data    = json.load(open(MATRIX_FILE))
 devices = data["devices"]["ios"]
@@ -157,46 +157,120 @@ for device in devices:
             kwargs["text"] = True
         return subprocess.run(cmd, **kwargs)
 
+    # ── helpers ──────────────────────────────────────────────────────────────
+    def expo_go_installed(sim_udid, retries=4, delay=4):
+        """
+        Return True if Expo Go is installed on the simulator.
+        Retries because listapps can return incomplete data right after boot.
+        """
+        for _ in range(retries):
+            result = run(f"xcrun simctl listapps {sim_udid}", capture=True, check=False)
+            if "Exponent" in result.stdout or "host.exp.Exponent" in result.stdout:
+                return True
+            time.sleep(delay)
+        return False
+
+    def wait_for_app(sim_udid, timeout=30):
+        """
+        Poll until the foreground app is NOT SpringBoard (home screen).
+        Returns True when the app appears, False on timeout.
+        """
+        for _ in range(timeout):
+            time.sleep(1)
+            r = run(
+                f"xcrun simctl spawn {sim_udid} launchctl list 2>/dev/null | grep -E 'UIKitApplication' | head -5",
+                capture=True, check=False
+            )
+            # Expo Go PID shows up in launchctl; SpringBoard is always there but
+            # we look for a second app alongside it
+            lines = [l for l in r.stdout.splitlines() if l.strip() and "SpringBoard" not in l]
+            if lines:
+                return True
+        return False
+
     # 1. Boot simulator
     print(f"  ▶  Booting simulator…")
     state = run(f"xcrun simctl list devices | grep {udid}", capture=True).stdout
     if "Booted" not in state:
         run(f"xcrun simctl boot {udid}", check=False)
-        time.sleep(4)
+        # Wait for SpringBoard to finish launching before we try to open URLs
+        print(f"  ⏱  Waiting for SpringBoard…")
+        time.sleep(8)
     else:
         print(f"  ℹ  Already booted")
 
     # 2. Launch app
     print(f"  ▶  Launching app ({MODE})…")
     if MODE == "expo-go":
-        # Build URLs without backslash in f-string expressions (unsupported pre-Python 3.12)
+        # Check Expo Go is present before trying URL schemes
+        if not expo_go_installed(udid):
+            print(f"  ⚠️  Expo Go not found on {name}.")
+            print(f"       Run: npm run e2e:install-expo-go")
+            print(f"       Skipping this device.")
+            results.append(meta)
+            continue
+
         server_host = DEV_SERVER.replace("http://", "").replace("https://", "")
-        expo_url = "exp+ada://expo-development-client/?url=" + DEV_SERVER
-        run(f"xcrun simctl openurl {udid} '{expo_url}'", check=False)
-        # Fallback: plain exp:// URL works when Expo Go is installed on the simulator
-        run(f"xcrun simctl openurl {udid} 'exp://{server_host}'", check=False)
-    else:
-        # Dev build — app must already be installed
-        run(f"xcrun simctl launch {udid} {BUNDLE_ID}", check=False)
+        # Use Maestro to open exp:// and dismiss the "Open in Expo Go?" dialog.
+        # xcrun simctl openurl can't dismiss iOS system dialogs; Maestro can.
+        setup_flow = os.path.normpath(
+            os.path.join(os.path.dirname(MATRIX_FILE), "..", "..", "e2e", "flows", "setup-expo-go.yaml")
+        )
+        maestro = os.path.expanduser("~/.maestro/bin/maestro")
+        run(
+            f'MAESTRO_CLI_NO_ANALYTICS=1 {maestro} --device {udid} '
+            f'--env EXPO_SERVER_HOST="{server_host}" '
+            f'test "{setup_flow}" 2>&1 | grep -v "^$"',
+            check=False
+        )
 
-    # 3. Capture each screen with progressive wait
-    prev_wait = 0
-    for screen_name, wait_str in SCREENS:
-        wait = int(wait_str)
-        delta = wait - prev_wait
-        if delta > 0:
-            print(f"  ⏱  Waiting {delta}s for '{screen_name}'…")
-            time.sleep(delta)
-        prev_wait = wait
-
-        shot_path = os.path.join(dev_dir, f"{screen_name}.png")
-        result = run(f"xcrun simctl io {udid} screenshot '{shot_path}'", check=False)
-        if result.returncode == 0 and os.path.exists(shot_path):
-            size_kb = os.path.getsize(shot_path) // 1024
-            print(f"  📸 {screen_name}.png  ({size_kb}KB)")
-            meta["screenshots"].append({"screen": screen_name, "file": f"{tag}/{screen_name}.png"})
+        # Wait for Expo Go to appear in the foreground (up to 30s)
+        print(f"  ⏱  Waiting for Expo Go to launch and bundle to load…")
+        if not wait_for_app(udid, timeout=30):
+            print(f"  ⚠️  App did not appear in 30s. Screenshots may show home screen.")
         else:
-            print(f"  ⚠️  Screenshot failed for {screen_name}")
+            # Extra time for Metro bundler to finish and splash to clear
+            time.sleep(5)
+    else:
+        # Dev build: Maestro navigates to each tab, xcrun takes the screenshot.
+        tabs_flow = os.path.normpath(
+            os.path.join(os.path.dirname(MATRIX_FILE), "..", "..", "e2e", "flows", "03-screenshot-tabs.yaml")
+        )
+        maestro = os.path.expanduser("~/.maestro/bin/maestro")
+
+        flows_dir = os.path.normpath(
+            os.path.join(os.path.dirname(MATRIX_FILE), "..", "..", "e2e", "flows")
+        )
+
+        # Tabs: (screen_name, flow_file_for_navigation)
+        # First tab uses the launch flow; subsequent tabs use coordinate tap flows.
+        tab_sequence = [
+            ("explore",  os.path.join(flows_dir, "03-screenshot-tabs.yaml")),
+            ("schedule", os.path.join(flows_dir, "tap-tab-2.yaml")),
+            ("requests", os.path.join(flows_dir, "tap-tab-3.yaml")),
+            ("profile",  os.path.join(flows_dir, "tap-tab-4.yaml")),
+        ]
+
+        # Single Maestro session: launches app, waits for content, navigates tabs.
+        # takeScreenshot saves to CWD; we move each file to dev_dir.
+        print(f"  ⏱  Maestro: launching and capturing all 4 tabs…")
+        run(
+            f'MAESTRO_CLI_NO_ANALYTICS=1 {maestro} --device {udid} '
+            f'test "{tabs_flow}" 2>&1 | grep -E "(COMPLETED|FAILED|WARNED|Error)"',
+            check=False
+        )
+        import shutil
+        screen_names = ["explore", "schedule", "requests", "profile"]
+        for screen_name in screen_names:
+            src = os.path.join(os.getcwd(), f"{screen_name}.png")
+            dst = os.path.join(dev_dir, f"{screen_name}.png")
+            if os.path.exists(src):
+                shutil.move(src, dst)
+                size_kb = os.path.getsize(dst) // 1024
+                print(f"  📸 {screen_name}.png  ({size_kb}KB)")
+                meta["screenshots"].append({"screen": screen_name, "file": f"{tag}/{screen_name}.png"})
+            else:
+                print(f"  ⚠️  Screenshot not captured for {screen_name}")
 
     # 4. Write device metadata
     with open(os.path.join(dev_dir, "meta.json"), "w") as f:

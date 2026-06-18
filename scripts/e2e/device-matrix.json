@@ -22,20 +22,6 @@
         "notes": "Narrowest viewport — most prone to text clipping and overflow"
       },
       {
-        "name": "iPhone 16e",
-        "tag": "iphone-16e",
-        "udid": "1FCE9C98-18D8-4462-95D7-71E1634297F4",
-        "os": "iOS 26.0",
-        "widthPt": 375,
-        "heightPt": 667,
-        "safeAreaTop": 44,
-        "safeAreaBottom": 34,
-        "hasHomeButton": false,
-        "notchType": "notch",
-        "priority": "critical",
-        "notes": "375pt width with notch — squeeze test for SE-class width + modern insets"
-      },
-      {
         "name": "iPhone 16",
         "tag": "iphone-16",
         "udid": "1E620769-D70C-45ED-BED8-F3B301B6E2B7",
@@ -46,8 +32,22 @@
         "safeAreaBottom": 34,
         "hasHomeButton": false,
         "notchType": "dynamicIsland",
+        "priority": "critical",
+        "notes": "Baseline Dynamic Island device — critical pair with SE to cover narrow+wide"
+      },
+      {
+        "name": "iPhone 16e",
+        "tag": "iphone-16e",
+        "udid": "1FCE9C98-18D8-4462-95D7-71E1634297F4",
+        "os": "iOS 26.0",
+        "widthPt": 375,
+        "heightPt": 667,
+        "safeAreaTop": 44,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "notch",
         "priority": "standard",
-        "notes": "Baseline standard device"
+        "notes": "iOS 26.0 — requires dev build (npx expo run:ios), Expo Go 2.25.1 not compatible"
       },
       {
         "name": "iPhone 16 Pro",

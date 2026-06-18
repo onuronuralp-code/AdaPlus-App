@@ -1,0 +1,7 @@
+appId: com.onurx.ADA
+---
+# Schedule tab — center of 2nd of 4 equal tabs on a 393pt-wide screen, tab bar y≈800
+- tapOn:
+    point: "147, 800"
+- waitForAnimationToEnd:
+    timeout: 3000

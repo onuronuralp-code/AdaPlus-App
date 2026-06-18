@@ -1,0 +1,14 @@
+appId: host.exp.Exponent
+---
+- openLink: "exp://${EXPO_SERVER_HOST}"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Dismiss "Open in Expo Go?" dialog if present (optional: true means no failure if not visible)
+- tapOn:
+    text: "Open"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 20000

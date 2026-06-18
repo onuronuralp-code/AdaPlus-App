@@ -16,9 +16,9 @@ export default function MainMenuScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const gridCardHeight = Math.round(width * 0.30);
-  const menuCardHeight = Math.round(width * 0.245);
 
   const [selectedIsland, setSelectedIsland] = useState("Büyükada");
+  const isSmallScreen = height < 700;
   const isLargeScreen = height > 890;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
 
@@ -112,31 +112,27 @@ export default function MainMenuScreen() {
            {/* Header buttons removed from here */}</View>
       </View>
 
-      {/* Body Content — uses flexGrow to fill space on big screens, but scrolls on smaller ones */}
-      <Animated.ScrollView 
-        style={[styles.body, { transform: [{ translateY: slideAnim }] }]} 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
+      {/* Body Content — scrollable on short screens, fills naturally on tall screens */}
+      <Animated.ScrollView
+        style={[styles.body, { transform: [{ translateY: slideAnim }] }]}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
-        scrollEnabled={false}
       >
         {/* Pagination Dots */}
-        <View style={styles.paginationUnderHero}>
+        <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
           {slidesToRender.map((_, index) => (
-            <View 
-              key={index} 
-              style={[
-                styles.dot, 
-                activeIndex === index ? styles.activeDot : null
-              ]} 
+            <View
+              key={index}
+              style={[styles.dot, activeIndex === index ? styles.activeDot : null]}
             />
           ))}
         </View>
 
         {/* Services Section */}
         <View style={styles.servicesSection}>
-          <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+          <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 28 }]}>
                 {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
@@ -160,7 +156,7 @@ export default function MainMenuScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.sectionHeader}>
+          <View style={[styles.sectionHeader, isSmallScreen && { marginBottom: 10 }]}>
             <View style={styles.sectionTitleRow}>
               <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
               <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 21 }]}>
@@ -170,7 +166,7 @@ export default function MainMenuScreen() {
           </View>
 
           <View style={styles.cardsContainer}>
-            <View style={[styles.gridRow, { height: gridCardHeight }]}>
+            <View style={[styles.gridRow, { height: gridCardHeight }, isSmallScreen && { marginBottom: 8 }]}>
               <GridCard
                 icon="tag.fill"
                 colors={['#3B82F6', '#2563EB']}
@@ -197,7 +193,7 @@ export default function MainMenuScreen() {
               subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
               onPress={() => router.push('/guide')}
               large={isLargeScreen}
-              style={{ height: menuCardHeight }}
+              style={isSmallScreen ? { marginBottom: 8 } : undefined}
             />
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
@@ -206,7 +202,7 @@ export default function MainMenuScreen() {
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Engage with the community' : 'Toplulukla etkileşime geç' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
-              style={{ height: menuCardHeight }}
+              style={isSmallScreen ? { marginBottom: 8 } : undefined}
             />
           </View>
         </View>

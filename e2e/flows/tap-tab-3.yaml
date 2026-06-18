@@ -1,0 +1,7 @@
+appId: com.onurx.ADA
+---
+# Requests tab — 3rd of 4 equal tabs, center x≈246 on 393pt-wide screen
+- tapOn:
+    point: "246, 800"
+- waitForAnimationToEnd:
+    timeout: 3000

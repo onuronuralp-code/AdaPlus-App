@@ -1,0 +1,35 @@
+appId: com.onurx.ADA
+---
+- launchApp:
+    clearState: false
+
+# Wait for the JS bundle to load AND the explore tab content to render.
+# "Services & Activities" appears on the explore tab after full load.
+- extendedWaitUntil:
+    visible:
+      text: "Services & Activities"
+    timeout: 60000
+
+# Tab 1 — Discover (already active)
+- takeScreenshot: explore
+
+# Tab 2 — Schedule (x=147 = center of 2nd of 4 equal tabs on 393pt screen)
+- tapOn:
+    point: "147, 800"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: schedule
+
+# Tab 3 — Requests
+- tapOn:
+    point: "246, 800"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: requests
+
+# Tab 4 — Profile
+- tapOn:
+    point: "344, 800"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: profile
