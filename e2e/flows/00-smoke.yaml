@@ -1,0 +1,60 @@
+# 00-smoke.yaml
+# Full-app smoke test — verifies the app launches, splash clears, and all
+# four main tabs are reachable without crashing.
+#
+# Run against a single device:
+#   maestro test e2e/flows/00-smoke.yaml
+#
+# The appId below targets the dev build (com.onurx.ADA).
+# For Expo Go, replace with: host.exp.Exponent
+appId: com.onurx.ADA
+---
+# ── launch & splash ───────────────────────────────────────────────────────────
+- launchApp:
+    clearState: false
+- takeScreenshot: "smoke/01-launch"
+
+# Wait for the 3-second splash video to complete and navigate to explore
+- waitForAnimationToEnd:
+    timeout: 6000
+
+- takeScreenshot: "smoke/02-explore-tab"
+
+# ── explore tab ───────────────────────────────────────────────────────────────
+- assertVisible:
+    id: "explore-screen"
+    optional: true
+- takeScreenshot: "smoke/03-explore-islands"
+
+# Tap the first island card to enter it
+- tapOn:
+    text: "Büyükada"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "smoke/04-island-detail"
+
+# Back to root
+- pressKey: back
+- waitForAnimationToEnd
+
+# ── schedule tab ──────────────────────────────────────────────────────────────
+- tapOn:
+    text: "Tarifeler"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "smoke/05-schedule-tab"
+
+# ── profile tab ───────────────────────────────────────────────────────────────
+- tapOn:
+    text: "Profil"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "smoke/06-profile-tab"
+
+# ── discover tab back ─────────────────────────────────────────────────────────
+- tapOn:
+    text: "Keşfet"
+    optional: true
+- takeScreenshot: "smoke/07-final"

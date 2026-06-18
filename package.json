@@ -9,7 +9,13 @@
     "ios": "expo start --ios",
     "build:ios": "eas build --platform ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "e2e:screenshots": "bash scripts/e2e/screenshot-matrix.sh",
+    "e2e:screenshots:critical": "bash scripts/e2e/screenshot-matrix.sh --priority critical",
+    "e2e:screenshots:se": "bash scripts/e2e/screenshot-matrix.sh --filter iphone-se",
+    "e2e:maestro": "bash scripts/e2e/run-maestro-matrix.sh",
+    "e2e:maestro:critical": "bash scripts/e2e/run-maestro-matrix.sh --priority critical",
+    "e2e:maestro:smoke": "bash scripts/e2e/run-maestro-matrix.sh --flows 'e2e/flows/00-smoke.yaml'"
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",

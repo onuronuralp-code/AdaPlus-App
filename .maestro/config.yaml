@@ -1,0 +1,12 @@
+# Maestro workspace configuration
+# https://maestro.mobile.dev/reference/configuration
+flows:
+  - e2e/flows/*.yaml
+
+# Global screenshot output directory (relative to project root)
+# Per-flow screenshots go to e2e/maestro-results/<timestamp>/<device>/<flow>/screenshots/
+screenshotPath: e2e/maestro-results/latest
+
+# Execution settings
+executionOrder:
+  continueOnFailure: true   # Run remaining flows even if one fails

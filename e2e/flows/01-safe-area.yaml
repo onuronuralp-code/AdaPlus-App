@@ -1,0 +1,104 @@
+# 01-safe-area.yaml
+# Safe-area and layout regression test.
+# Checks that key UI elements are not obscured by the notch, Dynamic Island,
+# home-bar region, or tab-bar on any device size.
+#
+# This flow captures screenshots at the moments most likely to reveal clipping:
+#   - Header text on the explore screen (top inset risk)
+#   - Tab bar labels (bottom inset risk)
+#   - Modal bottom sheet (keyboard + safe-area interaction)
+#   - Forum post creation (multi-line input stretching)
+appId: com.onurx.ADA
+---
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd:
+    timeout: 6000
+
+# ── 1. Tab bar visibility (bottom safe area) ──────────────────────────────────
+- takeScreenshot: "safe-area/01-tab-bar-baseline"
+
+# Scroll down on explore to confirm tab bar stays visible and doesn't overlap content
+- scroll:
+    direction: DOWN
+    duration: 800
+- takeScreenshot: "safe-area/02-tab-bar-after-scroll"
+- scroll:
+    direction: UP
+    duration: 400
+
+# ── 2. Enter an island — header + back button (top safe area) ─────────────────
+- tapOn:
+    text: "Büyükada"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "safe-area/03-island-header-top"
+
+# Scroll down to check content doesn't clip under tab or navbar
+- scroll:
+    direction: DOWN
+    duration: 1200
+- takeScreenshot: "safe-area/04-island-scrolled"
+- pressKey: back
+- waitForAnimationToEnd
+
+# ── 3. Forum screen — list + FAB position ────────────────────────────────────
+- tapOn:
+    text: "Büyükada"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "Topluluk"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: "safe-area/05-forum-list"
+
+# Scroll forum list to check FlatList items don't bleed under tab bar
+- scroll:
+    direction: DOWN
+    duration: 1500
+- takeScreenshot: "safe-area/06-forum-scrolled"
+
+# ── 4. Open create-post modal — keyboard + bottom sheet inset ────────────────
+- tapOn:
+    id: "fab-create-post"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "safe-area/07-create-post-modal"
+
+# Tap into text field to trigger keyboard
+- tapOn:
+    text: "Neler anlatmak istersin?"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+- takeScreenshot: "safe-area/08-keyboard-visible"
+
+# Dismiss
+- pressKey: back
+- waitForAnimationToEnd
+
+# ── 5. Listings modal — price + contact fields (narrow device squeeze) ────────
+- pressKey: back
+- waitForAnimationToEnd
+- tapOn:
+    text: "İlanlar"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: "safe-area/09-ilanlar-list"
+
+# Tap FAB to open create listing modal
+- tapOn:
+    id: "fab-create-listing"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "safe-area/10-create-listing-modal-top"
+- scroll:
+    direction: DOWN
+    duration: 1000
+- takeScreenshot: "safe-area/11-create-listing-modal-bottom"
+- pressKey: back
+- waitForAnimationToEnd
+- takeScreenshot: "safe-area/12-final"

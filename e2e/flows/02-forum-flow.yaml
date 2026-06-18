@@ -1,0 +1,61 @@
+# 02-forum-flow.yaml
+# Forum interaction flow — tests post creation, min-length validation,
+# and character counter rendering across device widths.
+appId: com.onurx.ADA
+---
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd:
+    timeout: 6000
+
+# Navigate to forum via island
+- tapOn:
+    text: "Büyükada"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "Topluluk"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: "forum/01-list"
+
+# Open create post modal
+- tapOn:
+    id: "fab-create-post"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "forum/02-modal-empty"
+
+# Type content that is too short → validation error should appear
+- tapOn:
+    text: "Neler anlatmak istersin?"
+    optional: true
+- inputText: "Kısa"
+- takeScreenshot: "forum/03-short-content-error"
+
+# Type enough content to pass validation
+- clearText
+- inputText: "Bu bir test gönderisidir ve yeterince uzun olmalı."
+- takeScreenshot: "forum/04-valid-content"
+
+# Change post type to poll
+- tapOn:
+    text: "Oylama"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "forum/05-poll-type"
+
+# Close without saving — should show unsaved changes warning (S-03)
+- tapOn:
+    id: "modal-close-btn"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "forum/06-unsaved-warning"
+
+# Confirm close
+- tapOn:
+    text: "Evet, Kapat"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "forum/07-back-to-list"

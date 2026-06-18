@@ -47,3 +47,8 @@ ada-plus-backend/
 
 # env
 .env
+
+# E2E test artifacts (screenshots and results are large binary/generated files)
+e2e/screenshots/
+e2e/maestro-results/
+scripts/e2e/__pycache__/

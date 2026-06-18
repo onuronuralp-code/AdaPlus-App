@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "bundleId": "com.onurx.ADA",
+    "expoGoAppId": "host.exp.Exponent",
+    "defaultDevServer": "http://127.0.0.1:8081",
+    "screenshotDir": "e2e/screenshots"
+  },
+  "devices": {
+    "ios": [
+      {
+        "name": "iPhone SE 3rd Gen",
+        "tag": "iphone-se",
+        "udid": "05BB3CB8-5E99-4032-8A18-0976B3464602",
+        "os": "iOS 18.2",
+        "widthPt": 375,
+        "heightPt": 667,
+        "safeAreaTop": 20,
+        "safeAreaBottom": 0,
+        "hasHomeButton": true,
+        "notchType": "none",
+        "priority": "critical",
+        "notes": "Narrowest viewport — most prone to text clipping and overflow"
+      },
+      {
+        "name": "iPhone 16e",
+        "tag": "iphone-16e",
+        "udid": "1FCE9C98-18D8-4462-95D7-71E1634297F4",
+        "os": "iOS 26.0",
+        "widthPt": 375,
+        "heightPt": 667,
+        "safeAreaTop": 44,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "notch",
+        "priority": "critical",
+        "notes": "375pt width with notch — squeeze test for SE-class width + modern insets"
+      },
+      {
+        "name": "iPhone 16",
+        "tag": "iphone-16",
+        "udid": "1E620769-D70C-45ED-BED8-F3B301B6E2B7",
+        "os": "iOS 18.2",
+        "widthPt": 390,
+        "heightPt": 844,
+        "safeAreaTop": 59,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "dynamicIsland",
+        "priority": "standard",
+        "notes": "Baseline standard device"
+      },
+      {
+        "name": "iPhone 16 Pro",
+        "tag": "iphone-16-pro",
+        "udid": "24C11B36-85BD-4BB9-846C-1080D4B325FF",
+        "os": "iOS 18.2",
+        "widthPt": 393,
+        "heightPt": 852,
+        "safeAreaTop": 59,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "dynamicIsland",
+        "priority": "standard",
+        "notes": "Pro model — slightly wider than 16"
+      },
+      {
+        "name": "iPhone 16 Plus",
+        "tag": "iphone-16-plus",
+        "udid": "EA50B6FF-E9A0-4C0D-89E3-3B660010BF8E",
+        "os": "iOS 18.2",
+        "widthPt": 430,
+        "heightPt": 932,
+        "safeAreaTop": 59,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "dynamicIsland",
+        "priority": "standard",
+        "notes": "Max-width phone — check for excessive whitespace or centering"
+      },
+      {
+        "name": "iPhone 16 Pro Max",
+        "tag": "iphone-16-pro-max",
+        "udid": "F20A1255-F2E8-4C6A-91A1-F9373FA12F82",
+        "os": "iOS 18.2",
+        "widthPt": 430,
+        "heightPt": 932,
+        "safeAreaTop": 59,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "dynamicIsland",
+        "priority": "standard",
+        "notes": "Largest phone — same width as Plus but taller"
+      },
+      {
+        "name": "iPhone 17 Pro",
+        "tag": "iphone-17-pro",
+        "udid": "949BFDBC-23E8-47FA-88F4-0A90510724D7",
+        "os": "iOS 26.0",
+        "widthPt": 393,
+        "heightPt": 852,
+        "safeAreaTop": 59,
+        "safeAreaBottom": 34,
+        "hasHomeButton": false,
+        "notchType": "dynamicIsland",
+        "priority": "standard",
+        "notes": "Latest OS — verify iOS 26 safe area changes"
+      },
+      {
+        "name": "iPad mini A17 Pro",
+        "tag": "ipad-mini",
+        "udid": "BA910DB3-B566-4080-86E4-BF81AA7A9172",
+        "os": "iOS 18.2",
+        "widthPt": 744,
+        "heightPt": 1133,
+        "safeAreaTop": 24,
+        "safeAreaBottom": 20,
+        "hasHomeButton": false,
+        "notchType": "none",
+        "priority": "standard",
+        "notes": "Tablet viewport — check for layout stretching or fixed widths breaking"
+      }
+    ],
+    "android": [
+      {
+        "name": "Pixel 8",
+        "tag": "pixel-8",
+        "avdName": "Pixel_8_API_34",
+        "widthPt": 393,
+        "heightPt": 851,
+        "safeAreaTop": 32,
+        "safeAreaBottom": 16,
+        "priority": "standard",
+        "notes": "Create AVD via: avdmanager create avd -n Pixel_8_API_34 -k 'system-images;android-34;google_apis;x86_64'"
+      },
+      {
+        "name": "Samsung Galaxy S23 (reference)",
+        "tag": "galaxy-s23",
+        "avdName": "Galaxy_S23_API_34",
+        "widthPt": 393,
+        "heightPt": 851,
+        "safeAreaTop": 35,
+        "safeAreaBottom": 16,
+        "priority": "standard",
+        "notes": "No official Samsung AVD — use Pixel_8 as proxy (same resolution class)"
+      }
+    ]
+  }
+}
