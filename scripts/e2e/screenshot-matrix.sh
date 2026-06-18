@@ -68,7 +68,7 @@ mkdir -p "$OUTPUT_DIR"
 
 # ── check dev server (expo-go mode) ──────────────────────────────────────────
 if [[ "$MODE" == "expo-go" ]]; then
-  if ! curl -sf "$DEV_SERVER" -o /dev/null --max-time 3; then
+  if ! curl -sf "$DEV_SERVER/status" -o /dev/null --max-time 3; then
     warn "Expo dev server not detected at $DEV_SERVER"
     warn "Start it first: npx expo start --localhost"
     warn "Continuing anyway — screenshots may show a blank screen."
@@ -169,11 +169,12 @@ for device in devices:
     # 2. Launch app
     print(f"  ▶  Launching app ({MODE})…")
     if MODE == "expo-go":
-        # Open the dev server URL in Expo Go
-        expo_url = f"exp+ada://expo-development-client/?url={DEV_SERVER}"
+        # Build URLs without backslash in f-string expressions (unsupported pre-Python 3.12)
+        server_host = DEV_SERVER.replace("http://", "").replace("https://", "")
+        expo_url = "exp+ada://expo-development-client/?url=" + DEV_SERVER
         run(f"xcrun simctl openurl {udid} '{expo_url}'", check=False)
-        # Fallback: open as standard exp:// URL
-        run(f"xcrun simctl openurl {udid} 'exp://{DEV_SERVER.replace(\"http://\",\"\")}'", check=False)
+        # Fallback: plain exp:// URL works when Expo Go is installed on the simulator
+        run(f"xcrun simctl openurl {udid} 'exp://{server_host}'", check=False)
     else:
         # Dev build — app must already be installed
         run(f"xcrun simctl launch {udid} {BUNDLE_ID}", check=False)
