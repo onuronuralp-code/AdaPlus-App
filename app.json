@@ -21,6 +21,7 @@
       }
     },
     "android": {
+      "package": "com.onurx.ADA",
       "adaptiveIcon": {
         "backgroundColor": "#D84A35",
         "foregroundImage": "./assets/images/icon.png",
