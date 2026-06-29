@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { contactApi } from '@/services/contactApi';
 
 export default function ContactScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const { user } = useAuth();
@@ -21,14 +21,14 @@ export default function ContactScreen() {
 
   const validateName = (name: string): string | undefined => {
     const trimmed = name.trim();
-    if (!trimmed) return 'Ad Soyad alanı boş bırakılamaz.';
+    if (!trimmed) return t('contact.errNameEmpty', { defaultValue: i18n.language.startsWith('en') ? 'Full name cannot be empty.' : 'Ad Soyad alanı boş bırakılamaz.' });
     return undefined;
   };
 
   const validateEmail = (mail: string): string | undefined => {
     const trimmed = mail.trim();
-    if (!trimmed) return 'E-posta adresi boş bırakılamaz.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Geçerli bir e-posta adresi giriniz.';
+    if (!trimmed) return t('contact.errEmailEmpty', { defaultValue: i18n.language.startsWith('en') ? 'Email cannot be empty.' : 'E-posta adresi boş bırakılamaz.' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return t('contact.errEmailInvalid', { defaultValue: i18n.language.startsWith('en') ? 'Please enter a valid email.' : 'Geçerli bir e-posta adresi giriniz.' });
     return undefined;
   };
 
@@ -59,7 +59,7 @@ export default function ContactScreen() {
   const handleSubmit = async () => {
     const nameError = validateName(fullName);
     const emailError = validateEmail(email);
-    const messageError = message.trim().length < 10 ? 'Lütfen en az 10 karakterlik bir mesaj giriniz.' : undefined;
+    const messageError = message.trim().length < 10 ? t('contact.errMessageShort', { defaultValue: i18n.language.startsWith('en') ? 'Please enter at least 10 characters.' : 'Lütfen en az 10 karakterlik bir mesaj giriniz.' }) : undefined;
     
     setTouched({ fullName: true, email: true });
     setErrors({ fullName: nameError, email: emailError, message: messageError });
@@ -69,12 +69,12 @@ export default function ContactScreen() {
     setIsSubmitting(true);
     try {
       await contactApi.send({ fullName: fullName.trim(), email: email.trim(), message: message.trim() });
-      Alert.alert('Başarılı ✓', 'Mesajınız başarıyla gönderildi!');
+      Alert.alert(t('common.success', { defaultValue: i18n.language.startsWith('en') ? 'Success ✓' : 'Başarılı ✓' }), t('contact.successMsg', { defaultValue: i18n.language.startsWith('en') ? 'Your message has been sent successfully!' : 'Mesajınız başarıyla gönderildi!' }));
       setMessage('');
       setTouched({});
       setErrors({});
     } catch (e: any) {
-      Alert.alert('Hata', e.message || 'Mesaj gönderilirken bir hata oluştu.');
+      Alert.alert(t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }), e.message || t('contact.errMsg', { defaultValue: i18n.language.startsWith('en') ? 'An error occurred while sending your message.' : 'Mesaj gönderilirken bir hata oluştu.' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -101,7 +101,7 @@ export default function ContactScreen() {
               <IconSymbol name="info.circle.fill" size={18} color="#3B82F6" />
             </View>
             <Text style={styles.infoBannerText}>
-              {t('common.contactSubtitle', { defaultValue: 'Görüş ve önerileriniz bizim için değerli.' })}
+              {t('common.contactSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Your feedback and suggestions are valuable to us.' : 'Görüş ve önerileriniz bizim için değerli.' })}
             </Text>
           </View>
 
@@ -110,12 +110,12 @@ export default function ContactScreen() {
 
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{t('common.fullName', { defaultValue: 'AD SOYAD' })}</Text>
+              <Text style={styles.inputLabel}>{t('common.fullName', { defaultValue: i18n.language.startsWith('en') ? 'FULL NAME' : 'AD SOYAD' })}</Text>
               <View style={[styles.inputWrapper, errors.fullName ? styles.inputWrapperError : null]}>
                 <IconSymbol name="person.fill" size={18} color={errors.fullName ? '#EF4444' : '#94A3B8'} />
                 <TextInput
                   style={styles.input}
-                  placeholder={t('common.fullNamePlaceholder', { defaultValue: 'Ad Soyad' })}
+                  placeholder={t('common.fullNamePlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'Full Name' : 'Ad Soyad' })}
                   placeholderTextColor="#CBD5E1"
                   value={fullName}
                   onChangeText={handleNameChange}
@@ -131,12 +131,12 @@ export default function ContactScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{t('common.email', { defaultValue: 'E-POSTA ADRESİ' })}</Text>
+              <Text style={styles.inputLabel}>{t('common.email', { defaultValue: i18n.language.startsWith('en') ? 'EMAIL ADDRESS' : 'E-POSTA ADRESİ' })}</Text>
               <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
                 <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                 <TextInput
                   style={styles.input}
-                  placeholder={t('common.emailPlaceholder', { defaultValue: 'ornek@eposta.com' })}
+                  placeholder={t('common.emailPlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'example@email.com' : 'ornek@eposta.com' })}
                   placeholderTextColor="#CBD5E1"
                   value={email}
                   onChangeText={handleEmailChange}
@@ -154,11 +154,11 @@ export default function ContactScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{t('common.message', { defaultValue: 'MESAJINIZ' })}</Text>
+              <Text style={styles.inputLabel}>{t('common.message', { defaultValue: i18n.language.startsWith('en') ? 'YOUR MESSAGE' : 'MESAJINIZ' })}</Text>
               <View style={[styles.inputWrapper, styles.textAreaWrapper, errors.message ? styles.inputWrapperError : null]}>
                 <TextInput
                   style={[styles.input, styles.textArea]}
-                  placeholder={t('common.messagePlaceholder', { defaultValue: 'Nasıl yardımcı olabiliriz?' })}
+                  placeholder={t('common.messagePlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'How can we help you?' : 'Nasıl yardımcı olabiliriz?' })}
                   placeholderTextColor="#CBD5E1"
                   value={message}
                   onChangeText={setMessage}
@@ -192,7 +192,7 @@ export default function ContactScreen() {
               ) : (
                 <>
                   <IconSymbol name="paperplane.fill" size={20} color="#fff" />
-                  <Text style={styles.submitButtonText}>{t('common.send', { defaultValue: 'Gönder' })}</Text>
+                  <Text style={styles.submitButtonText}>{t('common.send', { defaultValue: i18n.language.startsWith('en') ? 'Send' : 'Gönder' })}</Text>
                 </>
               )}
             </LinearGradient>

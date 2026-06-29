@@ -27,7 +27,7 @@ const TABS: { key: ProfileTab; label: string; icon: string; color: string }[] = 
 ];
 
 export default function ProfileScreen() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const insets = useSafeAreaInsets();
     const router = useRouter();
     const { logout, user, isLoggedIn } = useAuth();
@@ -378,7 +378,13 @@ export default function ProfileScreen() {
                                     activeOpacity={0.7}
                                 >
                                     <IconSymbol name={tab.icon as any} size={16} color={isActive ? '#fff' : tab.color} />
-                                    <Text style={[styles.tabLabel, isActive && { color: '#fff' }]}>{tab.label}</Text>
+                                    <Text style={[styles.tabLabel, isActive && { color: '#fff' }]}>
+                                        {t(`profile.tabs.${tab.key}`, { 
+                                            defaultValue: i18n.language.startsWith('en') 
+                                                ? (tab.key === 'posts' ? 'Posts' : tab.key === 'replies' ? 'Replies' : tab.key === 'notifications' ? 'Notifications' : tab.key === 'listings' ? 'Listings' : tab.key === 'events' ? 'Events' : 'Likes') 
+                                                : tab.label 
+                                        })}
+                                    </Text>
                                 </TouchableOpacity>
                             );
                         })}

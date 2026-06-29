@@ -533,8 +533,8 @@ export default function ForumScreen() {
                 ListEmptyComponent={!isLoading ? (
                     <EmptyState 
                         icon="bubble.left.and.bubble.right" 
-                        title="Henüz Gönderi Yok" 
-                        subtitle="Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!"
+                        title={t('forum.emptyTitle', { defaultValue: i18n.language.startsWith('en') ? 'No Posts Yet' : 'Henüz Gönderi Yok' })}
+                        subtitle={t('forum.emptySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Would you like to send the first message to the community? Share something now!' : 'Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!' })}
                         color="#10B981"
                         style={{ marginTop: -140 }}
                     />
@@ -572,7 +572,7 @@ export default function ForumScreen() {
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
                         <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
-                            <Text style={styles.modalTitle}>{t('forum.createPost', { defaultValue: 'YENİ GÖNDERİ' })}</Text>
+                            <Text style={styles.modalTitle}>{t('forum.createPost', { defaultValue: i18n.language.startsWith('tr') ? 'YENİ GÖNDERİ' : 'NEW POST' })}</Text>
                         </View>
                         <TouchableOpacity 
                             onPress={handleCreatePost} 
@@ -588,7 +588,7 @@ export default function ForumScreen() {
                     </View>
                     <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                         <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>ADANIZI SEÇİN (LOKASYON)</Text>
+                            <Text style={styles.inputLabel}>{t('forum.islandSelection', { defaultValue: i18n.language.startsWith('en') ? 'SELECT ISLAND (LOCATION)' : 'ADANIZI SEÇİN (LOKASYON)' })}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
                                 {islands.map(island => (
                                     <TouchableOpacity 
@@ -602,7 +602,7 @@ export default function ForumScreen() {
                             </ScrollView>
                         </View>
                         <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>GÖNDERİ TİPİ</Text>
+                            <Text style={styles.inputLabel}>{t('forum.postType', { defaultValue: i18n.language.startsWith('en') ? 'POST TYPE' : 'GÖNDERİ TİPİ' })}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
                                 {postTypes.map(type => (
                                     <TouchableOpacity 
@@ -617,10 +617,10 @@ export default function ForumScreen() {
                         </View>
                         <View style={styles.writeOptionsDivider} />
                         <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>{newPostType === 'poll' ? 'ANKET BAŞLIĞI' : 'MESAJINIZ'}</Text>
+                            <Text style={styles.inputLabel}>{newPostType === 'poll' ? t('forum.pollTitle', { defaultValue: i18n.language.startsWith('en') ? 'POLL TITLE' : 'ANKET BAŞLIĞI' }) : t('forum.yourMessage', { defaultValue: i18n.language.startsWith('en') ? 'YOUR MESSAGE' : 'MESAJINIZ' })}</Text>
                             <TextInput
                                 style={[styles.premiumTextInput, newPostType === 'poll' && { minHeight: 60, padding: 16 }]}
-                                placeholder={newPostType === 'poll' ? 'Oylama sorunuzu buraya yazın...' : t('forum.whatsOnYourMind', { defaultValue: 'Neler anlatmak istersin?' })}
+                                placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'Write your poll question here...' : 'Oylama sorunuzu buraya yazın...' }) : t('forum.whatsOnYourMind', { defaultValue: i18n.language.startsWith('tr') ? 'Neler anlatmak istersin?' : 'What would you like to share?' })}
                                 placeholderTextColor="#CBD5E1"
                                 multiline={newPostType !== 'poll'}
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
@@ -656,7 +656,7 @@ export default function ForumScreen() {
                                         onPress={pickImage}
                                     >
                                         <IconSymbol name="photo.fill" size={28} color="#94A3B8" />
-                                        <Text style={[styles.addPhotoText, { color: '#94A3B8', fontSize: 14 }]}>Fotoğraf Ekle (Opsiyonel)</Text>
+                                        <Text style={[styles.addPhotoText, { color: '#94A3B8', fontSize: 14 }]}>{t('forum.addPhoto', { defaultValue: i18n.language.startsWith('tr') ? 'Fotoğraf Ekle (Opsiyonel)' : 'Add Photo (Optional)' })}</Text>
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -664,12 +664,12 @@ export default function ForumScreen() {
                         {newPostType === 'poll' && (
                             <>
                             <View style={styles.formSection}>
-                                <Text style={styles.inputLabel}>SEÇENEKLER</Text>
+                                <Text style={styles.inputLabel}>{t('forum.options', { defaultValue: i18n.language.startsWith('en') ? 'OPTIONS' : 'SEÇENEKLER' })}</Text>
                                 {pollOptions.map((opt, index) => (
                                     <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                                         <TextInput
                                             style={[styles.premiumTextInput, { flex: 1, minHeight: 50, padding: 15, fontSize: 16 }]}
-                                            placeholder={`Seçenek ${index + 1}`}
+                                            placeholder={t('forum.optionPlaceholder', { defaultValue: i18n.language.startsWith('en') ? `Option ${index + 1}` : `Seçenek ${index + 1}` })}
                                             placeholderTextColor="#CBD5E1"
                                             value={opt}
                                             onChangeText={(text) => {
@@ -701,7 +701,7 @@ export default function ForumScreen() {
                                 )}
                             </View>
                             <View style={styles.formSection}>
-                                <Text style={styles.inputLabel}>ANKET SÜRESİ</Text>
+                                <Text style={styles.inputLabel}>{t('forum.pollDuration', { defaultValue: i18n.language.startsWith('en') ? 'POLL DURATION' : 'ANKET SÜRESİ' })}</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
                                     {[
                                         { value: 1, label: '1 Saat' },
@@ -731,8 +731,8 @@ export default function ForumScreen() {
                                     {isAnonymous && <IconSymbol name="checkmark" size={14} color="#fff" />}
                                 </View>
                                 <View>
-                                    <Text style={styles.anonLabel}>Anonim Olarak Paylaş</Text>
-                                    <Text style={styles.anonSubtext}>İsminiz ve profiliniz gizlenecektir.</Text>
+                                    <Text style={styles.anonLabel}>{t('forum.shareAnonymously', { defaultValue: i18n.language.startsWith('tr') ? 'Anonim Olarak Paylaş' : 'Share Anonymously' })}</Text>
+                                    <Text style={styles.anonSubtext}>{t('forum.anonymousDesc', { defaultValue: i18n.language.startsWith('tr') ? 'İsminiz ve profiliniz gizlenecektir.' : 'Your name and profile will be hidden.' })}</Text>
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -862,8 +862,8 @@ export default function ForumScreen() {
                             ) : (
                                 <EmptyState 
                                     icon="bubble.left.and.bubble.right" 
-                                    title="Henüz Yorum Yok" 
-                                    subtitle="İlk yorumu sen yaparak tartışmaya katıl!"
+                                    title={t('forum.noComments', { defaultValue: i18n.language.startsWith('en') ? 'No Comments Yet' : 'Henüz Yorum Yok' })}
+                                    subtitle={t('forum.firstComment', { defaultValue: i18n.language.startsWith('en') ? 'Be the first to comment and join the discussion!' : 'İlk yorumu sen yaparak tartışmaya katıl!' })}
                                     color="#10B981"
                                     compact={true}
                                 />
@@ -991,7 +991,7 @@ export default function ForumScreen() {
                         </View>
                         <TouchableOpacity style={styles.addPhotoBtn}>
                             <IconSymbol name="camera.fill" size={24} color="#64748B" />
-                            <Text style={styles.addPhotoText}>Fotoğraf Ekle</Text>
+                            <Text style={styles.addPhotoText}>{t('forum.addPhotoSimple', { defaultValue: i18n.language.startsWith('tr') ? 'Fotoğraf Ekle' : 'Add Photo' })}</Text>
                         </TouchableOpacity>
                     </ScrollView>
                 </KeyboardAvoidingView>

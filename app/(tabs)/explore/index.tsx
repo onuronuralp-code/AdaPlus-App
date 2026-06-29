@@ -171,7 +171,7 @@ export default function MainMenuScreen() {
                 icon="tag.fill"
                 colors={['#3B82F6', '#2563EB']}
                 title={t('common.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}
-                subtitle={t('common.ilanlarSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Jobs, Housing, Services' : 'İş, Emlak, Hizmet' })}
+                subtitle={t('common.ilanlarSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Real Estate & Services' : 'İş, Emlak, Hizmet' })}
                 onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
                 style={{ marginRight: 6 }}
                 large={isLargeScreen}
@@ -198,8 +198,8 @@ export default function MainMenuScreen() {
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
               colors={['#10B981', '#059669']}
-              title={t('common.agoraForum', { defaultValue: 'Agora Forum' })}
-              subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Engage with the community' : 'Toplulukla etkileşime geç' })}
+              title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
+              subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas, and make the island a better place' : 'Ada gündemine hakim ol, fikrini diğer adalılarla paylaş, ada daha güzel bir yer olsun' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
             />
