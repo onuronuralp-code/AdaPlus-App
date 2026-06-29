@@ -43,14 +43,7 @@ export default function SplashScreen() {
         </Text>
       </View>
 
-      <View style={[styles.dots, { bottom: insets.bottom + 32 }]}>
-        {[0, 1, 2].map((i) => (
-          <View
-            key={i}
-            style={[styles.dot, i === 0 ? styles.dotOn : styles.dotOff]}
-          />
-        ))}
-      </View>
+
     </SafeAreaView>
   );
 }

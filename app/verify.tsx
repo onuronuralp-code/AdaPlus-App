@@ -120,7 +120,7 @@ export default function VerifyScreen() {
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <View style={[styles.branding, { paddingTop: insets.top + 60 }]}>
+                <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
                     <View style={styles.logoCircle}>
                         <IconSymbol name="envelope.fill" size={36} color="#3B82F6" />
                     </View>

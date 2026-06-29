@@ -301,12 +301,12 @@ export default function IlanlarScreen() {
         }}
       >
         <LinearGradient
-          colors={['#64748B', '#475569']}
+          colors={['#ffffff', '#ffffff']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.fabGradient}
         >
-          <IconSymbol name="plus" size={32} color="#fff" />
+          <IconSymbol name="plus" size={32} color="#3B82F6" />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -384,7 +384,7 @@ export default function IlanlarScreen() {
                     <MaterialCommunityIcons 
                       name={cat.icon as any} 
                       size={20} 
-                      color={adCat === cat.id ? '#fff' : '#64748B'} 
+                      color={adCat === cat.id ? '#3B82F6' : '#64748B'} 
                     />
                     <Text style={[styles.adCatText, adCat === cat.id && styles.activeAdCatText]}>{cat.label}</Text>
                   </TouchableOpacity>
@@ -613,8 +613,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   activeTabItem: {
-    backgroundColor: '#0F172A',
-    borderColor: '#0F172A',
+    backgroundColor: '#1E293B',
+    borderColor: '#1E293B',
     shadowOpacity: 0.1,
   },
   tabLabel: {
@@ -751,19 +751,21 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
+    bottom: 20,
     width: 64,
     height: 64,
     borderRadius: 32,
-    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    elevation: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
   },
   fabGradient: {
     width: '100%',
     height: '100%',
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -818,7 +820,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   publishButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#3B82F6',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
@@ -873,8 +875,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   activeAdCat: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#F59E0B',
+    backgroundColor: '#F0F9FF',
+    borderColor: '#3B82F6',
   },
   adCatText: {
     fontSize: 13,
@@ -882,7 +884,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   activeAdCatText: {
-    color: '#fff',
+    color: '#3B82F6',
   },
   addPhotoBtn: {
     marginTop: 10,

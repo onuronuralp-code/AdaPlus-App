@@ -436,15 +436,28 @@ export default function ForumScreen() {
                             >
                                 <IconSymbol
                                     name={item.isLiked ? "heart.fill" : "heart"}
-                                    size={14}
+                                    size={15}
                                     color={item.isLiked || item.likeCount > 0 ? "#EF4444" : "#94A3B8"}
                                 />
-                                <Text style={[styles.interactionCount, (item.isLiked || item.likeCount > 0) && { color: "#EF4444" }]}>{item.likeCount}</Text>
+                                <Text style={[styles.interactionCount, (item.isLiked || item.likeCount > 0) && { color: "#EF4444" }]}>
+                                    {item.likeCount > 0 ? item.likeCount : ''}
+                                </Text>
                             </TouchableOpacity>
-                            <View style={styles.chatInteraction}>
-                                <IconSymbol name="bubble.left.fill" size={12} color="#94A3B8" />
-                                <Text style={styles.interactionCount}>{item.replyCount}</Text>
-                            </View>
+                            <TouchableOpacity 
+                                style={styles.chatInteraction}
+                                onPress={() => {
+                                    if (!isLoggedIn) {
+                                        router.push('/login');
+                                    } else {
+                                        openPostDetails(item);
+                                    }
+                                }}
+                            >
+                                <IconSymbol name="bubble.left" size={14} color="#94A3B8" />
+                                <Text style={styles.interactionCount}>
+                                    {item.replyCount > 0 ? `${item.replyCount} • Cevap Ver` : 'Cevap Ver'}
+                                </Text>
+                            </TouchableOpacity>
                         </View>
                         <Text style={styles.chatTime}>{formatTime(item.createdAt)}</Text>
                     </View>
@@ -528,7 +541,7 @@ export default function ForumScreen() {
                 ) : null}
             />
             <TouchableOpacity 
-                style={[styles.fab, { bottom: insets.bottom + 20 }]} 
+                style={[styles.fab, { bottom: 20 }]} 
                 onPress={() => {
                     if (!isLoggedIn) {
                         router.push('/login');
@@ -539,29 +552,12 @@ export default function ForumScreen() {
                 activeOpacity={0.85}
             >
                 <LinearGradient
-                    colors={['#10B981', '#059669']}
+                    colors={['#ffffff', '#ffffff']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.fabGradient}
                 >
-                    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                        <IconSymbol 
-                            name="pencil" 
-                            size={24} 
-                            color="#FFFFFF" 
-                            style={{ transform: [{ rotate: '-10deg' }, { translateX: 2 }] }}
-                        />
-                        <View 
-                            style={{ 
-                                width: 22, 
-                                height: 2, 
-                                backgroundColor: 'rgba(255,255,255,0.4)', 
-                                borderRadius: 1.5,
-                                marginTop: -1,
-                                marginLeft: -2,
-                             }} 
-                        />
-                    </View>
+                    <IconSymbol name="plus" size={32} color="#3B82F6" />
                 </LinearGradient>
             </TouchableOpacity>
             <Modal
@@ -571,7 +567,7 @@ export default function ForumScreen() {
                 onRequestClose={handleCloseWriteModal}
             >
                 <View style={styles.modalContainer}>
-                    <View style={[styles.modalHeader, { paddingTop: insets.top > 0 ? insets.top : 16 }]}>
+                    <View style={[styles.modalHeader, { paddingTop: 16 }]}>
                         <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
@@ -826,11 +822,15 @@ export default function ForumScreen() {
                                     <View style={styles.interactionGroup}>
                                         <TouchableOpacity style={[styles.interactionPill, (selectedPost.isLiked || selectedPost.likeCount > 0) && { backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} onPress={() => toggleLike(selectedPost.id)}>
                                             <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={(selectedPost.isLiked || selectedPost.likeCount > 0) ? getTagColor(selectedPost.authorUserType) : "#64748B"} />
-                                            <Text style={[styles.interactionCount, (selectedPost.isLiked || selectedPost.likeCount > 0) && { color: getTagColor(selectedPost.authorUserType) }]}>{selectedPost.likeCount}</Text>
+                                            <Text style={[styles.interactionCount, (selectedPost.isLiked || selectedPost.likeCount > 0) && { color: getTagColor(selectedPost.authorUserType) }]}>
+                                                {selectedPost.likeCount > 0 ? `${selectedPost.likeCount} Beğeni` : 'Beğen'}
+                                            </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.interactionPill}>
                                             <IconSymbol name="bubble.left.fill" size={20} color="#64748B" />
-                                            <Text style={styles.interactionCount}>{selectedPost.replyCount}</Text>
+                                            <Text style={styles.interactionCount}>
+                                                {selectedPost.replyCount > 0 ? `${selectedPost.replyCount} Yanıt` : 'Cevap Ver'}
+                                            </Text>
                                         </TouchableOpacity>
                                     </View>
                                     <TouchableOpacity 
@@ -1012,7 +1012,7 @@ export default function ForumScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#FFFFFF',
     },
     header: {
         flexDirection: 'row',
@@ -1071,8 +1071,8 @@ const styles = StyleSheet.create({
         borderColor: '#F1F5F9',
     },
     activeTabItem: {
-        backgroundColor: '#0F172A',
-        borderColor: '#0F172A',
+        backgroundColor: '#1E293B',
+        borderColor: '#1E293B',
         shadowOpacity: 0.1,
     },
     tabLabel: {
@@ -1106,22 +1106,14 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     postWrapper: {
-        marginBottom: 16,
-        paddingHorizontal: 12,
-        alignItems: 'flex-start',
+        width: '100%',
     },
     bubbleContainer: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 24,
-        borderTopLeftRadius: 4,
         padding: 16,
-        paddingHorizontal: 20,
         width: '100%',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 12,
-        elevation: 3,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#E2E8F0',
     },
     bubbleHeader: {
         flexDirection: 'row',
@@ -1257,19 +1249,21 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 20,
+        bottom: 20,
         width: 64,
         height: 64,
         borderRadius: 32,
-        overflow: 'hidden',
-        elevation: 8,
-        shadowColor: '#10B981',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
+        backgroundColor: '#FFFFFF',
+        elevation: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
     },
     fabGradient: {
         width: '100%',
         height: '100%',
+        borderRadius: 32,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -1375,8 +1369,8 @@ const styles = StyleSheet.create({
         borderColor: '#E2E8F0',
     },
     activeChip: {
-        backgroundColor: '#EC4899',
-        borderColor: '#EC4899',
+        backgroundColor: '#1E293B',
+        borderColor: '#1E293B',
     },
     chipText: {
         fontSize: 14,
@@ -1409,7 +1403,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     activeAdCat: {
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#1E293B',
     },
     adCatText: {
         fontSize: 14,
@@ -1564,7 +1558,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     activePremiumPublishBtn: {
-        backgroundColor: '#EC4899',
+        backgroundColor: '#3B82F6',
     },
     premiumPublishText: {
         color: '#FFFFFF',
@@ -1605,12 +1599,12 @@ const styles = StyleSheet.create({
         borderColor: '#F1F5F9',
     },
     activeWriteChip: {
-        backgroundColor: '#10B981',
-        borderColor: '#10B981',
+        backgroundColor: '#F0F9FF',
+        borderColor: '#3B82F6',
     },
     activeWriteChipPink: {
-        backgroundColor: '#EC4899',
-        borderColor: '#EC4899',
+        backgroundColor: '#F0F9FF',
+        borderColor: '#3B82F6',
     },
     writeChipText: {
         fontSize: 13,
@@ -1618,10 +1612,10 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     activeWriteChipText: {
-        color: '#FFFFFF',
+        color: '#3B82F6',
     },
     activeWriteChipPinkText: {
-        color: '#FFFFFF',
+        color: '#3B82F6',
     },
     writeToolbar: {
         flexDirection: 'row',

@@ -182,7 +182,7 @@ export default function ContactScreen() {
         <View style={styles.footer}>
           <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={styles.submitButtonWrapper} disabled={isSubmitting}>
             <LinearGradient
-              colors={['#3B82F6', '#2563EB']} 
+              colors={['#10B981', '#059669']} 
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.submitButton}
@@ -206,7 +206,7 @@ export default function ContactScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', 
+    backgroundColor: '#F8FAFC', 
   },
   header: {
     flexDirection: 'row',
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingBottom: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#F8FAFC',
   },
   headerTitle: {
     fontSize: 24,
@@ -335,9 +335,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 24,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
   },
   submitButtonWrapper: {
     // marginBottom removed to use footer padding
@@ -349,7 +347,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    shadowColor: '#3B82F6',
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 20,

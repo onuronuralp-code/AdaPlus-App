@@ -165,13 +165,13 @@ export default function MainMenuScreen() {
             </View>
           </View>
 
-          <View style={styles.cardsContainer}>
-            <View style={[styles.gridRow, { height: gridCardHeight }, isSmallScreen && { marginBottom: 8 }]}>
+          <View style={[styles.cardsContainer, { gap: isSmallScreen ? 8 : 12 }]}>
+            <View style={[styles.gridRow, { height: gridCardHeight }]}>
               <GridCard
                 icon="tag.fill"
                 colors={['#3B82F6', '#2563EB']}
                 title={t('common.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}
-                subtitle={t('common.ilanlarSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Jobs, Real Estate, Services' : 'İş, Emlak, Hizmet' })}
+                subtitle={t('common.ilanlarSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Jobs, Housing, Services' : 'İş, Emlak, Hizmet' })}
                 onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
                 style={{ marginRight: 6 }}
                 large={isLargeScreen}
@@ -193,7 +193,7 @@ export default function MainMenuScreen() {
               subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
               onPress={() => router.push('/guide')}
               large={isLargeScreen}
-              style={isSmallScreen ? { marginBottom: 8 } : undefined}
+              style={{ marginTop: 8 }}
             />
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
@@ -202,7 +202,6 @@ export default function MainMenuScreen() {
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Engage with the community' : 'Toplulukla etkileşime geç' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
-              style={isSmallScreen ? { marginBottom: 8 } : undefined}
             />
           </View>
         </View>
@@ -241,7 +240,7 @@ function MenuCard({ icon, color, accentLight, title, subtitle, onPress, style, c
 
   if (colors) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[style, { marginBottom: 12 }]}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={style}>
         <LinearGradient
           colors={colors}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -254,7 +253,7 @@ function MenuCard({ icon, color, accentLight, title, subtitle, onPress, style, c
   }
 
   return (
-    <TouchableOpacity style={[styles.card, { padding: cardPadding }, style, { marginBottom: 12 }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.card, { padding: cardPadding }, style]} onPress={onPress} activeOpacity={0.7}>
       {content}
     </TouchableOpacity>
   );
@@ -276,8 +275,8 @@ function GridCard({ icon, color, accentLight, title, subtitle, onPress, style, c
       <View style={[styles.gridIconContainer, { backgroundColor: colors ? 'rgba(255,255,255,0.2)' : color }, large && { width: 50, height: 50, borderRadius: 14 }]}>
         <IconSymbol name={icon as any} size={large ? 28 : 24} color="#fff" />
       </View>
-      <Text style={[styles.gridCardTitle, large && { fontSize: 17 }, colors && { color: '#fff' }]} numberOfLines={1} adjustsFontSizeToFit>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 17 }, colors && { color: 'rgba(255,255,255,0.8)' }]} numberOfLines={1}>{subtitle}</Text>
+      <Text style={[styles.gridCardTitle, large && { fontSize: 20 }, colors && { color: '#fff' }]}>{title}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 15, lineHeight: 22 }, colors && { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={1}>{subtitle}</Text>
     </>
   );
 
@@ -551,7 +550,6 @@ const styles = StyleSheet.create({
   gridRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
   gridCard: {
     flex: 1,
@@ -584,17 +582,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gridCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#0D1B2A',
-    marginBottom: 2,
+    marginBottom: 4,
     textAlign: 'center',
   },
   gridCardSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     color: '#778DA9',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 18,
   },
 
   langIconBox: {

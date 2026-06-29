@@ -131,10 +131,9 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
-                    <Image
-                        source={require('@/assets/images/icon.png')}
-                        style={styles.logoCircle}
-                    />
+                    <View style={styles.logoCircle}>
+                        <IconSymbol name="person.fill" size={36} color="#fff" />
+                    </View>
                     <Text style={styles.welcomeTitle}>{isForgotPassword ? t('auth.resetTitle') : t('auth.loginTitle')}</Text>
                     <Text style={styles.welcomeSubtitle}>
                         {isForgotPassword 
@@ -235,7 +234,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     branding: { alignItems: 'center' },
-    logoCircle: { width: 72, height: 72, borderRadius: 36, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
+    logoCircle: { width: 72, height: 72, borderRadius: 36, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
     welcomeTitle: { fontSize: 24, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },
     welcomeSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
     cardContainer: { flex: 1, backgroundColor: '#fff', marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 24 },

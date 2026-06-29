@@ -467,13 +467,36 @@ function TripTripCard({ item, onPress, isNext, t, i18n }: any) {
 }
 
 function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, title, t }: any) {
+    const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+    useEffect(() => {
+        if (visible) {
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            slideAnim.setValue(Dimensions.get('window').height);
+        }
+    }, [visible]);
+
+    const handleClose = () => {
+        Animated.timing(slideAnim, {
+            toValue: Dimensions.get('window').height,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(() => onClose());
+    };
+
     return (
-        <Modal visible={visible} transparent animationType="slide">
+        <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalBg}>
-                <View style={styles.sheet}>
+                <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleClose} />
+                <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
                     <View style={styles.sheetHeader}>
                         <Text style={styles.sheetTitle}>{title}</Text>
-                        <TouchableOpacity onPress={onClose}><IconSymbol name="xmark.circle.fill" size={28} color="#F1F5F9" /></TouchableOpacity>
+                        <TouchableOpacity onPress={handleClose}><IconSymbol name="xmark.circle.fill" size={28} color="#F1F5F9" /></TouchableOpacity>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
                         <View style={styles.sheetSectionHeader}>
@@ -494,7 +517,7 @@ function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, t
                                             selected === l && styles.islandGridItemActive,
                                             isDisabled && styles.locationDisabled
                                         ]} 
-                                        onPress={() => { onSelect(l); onClose(); }}
+                                        onPress={() => { onSelect(l); handleClose(); }}
                                     >
                                         <Text style={[
                                             styles.islandGridText, 
@@ -525,7 +548,7 @@ function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, t
                                             selected === l && styles.mainlandListItemActive,
                                             isDisabled && styles.locationDisabled
                                         ]} 
-                                        onPress={() => { onSelect(l); onClose(); }}
+                                        onPress={() => { onSelect(l); handleClose(); }}
                                     >
                                         <Text style={[
                                             styles.mainlandListText, 
@@ -538,7 +561,7 @@ function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, t
                             })}
                         </View>
                     </ScrollView>
-                </View>
+                </Animated.View>
             </View>
         </Modal>
     );
@@ -632,7 +655,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  headerContainer: { paddingHorizontal: 20, paddingBottom: 24 },
+  headerContainer: { paddingHorizontal: 20, paddingBottom: 24, zIndex: 10 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   headerTitles: { flex: 1 },
   headerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },

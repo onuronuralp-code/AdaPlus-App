@@ -245,12 +245,12 @@ export default function EventsScreen() {
                 }}
             >
                 <LinearGradient
-                    colors={['#64748B', '#475569']}
+                    colors={['#ffffff', '#ffffff']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.fabGradient}
                 >
-                    <IconSymbol name="plus" size={32} color="#fff" />
+                    <IconSymbol name="plus" size={32} color="#3B82F6" />
                 </LinearGradient>
             </TouchableOpacity>
 
@@ -538,19 +538,21 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 20,
+        bottom: 20,
         width: 64,
         height: 64,
         borderRadius: 32,
-        overflow: 'hidden',
-        elevation: 8,
-        shadowColor: '#F59E0B',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
+        backgroundColor: '#FFFFFF',
+        elevation: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
     },
     fabGradient: {
         width: '100%',
         height: '100%',
+        borderRadius: 32,
         alignItems: 'center',
         justifyContent: 'center',
     },
