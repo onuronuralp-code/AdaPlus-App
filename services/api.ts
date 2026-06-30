@@ -177,8 +177,6 @@ export const createActivity = async (
   request: CreateActivityRequest,
 ): Promise<AppActivityDto | null> => {
   try {
-    // We should ideally use fetchWithAuth here if activities require authentication
-    // but the file doesn't import it. We'll use a plain fetch for now.
     const token = getToken();
     if (!token) {
       console.warn("No JWT token found. Aborting activity creation.");
@@ -186,7 +184,7 @@ export const createActivity = async (
     }
     const response = await fetch(ACTIVITIES_API_BASE_URL, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
@@ -197,6 +195,44 @@ export const createActivity = async (
   } catch (error) {
     console.error("Failed to create activity:", error);
     triggerNetworkError();
+    return null;
+  }
+};
+
+export const deleteActivity = async (id: string): Promise<boolean> => {
+  try {
+    const token = getToken();
+    if (!token) return false;
+    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Failed to delete activity:", error);
+    return false;
+  }
+};
+
+export const updateActivity = async (
+  id: string,
+  request: Partial<CreateActivityRequest>,
+): Promise<AppActivityDto | null> => {
+  try {
+    const token = getToken();
+    if (!token) return null;
+    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to update activity:", error);
     return null;
   }
 };
