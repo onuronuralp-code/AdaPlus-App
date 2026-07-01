@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
+    Alert,
     Dimensions,
     Modal,
     ScrollView,
@@ -15,6 +16,7 @@ import {
     Animated,
     Platform,
 } from "react-native";
+import * as Notifications from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AnimatedRE, { FadeInDown, Layout } from 'react-native-reanimated';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -366,6 +368,7 @@ export function FerrySchedule() {
             });
           }}
           status={getTrackingStatus(selectedTrip, selectedDate)}
+          selectedDate={selectedDate}
           t={t} i18n={i18n}
         />
       )}
@@ -597,7 +600,10 @@ function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, t
     );
 }
 
-function TripDetailPopup({ trip, onClose, onTrack, status, i18n, t }: any) {
+function TripDetailPopup({ trip, onClose, onTrack, status, i18n, t, selectedDate }: any) {
+    const [showAlarmOptions, setShowAlarmOptions] = useState(false);
+    const [alarmSet, setAlarmSet] = useState<number | null>(null);
+
     const timeline = React.useMemo(() => {
         if (!trip.via || trip.via.length === 0) return [];
         let tt: { stop: string; time: string }[] = [];
@@ -615,6 +621,84 @@ function TripDetailPopup({ trip, onClose, onTrack, status, i18n, t }: any) {
         return tt;
     }, [trip]);
 
+    const scheduleAlarm = async (minutesBefore: number) => {
+        try {
+            const { status: permStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = permStatus;
+            if (permStatus !== 'granted') {
+                const { status: asked } = await Notifications.requestPermissionsAsync();
+                finalStatus = asked;
+            }
+            if (finalStatus !== 'granted') {
+                Alert.alert(
+                    i18n.language === 'tr' ? 'İzin Gerekli' : 'Permission Required',
+                    i18n.language === 'tr' ? 'Alarm kurabilmek için bildirim izni vermeniz gerekmektedir.' : 'Notification permission is required to set alarms.'
+                );
+                return;
+            }
+
+            // Calculate the departure Date object
+            const [depH, depM] = trip.departureTime.split(':').map(Number);
+            const departureDate = new Date(selectedDate || new Date());
+            departureDate.setHours(depH, depM, 0, 0);
+
+            // Subtract minutesBefore
+            const alarmDate = new Date(departureDate.getTime() - minutesBefore * 60 * 1000);
+
+            // Check if alarm time is in the past
+            if (alarmDate.getTime() <= Date.now()) {
+                Alert.alert(
+                    i18n.language === 'tr' ? 'Geçmiş Zaman' : 'Past Time',
+                    i18n.language === 'tr' 
+                        ? 'Bu alarm zamanı zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için alarm kurun.'
+                        : 'This alarm time has already passed. Choose a shorter duration or set an alarm for a future trip.'
+                );
+                return;
+            }
+
+            const routeLabel = `${t('places.' + trip.departure, { defaultValue: trip.departure })} → ${t('places.' + trip.destination, { defaultValue: trip.destination })}`;
+            const alarmLabel = minutesBefore < 60 
+                ? (i18n.language === 'tr' ? `${minutesBefore} dakika` : `${minutesBefore} minutes`)
+                : (i18n.language === 'tr' ? `${minutesBefore / 60} saat` : `${minutesBefore / 60} hour${minutesBefore > 60 ? 's' : ''}`);
+
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: i18n.language === 'tr' ? `🚢 Sefer Hatırlatması` : `🚢 Ferry Reminder`,
+                    body: i18n.language === 'tr'
+                        ? `${routeLabel} seferinize ${alarmLabel} kaldı! Kalkış: ${trip.departureTime}`
+                        : `${alarmLabel} until your ${routeLabel} trip! Departure: ${trip.departureTime}`,
+                    sound: true,
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.DATE,
+                    date: alarmDate,
+                },
+            });
+
+            setAlarmSet(minutesBefore);
+            setShowAlarmOptions(false);
+
+            Alert.alert(
+                i18n.language === 'tr' ? '⏰ Alarm Kuruldu' : '⏰ Alarm Set',
+                i18n.language === 'tr'
+                    ? `${trip.departureTime} seferinden ${alarmLabel} önce hatırlatma alacaksınız.`
+                    : `You will be reminded ${alarmLabel} before the ${trip.departureTime} departure.`
+            );
+        } catch (error) {
+            console.error('Failed to schedule alarm:', error);
+            Alert.alert(
+                i18n.language === 'tr' ? 'Hata' : 'Error',
+                i18n.language === 'tr' ? 'Alarm kurulurken bir hata oluştu.' : 'Failed to set the alarm.'
+            );
+        }
+    };
+
+    const ALARM_OPTIONS = [
+        { label: i18n.language === 'tr' ? '15 dk önce' : '15 min before', minutes: 15, icon: '⏱️' },
+        { label: i18n.language === 'tr' ? '30 dk önce' : '30 min before', minutes: 30, icon: '⏱️' },
+        { label: i18n.language === 'tr' ? '1 saat önce' : '1 hour before', minutes: 60, icon: '🕐' },
+    ];
+
     return (
         <Modal transparent animationType="fade">
             <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={onClose}>
@@ -630,9 +714,9 @@ function TripDetailPopup({ trip, onClose, onTrack, status, i18n, t }: any) {
                     </View>
                     
                     <View style={styles.popupTimes}>
-                        <View style={styles.pTimeCol}><Text style={styles.pTimeLab}>KALKIŞ</Text><Text style={styles.pTimeVal}>{trip.departureTime}</Text></View>
+                        <View style={styles.pTimeCol}><Text style={styles.pTimeLab}>{i18n.language === 'tr' ? 'KALKIŞ' : 'DEPARTURE'}</Text><Text style={styles.pTimeVal}>{trip.departureTime}</Text></View>
                         <IconSymbol name="arrow.right" size={20} color="#EA580C" />
-                        <View style={styles.pTimeCol}><Text style={styles.pTimeLab}>VARIŞ</Text><Text style={styles.pTimeVal}>{trip.arrivalTime || "--:--"}</Text></View>
+                        <View style={styles.pTimeCol}><Text style={styles.pTimeLab}>{i18n.language === 'tr' ? 'VARIŞ' : 'ARRIVAL'}</Text><Text style={styles.pTimeVal}>{trip.arrivalTime || "--:--"}</Text></View>
                     </View>
 
                     {timeline.length > 0 && (
@@ -675,11 +759,138 @@ function TripDetailPopup({ trip, onClose, onTrack, status, i18n, t }: any) {
                         </View>
                     )}
 
+                    {/* Alarm Section */}
+                    <View style={alarmStyles.alarmSection}>
+                        {!showAlarmOptions ? (
+                            <TouchableOpacity 
+                                style={[alarmStyles.alarmButton, alarmSet && alarmStyles.alarmButtonActive]} 
+                                onPress={() => setShowAlarmOptions(true)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={{ fontSize: 18 }}>{alarmSet ? '✅' : '⏰'}</Text>
+                                <Text style={[alarmStyles.alarmButtonText, alarmSet && alarmStyles.alarmButtonTextActive]}>
+                                    {alarmSet 
+                                        ? (i18n.language === 'tr' 
+                                            ? `Alarm kuruldu (${alarmSet < 60 ? alarmSet + ' dk' : alarmSet / 60 + ' saat'} önce)` 
+                                            : `Alarm set (${alarmSet < 60 ? alarmSet + ' min' : alarmSet / 60 + 'h'} before)`)
+                                        : (i18n.language === 'tr' ? 'Alarm Kur' : 'Set Alarm')
+                                    }
+                                </Text>
+                                {!alarmSet && <IconSymbol name="chevron.right" size={14} color="#EA580C" />}
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={alarmStyles.alarmOptionsContainer}>
+                                <Text style={alarmStyles.alarmOptionsTitle}>
+                                    {i18n.language === 'tr' ? 'Ne zaman hatırlatalım?' : 'When to remind you?'}
+                                </Text>
+                                {ALARM_OPTIONS.map((opt) => (
+                                    <TouchableOpacity 
+                                        key={opt.minutes} 
+                                        style={alarmStyles.alarmOption} 
+                                        onPress={() => scheduleAlarm(opt.minutes)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={{ fontSize: 16 }}>{opt.icon}</Text>
+                                        <Text style={alarmStyles.alarmOptionText}>{opt.label}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                                <TouchableOpacity 
+                                    style={alarmStyles.alarmCancelBtn} 
+                                    onPress={() => setShowAlarmOptions(false)}
+                                >
+                                    <Text style={alarmStyles.alarmCancelText}>
+                                        {i18n.language === 'tr' ? 'İptal' : 'Cancel'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+
                 </TouchableOpacity>
             </TouchableOpacity>
         </Modal>
     );
 }
+
+const alarmStyles = StyleSheet.create({
+    alarmSection: {
+        marginTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        paddingTop: 16,
+    },
+    alarmButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF7ED',
+        paddingVertical: 14,
+        paddingHorizontal: 18,
+        borderRadius: 14,
+        gap: 10,
+        borderWidth: 1,
+        borderColor: '#FDBA74',
+    },
+    alarmButtonActive: {
+        backgroundColor: '#ECFDF5',
+        borderColor: '#6EE7B7',
+    },
+    alarmButtonText: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#EA580C',
+    },
+    alarmButtonTextActive: {
+        color: '#059669',
+    },
+    alarmOptionsContainer: {
+        backgroundColor: '#FFFBF5',
+        borderRadius: 14,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+    },
+    alarmOptionsTitle: {
+        fontSize: 13,
+        fontWeight: '800',
+        color: '#92400E',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 12,
+    },
+    alarmOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 10,
+        marginBottom: 8,
+        gap: 10,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+        elevation: 1,
+    },
+    alarmOptionText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#0F172A',
+    },
+    alarmCancelBtn: {
+        alignItems: 'center',
+        paddingVertical: 10,
+        marginTop: 4,
+    },
+    alarmCancelText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#94A3B8',
+    },
+});
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

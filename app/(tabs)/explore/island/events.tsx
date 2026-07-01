@@ -106,17 +106,58 @@ export default function EventsScreen() {
         return d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
-    const pickImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.8,
+    const pickImage = () => {
+        const cameraAvailable = ImagePicker.getCameraPermissionsAsync !== undefined;
+        const options: any[] = [];
+
+        options.push({
+            text: t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }),
+            onPress: async () => {
+                try {
+                    const permission = await ImagePicker.requestCameraPermissionsAsync();
+                    if (!permission.granted) {
+                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
+                        return;
+                    }
+                    const result = await ImagePicker.launchCameraAsync({
+                        allowsEditing: true,
+                        aspect: [4, 3],
+                        quality: 0.8,
+                    });
+                    if (!result.canceled) {
+                        setSelectedImage(result.assets[0].uri);
+                    }
+                } catch (e: any) {
+                    Alert.alert(
+                        t('common.error', { defaultValue: 'Hata' }),
+                        t('common.cameraNotAvailable', { defaultValue: 'Kamera bu cihazda kullanılamıyor. Lütfen galeriden seçin.' })
+                    );
+                }
+            },
         });
 
-        if (!result.canceled) {
-            setSelectedImage(result.assets[0].uri);
-        }
+        options.push({
+            text: t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' }),
+            onPress: async () => {
+                const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ['images'],
+                    allowsEditing: true,
+                    aspect: [4, 3],
+                    quality: 0.8,
+                });
+                if (!result.canceled) {
+                    setSelectedImage(result.assets[0].uri);
+                }
+            },
+        });
+
+        options.push({ text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' });
+
+        Alert.alert(
+            t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
+            t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
+            options
+        );
     };
 
     const handlePublishEvent = async () => {
