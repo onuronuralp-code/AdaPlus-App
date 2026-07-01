@@ -4,7 +4,7 @@
         "chooseYourIsland": "Adanı seç",
         "tapToDiscover": "Keşfetmek için dokun",
         "exploreServices": "Adalardaki hizmetleri ve etkinlikleri keşfedin",
-        "ferrySchedule": "Vapur Saatleri",
+        "ferrySchedule": "Sefer Saatleri",
         "ferry": "Vapur",
         "motorboat": "Motor",
         "currentLang": "tr",
@@ -18,6 +18,9 @@
         "today": "Bugün",
         "directOnly": "Sadece direkt",
         "next": "SIRADAKİ",
+        "islands": "Adalar",
+        "mainland": "Anakara",
+        "findTickets": "Bilet Bul",
         "ecoFriendlyBus": "Elektrikli Otobüs",
         "stations": "Duraklar",
         "departureHours": "Kalkış Saatleri",
@@ -158,6 +161,26 @@
         "listingsLoadFailed": "İlanlar yüklenemedi. Lütfen tekrar deneyin.",
         "photoUploadFailed": "Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?",
         "listingCreateFailed": "İlan oluşturulamadı. Lütfen tekrar deneyin."
+    },
+    "forum": {
+        "role": {
+            "visitor": "Ziyaretçi",
+            "islander": "Adalı"
+        }
+    },
+    "profile": {
+        "emptyPostsTitle": "Henüz Paylaşım Yok",
+        "emptyPostsDesc": "Toplulukla fikirlerini paylaşmaya başla!",
+        "emptyRepliesTitle": "Henüz Yanıt Yok",
+        "emptyRepliesDesc": "Paylaşımlara yorum yaparak etkileşime geç!",
+        "emptyNotificationsTitle": "Bildirim Yok",
+        "emptyNotificationsDesc": "Etkinlik onayları ve gönderi yanıtları burada görünecek.",
+        "emptyListingsTitle": "Henüz İlan Yok",
+        "emptyListingsDesc": "İlk ilanınızı oluşturmak için İlanlar sayfasını ziyaret edin.",
+        "emptyActivitiesTitle": "Henüz Etkinlik Yok",
+        "emptyActivitiesDesc": "Oluşturduğunuz etkinlikler burada görünecek.",
+        "emptyLikesTitle": "Henüz Beğeni Yok",
+        "emptyLikesDesc": "Beğendiğiniz paylaşımlar burada görünecek."
     },
     "places": {
         "Kınalıada": "Kınalıada",

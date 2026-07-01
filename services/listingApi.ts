@@ -9,6 +9,8 @@ export enum ListingCategory {
   HIZMET = "HIZMET",
   IS_ILANI = "IS_ILANI",
   KAYIP = "KAYIP",
+  ESYA = "ESYA",
+  TASIT = "TASIT",
 }
 
 export interface ListingDto {
@@ -23,6 +25,7 @@ export interface ListingDto {
   contactInfo?: string;
   active: boolean;
   status?: string;
+  submittedById?: string;
   createdAt: string;
   updatedAt: string;
 }

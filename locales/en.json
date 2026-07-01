@@ -17,6 +17,9 @@
         "today": "Today",
         "directOnly": "Direct only",
         "next": "NEXT",
+        "islands": "Islands",
+        "mainland": "Mainland",
+        "findTickets": "Find Tickets",
         "ecoFriendlyBus": "Electric Bus",
         "stations": "Stations",
         "departureHours": "Departure Hours",
@@ -37,7 +40,7 @@
         "yourSmartGuide": "Your smart travel assistant for the islands",
         "guidedTours": "Your personal island AI companion",
         "agoraForum": "Community",
-        "shareExperiences": "Stay updated, share your ideas, and transform the island",
+        "shareExperiences": "Stay updated, share your ideas and transform the island",
         "error": "Error",
         "success": "Success",
         "cancel": "Cancel",
@@ -157,6 +160,26 @@
         "listingsLoadFailed": "Could not load listings. Please try again.",
         "photoUploadFailed": "Could not upload photo. Continue without photo?",
         "listingCreateFailed": "Could not create listing. Please try again."
+    },
+    "forum": {
+        "role": {
+            "visitor": "Visitor",
+            "islander": "Islander"
+        }
+    },
+    "profile": {
+        "emptyPostsTitle": "No Posts Yet",
+        "emptyPostsDesc": "Start sharing your thoughts with the community!",
+        "emptyRepliesTitle": "No Replies Yet",
+        "emptyRepliesDesc": "Interact by commenting on posts!",
+        "emptyNotificationsTitle": "No Notifications",
+        "emptyNotificationsDesc": "Event approvals and post replies will appear here.",
+        "emptyListingsTitle": "No Classifieds Yet",
+        "emptyListingsDesc": "Visit the Classifieds page to create your first listing.",
+        "emptyActivitiesTitle": "No Events Yet",
+        "emptyActivitiesDesc": "Events you create will appear here.",
+        "emptyLikesTitle": "No Likes Yet",
+        "emptyLikesDesc": "Posts you liked will appear here."
     },
     "places": {
         "Kınalıada": "Kinaliada",

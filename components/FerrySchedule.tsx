@@ -297,77 +297,14 @@ export function FerrySchedule() {
         </View>
       </View>
 
-      {showDatePicker && (
-        <Modal transparent animationType="slide" visible={showDatePicker}>
-          <TouchableOpacity 
-            style={styles.modalBg} 
-            activeOpacity={1} 
-            onPress={() => setShowDatePicker(false)}
-          >
-            <View style={styles.sheet}>
-                <View style={styles.sheetHeader}>
-                    <Text style={styles.sheetTitle}>{i18n.language === 'tr' ? "Tarife Seçimi" : "Select Schedule"}</Text>
-                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                        <IconSymbol name="xmark.circle.fill" size={28} color="#F1F5F9" />
-                    </TouchableOpacity>
-                </View>
-                
-                <View style={{ gap: 12, paddingBottom: 40 }}>
-                    <TouchableOpacity 
-                        style={[
-                            styles.scheduleOption, 
-                            (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) && styles.scheduleOptionActive
-                        ]} 
-                        onPress={() => handleScheduleTypeSelect('today')}
-                    >
-                        <View style={[styles.optionIconBox, { backgroundColor: '#ECFDF5' }]}>
-                            <IconSymbol name="clock.fill" size={20} color="#059669" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.optionTitle}>{i18n.language === 'tr' ? "Bugün" : "Today"}</Text>
-                            <Text style={styles.optionSub}>{i18n.language === 'tr' ? "Şu anki saatten itibaren kalkacak tüm seferler" : "All departures from the current time onwards"}</Text>
-                        </View>
-                        { (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) && <IconSymbol name="checkmark.circle.fill" size={24} color="#EA580C" />}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={[
-                            styles.scheduleOption, 
-                            (selectedDate.getDay() !== 0 && !isLiveMode) && styles.scheduleOptionActive
-                        ]} 
-                        onPress={() => handleScheduleTypeSelect('weekday')}
-                    >
-                        <View style={[styles.optionIconBox, { backgroundColor: '#F0F9FF' }]}>
-                            <IconSymbol name="briefcase.fill" size={20} color="#0284C7" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.optionTitle}>{i18n.language === 'tr' ? "Haftaiçi ve Cumartesi" : "Weekdays & Saturday"}</Text>
-                            <Text style={styles.optionSub}>{i18n.language === 'tr' ? "Ek seferler hariç genel tarife" : "General schedule excluding extra trips"}</Text>
-                        </View>
-                        {(selectedDate.getDay() !== 0 && !isLiveMode) && <IconSymbol name="checkmark.circle.fill" size={24} color="#EA580C" />}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={[
-                            styles.scheduleOption, 
-                            (selectedDate.getDay() === 0 && !isLiveMode) && styles.scheduleOptionActive
-                        ]} 
-                        onPress={() => handleScheduleTypeSelect('holiday')}
-                    >
-                        <View style={[styles.optionIconBox, { backgroundColor: '#FFF7ED' }]}>
-                            <IconSymbol name="sun.max.fill" size={20} color="#EA580C" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.optionTitle}>{i18n.language === 'tr' ? "Pazar ve Tatil Günleri" : "Sunday & Public Holidays"}</Text>
-                            <Text style={styles.optionSub}>{i18n.language === 'tr' ? "Tüm gün geçerli pazar tarifesi" : "Full Sunday schedule for all day"}</Text>
-                        </View>
-                        {(selectedDate.getDay() === 0 && !isLiveMode) && <IconSymbol name="checkmark.circle.fill" size={24} color="#EA580C" />}
-                    </TouchableOpacity>
-                </View>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      )}
+      <ScheduleDatePicker 
+        visible={showDatePicker} 
+        onClose={() => setShowDatePicker(false)} 
+        onSelect={handleScheduleTypeSelect} 
+        selectedDate={selectedDate} 
+        isLiveMode={isLiveMode} 
+        i18n={i18n} 
+      />
 
 
       {/* Body */}
@@ -466,6 +403,99 @@ function TripTripCard({ item, onPress, isNext, t, i18n }: any) {
     );
 }
 
+function ScheduleDatePicker({ visible, onClose, onSelect, selectedDate, isLiveMode, i18n }: any) {
+    const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+    useEffect(() => {
+        if (visible) {
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            slideAnim.setValue(Dimensions.get('window').height);
+        }
+    }, [visible]);
+
+    const handleClose = () => {
+        Animated.timing(slideAnim, {
+            toValue: Dimensions.get('window').height,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(() => onClose());
+    };
+
+    return (
+        <Modal visible={visible} transparent animationType="fade">
+            <View style={styles.modalBg}>
+                <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleClose} />
+                <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
+                    <View style={styles.sheetHeader}>
+                        <Text style={styles.sheetTitle}>{i18n.language === 'tr' ? "Tarife Seçimi" : "Select Schedule"}</Text>
+                        <TouchableOpacity onPress={handleClose}>
+                            <IconSymbol name="xmark.circle.fill" size={28} color="#F1F5F9" />
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <View style={{ gap: 12, paddingBottom: 40 }}>
+                        <TouchableOpacity 
+                            style={[
+                                styles.scheduleOption, 
+                                (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) && styles.scheduleOptionActive
+                            ]} 
+                            onPress={() => { onSelect('today'); handleClose(); }}
+                        >
+                            <View style={[styles.optionIconBox, { backgroundColor: '#ECFDF5' }]}>
+                                <IconSymbol name="clock.fill" size={20} color="#059669" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.optionTitle}>{i18n.language === 'tr' ? "Bugün" : "Today"}</Text>
+                                <Text style={styles.optionSub}>{i18n.language === 'tr' ? "Şu anki saatten itibaren kalkacak tüm seferler" : "All departures from the current time onwards"}</Text>
+                            </View>
+                            { (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) && <IconSymbol name="checkmark.circle.fill" size={24} color="#EA580C" />}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[
+                                styles.scheduleOption, 
+                                (selectedDate.getDay() !== 0 && !isLiveMode) && styles.scheduleOptionActive
+                            ]} 
+                            onPress={() => { onSelect('weekday'); handleClose(); }}
+                        >
+                            <View style={[styles.optionIconBox, { backgroundColor: '#F0F9FF' }]}>
+                                <IconSymbol name="briefcase.fill" size={20} color="#0284C7" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.optionTitle}>{i18n.language === 'tr' ? "Haftaiçi ve Cumartesi" : "Weekdays & Saturday"}</Text>
+                                <Text style={styles.optionSub}>{i18n.language === 'tr' ? "Ek seferler hariç genel tarife" : "General schedule excluding extra trips"}</Text>
+                            </View>
+                            {(selectedDate.getDay() !== 0 && !isLiveMode) && <IconSymbol name="checkmark.circle.fill" size={24} color="#EA580C" />}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[
+                                styles.scheduleOption, 
+                                (selectedDate.getDay() === 0 && !isLiveMode) && styles.scheduleOptionActive
+                            ]} 
+                            onPress={() => { onSelect('holiday'); handleClose(); }}
+                        >
+                            <View style={[styles.optionIconBox, { backgroundColor: '#FFF7ED' }]}>
+                                <IconSymbol name="sun.max.fill" size={20} color="#EA580C" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.optionTitle}>{i18n.language === 'tr' ? "Pazar ve Tatil Günleri" : "Sunday & Public Holidays"}</Text>
+                                <Text style={styles.optionSub}>{i18n.language === 'tr' ? "Tüm gün geçerli pazar tarifesi" : "Full Sunday schedule for all day"}</Text>
+                            </View>
+                            {(selectedDate.getDay() === 0 && !isLiveMode) && <IconSymbol name="checkmark.circle.fill" size={24} color="#EA580C" />}
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+            </View>
+        </Modal>
+    );
+}
+
 function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, title, t }: any) {
     const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
@@ -503,7 +533,7 @@ function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, t
                             <View style={[styles.sectionIconBox, { backgroundColor: '#FFF7ED' }]}>
                                 <IconSymbol name="beach.umbrella.fill" size={18} color="#EA580C" />
                             </View>
-                            <Text style={[styles.sheetSec, { color: '#EA580C' }]}>ADALAR</Text>
+                            <Text style={[styles.sheetSec, { color: '#EA580C' }]}>{t('common.islands').toUpperCase()}</Text>
                         </View>
                         <View style={styles.islandsGrid}>
                             {ISLANDS.map(l => {
@@ -534,7 +564,7 @@ function LocationPicker({ visible, onClose, onSelect, selected, otherSelected, t
                             <View style={[styles.sectionIconBox, { backgroundColor: '#F0F9FF' }]}>
                                 <IconSymbol name="building.2.fill" size={18} color="#0284C7" />
                             </View>
-                            <Text style={[styles.sheetSec, { color: '#0284C7' }]}>ANAKARA</Text>
+                            <Text style={[styles.sheetSec, { color: '#0284C7' }]}>{t('common.mainland').toUpperCase()}</Text>
                         </View>
                         <View style={styles.mainlandList}>
                             {MAINLAND.map(l => {

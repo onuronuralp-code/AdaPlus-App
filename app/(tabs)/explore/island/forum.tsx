@@ -23,7 +23,7 @@ export default function ForumScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, user } = useAuth();
 
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +54,7 @@ export default function ForumScreen() {
     const [adCategory, setAdCategory] = useState('eşya');
     const [selectedIsland, setSelectedIsland] = useState('Büyükada');
 
-    const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Sedef Adası'];
+    const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'];
 
     const adCategories = [
         { id: 'item', label: 'Eşya', icon: 'package-variant-closed' },
@@ -286,6 +286,31 @@ export default function ForumScreen() {
             setIsUploading(false);
         }
     };
+    const handleDeletePost = (postId: string) => {
+        Alert.alert(
+            t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
+            t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' }),
+            [
+                { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                { 
+                    text: t('common.delete', { defaultValue: 'Sil' }), 
+                    style: 'destructive',
+                    onPress: async () => {
+                        const success = await forumApi.deletePost(postId);
+                        if (success) {
+                            if (selectedPost?.id === postId) {
+                                setIsDetailModalVisible(false);
+                                setSelectedPost(null);
+                            }
+                            loadPosts(false);
+                        } else {
+                            Alert.alert("Hata", "Gönderi silinirken bir sorun oluştu.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     const toggleLike = async (id: string) => {
         if (!isLoggedIn) {
@@ -354,8 +379,8 @@ export default function ForumScreen() {
         const tagColor = getTagColor(item.authorUserType);
         const authorName = item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' });
         const roleName = (item.authorUserType === UserType.RESIDENT || item.authorUserType === UserType.ISLAND_RESIDENT) 
-            ? t('forum.role.islander', { defaultValue: 'Adalı' }) 
-            : (item.authorUserType === UserType.ADMIN ? 'Admin' : t('forum.role.visitor', { defaultValue: 'Ziyaretçi' }));
+            ? t('forum.role.islander', { defaultValue: 'Islander' }) 
+            : (item.authorUserType === UserType.ADMIN ? 'Admin' : t('forum.role.visitor', { defaultValue: 'Visitor' }));
 
         return (
             <View style={styles.postWrapper}>
@@ -378,11 +403,18 @@ export default function ForumScreen() {
                                 <Text style={[styles.roleText, { color: tagColor }]}>{roleName}</Text>
                             </View>
                         </View>
-                        <View style={styles.islandBadge}>
-                            <IconSymbol name="mappin" size={10} color="#64748B" />
-                            <Text style={styles.islandBadgeText}>
-                                {t('places.' + getIslandName(item.island), { defaultValue: getIslandName(item.island) })}
-                            </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={styles.islandBadge}>
+                                <IconSymbol name="mappin" size={10} color="#64748B" />
+                                <Text style={styles.islandBadgeText}>
+                                    {t('places.' + getIslandName(item.island), { defaultValue: getIslandName(item.island) })}
+                                </Text>
+                            </View>
+                            {item.authorId === user?.id && (
+                                <TouchableOpacity onPress={() => handleDeletePost(item.id)} style={{ padding: 4, marginLeft: 8 }}>
+                                    <IconSymbol name="trash.fill" size={16} color="#EF4444" />
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
 
@@ -471,7 +503,7 @@ export default function ForumScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             <StatusBar barStyle="dark-content" />
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <TouchableOpacity onPress={() => router.replace('/(tabs)/explore')} style={styles.backButton}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
                 </TouchableOpacity>
                 <View style={styles.headerTitles}>
@@ -589,17 +621,17 @@ export default function ForumScreen() {
                     <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{t('forum.islandSelection', { defaultValue: i18n.language.startsWith('en') ? 'SELECT ISLAND (LOCATION)' : 'ADANIZI SEÇİN (LOKASYON)' })}</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
+                            <View style={styles.adCategoryRow}>
                                 {islands.map(island => (
                                     <TouchableOpacity 
                                         key={island} 
-                                        style={[styles.writeChip, selectedIsland === island && styles.activeWriteChipPink]}
+                                        style={[styles.adCatItem, selectedIsland === island && styles.activeAdCat]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.writeChipText, selectedIsland === island && styles.activeWriteChipPinkText]}>{island}</Text>
+                                        <Text style={[styles.adCatText, selectedIsland === island && styles.activeAdCatText]}>{island}</Text>
                                     </TouchableOpacity>
                                 ))}
-                            </ScrollView>
+                            </View>
                         </View>
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{t('forum.postType', { defaultValue: i18n.language.startsWith('en') ? 'POST TYPE' : 'GÖNDERİ TİPİ' })}</Text>
@@ -772,11 +804,23 @@ export default function ForumScreen() {
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                                 <Text style={styles.authorName}>{selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' })}</Text>
                                                 <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
-                                                    <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>{selectedPost.authorUserType || 'VISITOR'}</Text>
+                                                    <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>
+                                                        {(() => {
+                                                            const type = selectedPost.authorUserType;
+                                                            if (type === UserType.RESIDENT || type === UserType.ISLAND_RESIDENT) return t('forum.role.islander', { defaultValue: 'Islander' });
+                                                            if (type === UserType.ADMIN) return 'Admin';
+                                                            return t('forum.role.visitor', { defaultValue: 'Visitor' });
+                                                        })()}
+                                                    </Text>
                                                 </View>
                                             </View>
                                             <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
                                         </View>
+                                        {selectedPost.authorId === user?.id && (
+                                            <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ padding: 8 }}>
+                                                <IconSymbol name="trash.fill" size={20} color="#EF4444" />
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 </View>
                                 <Text style={styles.detailContentText}>{selectedPost.content}</Text>

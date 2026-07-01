@@ -37,6 +37,7 @@ export interface PollOptionDto {
 
 export interface PostDto {
   id: string;
+  authorId?: string;
   authorName?: string;
   authorUserType?: UserType;
   content: string;
@@ -277,5 +278,20 @@ export const fetchUserLikes = async (userId: string): Promise<PostDto[]> => {
     return data.content || [];
   } catch {
     return [];
+  }
+};
+export const deletePost = async (id: string): Promise<boolean> => {
+  try {
+    const token = await getToken();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/posts/${id}`, {
+      method: "DELETE",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Failed to delete post:", error);
+    return false;
   }
 };

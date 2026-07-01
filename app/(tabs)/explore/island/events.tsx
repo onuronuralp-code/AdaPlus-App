@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { fetchActivities, createActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
+import { fetchActivities, createActivity, updateActivity, getActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
 import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
@@ -25,6 +25,30 @@ export default function EventsScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+
+    const params = useLocalSearchParams();
+    
+    useEffect(() => {
+        if (params.editActivityId && typeof params.editActivityId === 'string') {
+            const id = params.editActivityId;
+            setEditingActivityId(id);
+            getActivity(id).then(act => {
+                if (act) {
+                    setNewEventName(act.name);
+                    setStartDate(new Date(act.startDate));
+                    if (act.endDate) setEndDate(new Date(act.endDate));
+                    if (act.eventPlace) setNewEventLocation(act.eventPlace);
+                    setNewEventDetails(act.description);
+                    setOrganizerName(act.organizerName);
+                    if (act.organizerContact) setContactNumber(act.organizerContact);
+                    if (act.instagramLink) setSocialLink(act.instagramLink);
+                    if (act.imageUrl) setSelectedImage(act.imageUrl);
+                    setIsAddModalVisible(true);
+                }
+            });
+        }
+    }, [params.editActivityId]);
     
     // Form States
     const [newEventName, setNewEventName] = useState('');
@@ -108,8 +132,8 @@ export default function EventsScreen() {
 
         setIsUploading(true);
         try {
-            let imageUrl = undefined;
-            if (selectedImage) {
+            let imageUrl = selectedImage;
+            if (selectedImage && !selectedImage.startsWith('http')) {
                 const uploaded = await mediaApi.uploadImage(selectedImage);
                 if (!uploaded) {
                     Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?', [
@@ -148,10 +172,14 @@ export default function EventsScreen() {
             imageUrl: imageUrl,
         };
 
-        const createdActivity = await createActivity(request);
-        if (!createdActivity) throw new Error('create failed');
+        const resultActivity = editingActivityId 
+            ? await updateActivity(editingActivityId, request)
+            : await createActivity(request);
+            
+        if (!resultActivity) throw new Error('operation failed');
 
         setIsAddModalVisible(false);
+        setEditingActivityId(null);
         setNewEventName('');
         setStartDate(new Date());
         setEndDate(new Date());
@@ -163,8 +191,11 @@ export default function EventsScreen() {
         setSelectedImage(null);
         Alert.alert(
             t('common.success', { defaultValue: 'Başarılı' }),
-            t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+            editingActivityId 
+                ? t('common.eventUpdated', { defaultValue: 'Etkinlik başarıyla güncellendi.' })
+                : t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
         );
+        loadEvents(true);
     };
 
     return (
@@ -172,8 +203,14 @@ export default function EventsScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.navigate('/(tabs)/explore')}>
-                    <IconSymbol name="chevron.left" size={24} color="#000" />
+                <TouchableOpacity style={styles.backButton} onPress={() => {
+                    if (router.canGoBack()) {
+                        router.back();
+                    } else {
+                        router.replace('/(tabs)/explore');
+                    }
+                }}>
+                    <IconSymbol name="chevron.left" size={24} color="#1E293B" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('common.events')}</Text>
             </View>
@@ -181,7 +218,7 @@ export default function EventsScreen() {
             <ScrollView
                 style={styles.content}
                 contentContainerStyle={[
-                    { paddingBottom: 100 },
+                    { paddingBottom: 20 },
                     (loading || events.length === 0) && { flex: 1 }
                 ]}
                 showsVerticalScrollIndicator={false}
@@ -266,12 +303,20 @@ export default function EventsScreen() {
                 >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
-                            <TouchableOpacity onPress={() => setIsAddModalVisible(false)} style={styles.modalHeaderButton}>
-                                <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: i18n.language.startsWith('en') ? 'CANCEL' : 'İPTAL' })}</Text>
+                            <TouchableOpacity 
+                                style={styles.modalHeaderButton} 
+                                onPress={() => {
+                                    setIsAddModalVisible(false);
+                                    if (editingActivityId) {
+                                        setEditingActivityId(null);
+                                    }
+                                }}
+                            >
+                                <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: 'İPTAL' })}</Text>
                             </TouchableOpacity>
                         </View>
                         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={styles.modalTitle} numberOfLines={1}>{t('events.newEvent', { defaultValue: i18n.language.startsWith('en') ? 'NEW EVENT' : 'YENİ ETKİNLİK' })}</Text>
+                            <Text style={styles.modalTitle} numberOfLines={1}>{editingActivityId ? 'Etkinliği Düzenle' : t('events.newEvent', { defaultValue: i18n.language.startsWith('en') ? 'NEW EVENT' : 'YENİ ETKİNLİK' })}</Text>
                         </View>
                         <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
@@ -282,7 +327,7 @@ export default function EventsScreen() {
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={styles.publishText}>{t('common.publish', { defaultValue: i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA' })}</Text>
+                                    <Text style={styles.publishText}>{editingActivityId ? 'Güncelle' : t('common.publish', { defaultValue: i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA' })}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

@@ -1,5 +1,5 @@
 import { triggerNetworkError } from "@/context/NetworkContext";
-import { API_BASE_URL as BASE } from "./config";
+import { API_BASE_URL as BASE, fetchWithTimeout } from "./config";
 import { getToken } from "@/utils/tokenStorage";
 export { triggerNetworkError };
 
@@ -101,6 +101,7 @@ export interface AppActivityDto {
   instagramLink?: string;
   imageUrl?: string;
   status?: string;
+  submittedById?: string;
   rsvpCount?: number;
   userHasRsvp?: boolean;
 }
@@ -112,6 +113,33 @@ export interface RsvpResponse {
 
 const ACTIVITIES_API_BASE_URL = `${BASE}/api/v1/activities`;
 
+export const fetchListings = async (): Promise<AppListingDto[]> => {
+  try {
+    const response = await fetch(LISTINGS_API_BASE_URL);
+    if (!response.ok) throw new Error("Listings fetch error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch listings:", error);
+    triggerNetworkError();
+    return [];
+  }
+};
+
+export const getListing = async (id: string): Promise<AppListingDto | null> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(`${LISTINGS_API_BASE_URL}/${id}`, { headers });
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch listing:', error);
+    triggerNetworkError();
+    return null;
+  }
+};
+
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
     const response = await fetch(ACTIVITIES_API_BASE_URL);
@@ -119,6 +147,18 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch activities:", error);
+    triggerNetworkError();
+    return [];
+  }
+};
+
+export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppActivityDto[]> => {
+  try {
+    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
+    if (!response.ok) throw new Error("Upcoming activities fetch error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch upcoming activities:", error);
     triggerNetworkError();
     return [];
   }
@@ -173,6 +213,42 @@ export const toggleActivityRsvp = async (id: string): Promise<RsvpResponse | nul
   }
 };
 
+export const fetchMyListings = async (): Promise<AppListingDto[]> => {
+  try {
+    const token = getToken();
+    if (!token) return [];
+    const response = await fetch(`${LISTINGS_API_BASE_URL}/my`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("My listings fetch error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch my listings:", error);
+    return [];
+  }
+};
+
+export const updateListing = async (id: string, request: CreateListingRequest): Promise<AppListingDto | null> => {
+  try {
+    const token = getToken();
+    if (!token) return null;
+    const response = await fetch(`${LISTINGS_API_BASE_URL}/${id}`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) throw new Error("Listing update error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to update listing:", error);
+    triggerNetworkError();
+    return null;
+  }
+};
+
 export const createActivity = async (
   request: CreateActivityRequest,
 ): Promise<AppActivityDto | null> => {
@@ -199,6 +275,30 @@ export const createActivity = async (
   }
 };
 
+export const updateActivity = async (
+  id: string,
+  request: Partial<CreateActivityRequest>,
+): Promise<AppActivityDto | null> => {
+  try {
+    const token = getToken();
+    if (!token) return null;
+    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) throw new Error("Activity update error");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to update activity:", error);
+    triggerNetworkError();
+    return null;
+  }
+};
+
 export const deleteActivity = async (id: string): Promise<boolean> => {
   try {
     const token = getToken();
@@ -211,28 +311,5 @@ export const deleteActivity = async (id: string): Promise<boolean> => {
   } catch (error) {
     console.error("Failed to delete activity:", error);
     return false;
-  }
-};
-
-export const updateActivity = async (
-  id: string,
-  request: Partial<CreateActivityRequest>,
-): Promise<AppActivityDto | null> => {
-  try {
-    const token = getToken();
-    if (!token) return null;
-    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(request),
-    });
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to update activity:", error);
-    return null;
   }
 };

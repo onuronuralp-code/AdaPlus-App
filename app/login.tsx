@@ -16,6 +16,7 @@ export default function LoginScreen() {
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -174,14 +175,17 @@ export default function LoginScreen() {
                             <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
                                 <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
-                                    style={styles.input} 
+                                    style={[styles.input, { flex: 1 }]} 
                                     placeholder={t('auth.passwordPlaceholder')}
                                     placeholderTextColor="#94A3B8"
-                                    secureTextEntry
+                                    secureTextEntry={!showPassword}
                                     value={password}
                                     onChangeText={handlePasswordChange}
                                     onBlur={handlePasswordBlur}
                                 />
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                                    <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
+                                </TouchableOpacity>
                             </View>
                             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                         </View>

@@ -18,6 +18,7 @@ import { ListingDto, ListingCategory } from '@/services/listingApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
+import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/services/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -36,6 +37,7 @@ export default function IlanDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   
   const [listing, setListing] = React.useState<ListingDto | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -73,7 +75,7 @@ export default function IlanDetailScreen() {
         <TouchableOpacity
           onPress={() => loadError
             ? listingApi.getListing(id as string).then(d => d && (setListing(d), setLoadError(false))).catch(() => {})
-            : router.navigate('/(tabs)/explore/island/ilanlar')}
+            : (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore/island/ilanlar'))}
           style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 }}
         >
           <Text style={{ color: '#3B82F6', fontWeight: '700' }}>{loadError ? 'Tekrar Dene' : 'Geri Dön'}</Text>
@@ -102,7 +104,10 @@ export default function IlanDetailScreen() {
     <View style={styles.container}>
       {/* Header Overlay */}
       <View style={[styles.headerActions, { top: insets.top + 10 }]}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => router.navigate('/(tabs)/explore/island/ilanlar')}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)/explore/island/ilanlar');
+        }}>
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton}>
@@ -110,21 +115,21 @@ export default function IlanDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
-        {/* Hero Section / Image Placeholder */}
-        <View style={styles.imagePlaceholder}>
-          <LinearGradient
-            colors={[cfg.bg, '#fff']}
-            style={StyleSheet.absoluteFill}
-          />
-          {listing.imageUrl ? (
-            <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-          ) : (
-            <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />
-          )}
-        </View>
+      {/* Hero Section / Image Placeholder (Fixed) */}
+      <View style={styles.imagePlaceholder}>
+        <LinearGradient
+          colors={[cfg.bg, '#fff']}
+          style={StyleSheet.absoluteFill}
+        />
+        {listing.imageUrl ? (
+          <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        ) : (
+          <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />
+        )}
+      </View>
 
-        <View style={styles.content}>
+      <ScrollView style={{ flex: 1, marginTop: 0 }} showsVerticalScrollIndicator={false} bounces={true} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
+        <View style={[styles.content, { marginTop: 0 }]}>
           <View style={styles.categoryRow}>
             <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
               <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
@@ -136,15 +141,15 @@ export default function IlanDetailScreen() {
           
           {listing.price > 0 && (
             <View style={styles.priceContainer}>
-              <Text style={styles.priceLabel}>Fiyat</Text>
-              <Text style={styles.priceValue}>{listing.price} ₺</Text>
+              <Text style={styles.priceLabel}>{t('ilanlar.priceLabel', { defaultValue: 'Fiyat' })}</Text>
+              <Text style={styles.priceValue}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
               {listing.priceLabel && <Text style={{ fontSize: 14, color: '#94A3B8', marginLeft: 4 }}>{listing.priceLabel}</Text>}
             </View>
           )}
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionTitle}>Açıklama</Text>
+          <Text style={styles.sectionTitle}>{t('ilanlar.descriptionLabel', { defaultValue: 'Açıklama' })}</Text>
           <Text style={styles.description}>{listing.description}</Text>
 
           <View style={styles.divider} />
@@ -155,7 +160,7 @@ export default function IlanDetailScreen() {
                 <IconSymbol name="mappin.and.ellipse" size={20} color="#64748B" />
               </View>
               <View>
-                <Text style={styles.infoLabel}>Konum</Text>
+                <Text style={styles.infoLabel}>{t('ilanlar.locationLabel', { defaultValue: 'KONUM' })}</Text>
                 <Text style={styles.infoValue}>{listing.island}</Text>
               </View>
             </View>
@@ -165,8 +170,8 @@ export default function IlanDetailScreen() {
                 <IconSymbol name="phone.fill" size={20} color="#64748B" />
               </View>
               <View>
-                <Text style={styles.infoLabel}>İletişim</Text>
-                <Text style={styles.infoValue}>{listing.contactInfo || 'Paylaşılmamış'}</Text>
+                <Text style={styles.infoLabel}>{t('ilanlar.contactLabel', { defaultValue: 'İLETİŞİM' })}</Text>
+                <Text style={styles.infoValue}>{listing.contactInfo || t('ilanlar.notShared', { defaultValue: 'Paylaşılmamış' })}</Text>
               </View>
             </View>
           </View>
@@ -175,22 +180,12 @@ export default function IlanDetailScreen() {
           <View style={styles.warningCard}>
             <IconSymbol name="shield.fill" size={20} color="#F59E0B" />
             <Text style={styles.warningText}>
-              Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz.
+              {t('ilanlar.safetyWarning', { defaultValue: 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz.' })}
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      {/* Sticky Bottom Actions */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 10 }]}>
-        <TouchableOpacity style={styles.messageButton}>
-          <IconSymbol name="bubble.left.fill" size={20} color="#fff" />
-          <Text style={styles.messageButtonText}>Mesaj Gönder</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.callButton}>
-          <IconSymbol name="phone.fill" size={20} color="#3B82F6" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -212,7 +207,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -230,10 +225,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    marginTop: -20,
+    marginTop: 0,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
   },
   categoryRow: {
     flexDirection: 'row',
@@ -340,47 +333,5 @@ const styles = StyleSheet.create({
     color: '#92400E',
     lineHeight: 20,
     fontWeight: '500',
-  },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    flexDirection: 'row',
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  messageButton: {
-    flex: 1,
-    height: 56,
-    backgroundColor: '#3B82F6',
-    borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  messageButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  callButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

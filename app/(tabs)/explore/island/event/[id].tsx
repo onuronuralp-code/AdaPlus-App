@@ -27,7 +27,7 @@ export default function EventDetailScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isLoggedIn } = useAuth();
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const [activity, setActivity] = useState<AppActivityDto | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -113,7 +113,10 @@ export default function EventDetailScreen() {
                         : 'Bu etkinlik silinmiş veya yayından kaldırılmış olabilir.'}
                 </Text>
                 <TouchableOpacity
-                    onPress={() => router.navigate('/(tabs)/explore/island/events')}
+                    onPress={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/(tabs)/explore/island/events');
+                    }}
                     style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 }}
                 >
                     <Text style={{ color: '#3B82F6', fontWeight: '700' }}>Geri Dön</Text>
@@ -131,29 +134,34 @@ export default function EventDetailScreen() {
             <View style={[styles.headerActions, { top: insets.top + 10 }]}>
                 <TouchableOpacity
                     style={styles.iconButton}
-                    onPress={() => router.navigate('/(tabs)/explore/island/events')}
+                    onPress={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/(tabs)/explore/island/events');
+                    }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-            >
-                {/* Hero image */}
-                <Image source={{ uri: heroUri }} style={styles.heroImage} resizeMode="cover" />
+            {/* Hero image (Fixed) */}
+            <Image source={{ uri: heroUri }} style={styles.heroImage} resizeMode="cover" />
 
-                <View style={styles.content}>
+            <ScrollView
+                style={{ flex: 1, marginTop: 0 }}
+                showsVerticalScrollIndicator={false}
+                bounces={true}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+            >
+                <View style={[styles.content, { marginTop: 0 }]}>
                     {/* Badge + date */}
                     <View style={styles.metaRow}>
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>ETKİNLİK</Text>
+                            <Text style={styles.badgeText}>{t('events.badge', { defaultValue: 'ETKİNLİK' })}</Text>
                         </View>
                         {rsvpCount > 0 && (
                             <View style={styles.attendeePill}>
                                 <IconSymbol name="person.2.fill" size={13} color="#3B82F6" />
-                                <Text style={styles.attendeeText}>{rsvpCount} katılımcı</Text>
+                                <Text style={styles.attendeeText}>{rsvpCount} {t('events.attendeesCount', { defaultValue: 'katılımcı' })}</Text>
                             </View>
                         )}
                     </View>
@@ -168,11 +176,11 @@ export default function EventDetailScreen() {
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>BAŞLANGIÇ</Text>
+                            <Text style={styles.infoLabel}>{t('events.startLabel', { defaultValue: 'BAŞLANGIÇ' })}</Text>
                             <Text style={styles.infoValue}>{formatDate(activity.startDate)}</Text>
                             {activity.endDate && (
                                 <>
-                                    <Text style={[styles.infoLabel, { marginTop: 6 }]}>BİTİŞ</Text>
+                                    <Text style={[styles.infoLabel, { marginTop: 6 }]}>{t('events.endLabel', { defaultValue: 'BİTİŞ' })}</Text>
                                     <Text style={styles.infoValue}>{formatDate(activity.endDate)}</Text>
                                 </>
                             )}
@@ -186,7 +194,7 @@ export default function EventDetailScreen() {
                                 <IconSymbol name="mappin.and.ellipse" size={20} color="#64748B" />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.infoLabel}>KONUM</Text>
+                                <Text style={styles.infoLabel}>{t('events.locationLabel', { defaultValue: 'KONUM' })}</Text>
                                 <Text style={styles.infoValue}>{activity.eventPlace}</Text>
                             </View>
                         </View>
@@ -198,7 +206,7 @@ export default function EventDetailScreen() {
                             <IconSymbol name="person.fill" size={20} color="#64748B" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>ORGANİZATÖR</Text>
+                            <Text style={styles.infoLabel}>{t('events.organizerLabel', { defaultValue: 'ORGANİZATÖR' })}</Text>
                             <Text style={styles.infoValue}>{activity.organizerName}</Text>
                             {activity.organizerContact && (
                                 <Text style={styles.contactText}>{activity.organizerContact}</Text>
@@ -217,7 +225,7 @@ export default function EventDetailScreen() {
                                 onPress={() => safeOpenUrl(activity.instagramLink)}
                                 activeOpacity={0.7}
                             >
-                                <Text style={styles.infoLabel}>SOSYAL MEDYA</Text>
+                                <Text style={styles.infoLabel}>{t('events.socialMediaLabel', { defaultValue: 'SOSYAL MEDYA' })}</Text>
                                 <Text style={[styles.infoValue, { color: '#3B82F6' }]} numberOfLines={1}>
                                     {activity.instagramLink}
                                 </Text>
@@ -228,34 +236,11 @@ export default function EventDetailScreen() {
                     <View style={styles.divider} />
 
                     {/* Description */}
-                    <Text style={styles.sectionTitle}>Etkinlik Detayları</Text>
+                    <Text style={styles.sectionTitle}>{t('events.detailsLabel', { defaultValue: 'Etkinlik Detayları' })}</Text>
                     <Text style={styles.description}>{activity.description}</Text>
                 </View>
             </ScrollView>
 
-            {/* Sticky RSVP bar */}
-            <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 10 }]}>
-                <TouchableOpacity
-                    style={[styles.rsvpButton, going && styles.rsvpButtonGoing, rsvpLoading && styles.rsvpButtonLoading]}
-                    onPress={handleRsvp}
-                    activeOpacity={0.85}
-                    disabled={rsvpLoading}
-                >
-                    {rsvpLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : going ? (
-                        <>
-                            <IconSymbol name="checkmark.circle.fill" size={20} color="#fff" />
-                            <Text style={styles.rsvpButtonText}>Katılıyorum</Text>
-                        </>
-                    ) : (
-                        <>
-                            <IconSymbol name="calendar.badge.plus" size={20} color="#fff" />
-                            <Text style={styles.rsvpButtonText}>Katılmak İstiyorum</Text>
-                        </>
-                    )}
-                </TouchableOpacity>
-            </View>
 
             <LoginPromptModal
                 visible={showLoginPrompt}
@@ -284,7 +269,7 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 14,
-        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        backgroundColor: 'rgba(255, 255, 255, 0.55)',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
@@ -295,15 +280,13 @@ const styles = StyleSheet.create({
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH * 0.65,
+        height: SCREEN_WIDTH * 0.8,
         backgroundColor: '#F1F5F9',
     },
     content: {
         padding: 24,
-        marginTop: -20,
+        marginTop: 0,
         backgroundColor: '#fff',
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
     },
     metaRow: {
         flexDirection: 'row',
@@ -394,42 +377,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#475569',
         lineHeight: 26,
-    },
-    bottomBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-    },
-    rsvpButton: {
-        height: 56,
-        backgroundColor: '#3B82F6',
-        borderRadius: 18,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 10,
-        shadowColor: '#3B82F6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    rsvpButtonGoing: {
-        backgroundColor: '#10B981',
-        shadowColor: '#10B981',
-    },
-    rsvpButtonLoading: {
-        opacity: 0.7,
-    },
-    rsvpButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '800',
     },
 });

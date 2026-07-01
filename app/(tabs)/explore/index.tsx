@@ -1,12 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
+import { fetchUpcomingActivities } from '@/services/api';
+import { resolveImageUrl } from '@/services/config';
 
 
 
@@ -22,7 +24,26 @@ export default function MainMenuScreen() {
   const isLargeScreen = height > 890;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
 
-  const [heroSlides] = useState<any[]>([]);
+  const [heroSlides, setHeroSlides] = useState<any[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUpcomingActivities(10).then(data => {
+        if (data && data.length > 0) {
+          // take top 5 upcoming events for hero
+          const slides = data.slice(0, 5).map(event => ({
+            id: event.id,
+            title: event.name,
+            subtitle: event.description || event.organizerName || '',
+            imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+          }));
+          setHeroSlides(slides);
+        } else {
+          setHeroSlides([]);
+        }
+      }).catch(err => console.log('Error fetching events for hero:', err));
+    }, [])
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(0)).current;
@@ -119,6 +140,7 @@ export default function MainMenuScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
+        scrollEnabled={false}
       >
         {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
@@ -164,7 +186,6 @@ export default function MainMenuScreen() {
               </Text>
             </View>
           </View>
-
           <View style={[styles.cardsContainer, { gap: isSmallScreen ? 8 : 12 }]}>
             <View style={[styles.gridRow, { height: gridCardHeight }]}>
               <GridCard
@@ -210,92 +231,64 @@ export default function MainMenuScreen() {
   );
 }
 
-function MenuCard({ icon, color, accentLight, title, subtitle, onPress, style, colors, large }: {
-  icon: string;
-  color?: string;
-  accentLight?: string;
-  title: string;
-  subtitle: string;
-  onPress?: () => void;
-  style?: any;
-  colors?: any;
-  large?: boolean;
-}) {
+function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any) {
   const iconSize = large ? 32 : 28;
   const containerSize = large ? 58 : 52;
   const cardPadding = large ? 20 : 16;
+  const primaryColor = colors ? colors[0] : '#3B82F6';
 
   const content = (
     <>
-      <View style={[styles.iconContainer, { width: containerSize, height: containerSize, backgroundColor: colors ? 'rgba(255,255,255,0.2)' : color }]}>
+      <View style={[styles.iconContainer, { width: containerSize, height: containerSize, backgroundColor: primaryColor }]}>
         <IconSymbol name={icon as any} size={iconSize} color="#fff" />
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, large && { fontSize: 20 }, colors && { color: '#fff' }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.cardSubtitle, large && { fontSize: 15, lineHeight: 22 }, colors && { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={2}>{subtitle}</Text>
+        <Text style={[styles.cardTitle, large && { fontSize: 20 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.cardSubtitle, large && { fontSize: 15, lineHeight: 22 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
       </View>
-      <IconSymbol name={"chevron.right" as any} size={20} color={colors ? '#fff' : "#C0C0C0"} />
+      <IconSymbol name={"chevron.right" as any} size={20} color={primaryColor} />
     </>
   );
 
-  if (colors) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={style}>
-        <LinearGradient
-          colors={colors}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-          style={[styles.card, { padding: cardPadding }]}
-        >
-          {content}
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  }
-
   return (
-    <TouchableOpacity style={[styles.card, { padding: cardPadding }, style]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={[
+        styles.card, 
+        { padding: cardPadding, backgroundColor: '#ffffff', borderWidth: 2, borderColor: primaryColor }, 
+        style
+      ]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
       {content}
     </TouchableOpacity>
   );
 }
 
-function GridCard({ icon, color, accentLight, title, subtitle, onPress, style, colors, large }: {
-  icon: string;
-  color?: string;
-  accentLight?: string;
-  title: string;
-  subtitle: string;
-  onPress?: () => void;
-  style?: any;
-  colors?: any;
-  large?: boolean;
-}) {
+function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any) {
+  const primaryColor = colors ? colors[0] : '#3B82F6';
+
   const content = (
     <>
-      <View style={[styles.gridIconContainer, { backgroundColor: colors ? 'rgba(255,255,255,0.2)' : color }, large && { width: 50, height: 50, borderRadius: 14 }]}>
+      <View style={[styles.gridIconContainer, { backgroundColor: primaryColor }, large && { width: 50, height: 50, borderRadius: 14 }]}>
         <IconSymbol name={icon as any} size={large ? 28 : 24} color="#fff" />
       </View>
-      <Text style={[styles.gridCardTitle, large && { fontSize: 20 }, colors && { color: '#fff' }]}>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 15, lineHeight: 22 }, colors && { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={1}>{subtitle}</Text>
+      <Text style={[styles.gridCardTitle, large && { fontSize: 20 }, { color: primaryColor }]}>{title}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 15, lineHeight: 22 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
     </>
   );
 
-  if (colors) {
-    return (
-      <TouchableOpacity style={[styles.gridCard, { padding: 0, overflow: 'hidden' }, style]} onPress={onPress} activeOpacity={0.8}>
-        <LinearGradient
-          colors={colors}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={[styles.gridCardGradient, large && { padding: 18 }]}
-        >
-          {content}
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  }
-
   return (
-    <TouchableOpacity style={[styles.gridCard, large && { padding: 18 }, style]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={[
+        styles.gridCard, 
+        large && { padding: 18 }, 
+        { backgroundColor: '#ffffff', borderWidth: 2, borderColor: primaryColor },
+        style
+      ]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
       {content}
     </TouchableOpacity>
   );

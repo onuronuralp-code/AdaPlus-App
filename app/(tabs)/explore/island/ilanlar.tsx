@@ -12,7 +12,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
@@ -33,11 +33,13 @@ import LoginPromptModal from '@/components/LoginPromptModal';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // İlan türleri
-type IlanCategory = 'all' | 'emlak' | 'service' | 'lost' | 'job';
+type IlanCategory = 'all' | 'emlak' | 'esya' | 'tasit' | 'service' | 'lost' | 'job';
 
 const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color: string; bg: string; backend?: ListingCategory }> = {
   all:     { label: 'Tümü',      icon: 'square.grid.2x2.fill', color: '#3B82F6', bg: '#EFF6FF' },
   emlak:   { label: 'Emlak',     icon: 'house.fill',           color: '#10B981', bg: '#ECFDF5' },
+  esya:    { label: 'Eşya',      icon: 'archivebox.fill',      color: '#F59E0B', bg: '#FEF3C7', backend: ListingCategory.ESYA },
+  tasit:   { label: 'Taşıt',     icon: 'car.fill',             color: '#EC4899', bg: '#FCE7F3', backend: ListingCategory.TASIT },
   service: { label: 'Hizmet',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF', backend: ListingCategory.HIZMET },
   job:     { label: 'İş İlanı',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF', backend: ListingCategory.IS_ILANI },
   lost:    { label: 'Kayıp',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2', backend: ListingCategory.KAYIP },
@@ -60,6 +62,7 @@ export default function IlanlarScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const params = useLocalSearchParams();
   
   const [listings, setListings] = useState<ListingDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,6 +73,7 @@ export default function IlanlarScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [editingListingId, setEditingListingId] = useState<string | null>(null);
 
   // Ad Fields State
   const [adTitle, setAdTitle] = useState('');
@@ -80,14 +84,57 @@ export default function IlanlarScreen() {
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
   const [adIsland, setAdIsland] = useState('Büyükada');
 
-  const parsedPrice = parseFloat(adPrice);
-  const isPriceValid = !isNaN(parsedPrice) && parsedPrice > 0;
+  React.useEffect(() => {
+    if (params.editListingId && typeof params.editListingId === 'string') {
+      const id = params.editListingId;
+      setEditingListingId(id);
+      listingApi.getListing(id).then(listing => {
+        if (listing) {
+          setAdTitle(listing.title);
+          setAdDesc(listing.description);
+          setAdPrice(listing.price.toLocaleString('tr-TR'));
+          setAdContact(listing.contactInfo || '');
+          if (listing.island) {
+             const islandName = Object.keys(ISLAND_ENUM_MAP).find(key => ISLAND_ENUM_MAP[key] === listing.island);
+             if (islandName) setAdIsland(islandName);
+          }
+          if (listing.imageUrl) setSelectedImage(listing.imageUrl);
+          
+          let frontendCat: IlanCategory = 'emlak';
+          if (listing.category === ListingCategory.SATILIK || listing.category === ListingCategory.KIRALIK) {
+            frontendCat = 'emlak';
+            setAdSubCat(listing.category === ListingCategory.KIRALIK ? 'rent' : 'sell');
+          } else if (listing.category === ListingCategory.HIZMET) {
+            frontendCat = 'service';
+          } else if (listing.category === ListingCategory.IS_ILANI) {
+            frontendCat = 'job';
+          } else if (listing.category === ListingCategory.KAYIP) {
+            frontendCat = 'lost';
+          } else if (listing.category === ListingCategory.ESYA) {
+            frontendCat = 'esya';
+          } else if (listing.category === ListingCategory.TASIT) {
+            frontendCat = 'tasit';
+          }
+          setAdCat(frontendCat);
+          setIsAdModalVisible(true);
+        }
+      });
+    }
+  }, [params.editListingId]);
+
+  // Format number with dots for thousands: 1000 → 1.000
+  const rawPrice = adPrice.replace(/\./g, ''); // strip dots for parsing
+  const parsedPrice = adPrice.trim() === '' ? 0 : parseFloat(rawPrice);
+  const isPriceValid = !isNaN(parsedPrice) && parsedPrice >= 0;
   const cleanedContact = adContact.replace(/\D/g, '');
   const isFormDirty = adTitle.trim().length > 0 || adDesc.trim().length > 0 || adContact.length > 0 || adPrice.length > 0 || !!selectedImage;
 
   const resetAndCloseModal = () => {
     setIsAdModalVisible(false);
     setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(''); setSelectedImage(null);
+    setAdSubCat('sell');
+    setAdIsland('Büyükada');
+    setEditingListingId(null);
   };
 
   const handleCloseModal = () => {
@@ -106,13 +153,13 @@ export default function IlanlarScreen() {
   };
 
   const isPublishDisabled =
-    adTitle.trim().length < 3 ||
-    !isPriceValid ||
-    adDesc.trim().length < 10 ||
-    cleanedContact.length !== 11 ||
+    adTitle.trim().length < 2 ||
+    (adCat === 'emlak' || adCat === 'tasit' || adCat === 'esya' ? parsedPrice <= 0 : false) ||
+    adDesc.trim().length < 5 ||
+    cleanedContact.length < 10 ||
     isUploading;
 
-  const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Sedef Adası'];
+  const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'];
 
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -162,8 +209,8 @@ export default function IlanlarScreen() {
 
     setIsUploading(true);
     try {
-      let imageUrl = undefined;
-      if (selectedImage) {
+      let imageUrl = selectedImage;
+      if (selectedImage && !selectedImage.startsWith('http')) {
         const uploaded = await mediaApi.uploadImage(selectedImage);
         if (!uploaded) {
           Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.photoUploadFailed', { defaultValue: 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?' }), [
@@ -183,7 +230,7 @@ export default function IlanlarScreen() {
   };
 
   const submitListing = async (imageUrl: string | undefined) => {
-    const finalPrice = parseFloat(adPrice);
+    const finalPrice = parseFloat(adPrice.replace(/\./g, ''));
     const finalContact = adContact.replace(/\D/g, '');
     if (isNaN(finalPrice) || finalPrice <= 0 || finalContact.length !== 11) return;
 
@@ -198,14 +245,20 @@ export default function IlanlarScreen() {
       imageUrl: imageUrl
     };
 
-    const createdListing = await listingApi.createListing(request);
-    if (!createdListing) throw new Error('create failed');
+    const resultListing = editingListingId 
+      ? await listingApi.updateListing(editingListingId, request)
+      : await listingApi.createListing(request);
+      
+    if (!resultListing) throw new Error('operation failed');
 
     resetAndCloseModal();
     Alert.alert(
       t('common.success', { defaultValue: 'Başarılı' }),
-      t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+      editingListingId
+        ? t('common.listingUpdated', { defaultValue: 'İlan başarıyla güncellendi.' })
+        : t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
     );
+    loadListings(true);
   };
 
   const adCategories = [
@@ -223,15 +276,19 @@ export default function IlanlarScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Custom Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.navigate('/(tabs)/explore')}>
+        <TouchableOpacity style={styles.backButton} onPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/(tabs)/explore');
+          }
+        }}>
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
       </View>
 
-      {/* Category Pills */}
       <View style={styles.tabsWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer} bounces={true}>
           {(Object.keys(CATEGORY_CONFIG) as IlanCategory[]).map(key => {
@@ -265,10 +322,9 @@ export default function IlanlarScreen() {
         </ScrollView>
       </View>
 
-      {/* İlan List */}
       <ScrollView 
         style={styles.listContainer} 
-        contentContainerStyle={[styles.listContent, { paddingBottom: 100 }, ((isLoading && !isRefreshing) || filteredListings.length === 0) && { flex: 1 }]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 20 }, ((isLoading && !isRefreshing) || filteredListings.length === 0) && { flex: 1 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#3B82F6" />
@@ -292,7 +348,6 @@ export default function IlanlarScreen() {
         )}
       </ScrollView>
 
-      {/* FAB — New Listing */}
       <TouchableOpacity
         style={[styles.fab, { bottom: 20 }]}
         activeOpacity={0.85}
@@ -314,7 +369,6 @@ export default function IlanlarScreen() {
         </LinearGradient>
       </TouchableOpacity>
 
-      {/* Place Ad Modal */}
       <Modal
         visible={isAdModalVisible}
         animationType="slide"
@@ -332,7 +386,7 @@ export default function IlanlarScreen() {
               </TouchableOpacity>
             </View>
             <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={styles.modalTitle} numberOfLines={1}>{t('ilanlar.newAd', { defaultValue: i18n.language.startsWith('en') ? 'NEW LISTING' : 'YENİ İLAN' })}</Text>
+              <Text style={styles.modalTitle} numberOfLines={1}>{editingListingId ? t('common.editListing', { defaultValue: 'İlanı Düzenle' }) : t('ilanlar.newAd', { defaultValue: i18n.language.startsWith('en') ? 'NEW LISTING' : 'YENİ İLAN' })}</Text>
             </View>
             <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
               <TouchableOpacity 
@@ -343,7 +397,7 @@ export default function IlanlarScreen() {
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.publishText}>{t('common.publish', { defaultValue: i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA' })}</Text>
+                  <Text style={styles.publishText}>{editingListingId ? t('common.update', { defaultValue: 'GÜNCELLE' }) : t('common.publish', { defaultValue: i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA' })}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -352,7 +406,7 @@ export default function IlanlarScreen() {
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('forum.islandSelection', { defaultValue: i18n.language.startsWith('en') ? 'SELECT ISLAND' : 'ADA SEÇİMİ' })}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.adCategoryRow}>
+              <View style={styles.adCategoryRow}>
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
@@ -362,7 +416,7 @@ export default function IlanlarScreen() {
                     <Text style={[styles.adCatText, adIsland === island && styles.activeAdCatText]}>{island}</Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
             </View>
 
             <View style={styles.inputSection}>
@@ -406,14 +460,16 @@ export default function IlanlarScreen() {
               <Text style={styles.inputLabel}>{t('ilanlar.price', { defaultValue: i18n.language.startsWith('en') ? 'PRICE (₺) *' : 'FİYAT (₺) *' })}</Text>
               <TextInput
                 style={styles.adTitleInput}
-                placeholder="0.00"
+                placeholder="0"
                 placeholderTextColor="#94A3B8"
-                keyboardType="decimal-pad"
+                keyboardType="number-pad"
                 value={adPrice}
                 onChangeText={t => {
-                  // Allow digits and a single decimal point only
-                  const clean = t.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
-                  setAdPrice(clean);
+                  // Strip everything except digits, then format with dots
+                  const digits = t.replace(/\D/g, '');
+                  if (digits === '') { setAdPrice(''); return; }
+                  const formatted = Number(digits).toLocaleString('tr-TR');
+                  setAdPrice(formatted);
                 }}
               />
               {adPrice.length > 0 && !isPriceValid && (
@@ -446,8 +502,8 @@ export default function IlanlarScreen() {
                 onChangeText={t => setAdContact(t.replace(/\D/g, '').slice(0, 11))}
                 maxLength={11}
               />
-              {adContact.length > 0 && !/^\d{11}$/.test(adContact) && (
-                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidNumber', { defaultValue: i18n.language.startsWith('en') ? 'Enter a valid 11-digit number' : 'Geçerli bir 11 haneli numara girin' })}</Text>
+              {adContact.length > 0 && cleanedContact.length < 10 && (
+                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidNumber', { defaultValue: i18n.language.startsWith('en') ? 'Enter a valid number (at least 10 digits)' : 'Geçerli bir numara girin (en az 10 haneli)' })}</Text>
               )}
             </View>
 
@@ -490,6 +546,8 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
     [ListingCategory.KIRALIK]: 'emlak',
     [ListingCategory.HIZMET]: 'service',
     [ListingCategory.IS_ILANI]: 'job',
+    [ListingCategory.ESYA]: 'esya',
+    [ListingCategory.TASIT]: 'tasit',
     [ListingCategory.KAYIP]: 'lost',
   };
   
@@ -543,7 +601,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
         </View>
         {listing.price > 0 && (
           <View style={styles.priceTag}>
-            <Text style={styles.priceText}>{listing.price} ₺</Text>
+            <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
           </View>
         )}
       </View>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, FlatList, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 interface CustomDateTimePickerProps {
@@ -22,6 +22,78 @@ function getFirstDayOfMonth(year: number, month: number) {
     const day = new Date(year, month, 1).getDay();
     return day === 0 ? 6 : day - 1; // Monday = 0
 }
+
+const ITEM_HEIGHT = 44;
+
+interface ScrollPickerProps {
+    data: number[];
+    value: number;
+    onValueChange: (val: number) => void;
+    accentColor: string;
+}
+
+const ScrollPicker: React.FC<ScrollPickerProps> = ({ data, value, onValueChange, accentColor }) => {
+    const flatListRef = useRef<FlatList>(null);
+    const isReady = useRef(false);
+
+    useEffect(() => {
+        const index = data.indexOf(value);
+        if (index !== -1 && flatListRef.current) {
+            setTimeout(() => {
+                if (flatListRef.current) {
+                    flatListRef.current.scrollToIndex({ index, animated: false });
+                    isReady.current = true;
+                }
+            }, 50);
+        }
+    }, []);
+
+    const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (!isReady.current) return;
+        const y = e.nativeEvent.contentOffset.y;
+        const index = Math.max(0, Math.min(data.length - 1, Math.round(y / ITEM_HEIGHT)));
+        if (data[index] !== undefined && data[index] !== value) {
+            onValueChange(data[index]);
+        }
+    };
+
+    return (
+        <View style={{ height: ITEM_HEIGHT * 3, overflow: 'hidden', width: 60, alignItems: 'center', justifyContent: 'center' }}>
+            <FlatList
+                ref={flatListRef}
+                data={data}
+                keyExtractor={(item) => item.toString()}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                contentContainerStyle={{ paddingTop: ITEM_HEIGHT, paddingBottom: ITEM_HEIGHT }}
+                onMomentumScrollEnd={handleScrollEnd}
+                onScrollEndDrag={handleScrollEnd}
+                getItemLayout={(data, index) => ({ length: ITEM_HEIGHT, offset: ITEM_HEIGHT * index, index })}
+                renderItem={({ item }) => (
+                    <TouchableOpacity 
+                        style={{ height: ITEM_HEIGHT, justifyContent: 'center', alignItems: 'center', width: 60 }}
+                        onPress={() => {
+                            onValueChange(item);
+                            const index = data.indexOf(item);
+                            flatListRef.current?.scrollToIndex({ index, animated: true });
+                        }}
+                    >
+                        <Text style={{ 
+                            fontSize: item === value ? 22 : 18, 
+                            fontWeight: item === value ? 'bold' : 'normal',
+                            color: item === value ? accentColor : '#94A3B8'
+                        }}>
+                            {String(item).padStart(2, '0')}
+                        </Text>
+                    </TouchableOpacity>
+                )}
+            />
+            {/* Center Highlighter */}
+            <View style={{ position: 'absolute', top: ITEM_HEIGHT, width: 50, height: ITEM_HEIGHT, borderColor: accentColor, borderTopWidth: 2, borderBottomWidth: 2, borderRadius: 8, pointerEvents: 'none' }} />
+        </View>
+    );
+};
 
 export default function CustomDateTimePicker({ visible, value, onConfirm, onCancel, title = 'Tarih ve Saat Seçin', accentColor = '#3B82F6' }: CustomDateTimePickerProps) {
     const [selectedDate, setSelectedDate] = useState(new Date(value));
@@ -145,34 +217,24 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
                     {/* Time Picker */}
                     <View style={styles.timeSection}>
                         <Text style={styles.timeLabel}>SAAT</Text>
-                        <View style={styles.timePickerRow}>
+                        <View style={[styles.timePickerRow, { justifyContent: 'center', gap: 20 }]}>
                             {/* Hour */}
-                            <View style={styles.timeColumn}>
-                                <TouchableOpacity onPress={incrementHour} style={styles.timeArrow}>
-                                    <IconSymbol name="chevron.up" size={20} color="#64748B" />
-                                </TouchableOpacity>
-                                <View style={[styles.timeValueBox, { borderColor: accentColor }]}>
-                                    <Text style={[styles.timeValue, { color: accentColor }]}>{String(hour).padStart(2, '0')}</Text>
-                                </View>
-                                <TouchableOpacity onPress={decrementHour} style={styles.timeArrow}>
-                                    <IconSymbol name="chevron.down" size={20} color="#64748B" />
-                                </TouchableOpacity>
-                            </View>
+                            <ScrollPicker 
+                                data={Array.from({ length: 24 }, (_, i) => i)} 
+                                value={hour} 
+                                onValueChange={setHour} 
+                                accentColor={accentColor} 
+                            />
 
                             <Text style={styles.timeSeparator}>:</Text>
 
                             {/* Minute */}
-                            <View style={styles.timeColumn}>
-                                <TouchableOpacity onPress={incrementMinute} style={styles.timeArrow}>
-                                    <IconSymbol name="chevron.up" size={20} color="#64748B" />
-                                </TouchableOpacity>
-                                <View style={[styles.timeValueBox, { borderColor: accentColor }]}>
-                                    <Text style={[styles.timeValue, { color: accentColor }]}>{String(minute).padStart(2, '0')}</Text>
-                                </View>
-                                <TouchableOpacity onPress={decrementMinute} style={styles.timeArrow}>
-                                    <IconSymbol name="chevron.down" size={20} color="#64748B" />
-                                </TouchableOpacity>
-                            </View>
+                            <ScrollPicker 
+                                data={Array.from({ length: 60 }, (_, i) => i)} 
+                                value={minute} 
+                                onValueChange={setMinute} 
+                                accentColor={accentColor} 
+                            />
                         </View>
                     </View>
 

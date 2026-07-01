@@ -19,6 +19,8 @@ export default function ResetPasswordScreen() {
     const [token, setToken] = useState(initialToken || '');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ token?: string; password?: string; confirmPassword?: string }>({});
     const [touched, setTouched] = useState<{ token?: boolean; password?: boolean; confirmPassword?: boolean }>({});
@@ -139,13 +141,16 @@ export default function ResetPasswordScreen() {
                         <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
                             <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
-                                style={styles.input} 
+                                style={[styles.input, { flex: 1 }]} 
                                 placeholder={t('auth.passwordPlaceholder')}
                                 placeholderTextColor="#94A3B8"
-                                secureTextEntry
+                                secureTextEntry={!showPassword}
                                 value={password}
                                 onChangeText={handlePasswordChange}
                             />
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                                <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
+                            </TouchableOpacity>
                         </View>
                         {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                     </View>
@@ -155,13 +160,16 @@ export default function ResetPasswordScreen() {
                         <View style={[styles.inputWrapper, errors.confirmPassword ? styles.inputWrapperError : null]}>
                             <IconSymbol name="lock.fill" size={18} color={errors.confirmPassword ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
-                                style={styles.input} 
+                                style={[styles.input, { flex: 1 }]} 
                                 placeholder={t('auth.confirmPasswordPlaceholder')}
                                 placeholderTextColor="#94A3B8"
-                                secureTextEntry
+                                secureTextEntry={!showConfirmPassword}
                                 value={confirmPassword}
                                 onChangeText={handleConfirmPasswordChange}
                             />
+                            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={{ padding: 4 }}>
+                                <IconSymbol name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
+                            </TouchableOpacity>
                         </View>
                         {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
                     </View>
