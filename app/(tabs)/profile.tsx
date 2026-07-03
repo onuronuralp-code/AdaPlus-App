@@ -174,8 +174,8 @@ export default function ProfileScreen() {
                     <View key={post.id} style={styles.postCard}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <Text style={[styles.postContent, { flex: 1 }]}>{post.content}</Text>
-                            <TouchableOpacity onPress={() => handleDeletePost(post.id)} style={{ padding: 4, marginLeft: 8 }}>
-                                <IconSymbol name="trash.fill" size={16} color="#EF4444" />
+                            <TouchableOpacity onPress={() => handleDeletePost(post.id)} style={styles.actionBtn}>
+                                <IconSymbol name="trash.fill" size={14} color="#EF4444" />
                             </TouchableOpacity>
                         </View>
                         <View style={styles.postFooter}>
@@ -284,21 +284,25 @@ export default function ProfileScreen() {
                                     const l = listing.status === 'REJECTED' ? 'Reddedildi' : 'Beklemede';
                                     return <View style={{ backgroundColor: c + '20', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}><Text style={{ fontSize: 10, fontWeight: '700', color: c }}>{l}</Text></View>;
                                 })()}
-                                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={{ padding: 4 }}>
-                                    <IconSymbol name="pencil" size={16} color="#3B82F6" />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={{ padding: 4 }}>
-                                    <IconSymbol name="trash.fill" size={16} color="#EF4444" />
-                                </TouchableOpacity>
                             </View>
                             <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
                             <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
                         </View>
-                        {listing.price > 0 && (
-                            <View style={styles.priceTag}>
-                                <Text style={styles.priceText}>{listing.price} ₺</Text>
+                        <View style={{ alignItems: 'flex-end', justifyContent: 'center', gap: 8, marginLeft: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 6 }}>
+                                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={styles.actionBtn}>
+                                    <IconSymbol name="pencil" size={14} color="#3B82F6" />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={styles.actionBtn}>
+                                    <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                </TouchableOpacity>
                             </View>
-                        )}
+                            {listing.price > 0 && (
+                                <View style={styles.priceTag}>
+                                    <Text style={styles.priceText}>{listing.price} ₺</Text>
+                                </View>
+                            )}
+                        </View>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -315,17 +319,17 @@ export default function ProfileScreen() {
                     const statusLabel = activity.status === 'APPROVED' ? 'Onaylı' : activity.status === 'REJECTED' ? 'Reddedildi' : 'Beklemede';
                     return (
                         <View key={activity.id} style={styles.postCard}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                 <Text style={[styles.listingTitle, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{activity.name}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <View style={{ backgroundColor: statusColor + '20', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <View style={{ backgroundColor: statusColor + '20', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 4 }}>
                                         <Text style={{ fontSize: 11, fontWeight: '700', color: statusColor }}>{statusLabel}</Text>
                                     </View>
-                                    <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={{ padding: 4 }}>
-                                        <IconSymbol name="pencil" size={16} color="#3B82F6" />
+                                    <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={styles.actionBtn}>
+                                        <IconSymbol name="pencil" size={14} color="#3B82F6" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={{ padding: 4 }}>
-                                        <IconSymbol name="trash.fill" size={16} color="#EF4444" />
+                                    <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={styles.actionBtn}>
+                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -599,5 +603,15 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         color: '#92400E',
+    },
+    actionBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#F1F5F9',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
     },
 });
