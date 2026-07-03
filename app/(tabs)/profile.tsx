@@ -299,8 +299,12 @@ export default function ProfileScreen() {
                 {activities.map(activity => {
                     return (
                         <View key={activity.id} style={styles.postCard}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                                <Text style={[styles.listingTitle, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{activity.name}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View style={{ flex: 1, marginRight: 8 }}>
+                                    <Text style={[styles.listingTitle, { marginBottom: 4 }]} numberOfLines={1}>{activity.name}</Text>
+                                    {activity.eventPlace ? <Text style={styles.listingDesc} numberOfLines={1}>{activity.eventPlace}</Text> : null}
+                                    <Text style={[styles.postTime, { marginTop: 2 }]}>{timeAgo(activity.startDate)}</Text>
+                                </View>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                     <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={styles.actionBtn}>
                                         <IconSymbol name="pencil" size={14} color="#3B82F6" />
@@ -310,8 +314,6 @@ export default function ProfileScreen() {
                                     </TouchableOpacity>
                                 </View>
                             </View>
-                            {activity.eventPlace ? <Text style={styles.listingDesc} numberOfLines={1}>{activity.eventPlace}</Text> : null}
-                            <Text style={styles.postTime}>{timeAgo(activity.startDate)}</Text>
                         </View>
                     );
                 })}
