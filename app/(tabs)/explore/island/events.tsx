@@ -68,7 +68,7 @@ export default function EventsScreen() {
     
     const isPublishDisabled = 
         newEventName.trim().length < 3 || 
-        newEventDetails.trim().length < 10 || 
+        newEventDetails.trim().length < 1 || 
         !newEventLocation.trim() ||
         !organizerName.trim() || 
         !isValidPhone || 

@@ -155,7 +155,7 @@ export default function IlanlarScreen() {
   const isPublishDisabled =
     adTitle.trim().length < 2 ||
     (adCat === 'emlak' || adCat === 'tasit' || adCat === 'esya' ? parsedPrice <= 0 : false) ||
-    adDesc.trim().length < 5 ||
+    adDesc.trim().length < 1 ||
     cleanedContact.length < 10 ||
     isUploading;
 
