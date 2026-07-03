@@ -173,15 +173,17 @@ export default function ProfileScreen() {
                 {posts.map(post => (
                     <View key={post.id} style={styles.postCard}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={[styles.postContent, { flex: 1, marginBottom: 0 }]}>{post.content}</Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.postContent, { marginBottom: 6 }]}>{post.content}</Text>
+                                <View style={styles.postFooter}>
+                                    <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                                </View>
+                            </View>
                             <View style={{ marginLeft: 12 }}>
                                 <TouchableOpacity onPress={() => handleDeletePost(post.id)} style={styles.actionBtn}>
                                     <IconSymbol name="trash.fill" size={14} color="#EF4444" />
                                 </TouchableOpacity>
                             </View>
-                        </View>
-                        <View style={styles.postFooter}>
-                            <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
                         </View>
                     </View>
                 ))}
