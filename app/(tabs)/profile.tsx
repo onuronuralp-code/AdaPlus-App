@@ -273,11 +273,6 @@ export default function ProfileScreen() {
                         <View style={styles.listingInfo}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                 <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }]} numberOfLines={1}>{listing.title}</Text>
-                                {listing.status && listing.status !== 'APPROVED' && (() => {
-                                    const c = listing.status === 'REJECTED' ? '#EF4444' : '#F59E0B';
-                                    const l = listing.status === 'REJECTED' ? 'Reddedildi' : 'Beklemede';
-                                    return <View style={{ backgroundColor: c + '20', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}><Text style={{ fontSize: 10, fontWeight: '700', color: c }}>{l}</Text></View>;
-                                })()}
                             </View>
                             <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
                             <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
@@ -302,16 +297,11 @@ export default function ProfileScreen() {
         return (
             <View style={styles.contentList}>
                 {activities.map(activity => {
-                    const statusColor = activity.status === 'APPROVED' ? '#10B981' : activity.status === 'REJECTED' ? '#EF4444' : '#F59E0B';
-                    const statusLabel = activity.status === 'APPROVED' ? 'Onaylı' : activity.status === 'REJECTED' ? 'Reddedildi' : 'Beklemede';
                     return (
                         <View key={activity.id} style={styles.postCard}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                 <Text style={[styles.listingTitle, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{activity.name}</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                    <View style={{ backgroundColor: statusColor + '20', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 4 }}>
-                                        <Text style={{ fontSize: 11, fontWeight: '700', color: statusColor }}>{statusLabel}</Text>
-                                    </View>
                                     <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={styles.actionBtn}>
                                         <IconSymbol name="pencil" size={14} color="#3B82F6" />
                                     </TouchableOpacity>
