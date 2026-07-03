@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -419,6 +419,23 @@ export default function ProfileScreen() {
                         <View style={styles.roleBadge}>
                             <Text style={styles.roleText}>{user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}</Text>
                         </View>
+
+                        <TouchableOpacity 
+                            style={styles.inviteButton}
+                            activeOpacity={0.7}
+                            onPress={async () => {
+                                try {
+                                    await Share.share({
+                                        message: t('profile.inviteMessage', { defaultValue: 'Ada+ uygulamasını dene! Adalar hakkında her şey tek bir yerde. 🏝️\n\nhttps://apps.apple.com/app/ada-plus/id123456789' }),
+                                    });
+                                } catch (e) {
+                                    // user cancelled
+                                }
+                            }}
+                        >
+                            <IconSymbol name="person.badge.plus" size={18} color="#6366F1" />
+                            <Text style={styles.inviteButtonText}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
+                        </TouchableOpacity>
                     </View>
 
                 {fetchError && (
@@ -603,5 +620,23 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
         borderColor: '#E2E8F0',
+    },
+    inviteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        marginTop: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: '#EEF2FF',
+        borderWidth: 1,
+        borderColor: '#C7D2FE',
+    },
+    inviteButtonText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#6366F1',
     },
 });
