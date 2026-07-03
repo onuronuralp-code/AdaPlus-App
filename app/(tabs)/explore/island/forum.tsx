@@ -46,15 +46,17 @@ export default function ForumScreen() {
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [newReplyContent, setNewReplyContent] = useState('');
     const [pollDurationHours, setPollDurationHours] = useState(24);
+    const [editingPostId, setEditingPostId] = useState<string | null>(null);
+    const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
 
     // Ad Fields
     const [adTitle, setAdTitle] = useState('');
     const [adPrice, setAdPrice] = useState('');
     const [adDesc, setAdDesc] = useState('');
     const [adCategory, setAdCategory] = useState('eşya');
-    const [selectedIsland, setSelectedIsland] = useState('Büyükada');
+    const [selectedIsland, setSelectedIsland] = useState('Kınalıada');
 
-    const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'];
+    const islands = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
 
     const adCategories = [
         { id: 'item', label: 'Eşya', icon: 'package-variant-closed' },
@@ -100,19 +102,29 @@ export default function ForumScreen() {
         if (!newReplyContent.trim() || !selectedPost) return;
         
         try {
-            const request: Partial<forumApi.CreatePostRequest> = {
-                content: newReplyContent.trim(),
-                postType: PostType.DISCUSSION,
-                island: selectedPost.island,
-                anonymous: false
-            };
-
-            const reply = await forumApi.postReply(selectedPost.id, request);
-            if (reply) {
-                setReplies([...replies, reply]);
+            if (editingReplyId) {
+                const request: forumApi.UpdatePostRequest = {
+                    content: newReplyContent.trim(),
+                };
+                const updatedReply = await forumApi.updatePost(editingReplyId, request);
+                setReplies(replies.map(r => r.id === editingReplyId ? updatedReply : r));
                 setNewReplyContent('');
-                // Update main posts list to reflect new comment count
-                setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: p.replyCount + 1 } : p));
+                setEditingReplyId(null);
+            } else {
+                const request: Partial<forumApi.CreatePostRequest> = {
+                    content: newReplyContent.trim(),
+                    postType: PostType.DISCUSSION,
+                    island: selectedPost.island,
+                    anonymous: false
+                };
+
+                const reply = await forumApi.postReply(selectedPost.id, request);
+                if (reply) {
+                    setReplies([...replies, reply]);
+                    setNewReplyContent('');
+                    // Update main posts list to reflect new comment count
+                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: p.replyCount + 1 } : p));
+                }
             }
         } catch (error: any) {
             Alert.alert('Yanıt Gönderilemedi', error?.message || 'Bir hata oluştu.');
@@ -300,32 +312,55 @@ export default function ForumScreen() {
             imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
         }
 
-        const request: forumApi.CreatePostRequest = {
-            content,
-            postType: newPostType.toUpperCase() as PostType,
-            island: getIslandEnum(selectedIsland),
-            anonymous: isAnonymous,
-            pollOptions: newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : undefined,
-            imageUrl: imageUrl,
-            pollDurationHours: newPostType === 'poll' ? pollDurationHours : undefined,
-        };
-
         try {
-            const createdPost = await forumApi.createPost(request);
-            setPosts([createdPost, ...posts]);
-            setNewPostContent('');
-            setNewPostType('discussion');
-            setPollQuestion('');
-            setPollOptions(['', '']);
-            setPollDurationHours(24);
-            setIsAnonymous(false);
-            setIsWriteModalVisible(false);
+            if (editingPostId) {
+                const request: forumApi.UpdatePostRequest = {
+                    content,
+                    imageUrl: imageUrl,
+                };
+                const updatedPost = await forumApi.updatePost(editingPostId, request);
+                setPosts(posts.map(p => p.id === editingPostId ? updatedPost : p));
+                if (selectedPost && selectedPost.id === editingPostId) {
+                    setSelectedPost(updatedPost);
+                }
+                setNewPostContent('');
+                setNewPostType('discussion');
+                setPollQuestion('');
+                setPollOptions(['', '']);
+                setPollDurationHours(24);
+                setSelectedImage(null);
+                setIsAnonymous(false);
+                setEditingPostId(null);
+                setIsWriteModalVisible(false);
+            } else {
+                const request: forumApi.CreatePostRequest = {
+                    content,
+                    postType: newPostType.toUpperCase() as PostType,
+                    island: getIslandEnum(selectedIsland),
+                    anonymous: isAnonymous,
+                    pollOptions: newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : undefined,
+                    imageUrl: imageUrl,
+                    pollDurationHours: newPostType === 'poll' ? pollDurationHours : undefined,
+                };
+
+                const createdPost = await forumApi.createPost(request);
+                setPosts([createdPost, ...posts]);
+                setNewPostContent('');
+                setNewPostType('discussion');
+                setPollQuestion('');
+                setPollOptions(['', '']);
+                setPollDurationHours(24);
+                setSelectedImage(null);
+                setIsAnonymous(false);
+                setIsWriteModalVisible(false);
+            }
         } catch (error: any) {
             Alert.alert('Gönderi Oluşturulamadı', error?.message || 'Bir hata oluştu.');
         } finally {
             setIsUploading(false);
         }
     };
+
     const handleDeletePost = (postId: string) => {
         Alert.alert(
             t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
@@ -336,20 +371,41 @@ export default function ForumScreen() {
                     text: t('common.delete', { defaultValue: 'Sil' }), 
                     style: 'destructive',
                     onPress: async () => {
-                        const success = await forumApi.deletePost(postId);
-                        if (success) {
-                            if (selectedPost?.id === postId) {
+                        try {
+                            await forumApi.deletePost(postId);
+                            setPosts(posts.filter(p => p.id !== postId));
+                            if (selectedPost && selectedPost.id === postId) {
                                 setIsDetailModalVisible(false);
-                                setSelectedPost(null);
+                            } else {
+                                setReplies(replies.filter(r => r.id !== postId));
+                                if (selectedPost) {
+                                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: Math.max(0, p.replyCount - 1) } : p));
+                                }
                             }
-                            loadPosts(false);
-                        } else {
-                            Alert.alert("Hata", "Gönderi silinirken bir sorun oluştu.");
+                        } catch (error: any) {
+                            Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
                         }
                     }
                 }
             ]
         );
+    };
+
+    const handleEditPost = (post: PostDto) => {
+        if (post.postType === 'POLL') {
+            Alert.alert('Hata', 'Anketler düzenlenemez.');
+            return;
+        }
+        setEditingPostId(post.id);
+        setNewPostContent(post.content);
+        setNewPostType(post.postType.toLowerCase());
+        setIsAnonymous(post.anonymous);
+        setIsWriteModalVisible(true);
+    };
+
+    const handleEditReply = (reply: PostDto) => {
+        setEditingReplyId(reply.id);
+        setNewReplyContent(reply.content);
     };
 
     const toggleLike = async (id: string) => {
@@ -451,9 +507,14 @@ export default function ForumScreen() {
                                 </Text>
                             </View>
                             {item.authorId === user?.id && (
-                                <TouchableOpacity onPress={() => handleDeletePost(item.id)} style={{ padding: 4, marginLeft: 8 }}>
-                                    <IconSymbol name="trash.fill" size={16} color="#EF4444" />
-                                </TouchableOpacity>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <TouchableOpacity onPress={() => handleEditPost(item)} style={{ padding: 4, marginLeft: 8 }}>
+                                        <IconSymbol name="pencil" size={16} color="#6366F1" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleDeletePost(item.id)} style={{ padding: 4, marginLeft: 8 }}>
+                                        <IconSymbol name="trash.fill" size={16} color="#EF4444" />
+                                    </TouchableOpacity>
+                                </View>
                             )}
                         </View>
                     </View>
@@ -512,7 +573,7 @@ export default function ForumScreen() {
                                     color={item.isLiked || item.likeCount > 0 ? "#EF4444" : "#94A3B8"}
                                 />
                                 <Text style={[styles.interactionCount, (item.isLiked || item.likeCount > 0) && { color: "#EF4444" }]}>
-                                    {item.likeCount > 0 ? item.likeCount : ''}
+                                    {item.likeCount > 0 ? item.likeCount : '0'}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
@@ -527,7 +588,7 @@ export default function ForumScreen() {
                             >
                                 <IconSymbol name="bubble.left" size={14} color="#94A3B8" />
                                 <Text style={styles.interactionCount}>
-                                    {item.replyCount > 0 ? `${item.replyCount} • Cevap Ver` : 'Cevap Ver'}
+                                    {item.replyCount > 0 ? item.replyCount : '0'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -857,9 +918,14 @@ export default function ForumScreen() {
                                             <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
                                         </View>
                                         {selectedPost.authorId === user?.id && (
-                                            <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ padding: 8 }}>
-                                                <IconSymbol name="trash.fill" size={20} color="#EF4444" />
-                                            </TouchableOpacity>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <TouchableOpacity onPress={() => handleEditPost(selectedPost)} style={{ padding: 8 }}>
+                                                    <IconSymbol name="pencil" size={20} color="#6366F1" />
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ padding: 8 }}>
+                                                    <IconSymbol name="trash.fill" size={20} color="#EF4444" />
+                                                </TouchableOpacity>
+                                            </View>
                                         )}
                                     </View>
                                 </View>
@@ -904,16 +970,16 @@ export default function ForumScreen() {
                                 )}
                                 <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
                                     <View style={styles.interactionGroup}>
-                                        <TouchableOpacity style={[styles.interactionPill, (selectedPost.isLiked || selectedPost.likeCount > 0) && { backgroundColor: getTagColor(selectedPost.authorUserType) + '15' }]} onPress={() => toggleLike(selectedPost.id)}>
-                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={(selectedPost.isLiked || selectedPost.likeCount > 0) ? getTagColor(selectedPost.authorUserType) : "#64748B"} />
-                                            <Text style={[styles.interactionCount, (selectedPost.isLiked || selectedPost.likeCount > 0) && { color: getTagColor(selectedPost.authorUserType) }]}>
-                                                {selectedPost.likeCount > 0 ? `${selectedPost.likeCount} Beğeni` : 'Beğen'}
+                                        <TouchableOpacity style={styles.interactionPill} onPress={() => toggleLike(selectedPost.id)}>
+                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={(selectedPost.isLiked || selectedPost.likeCount > 0) ? "#EF4444" : "#64748B"} />
+                                            <Text style={[styles.interactionCount, (selectedPost.isLiked || selectedPost.likeCount > 0) && { color: "#EF4444" }]}>
+                                                {selectedPost.likeCount > 0 ? selectedPost.likeCount : '0'}
                                             </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.interactionPill}>
-                                            <IconSymbol name="bubble.left.fill" size={20} color="#64748B" />
+                                            <IconSymbol name="bubble.left" size={20} color="#64748B" />
                                             <Text style={styles.interactionCount}>
-                                                {selectedPost.replyCount > 0 ? `${selectedPost.replyCount} Yanıt` : 'Cevap Ver'}
+                                                {selectedPost.replyCount > 0 ? selectedPost.replyCount : '0'}
                                             </Text>
                                         </TouchableOpacity>
                                     </View>
@@ -937,8 +1003,20 @@ export default function ForumScreen() {
                                                     {(reply.authorName || '?').charAt(0).toUpperCase()}
                                                 </Text>
                                             </View>
-                                            <Text style={styles.replyAuthor}>{reply.authorName || 'Anonim'}</Text>
-                                            <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.replyAuthor}>{reply.authorName || 'Anonim'}</Text>
+                                                <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
+                                            </View>
+                                            {reply.authorId === user?.id && (
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <TouchableOpacity onPress={() => handleEditReply(reply)} style={{ padding: 4, marginLeft: 4 }}>
+                                                        <IconSymbol name="pencil" size={14} color="#6366F1" />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id)} style={{ padding: 4, marginLeft: 4 }}>
+                                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
                                         </View>
                                         <Text style={styles.replyContent}>{reply.content}</Text>
                                     </View>
@@ -972,7 +1050,7 @@ export default function ForumScreen() {
                                 onPress={handleSendReply}
                                 disabled={!newReplyContent.trim()}
                             >
-                                <IconSymbol name="paperplane.fill" size={20} color="#3B82F6" />
+                                <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                             </TouchableOpacity>
                         </View>
                     </KeyboardAvoidingView>
@@ -1220,8 +1298,8 @@ const styles = StyleSheet.create({
     chatInteraction: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
-        marginRight: 8,
+        gap: 6,
+        marginRight: 16,
     },
     bubbleImageWrapper: {
         borderRadius: 12,
@@ -1309,13 +1387,8 @@ const styles = StyleSheet.create({
     interactionPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F8FAFC',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 12,
-        gap: 5,
-        borderWidth: 1,
-        borderColor: '#F1F5F9',
+        paddingVertical: 6,
+        gap: 6,
     },
     interactionCount: {
         fontSize: 12,

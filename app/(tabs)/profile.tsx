@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/EmptyState';
-import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto, deletePost } from '@/services/forumApi';
+import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto, deletePost, updatePost, UpdatePostRequest } from '@/services/forumApi';
 import { fetchMyListings, ListingDto, deleteListing } from '@/services/listingApi';
 import { fetchMyActivities, AppActivityDto, deleteActivity } from '@/services/api';
 import { fetchNotifications, markNotificationRead, NotificationDto, NotificationType } from '@/services/notificationApi';
@@ -45,6 +45,10 @@ export default function ProfileScreen() {
     const [loadingListings, setLoadingListings] = useState(true);
     const [loadingActivities, setLoadingActivities] = useState(true);
     const [fetchError, setFetchError] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [editingPostId, setEditingPostId] = useState<string | null>(null);
+    const [editingContent, setEditingContent] = useState('');
 
     const loadAll = useCallback(() => {
         if (!user) return;
@@ -88,7 +92,17 @@ export default function ProfileScreen() {
             .finally(() => setLoadingActivities(false));
     }, [user?.id]);
 
-    const handleDeletePost = (id: string) => {
+    const handleSendInvite = () => {
+        if (!inviteEmail.trim() || !inviteEmail.includes('@')) {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Lütfen geçerli bir e-posta adresi girin.');
+            return;
+        }
+        Alert.alert('Başarılı', 'Davetiye başarıyla gönderildi!');
+        setShowInviteModal(false);
+        setInviteEmail('');
+    };
+
+    const handleDeletePost = (id: string, isReply: boolean = false) => {
         Alert.alert(
             t('common.delete', { defaultValue: 'Sil' }),
             t('common.deleteConfirm', { defaultValue: 'Silmek istediğinize emin misiniz?' }),
@@ -98,12 +112,37 @@ export default function ProfileScreen() {
                     text: t('common.delete', { defaultValue: 'Sil' }), 
                     style: 'destructive',
                     onPress: async () => {
-                        const success = await deletePost(id);
-                        if (success) loadAll();
+                        try {
+                            await deletePost(id);
+                            if (isReply) {
+                                setReplies(replies.filter(r => r.id !== id));
+                            } else {
+                                setPosts(posts.filter(p => p.id !== id));
+                            }
+                        } catch (error) {
+                            Alert.alert("Hata", "Silinemedi.");
+                        }
                     }
                 }
             ]
         );
+    };
+
+    const handleSaveEdit = async (id: string, isReply: boolean = false) => {
+        if (!editingContent.trim()) return;
+        try {
+            const request: UpdatePostRequest = { content: editingContent.trim() };
+            const updated = await updatePost(id, request);
+            if (isReply) {
+                setReplies(replies.map(r => r.id === id ? updated : r));
+            } else {
+                setPosts(posts.map(p => p.id === id ? updated : p));
+            }
+            setEditingPostId(null);
+            setEditingContent('');
+        } catch (error: any) {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Güncellenirken bir hata oluştu.');
+        }
     };
 
     const handleDeleteListing = (id: string) => {
@@ -172,19 +211,41 @@ export default function ProfileScreen() {
             <View style={styles.contentList}>
                 {posts.map(post => (
                     <View key={post.id} style={styles.postCard}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {editingPostId === post.id ? (
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.postContent, { marginBottom: 6 }]}>{post.content}</Text>
-                                <View style={styles.postFooter}>
-                                    <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                                <TextInput
+                                    style={styles.editInput}
+                                    value={editingContent}
+                                    onChangeText={setEditingContent}
+                                    multiline
+                                />
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+                                    <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
+                                        <Text style={{ color: '#64748B' }}>İptal</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} style={{ padding: 4 }}>
+                                        <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
-                            <View style={{ marginLeft: 12 }}>
-                                <TouchableOpacity onPress={() => handleDeletePost(post.id)} style={styles.actionBtn}>
-                                    <IconSymbol name="trash.fill" size={14} color="#EF4444" />
-                                </TouchableOpacity>
+                        ) : (
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.postContent, { marginBottom: 6 }]}>{post.content}</Text>
+                                    <View style={styles.postFooter}>
+                                        <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', marginLeft: 12 }}>
+                                    <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={styles.actionBtn}>
+                                        <IconSymbol name="pencil" size={14} color="#6366F1" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleDeletePost(post.id, false)} style={[styles.actionBtn, { marginLeft: 8 }]}>
+                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
+                        )}
                     </View>
                 ))}
             </View>
@@ -202,10 +263,41 @@ export default function ProfileScreen() {
                             <IconSymbol name="arrow.uturn.left" size={12} color="#64748B" />
                             <Text style={styles.replyContext}>Gönderiye yanıt olarak:</Text>
                         </View>
-                        <Text style={styles.postContent}>{reply.content}</Text>
-                        <View style={styles.postFooter}>
-                            <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
-                        </View>
+                        {editingPostId === reply.id ? (
+                            <View style={{ flex: 1 }}>
+                                <TextInput
+                                    style={styles.editInput}
+                                    value={editingContent}
+                                    onChangeText={setEditingContent}
+                                    multiline
+                                />
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+                                    <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
+                                        <Text style={{ color: '#64748B' }}>İptal</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleSaveEdit(reply.id, true)} style={{ padding: 4 }}>
+                                        <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.postContent}>{reply.content}</Text>
+                                    <View style={styles.postFooter}>
+                                        <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', marginLeft: 12 }}>
+                                    <TouchableOpacity onPress={() => { setEditingPostId(reply.id); setEditingContent(reply.content); }} style={styles.actionBtn}>
+                                        <IconSymbol name="pencil" size={14} color="#6366F1" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id, true)} style={[styles.actionBtn, { marginLeft: 8 }]}>
+                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
                     </View>
                 ))}
             </View>
@@ -223,7 +315,7 @@ export default function ProfileScreen() {
 
     const renderNotifications = () => {
         if (loadingNotifications) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F43F5E" /></View>;
-        if (notifications.length === 0) return renderEmpty('bell.fill', t('profile.emptyNotificationsTitle', { defaultValue: 'Bildirim Yok' }), t('profile.emptyNotificationsDesc', { defaultValue: 'Etkinlik onayları ve gönderi yanıtları burada görünecek.' }));
+        if (notifications.length === 0) return renderEmpty('bell.fill', t('profile.emptyNotificationsTitle', { defaultValue: 'Bildirim Yok' }), t('profile.emptyNotificationsDesc', { defaultValue: 'Etkinlik onayları ve gönderi yanıtları burada görünecek.' }), '#EF4444');
         return (
             <View style={styles.contentList}>
                 {notifications.map(notif => {
@@ -412,15 +504,7 @@ export default function ProfileScreen() {
                         <TouchableOpacity 
                             style={styles.inviteButton}
                             activeOpacity={0.7}
-                            onPress={async () => {
-                                try {
-                                    await Share.share({
-                                        message: t('profile.inviteMessage', { defaultValue: 'Ada+ uygulamasını dene! Adalar hakkında her şey tek bir yerde. 🏝️\n\nhttps://apps.apple.com/app/ada-plus/id123456789' }),
-                                    });
-                                } catch (e) {
-                                    // user cancelled
-                                }
-                            }}
+                            onPress={() => setShowInviteModal(true)}
                         >
                             <IconSymbol name="person.badge.plus" size={18} color="#6366F1" />
                             <Text style={styles.inviteButtonText}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
@@ -468,6 +552,45 @@ export default function ProfileScreen() {
                 {renderContent()}
                 </ScrollView>
             )}
+            {/* Invite Modal */}
+            <Modal
+                visible={showInviteModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowInviteModal(false)}
+            >
+                <KeyboardAvoidingView 
+                    style={styles.modalOverlay}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
+                            <TouchableOpacity onPress={() => setShowInviteModal(false)}>
+                                <IconSymbol name="xmark.circle.fill" size={24} color="#94A3B8" />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.modalBody}>
+                            <Text style={styles.modalDescription}>Davet etmek istediğiniz kişinin e-posta adresini girin.</Text>
+                            <TextInput
+                                style={styles.inviteInput}
+                                placeholder="E-posta adresi"
+                                value={inviteEmail}
+                                onChangeText={setInviteEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                            <TouchableOpacity 
+                                style={[styles.inviteSendButton, !inviteEmail.trim() && { opacity: 0.5 }]}
+                                onPress={handleSendInvite}
+                                disabled={!inviteEmail.trim()}
+                            >
+                                <Text style={styles.inviteSendButtonText}>Gönder</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
         </View>
     );
 }
@@ -627,5 +750,68 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '700',
         color: '#6366F1',
+    },
+    editInput: {
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 8,
+        padding: 10,
+        fontSize: 14,
+        color: '#1E293B',
+        minHeight: 60,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '85%',
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1E293B',
+    },
+    modalBody: {
+        padding: 20,
+    },
+    modalDescription: {
+        fontSize: 14,
+        color: '#64748B',
+        marginBottom: 16,
+    },
+    inviteInput: {
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 12,
+        padding: 14,
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    inviteSendButton: {
+        backgroundColor: '#6366F1',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    inviteSendButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

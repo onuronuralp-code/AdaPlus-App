@@ -147,6 +147,31 @@ export const createPost = async (
   return response.json();
 };
 
+export interface UpdatePostRequest {
+  content: string;
+  imageUrl?: string;
+}
+
+export const updatePost = async (
+  postId: string,
+  request: UpdatePostRequest,
+): Promise<PostDto> => {
+  const token = getToken();
+  const response = await fetch(`${FORUM_API_BASE}/posts/${postId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
+  }
+  return response.json();
+};
+
 export interface LikeResponse {
   liked: boolean;
   likeCount: number;
@@ -283,7 +308,7 @@ export const fetchUserLikes = async (userId: string): Promise<PostDto[]> => {
 export const deletePost = async (id: string): Promise<boolean> => {
   try {
     const token = await getToken();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/api/posts/${id}`, {
+    const response = await fetchWithTimeout(`${FORUM_API_BASE}/posts/${id}`, {
       method: "DELETE",
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

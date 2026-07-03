@@ -82,7 +82,7 @@ export default function IlanlarScreen() {
   const [adContact, setAdContact] = useState('');
   const [adCat, setAdCat] = useState<IlanCategory>('emlak');
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
-  const [adIsland, setAdIsland] = useState('Büyükada');
+  const [adIsland, setAdIsland] = useState('Kınalıada');
 
   React.useEffect(() => {
     if (params.editListingId && typeof params.editListingId === 'string') {
@@ -159,7 +159,7 @@ export default function IlanlarScreen() {
     cleanedContact.length < 10 ||
     isUploading;
 
-  const islands = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'];
+  const islands = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
 
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -420,7 +420,7 @@ export default function IlanlarScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.modalHeader}>
-            <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
+            <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
               <TouchableOpacity onPress={handleCloseModal} style={styles.modalHeaderButton}>
                 <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: i18n.language.startsWith('en') ? 'CANCEL' : 'İPTAL' })}</Text>
               </TouchableOpacity>
@@ -428,7 +428,7 @@ export default function IlanlarScreen() {
             <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={styles.modalTitle} numberOfLines={1}>{editingListingId ? t('common.editListing', { defaultValue: 'İlanı Düzenle' }) : t('ilanlar.newAd', { defaultValue: i18n.language.startsWith('en') ? 'NEW LISTING' : 'YENİ İLAN' })}</Text>
             </View>
-            <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
+            <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
               <TouchableOpacity 
                 style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                 onPress={handlePublish}
@@ -928,8 +928,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   publishButton: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 12,
+    backgroundColor: '#10B981',
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
   },

@@ -343,7 +343,7 @@ export default function EventsScreen() {
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={styles.modalHeader}>
-                        <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
+                        <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity 
                                 style={styles.modalHeaderButton} 
                                 onPress={() => {
@@ -359,7 +359,7 @@ export default function EventsScreen() {
                         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
                             <Text style={styles.modalTitle} numberOfLines={1}>{editingActivityId ? 'Etkinliği Düzenle' : t('events.newEvent', { defaultValue: i18n.language.startsWith('en') ? 'NEW EVENT' : 'YENİ ETKİNLİK' })}</Text>
                         </View>
-                        <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
                                 style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                                 onPress={handlePublishEvent}
