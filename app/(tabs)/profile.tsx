@@ -180,16 +180,6 @@ export default function ProfileScreen() {
                         </View>
                         <View style={styles.postFooter}>
                             <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
-                            <View style={styles.statsRow}>
-                                <View style={styles.statItem}>
-                                    <IconSymbol name="heart.fill" size={14} color="#EC4899" />
-                                    <Text style={styles.statText}>{post.likeCount}</Text>
-                                </View>
-                                <View style={styles.statItem}>
-                                    <IconSymbol name="bubble.left.and.bubble.right.fill" size={14} color="#64748B" />
-                                    <Text style={styles.statText}>{post.replyCount}</Text>
-                                </View>
-                            </View>
                         </View>
                     </View>
                 ))}
