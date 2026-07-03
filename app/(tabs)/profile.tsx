@@ -282,20 +282,13 @@ export default function ProfileScreen() {
                             <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
                             <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
                         </View>
-                        <View style={{ alignItems: 'flex-end', justifyContent: 'center', gap: 8, marginLeft: 12 }}>
-                            <View style={{ flexDirection: 'row', gap: 6 }}>
-                                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={styles.actionBtn}>
-                                    <IconSymbol name="pencil" size={14} color="#3B82F6" />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={styles.actionBtn}>
-                                    <IconSymbol name="trash.fill" size={14} color="#EF4444" />
-                                </TouchableOpacity>
-                            </View>
-                            {listing.price > 0 && (
-                                <View style={styles.priceTag}>
-                                    <Text style={styles.priceText}>{listing.price} ₺</Text>
-                                </View>
-                            )}
+                        <View style={{ flexDirection: 'row', gap: 6, marginLeft: 12 }}>
+                            <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={styles.actionBtn}>
+                                <IconSymbol name="pencil" size={14} color="#3B82F6" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={styles.actionBtn}>
+                                <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                            </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
                 ))}
