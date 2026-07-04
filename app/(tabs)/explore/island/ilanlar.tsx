@@ -217,14 +217,20 @@ export default function IlanlarScreen() {
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      if (selectedCategory === 'emlak') {
+      if (__DEV__) {
+        const filtered = selectedCategory === 'all'
+          ? MOCK_LISTINGS
+          : selectedCategory === 'emlak'
+            ? MOCK_LISTINGS.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK)
+            : MOCK_LISTINGS.filter(l => l.category === CATEGORY_CONFIG[selectedCategory].backend);
+        setListings(filtered);
+      } else if (selectedCategory === 'emlak') {
         const data = await listingApi.fetchListings();
-        const filtered = data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK);
-        setListings(filtered.length === 0 && __DEV__ ? MOCK_LISTINGS.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK) : filtered);
+        setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
       } else {
         const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
         const data = await listingApi.fetchListings(backendCat);
-        setListings(data.length === 0 && __DEV__ ? (backendCat ? MOCK_LISTINGS.filter(l => l.category === backendCat) : MOCK_LISTINGS) : data);
+        setListings(data);
       }
     } catch {
       if (showLoading) Alert.alert(t('errors.connectionError', { defaultValue: 'Bağlantı Hatası' }), t('errors.listingsLoadFailed', { defaultValue: 'İlanlar yüklenemedi. Lütfen tekrar deneyin.' }));

@@ -117,7 +117,7 @@ export default function EventsScreen() {
         if (showLoading) setLoading(true);
         try {
             const data = await fetchActivities();
-            setEvents(data.length === 0 && __DEV__ ? MOCK_EVENTS : data);
+            setEvents(__DEV__ ? MOCK_EVENTS : data);
         } catch {
             // keep existing list on background poll failure; only show error on initial load
             if (showLoading) Alert.alert('Bağlantı Hatası', 'Etkinlikler yüklenemedi. Lütfen tekrar deneyin.');
