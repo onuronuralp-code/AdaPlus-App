@@ -55,7 +55,56 @@ const ISLAND_ENUM_MAP: Record<string, Island> = {
 const getIslandEnum = (name: string): Island =>
   ISLAND_ENUM_MAP[name] ?? Island.BUYUKADA;
 
-const SAMPLE_ILANLAR: ListingDto[] = []; // Replaced by real data
+const MOCK_LISTINGS: ListingDto[] = __DEV__ ? [
+  {
+    id: 'mock-1',
+    title: 'Büyükada\'da Satılık Bağ Evi',
+    description: '3+1, deniz manzaralı, bahçeli bağ evi. Ahşap yapı, restore edilmiş. Adaya yürüme mesafesinde.',
+    category: ListingCategory.SATILIK,
+    island: Island.BUYUKADA,
+    price: 4500000,
+    contactInfo: '05321234567',
+    active: true,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'mock-2',
+    title: 'Fayton Turu Rehberlik Hizmeti',
+    description: 'Adaları faytonla keşfedin! Profesyonel rehber eşliğinde 2 saatlik tur. Grup ve bireysel rezervasyon.',
+    category: ListingCategory.HIZMET,
+    island: Island.HEYBELIADA,
+    price: 850,
+    contactInfo: '05397654321',
+    active: true,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'mock-3',
+    title: 'Kafe & Restoran Garson Aranıyor',
+    description: 'Heybeliada\'daki kafe restoranımızda hafta sonu çalışacak deneyimli garson aranıyor. Yemek dahil.',
+    category: ListingCategory.IS_ILANI,
+    island: Island.HEYBELIADA,
+    price: 0,
+    contactInfo: '05441112233',
+    active: true,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'mock-4',
+    title: 'Vintage Bisiklet Satılık',
+    description: 'Ada\'ya özel vintage Peugeot bisiklet. 3 vites, bakımlı, sepetli. Sezona hazır halde.',
+    category: ListingCategory.ESYA,
+    island: Island.KINALIADA,
+    price: 3200,
+    contactInfo: '05559876543',
+    active: true,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+] : [];
 
 export default function IlanlarScreen() {
   const { t } = useTranslation();
@@ -166,11 +215,12 @@ export default function IlanlarScreen() {
     try {
       if (selectedCategory === 'emlak') {
         const data = await listingApi.fetchListings();
-        setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
+        const filtered = data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK);
+        setListings(filtered.length === 0 && __DEV__ ? MOCK_LISTINGS.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK) : filtered);
       } else {
         const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
         const data = await listingApi.fetchListings(backendCat);
-        setListings(data);
+        setListings(data.length === 0 && __DEV__ ? (backendCat ? MOCK_LISTINGS.filter(l => l.category === backendCat) : MOCK_LISTINGS) : data);
       }
     } catch {
       if (showLoading) Alert.alert(t('errors.connectionError', { defaultValue: 'Bağlantı Hatası' }), t('errors.listingsLoadFailed', { defaultValue: 'İlanlar yüklenemedi. Lütfen tekrar deneyin.' }));

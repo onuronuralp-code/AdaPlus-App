@@ -14,6 +14,38 @@ import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomDateTimePicker from '@/components/CustomDateTimePicker';
 
+const MOCK_EVENTS: AppActivityDto[] = __DEV__ ? [
+  {
+    id: 'mock-1',
+    name: 'Büyükada Yaz Festivali',
+    description: 'Ada\'nın en büyük yaz etkinliği! Canlı müzik, yerel lezzetler ve el sanatları standlarıyla dolu bir gün.',
+    startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(),
+    organizerName: 'Ada Kültür Derneği',
+    eventPlace: 'Büyükada İskele Meydanı',
+    imageUrl: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'mock-2',
+    name: 'Adalar Film Günleri',
+    description: 'Açık havada klasik Türk filmleri gösterimi. Ailenizle keyifli bir yaz gecesi geçirin.',
+    startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
+    organizerName: 'Heybeliada Sinema Kulübü',
+    eventPlace: 'Heybeliada Plaj Parkı',
+    imageUrl: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'mock-3',
+    name: 'Ada Bisiklet Turu',
+    description: 'Kınalıada\'yı bisikletle keşfet! Rehberli tur, tüm seviyelere uygun. Bisiklet kiralama dahil.',
+    startDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    organizerName: 'Ada Spor Topluluğu',
+    eventPlace: 'Kınalıada İskele',
+    imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop&q=80',
+  },
+] : [];
+
 export default function EventsScreen() {
     const { t, i18n } = useTranslation();
     const router = useRouter();
@@ -85,7 +117,7 @@ export default function EventsScreen() {
         if (showLoading) setLoading(true);
         try {
             const data = await fetchActivities();
-            setEvents(data);
+            setEvents(data.length === 0 && __DEV__ ? MOCK_EVENTS : data);
         } catch {
             // keep existing list on background poll failure; only show error on initial load
             if (showLoading) Alert.alert('Bağlantı Hatası', 'Etkinlikler yüklenemedi. Lütfen tekrar deneyin.');
