@@ -285,7 +285,7 @@ export default function EventsScreen() {
                 }}>
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('common.events')}</Text>
+                <Text style={styles.headerTitle}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
             </View>
 
             <ScrollView

@@ -19,6 +19,66 @@ import LoginPromptModal from '@/components/LoginPromptModal';
 import { EmptyState } from '@/components/EmptyState';
 import { resolveImageUrl } from '@/services/config';
 
+const MOCK_POSTS: PostDto[] = __DEV__ ? [
+  {
+    id: 'mock-post-1',
+    content: 'Bu hafta sonu Büyükada\'da düzenlenecek yaz festivali için heyecanlıyım! Konser alanında yer bulmak için erkenden gidilmesini tavsiye ederim. Ada Kültür Derneği çok güzel bir program hazırlamış.',
+    authorName: 'Mehmet Yılmaz',
+    authorUserType: UserType.ISLAND_RESIDENT,
+    authorId: 'mock-author-1',
+    island: Island.BUYUKADA,
+    postType: PostType.DISCUSSION,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    replyCount: 8,
+    likeCount: 24,
+    isLiked: false,
+  },
+  {
+    id: 'mock-post-2',
+    content: 'Bisiklet kiralama fiyatları bu yıl uygun mu?',
+    authorName: 'Ayşe Kaya',
+    authorUserType: UserType.RESIDENT,
+    authorId: 'mock-author-2',
+    island: Island.HEYBELIADA,
+    postType: PostType.POLL,
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    replyCount: 15,
+    likeCount: 42,
+    isLiked: true,
+    pollOptions: [
+      { id: 'opt-1', text: 'Evet, makul', voteCount: 34, percentage: 55 },
+      { id: 'opt-2', text: 'Biraz pahalı', voteCount: 19, percentage: 31 },
+      { id: 'opt-3', text: 'Çok pahalı!', voteCount: 9, percentage: 14 },
+    ],
+    pollEndsAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'mock-post-3',
+    content: 'Kınalıada iskelesindeki restorasyon çalışmaları ne zaman bitecek? Turizm sezonuna yetişmesi çok önemliydi ama hâlâ devam ediyor. Gelen ziyaretçiler için biraz sıkıntılı bir görüntü.',
+    authorUserType: UserType.VISITOR,
+    authorId: 'mock-author-3',
+    island: Island.KINALIADA,
+    postType: PostType.COMPLAINT,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    replyCount: 5,
+    likeCount: 31,
+    isLiked: false,
+  },
+  {
+    id: 'mock-post-4',
+    content: 'Adalar Belediyesi duyurusu: Cuma günü tüm adalarda 09:00–17:00 arası su kesintisi yapılacaktır. Anlayışınız için teşekkürler.',
+    authorName: 'Ada Yönetimi',
+    authorUserType: UserType.ADMIN,
+    authorId: 'mock-author-4',
+    island: Island.BUYUKADA,
+    postType: PostType.INFO,
+    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    replyCount: 3,
+    likeCount: 56,
+    isLiked: false,
+  },
+] : [];
+
 export default function ForumScreen() {
     const { t } = useTranslation();
     const router = useRouter();
@@ -153,8 +213,12 @@ export default function ForumScreen() {
     const loadPosts = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
         try {
-            const data = await (activeTab === 'hot' ? forumApi.fetchHotPosts() : forumApi.fetchPosts());
-            setPosts(Array.isArray(data) ? data : []);
+            if (__DEV__) {
+                setPosts(MOCK_POSTS);
+            } else {
+                const data = await (activeTab === 'hot' ? forumApi.fetchHotPosts() : forumApi.fetchPosts());
+                setPosts(Array.isArray(data) ? data : []);
+            }
         } catch (error) {
             console.error('Failed to load posts:', error);
             setPosts([]);

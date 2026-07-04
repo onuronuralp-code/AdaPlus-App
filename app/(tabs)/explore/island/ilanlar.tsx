@@ -386,7 +386,7 @@ export default function IlanlarScreen() {
         }}>
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
+        <Text style={styles.headerTitle}>{t('common.classifieds', { defaultValue: 'İlanlar' })}</Text>
       </View>
 
       <View style={styles.tabsWrapper}>
