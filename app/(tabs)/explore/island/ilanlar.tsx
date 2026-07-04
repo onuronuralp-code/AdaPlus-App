@@ -64,6 +64,7 @@ const MOCK_LISTINGS: ListingDto[] = __DEV__ ? [
     island: Island.BUYUKADA,
     price: 4500000,
     contactInfo: '05321234567',
+    imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&auto=format&fit=crop&q=80',
     active: true,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -76,6 +77,7 @@ const MOCK_LISTINGS: ListingDto[] = __DEV__ ? [
     island: Island.HEYBELIADA,
     price: 850,
     contactInfo: '05397654321',
+    imageUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&auto=format&fit=crop&q=80',
     active: true,
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -88,6 +90,7 @@ const MOCK_LISTINGS: ListingDto[] = __DEV__ ? [
     island: Island.HEYBELIADA,
     price: 0,
     contactInfo: '05441112233',
+    imageUrl: 'https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&auto=format&fit=crop&q=80',
     active: true,
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -100,6 +103,7 @@ const MOCK_LISTINGS: ListingDto[] = __DEV__ ? [
     island: Island.KINALIADA,
     price: 3200,
     contactInfo: '05559876543',
+    imageUrl: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800&auto=format&fit=crop&q=80',
     active: true,
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -650,11 +654,11 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
   });
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
-        styles.card, 
+        styles.card,
         { borderColor: `${cfg.color}33` },
-      ]} 
+      ]}
       activeOpacity={0.7}
       onPress={() => {
           router.push({
@@ -663,6 +667,10 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
           });
       }}
     >
+      {listing.imageUrl ? (
+        <Image source={{ uri: listing.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+      ) : null}
+      <View style={{ padding: 18 }}>
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>
           <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
@@ -694,6 +702,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
             <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
           </View>
         )}
+      </View>
       </View>
     </TouchableOpacity>
   );
@@ -791,10 +800,18 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 0, // overridden inline with tabBarHeight
   },
+  cardImage: {
+    width: '100%',
+    height: 150,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    marginBottom: 4,
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 18,
-    padding: 18,
+    overflow: 'hidden',
+    padding: 0,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
