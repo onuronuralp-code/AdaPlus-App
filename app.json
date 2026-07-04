@@ -14,7 +14,8 @@
       "backgroundColor": "#FFFFFF"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "requireFullScreen": true,
       "bundleIdentifier": "com.onurx.ADA",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
