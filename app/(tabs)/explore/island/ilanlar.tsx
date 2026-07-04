@@ -667,7 +667,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
           });
       }}
     >
-      {listing.imageUrl ? (
+      {listing.imageUrl && listing.imageUrl.startsWith('https://') ? (
         <Image source={{ uri: listing.imageUrl }} style={styles.cardImage} resizeMode="cover" />
       ) : null}
       <View style={{ padding: 18 }}>

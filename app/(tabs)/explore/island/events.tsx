@@ -320,9 +320,9 @@ export default function EventsScreen() {
                             activeOpacity={0.8}
                             onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                         >
-                            <Image 
-                                source={{ uri: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }} 
-                                style={styles.eventImage} 
+                            <Image
+                                source={{ uri: (() => { const u = resolveImageUrl(event.imageUrl); return (u && u.startsWith('https://')) ? u : 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'; })() }}
+                                style={styles.eventImage}
                             />
                             <View style={styles.eventInfo}>
                                 <View style={styles.titleRow}>
