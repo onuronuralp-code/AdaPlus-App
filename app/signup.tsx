@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
-
 import { useTranslation } from 'react-i18next';
 import { KVKKModal } from '@/components/KVKKModal';
 
@@ -101,148 +100,164 @@ export default function SignUpScreen() {
     };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={styles.container}>
+        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Stack.Screen options={{ headerShown: false }} />
-            
-            <LinearGradient 
-                colors={['#0D1B2A', '#1B263B']} 
-                style={styles.headerBackground}
-            >
-                <Image 
-                    source={require('@/assets/images/begonvil.jpeg')}
-                    style={StyleSheet.absoluteFillObject}
-                    resizeMode="cover"
-                />
-                <LinearGradient 
-                    colors={['rgba(13, 27, 42, 0.4)', '#1B263B']} 
-                    style={StyleSheet.absoluteFillObject}
-                />
-                <TouchableOpacity 
-                    style={[styles.backButton, { top: insets.top + 10 }]} 
-                    onPress={() => {
-                        if (router.canGoBack()) router.back();
-                        else router.replace('/login');
-                    }}
-                >
-                    <IconSymbol name="chevron.left" size={24} color="#fff" />
-                </TouchableOpacity>
-
-                <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
-                    <View style={styles.logoCircle}>
-                        <IconSymbol name="person.fill" size={36} color="#fff" />
-                    </View>
-                    <Text style={styles.welcomeTitle}>{t('auth.signupTitle')}</Text>
-                    <Text style={styles.welcomeSubtitle}>{t('auth.signupSubtitle')}</Text>
-                </View>
-            </LinearGradient>
-
-            <View style={styles.cardContainer}>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>{t('auth.nameLabel')}</Text>
-                        <View style={[styles.inputWrapper, errors.name ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder={t('auth.namePlaceholder')}
-                                placeholderTextColor="#94A3B8"
-                                value={name}
-                                onChangeText={handleNameChange}
-                                onBlur={handleNameBlur}
-                                autoCapitalize="words"
-                            />
-                        </View>
-                        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
-                        <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder={t('auth.emailPlaceholder')}
-                                placeholderTextColor="#94A3B8"
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                value={email}
-                                onChangeText={handleEmailChange}
-                                onBlur={handleEmailBlur}
-                            />
-                        </View>
-                        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
-                        <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
-                            <TextInput 
-                                style={[styles.input, { flex: 1 }]} 
-                                placeholder={t('auth.passwordPlaceholder')}
-                                placeholderTextColor="#94A3B8"
-                                secureTextEntry={!showPassword}
-                                value={password}
-                                onChangeText={handlePasswordChange}
-                                onBlur={handlePasswordBlur}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-                                <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
-                            </TouchableOpacity>
-                        </View>
-                        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-                    </View>
-
-                    <TouchableOpacity 
-                        style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
-                        onPress={handleSubmit}
-                        activeOpacity={0.8}
-                        disabled={loading}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View style={styles.container}>
+                    <LinearGradient
+                        colors={['#0D1B2A', '#1B263B']}
+                        style={styles.headerBackground}
                     >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" size="small" />
-                        ) : (
-                            <>
-                                <Text style={styles.primaryButtonText}>{t('auth.signupButton')}</Text>
-                                <IconSymbol name="chevron.right" size={18} color="#fff" />
-                            </>
-                        )}
-                    </TouchableOpacity>
-
-                    <View style={styles.divider}>
-                        <View style={styles.line} />
-                        <Text style={styles.dividerText}>{t('auth.orDivider')}</Text>
-                        <View style={styles.line} />
-                    </View>
-
-                    <View style={styles.socialGrid}>
-                        <TouchableOpacity style={styles.socialButton}>
-                            <IconSymbol name="globe" size={20} color="#000" />
-                            <Text style={styles.socialButtonText}>Google</Text>
+                        <Image
+                            source={require('@/assets/images/begonvil.jpeg')}
+                            style={StyleSheet.absoluteFillObject}
+                            resizeMode="cover"
+                        />
+                        <LinearGradient
+                            colors={['rgba(13, 27, 42, 0.4)', '#1B263B']}
+                            style={StyleSheet.absoluteFillObject}
+                        />
+                        <TouchableOpacity
+                            style={[styles.backButton, { top: insets.top + 10 }]}
+                            onPress={() => {
+                                if (router.canGoBack()) router.back();
+                                else router.replace('/login');
+                            }}
+                        >
+                            <IconSymbol name="chevron.left" size={24} color="#fff" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.socialButton}>
-                            <IconSymbol name="apple.logo" size={20} color="#000" />
-                            <Text style={styles.socialButtonText}>Apple</Text>
-                        </TouchableOpacity>
-                    </View>
 
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>
-                        <TouchableOpacity onPress={() => router.push('/login')}>
-                            <Text style={styles.loginText}>{t('auth.loginLink')}</Text>
-                        </TouchableOpacity>
+                        <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
+                            <View style={styles.logoCircle}>
+                                <IconSymbol name="person.fill" size={36} color="#fff" />
+                            </View>
+                            <Text style={styles.welcomeTitle}>{t('auth.signupTitle')}</Text>
+                            <Text style={styles.welcomeSubtitle}>{t('auth.signupSubtitle')}</Text>
+                        </View>
+                    </LinearGradient>
+
+                    <View style={styles.cardContainer}>
+                        <ScrollView
+                            style={styles.formScroll}
+                            contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + 24 }]}
+                            keyboardShouldPersistTaps="handled"
+                            showsVerticalScrollIndicator={false}
+                        >
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('auth.nameLabel')}</Text>
+                                <View style={[styles.inputWrapper, errors.name ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={t('auth.namePlaceholder')}
+                                        placeholderTextColor="#94A3B8"
+                                        value={name}
+                                        onChangeText={handleNameChange}
+                                        onBlur={handleNameBlur}
+                                        autoCapitalize="words"
+                                    />
+                                </View>
+                                {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
+                                <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={t('auth.emailPlaceholder')}
+                                        placeholderTextColor="#94A3B8"
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                        value={email}
+                                        onChangeText={handleEmailChange}
+                                        onBlur={handleEmailBlur}
+                                    />
+                                </View>
+                                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
+                                <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
+                                    <TextInput
+                                        style={[styles.input, { flex: 1 }]}
+                                        placeholder={t('auth.passwordPlaceholder')}
+                                        placeholderTextColor="#94A3B8"
+                                        secureTextEntry={!showPassword}
+                                        value={password}
+                                        onChangeText={handlePasswordChange}
+                                        onBlur={handlePasswordBlur}
+                                    />
+                                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                                        <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
+                                    </TouchableOpacity>
+                                </View>
+                                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                            </View>
+
+                            <TouchableOpacity
+                                style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+                                onPress={handleSubmit}
+                                activeOpacity={0.8}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <>
+                                        <Text style={styles.primaryButtonText}>{t('auth.signupButton')}</Text>
+                                        <IconSymbol name="chevron.right" size={18} color="#fff" />
+                                    </>
+                                )}
+                            </TouchableOpacity>
+
+                            <View style={styles.divider}>
+                                <View style={styles.line} />
+                                <Text style={styles.dividerText}>{t('auth.orDivider')}</Text>
+                                <View style={styles.line} />
+                            </View>
+
+                            <View style={styles.socialGrid}>
+                                <View style={styles.socialButtonWrapper}>
+                                    <View style={[styles.socialButton, styles.socialButtonDisabled]}>
+                                        <IconSymbol name="globe" size={20} color="#94A3B8" />
+                                        <Text style={[styles.socialButtonText, styles.socialButtonTextDisabled]}>Google</Text>
+                                    </View>
+                                    <View style={styles.comingSoonBadge}>
+                                        <Text style={styles.comingSoonText}>Yakında</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.socialButtonWrapper}>
+                                    <View style={[styles.socialButton, styles.socialButtonDisabled]}>
+                                        <IconSymbol name="apple.logo" size={20} color="#94A3B8" />
+                                        <Text style={[styles.socialButtonText, styles.socialButtonTextDisabled]}>Apple</Text>
+                                    </View>
+                                    <View style={styles.comingSoonBadge}>
+                                        <Text style={styles.comingSoonText}>Yakında</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={styles.footer}>
+                                <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>
+                                <TouchableOpacity onPress={() => router.push('/login')}>
+                                    <Text style={styles.loginText}>{t('auth.loginLink')}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
 
-            <KVKKModal 
-                isVisible={kvkkVisible} 
-                onClose={() => setKvkkVisible(false)} 
+            <KVKKModal
+                isVisible={kvkkVisible}
+                onClose={() => setKvkkVisible(false)}
                 onAccept={handleSignupAfterKVKK}
             />
-        </View>
-        </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -302,12 +317,15 @@ const styles = StyleSheet.create({
         marginTop: -20,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
+        overflow: 'hidden',
+    },
+    formScroll: {
+        flex: 1,
         paddingHorizontal: 20,
         paddingTop: 24,
     },
     formContainer: {
-        flex: 1,
-        paddingBottom: 20,
+        flexGrow: 1,
     },
     inputGroup: {
         marginBottom: 20,
@@ -376,8 +394,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 16,
     },
-    socialButton: {
+    socialButtonWrapper: {
         flex: 1,
+        position: 'relative',
+    },
+    socialButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -387,11 +408,34 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingVertical: 14,
     },
+    socialButtonDisabled: {
+        backgroundColor: '#F8FAFC',
+        borderColor: '#E2E8F0',
+        opacity: 0.6,
+    },
     socialButtonText: {
         marginLeft: 8,
         fontSize: 15,
         fontWeight: '700',
         color: '#1E293B',
+    },
+    socialButtonTextDisabled: {
+        color: '#94A3B8',
+    },
+    comingSoonBadge: {
+        position: 'absolute',
+        top: -8,
+        right: -4,
+        backgroundColor: '#F59E0B',
+        borderRadius: 8,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+    },
+    comingSoonText: {
+        fontSize: 9,
+        fontWeight: '800',
+        color: '#fff',
+        letterSpacing: 0.3,
     },
     footer: {
         flexDirection: 'row',
