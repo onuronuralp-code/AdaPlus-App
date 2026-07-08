@@ -140,7 +140,7 @@ export default function MainMenuScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
-        scrollEnabled={false}
+        scrollEnabled={true}
       >
         {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
