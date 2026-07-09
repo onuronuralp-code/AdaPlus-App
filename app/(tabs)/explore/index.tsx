@@ -17,11 +17,11 @@ export default function MainMenuScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const gridCardHeight = Math.round(width * 0.38);
+  const gridCardHeight = Math.round(width * 0.30);
 
   const [selectedIsland, setSelectedIsland] = useState("Büyükada");
   const isSmallScreen = height < 700;
-  const isLargeScreen = height > 890;
+  const isLargeScreen = height > 900;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
@@ -140,7 +140,7 @@ export default function MainMenuScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
-        scrollEnabled={true}
+        scrollEnabled={false}
       >
         {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
@@ -274,7 +274,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
         <IconSymbol name={icon as any} size={large ? 28 : 24} color="#fff" />
       </View>
       <Text style={[styles.gridCardTitle, large && { fontSize: 20 }, { color: primaryColor }]}>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 15, lineHeight: 22 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 15, lineHeight: 22 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
     </>
   );
 
