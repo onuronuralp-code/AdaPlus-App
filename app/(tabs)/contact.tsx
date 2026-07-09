@@ -98,7 +98,7 @@ export default function ContactScreen() {
           {/* Separate Info Banner Component */}
           <View style={styles.infoBanner}>
             <View style={styles.infoIconContainer}>
-              <IconSymbol name="info.circle.fill" size={18} color="#000000" />
+              <IconSymbol name="info.circle.fill" size={18} color="#10B981" />
             </View>
             <Text style={styles.infoBannerText}>
               {t('common.contactSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Your feedback and suggestions are valuable to us.' : 'Görüş ve önerileriniz bizim için değerli.' })}
