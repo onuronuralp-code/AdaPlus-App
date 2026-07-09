@@ -78,7 +78,13 @@ export default function VerifyScreen() {
                 { text: 'Giriş Yap', onPress: () => router.replace('/login') }
             ]);
         } catch (err: any) {
-            setError(err.message || 'Doğrulama kodu geçersiz.');
+            // Backend'den İngilizce dönen hataları yakalayıp düzgün Türkçe gösteriyoruz
+            const msg = (err.message || '').toLowerCase();
+            if (msg.includes('expired')) {
+                setError('Kodun süresi dolmuş. Lütfen yeni kod isteyin.');
+            } else {
+                setError('Girdiğiniz doğrulama kodu hatalı.');
+            }
         } finally {
             setLoading(false);
         }
