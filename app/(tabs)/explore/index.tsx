@@ -185,7 +185,7 @@ export default function MainMenuScreen() {
               </Text>
             </View>
           </View>
-          <View style={[styles.cardsContainer, { gap: isSmallScreen ? 8 : 12 }]}>
+          <View style={[styles.cardsContainer, { gap: 16 }]}>
             <View style={[styles.gridRow, { height: gridCardHeight }]}>
               <GridCard
                 icon="tag.fill"
@@ -213,7 +213,6 @@ export default function MainMenuScreen() {
               subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
               onPress={() => router.push('/guide')}
               large={isLargeScreen}
-              style={{ marginTop: 8 }}
             />
             <MenuCard
               icon="bubble.left.and.bubble.right.fill"
@@ -222,7 +221,6 @@ export default function MainMenuScreen() {
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas, and make the island a better place' : 'Ada gündemine hakim ol, fikrini diğer adalılarla paylaş, ada daha güzel bir yer olsun' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
-              style={{ marginBottom: 24 }}
             />
           </View>
         </View>
@@ -465,7 +463,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     marginTop: 0,
-    marginBottom: 24,
+    marginBottom: 18,
   },
   headerLangBtn: {
     flexDirection: 'row',
@@ -509,7 +507,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 16,
-    marginBottom: 12,
     borderColor: '#f0f0f0',
     borderWidth: 1,
     shadowColor: '#000',
