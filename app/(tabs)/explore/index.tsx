@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     marginTop: 0,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   headerLangBtn: {
     flexDirection: 'row',
