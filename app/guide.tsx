@@ -382,6 +382,6 @@ const styles = StyleSheet.create({
     },
     authGateTitle: { fontSize: 22, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 12 },
     authGateSubtitle: { fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-    loginButton: { backgroundColor: '#0F172A', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16 },
+    loginButton: { backgroundColor: '#EC4899', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16 },
     loginButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

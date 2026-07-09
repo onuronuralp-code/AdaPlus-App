@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#E2E8F0' },
     input: { flex: 1, marginLeft: 12, fontSize: 16, color: '#0D1B2A', fontWeight: '500' },
     forgotText: { fontSize: 11, fontWeight: '800', color: '#10B981', marginBottom: 8 },
-    primaryButton: { backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 18, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
+    primaryButton: { backgroundColor: '#EC4899', borderRadius: 16, paddingVertical: 18, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
     primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 'auto' },
     footerText: { fontSize: 14, color: '#94A3B8' },

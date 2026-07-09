@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     loginText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#3B82F6',
+        color: '#EC4899',
     },
     inputWrapperError: {
         borderColor: '#EF4444',
