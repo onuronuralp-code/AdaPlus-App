@@ -268,11 +268,11 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
 
   const content = (
     <>
-      <View style={[styles.gridIconContainer, { backgroundColor: primaryColor }, large && { width: 50, height: 50, borderRadius: 14 }]}>
-        <IconSymbol name={icon as any} size={large ? 28 : 24} color="#fff" />
+      <View style={[styles.gridIconContainer, { backgroundColor: primaryColor }, large && { width: 46, height: 46, borderRadius: 12 }]}>
+        <IconSymbol name={icon as any} size={large ? 26 : 24} color="#fff" />
       </View>
-      <Text style={[styles.gridCardTitle, large && { fontSize: 20 }, { color: primaryColor }]}>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 15, lineHeight: 22 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
+      <Text style={[styles.gridCardTitle, large && { fontSize: 18 }, { color: primaryColor }]}>{title}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 18 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
     </>
   );
 
@@ -280,7 +280,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
     <TouchableOpacity 
       style={[
         styles.gridCard, 
-        large && { padding: 18 }, 
+        large && { padding: 16 }, 
         { backgroundColor: '#ffffff', borderWidth: 2, borderColor: primaryColor },
         style
       ]} 
