@@ -139,8 +139,7 @@ export default function MainMenuScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
-        overScrollMode="never"
-        scrollEnabled={false}
+        scrollEnabled={true}
       >
         {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
@@ -223,6 +222,7 @@ export default function MainMenuScreen() {
               subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas, and make the island a better place' : 'Ada gündemine hakim ol, fikrini diğer adalılarla paylaş, ada daha güzel bir yer olsun' })}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               large={isLargeScreen}
+              style={{ marginBottom: 24 }}
             />
           </View>
         </View>
