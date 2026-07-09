@@ -139,7 +139,7 @@ export default function MainMenuScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
-        scrollEnabled={true}
+        scrollEnabled={false}
       >
         {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
