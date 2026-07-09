@@ -155,10 +155,10 @@ export default function MainMenuScreen() {
         <View style={styles.servicesSection}>
           <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 28 }]}>
+              <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
                 {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
               </Text>
-              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 16 }]}>
+              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
                 {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
               </Text>
             </View>
@@ -180,7 +180,7 @@ export default function MainMenuScreen() {
           <View style={[styles.sectionHeader, isSmallScreen && { marginBottom: 10 }]}>
             <View style={styles.sectionTitleRow}>
               <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
-              <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 21 }]}>
+              <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 20 }]}>
                 {t('common.servicesAndActivities', { defaultValue: i18n.language.startsWith('tr') ? 'Servisler ve Aktiviteler' : 'Services and Activities' })}
               </Text>
             </View>
@@ -241,8 +241,8 @@ function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any)
         <IconSymbol name={icon as any} size={iconSize} color="#fff" />
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, large && { fontSize: 20 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.cardSubtitle, large && { fontSize: 15, lineHeight: 22 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
+        <Text style={[styles.cardTitle, large && { fontSize: 18 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.cardSubtitle, large && { fontSize: 14, lineHeight: 20 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
       </View>
       <IconSymbol name={"chevron.right" as any} size={20} color={primaryColor} />
     </>
