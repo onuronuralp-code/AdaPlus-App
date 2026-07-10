@@ -102,7 +102,7 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
     Kadıköy: 80,
     Maltepe: 20,
   },
-  Bostancı: { Kınalıada: 25, Burgazada: 35, Heybeliada: 50, Büyükada: 60 },
+  Bostancı: { Kınalıada: 25, Burgazada: 35, Heybeliada: 50, Büyükada: 35 },
   Kabataş: {
     Kınalıada: 60,
     Burgazada: 75,
@@ -145,6 +145,26 @@ const getArrivalTime = (
   const mins = TRANSIT_MINUTES[from]?.[to];
   if (!mins) return null;
   return addMinutes(departureTime, mins);
+};
+
+const computeArrivalWithVia = (
+  from: string,
+  to: string,
+  departureTime: string,
+  via?: string[],
+): string => {
+  if (!via || via.length === 0) {
+    return getArrivalTime(from, to, departureTime) || "";
+  }
+  let currTime = departureTime;
+  let currStop = from;
+  for (const stop of [...via, to]) {
+    const mins = TRANSIT_MINUTES[currStop]?.[stop];
+    if (!mins) return getArrivalTime(from, to, departureTime) || "";
+    currTime = addMinutes(currTime, mins);
+    currStop = stop;
+  }
+  return currTime;
 };
 
 const getRouteTimeValue = (time: string): number => {
@@ -233,7 +253,7 @@ export function FerrySchedule() {
               departure: dto.from,
               destination: dto.to,
               departureTime: dto.time,
-              arrivalTime: getArrivalTime(dto.from, dto.to, dto.time) || "",
+              arrivalTime: computeArrivalWithVia(dto.from, dto.to, dto.time, dto.via),
               type: (dto.provider === "Şehir Hatları" ? "Vapur" : "Motor") as
                 | "Vapur"
                 | "Motor",

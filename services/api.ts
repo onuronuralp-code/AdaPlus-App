@@ -43,7 +43,9 @@ export const fetchDepartures = async (
     return data;
   } catch (error) {
     console.error("Failed to fetch departures:", error);
-    triggerNetworkError();
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return [];
   }
 };

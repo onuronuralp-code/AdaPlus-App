@@ -63,7 +63,9 @@ export const fetchListings = async (
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Failed to fetch listings:", error);
-    triggerNetworkError();
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return [];
   }
 };
