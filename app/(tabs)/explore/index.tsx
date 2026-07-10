@@ -250,7 +250,7 @@ function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any)
     <TouchableOpacity 
       style={[
         styles.card, 
-        { padding: cardPadding, backgroundColor: '#ffffff', borderWidth: 2, borderColor: primaryColor }, 
+        { padding: cardPadding, backgroundColor: '#ffffff' },
         style
       ]} 
       onPress={onPress} 
@@ -279,7 +279,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
       style={[
         styles.gridCard, 
         large && { padding: 16 }, 
-        { backgroundColor: '#ffffff', borderWidth: 2, borderColor: primaryColor },
+        { backgroundColor: '#ffffff' },
         style
       ]} 
       onPress={onPress} 
@@ -505,13 +505,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 16,
-    borderColor: '#f0f0f0',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowColor: '#94A3B8',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   iconContainer: {
     width: 52,
@@ -545,11 +543,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowColor: '#94A3B8',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 5,
+    elevation: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
