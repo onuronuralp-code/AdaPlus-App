@@ -97,12 +97,14 @@ export const createListing = async (
 
 export const getListing = async (id: string): Promise<ListingDto | null> => {
   try {
-    const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`);
+    const token = getToken();
+    const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch listing detail:", error);
-    triggerNetworkError();
     return null;
   }
 };
