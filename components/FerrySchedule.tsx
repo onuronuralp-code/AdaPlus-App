@@ -3,16 +3,16 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AnimatedRE, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -109,6 +109,7 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
     Heybeliada: 90,
     Büyükada: 105,
     Kadıköy: 25,
+    Eminönü: 15,
   },
   Kadıköy: {
     Kınalıada: 35,
@@ -119,6 +120,13 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
   },
   Beşiktaş: { Kınalıada: 50, Burgazada: 65, Heybeliada: 80, Büyükada: 95 },
   Maltepe: { Kınalıada: 65, Burgazada: 50, Heybeliada: 35, Büyükada: 20 },
+  Eminönü: {
+    Kadıköy: 20,
+    Kınalıada: 55,
+    Burgazada: 70,
+    Heybeliada: 85,
+    Büyükada: 100,
+  },
 };
 
 const addMinutes = (time: string, mins: number): string => {
