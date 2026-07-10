@@ -17,8 +17,6 @@ export default function MainMenuScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const gridCardHeight = Math.round(width * 0.30);
-
   const [selectedIsland, setSelectedIsland] = useState("Büyükada");
   const isSmallScreen = height < 700;
   const isLargeScreen = height > 900;
@@ -139,7 +137,7 @@ export default function MainMenuScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
-        scrollEnabled={false}
+        scrollEnabled={true}
       >
         {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
@@ -186,7 +184,7 @@ export default function MainMenuScreen() {
             </View>
           </View>
           <View style={[styles.cardsContainer, { gap: 16 }]}>
-            <View style={[styles.gridRow, { height: gridCardHeight }]}>
+            <View style={styles.gridRow}>
               <GridCard
                 icon="tag.fill"
                 colors={['#3B82F6', '#2563EB']}
@@ -272,7 +270,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
         <IconSymbol name={icon as any} size={large ? 26 : 24} color="#fff" />
       </View>
       <Text style={[styles.gridCardTitle, large && { fontSize: 18 }, { color: primaryColor }]}>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 18 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 18 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
     </>
   );
 
@@ -543,6 +541,7 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     flex: 1,
+    minHeight: 120,
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
