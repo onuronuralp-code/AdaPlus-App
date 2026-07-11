@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
-import { fetchActivities } from '@/services/api';
+import { fetchActivities, fetchListings } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
 
 
@@ -26,28 +26,48 @@ export default function MainMenuScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchActivities().then(data => {
-        if (data && data.length > 0) {
-          const now = new Date();
-          const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-          const visible = data
-            .filter(e => {
-              if (e.endDate) return new Date(e.endDate) >= now;
-              return new Date(e.startDate) >= cutoff;
-            })
-            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-            .slice(0, 5)
-            .map(event => ({
-              id: event.id,
-              title: event.name,
-              subtitle: event.description || event.organizerName || '',
-              imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
-            }));
-          setHeroSlides(visible);
+      Promise.all([fetchActivities(), fetchListings()]).then(([eventsData, listingsData]) => {
+        const events = eventsData || [];
+        const listings = listingsData || [];
+        
+        const now = new Date();
+        const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+        
+        const validEvents = events
+          .filter(e => {
+            if (e.endDate) return new Date(e.endDate) >= now;
+            return new Date(e.startDate) >= cutoff;
+          })
+          .map(event => ({
+            id: event.id,
+            type: 'event',
+            title: event.name,
+            subtitle: event.description || event.organizerName || '',
+            date: new Date(event.startDate).getTime(),
+            imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+          }));
+
+        const validListings = listings
+          .map(listing => ({
+            id: listing.id,
+            type: 'listing',
+            title: listing.title,
+            subtitle: listing.description || '',
+            // If createdAt isn't available, we use now as fallback
+            date: listing.createdAt ? new Date(listing.createdAt).getTime() : now.getTime(),
+            imageUrl: resolveImageUrl(listing.imageUrl) || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80'
+          }));
+
+        const combined = [...validEvents, ...validListings]
+          .sort((a, b) => b.date - a.date) // sort by newest first
+          .slice(0, 5);
+
+        if (combined.length > 0) {
+          setHeroSlides(combined);
         } else {
           setHeroSlides([]);
         }
-      }).catch(err => console.log('Error fetching events for hero:', err));
+      }).catch(err => console.log('Error fetching hero slider data:', err));
     }, [])
   );
   const [activeIndex, setActiveIndex] = useState(0);
@@ -138,7 +158,11 @@ export default function MainMenuScreen() {
                   activeOpacity={0.9}
                   onPress={() => {
                     if (slide?.id && !slide.id.startsWith('default')) {
-                      router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
+                      if (slide.type === 'listing') {
+                        router.push({ pathname: '/explore/island/ilan/[id]', params: { id: slide.id } });
+                      } else {
+                        router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
+                      }
                     } else {
                       router.push('/(tabs)/explore/island/events');
                     }
@@ -211,18 +235,14 @@ export default function MainMenuScreen() {
                 large={isLargeScreen}
               />
             </View>
-            <View style={styles.gridRow}>
-              <GridCard
-                icon="bubble.left.and.bubble.right.fill"
-                colors={['#10B981', '#059669']}
-                title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
-                subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Join the forum' : 'Ada Forumu' })}
-                onPress={() => router.push('/(tabs)/explore/island/forum')}
-                style={{ marginRight: 6 }}
-                large={isLargeScreen}
-              />
-              <View style={{ flex: 1, marginLeft: 6 }} />
-            </View>
+            <MenuCard
+              icon="bubble.left.and.bubble.right.fill"
+              colors={['#10B981', '#059669']}
+              title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
+              subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas, and make the island a better place' : 'Ada gündemine hakim ol, fikrini diğer adalılarla paylaş' })}
+              onPress={() => router.push('/(tabs)/explore/island/forum')}
+              large={isLargeScreen}
+            />
           </View>
         </View>
       </Animated.ScrollView>
