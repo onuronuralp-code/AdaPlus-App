@@ -247,14 +247,34 @@ export default function MainMenuScreen() {
                 large={isLargeScreen}
               />
             </View>
-            <MenuCard
-              icon="bubble.left.and.bubble.right.fill"
-              colors={['#10B981', '#059669']}
-              title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
-              subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas, and make the island a better place' : 'Ada gündemine hakim ol, fikrini diğer adalılarla paylaş' })}
+            <TouchableOpacity 
+              style={{
+                backgroundColor: '#F0FDF4',
+                borderRadius: 20,
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginTop: 6
+              }}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
-              large={isLargeScreen}
-            />
+              activeOpacity={0.8}
+            >
+              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#D1FAE5', alignItems: 'center', justifyContent: 'center' }}>
+                <IconSymbol name="bubble.left.and.bubble.right.fill" size={24} color="#059669" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12, paddingRight: 8 }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#059669', marginBottom: 2 }}>
+                  {t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
+                </Text>
+                <Text style={{ fontSize: 12, color: '#4B5563', lineHeight: 16 }} numberOfLines={2}>
+                  {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas and transform the island together.' : 'Ada gündemine hakim ol, fikrini paylaş ve adayı birlikte dönüştür.' })}
+                </Text>
+              </View>
+              <View style={{ backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold', marginRight: 4 }}>Join Now</Text>
+                <IconSymbol name="arrow.right" size={14} color="#fff" />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </Animated.ScrollView>
@@ -300,21 +320,27 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
   const primaryColor = colors ? colors[0] : '#3B82F6';
 
   const content = (
-    <>
-      <View style={[styles.gridIconContainer, { backgroundColor: primaryColor }, large && { width: 40, height: 40, borderRadius: 12 }]}>
-        <IconSymbol name={icon as any} size={large ? 22 : 20} color="#fff" />
+    <View style={{ flex: 1, padding: 12, width: '100%' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
+          <IconSymbol name={icon as any} size={24} color={primaryColor} />
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B', marginBottom: 2 }}>{title}</Text>
+          <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 16 }} numberOfLines={2}>{subtitle}</Text>
+        </View>
       </View>
-      <Text style={[styles.gridCardTitle, large && { fontSize: 15 }, { color: primaryColor }]}>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 11, lineHeight: 14 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
-    </>
+      <View style={{ alignSelf: 'flex-end', marginTop: 12, width: 28, height: 28, borderRadius: 14, backgroundColor: `${primaryColor}10`, alignItems: 'center', justifyContent: 'center' }}>
+        <IconSymbol name="arrow.right" size={14} color={primaryColor} />
+      </View>
+    </View>
   );
 
   return (
     <TouchableOpacity 
       style={[
         styles.gridCard, 
-        large && { padding: 16 }, 
-        { backgroundColor: '#ffffff' },
+        { backgroundColor: '#ffffff', padding: 0 },
         style
       ]} 
       onPress={onPress} 
