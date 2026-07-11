@@ -437,17 +437,17 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
     },
     welcomeTitle: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '900',
         color: '#fff',
         textAlign: 'center',
         marginBottom: 8,
     },
     welcomeSubtitle: {
-        fontSize: 12,
+        fontSize: 11,
         color: 'rgba(255,255,255,0.7)',
         textAlign: 'center',
-        lineHeight: 18,
+        lineHeight: 16,
         paddingHorizontal: 20,
     },
     cardContainer: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     inputLabel: {
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: '800',
         color: '#415A77',
         marginBottom: 8,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         marginLeft: 12,
-        fontSize: 14,
+        fontSize: 13,
         color: '#0D1B2A',
         fontWeight: '500',
     },
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
         width: 64,
     },
     dateCellInput: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#0D1B2A',
         fontWeight: '500',
         textAlign: 'center',
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#EFF6FF',
     },
     dropdownItemText: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#1E293B',
         fontWeight: '500',
     },
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
     },
     primaryButtonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: 'bold',
     },
     divider: {
