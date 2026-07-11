@@ -285,8 +285,8 @@ export default function EventsScreen() {
                     <View style={{ flex: 1, justifyContent: 'center' }}>
                         <EmptyState 
                             icon="calendar.badge.exclamationmark" 
-                            title={t('events.emptyTitle', { defaultValue: i18n.language.startsWith('en') ? 'Event Not Found' : 'Etkinlik Bulunamadı' })}
-                            subtitle={t('events.emptySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'There are no active events at the moment. You can add the first event!' : 'Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!' })}
+                            title={t('events.emptyTitle')}
+                            subtitle={t('events.emptySubtitle')}
                             color="#F59E0B"
                         />
                     </View>
@@ -367,7 +367,7 @@ export default function EventsScreen() {
                             </TouchableOpacity>
                         </View>
                         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={styles.modalTitle} numberOfLines={1}>{editingActivityId ? 'Etkinliği Düzenle' : t('events.newEvent', { defaultValue: i18n.language.startsWith('en') ? 'NEW EVENT' : 'YENİ ETKİNLİK' })}</Text>
+                            <Text style={styles.modalTitle} numberOfLines={1}>{editingActivityId ? t('events.editEvent') : t('events.newEvent')}</Text>
                         </View>
                         <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
@@ -378,7 +378,7 @@ export default function EventsScreen() {
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={styles.publishText}>{editingActivityId ? 'Güncelle' : t('common.publish', { defaultValue: i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA' })}</Text>
+                                    <Text style={styles.publishText}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
@@ -391,17 +391,17 @@ export default function EventsScreen() {
                                 <Text style={styles.dateErrorText}>Bitiş tarihi başlangıçtan önce olamaz!</Text>
                             </View>
                         )}
-                        <Text style={styles.inputLabel}>{t('events.eventName', { defaultValue: i18n.language.startsWith('en') ? 'EVENT NAME *' : 'ETKİNLİK ADI *' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.eventName')}</Text>
                         <TextInput 
                             style={styles.input}
-                            placeholder={t('events.titlePlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'Event title...' : 'Etkinlik başlığı...' })}
+                            placeholder={t('events.titlePlaceholder')}
                             placeholderTextColor="#94A3B8"
                             value={newEventName}
                             onChangeText={setNewEventName}
                         />
 
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={styles.inputLabel}>{t('events.startDate', { defaultValue: i18n.language.startsWith('en') ? 'START DATE & TIME' : 'BAŞLANGIÇ TARİHİ VE SAATİ' })}</Text>
+                            <Text style={styles.inputLabel}>{t('events.startDate')}</Text>
                             <TouchableOpacity 
                                 style={styles.dateSelector} 
                                 onPress={() => setShowStartPicker(true)}
@@ -414,7 +414,7 @@ export default function EventsScreen() {
                         </View>
 
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={styles.inputLabel}>{t('events.endDate', { defaultValue: i18n.language.startsWith('en') ? 'END DATE & TIME' : 'BİTİŞ TARİHİ VE SAATİ' })}</Text>
+                            <Text style={styles.inputLabel}>{t('events.endDate')}</Text>
                             <TouchableOpacity 
                                 style={styles.dateSelector} 
                                 onPress={() => setShowEndPicker(true)}
@@ -444,25 +444,25 @@ export default function EventsScreen() {
                             onCancel={() => setShowEndPicker(false)}
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.eventLocation', { defaultValue: i18n.language.startsWith('en') ? 'EVENT LOCATION *' : 'ETKİNLİK YERİ *' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.eventLocation')}</Text>
                         <TextInput 
                             style={styles.input}
-                            placeholder={t('events.locationPlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'e.g., Buyukada Square' : 'Örn: Büyükada Meydan' })}
+                            placeholder={t('events.locationPlaceholder')}
                             placeholderTextColor="#94A3B8"
                             value={newEventLocation}
                             onChangeText={setNewEventLocation}
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.orgName', { defaultValue: i18n.language.startsWith('en') ? 'ORGANIZATION NAME *' : 'ORGANİZASYON ADI *' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.orgName')}</Text>
                         <TextInput 
                             style={styles.input}
-                            placeholder={t('events.orgPlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'e.g., Island Culture Association' : 'Örn: Ada Kültür Derneği' })}
+                            placeholder={t('events.orgPlaceholder')}
                             placeholderTextColor="#94A3B8"
                             value={organizerName}
                             onChangeText={setOrganizerName}
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.contactNumber', { defaultValue: i18n.language.startsWith('en') ? 'CONTACT NUMBER *' : 'İLETİŞİM NUMARASI *' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.contactNumber')}</Text>
                         <TextInput 
                             style={[styles.input, contactNumber.length > 0 && !isValidPhone && { borderColor: '#EF4444', borderWidth: 1 }]}
                             placeholder="Örn: 05xx xxx xx xx"
@@ -475,7 +475,7 @@ export default function EventsScreen() {
                             <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4, fontWeight: '500' }}>En az 10 haneli bir numara girin</Text>
                         )}
 
-                        <Text style={styles.inputLabel}>{t('events.socialLink', { defaultValue: i18n.language.startsWith('en') ? 'SOCIAL MEDIA LINK' : 'SOSYAL MEDYA LİNKİ (INSTAGRAM VB.)' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.socialLink')}</Text>
                         <TextInput 
                             style={styles.input}
                             placeholder="https://instagram.com/..."
@@ -485,10 +485,10 @@ export default function EventsScreen() {
                             onChangeText={setSocialLink}
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.eventDetails', { defaultValue: i18n.language.startsWith('en') ? 'EVENT DETAILS *' : 'ETKİNLİK DETAYLARI *' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.eventDetails')}</Text>
                         <TextInput 
                             style={[styles.input, styles.textArea]}
-                            placeholder={t('events.detailsPlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'Provide information about the event...' : 'Etkinlik hakkında bilgi verin...' })}
+                            placeholder={t('events.detailsPlaceholder')}
                             placeholderTextColor="#94A3B8"
                             value={newEventDetails}
                             onChangeText={setNewEventDetails}
@@ -499,7 +499,7 @@ export default function EventsScreen() {
                         />
                         <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{newEventDetails.length}/500</Text>
 
-                        <Text style={styles.inputLabel}>{t('events.eventPhoto', { defaultValue: i18n.language.startsWith('en') ? 'EVENT PHOTO' : 'ETKİNLİK FOTOĞRAFI' })}</Text>
+                        <Text style={styles.inputLabel}>{t('events.eventPhoto')}</Text>
                         {selectedImage ? (
                             <View style={styles.imagePreviewContainer}>
                                 <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
@@ -513,7 +513,7 @@ export default function EventsScreen() {
                         ) : (
                             <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
                                 <IconSymbol name="camera.fill" size={24} color="#64748B" />
-                                <Text style={styles.addPhotoText}>{t('events.addPhoto', { defaultValue: i18n.language.startsWith('tr') ? 'Fotoğraf Ekle' : 'Add Photo' })}</Text>
+                                <Text style={styles.addPhotoText}>{t('events.addPhoto')}</Text>
                             </TouchableOpacity>
                         )}
                         </View>

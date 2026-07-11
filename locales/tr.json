@@ -41,6 +41,7 @@
         "islandEvents": "Etkinlikleri keşfet",
         "yourSmartGuide": "Adalar için akıllı seyahat asistanın ile adayı bir yerli gibi keşfet",
         "agoraForum": "Topluluk",
+        "community": "Topluluk",
         "shareExperiences": "İfade özgürlüğü ile fikirlerini paylaş, ada gündemine yön ver ve adayı dönüştür",
         "error": "Hata",
         "success": "Başarılı",
@@ -52,7 +53,23 @@
         "unsavedChanges": "Değişiklikler Kaydedilmedi",
         "unsavedChangesMsg": "Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?",
         "kvkkAccept": "Okudum, Anladım",
-        "kvkkReadFirst": "Onaylamak için metni sonuna kadar okuyun"
+        "kvkkReadFirst": "Onaylamak için metni sonuna kadar okuyun",
+        "welcomeGreeting": "Hoş Geldin! 👋",
+        "welcomeGreetingUser": "Hoş Geldin, {{name}}! 👋",
+        "welcomeSubtitle": "Adaları keşfetmeye hazır mısın?",
+        "delivery": "Paket Servis",
+        "deliverySubtitle": "Yemek ve Market",
+        "fullName": "AD SOYAD",
+        "fullNamePlaceholder": "Ad Soyad",
+        "email": "E-POSTA ADRESİ",
+        "emailPlaceholder": "ornek@eposta.com",
+        "message": "MESAJINIZ",
+        "messagePlaceholder": "Nasıl yardımcı olabiliriz?",
+        "contactSubtitle": "Görüş ve önerileriniz bizim için değerli.",
+        "login": "Giriş Yap",
+        "editListing": "İlanı Düzenle",
+        "publish": "YAYINLA",
+        "save": "KAYDET"
     },
     "islands": {
         "kinaliada": {
@@ -162,11 +179,55 @@
         "photoUploadFailed": "Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?",
         "listingCreateFailed": "İlan oluşturulamadı. Lütfen tekrar deneyin."
     },
+    "contact": {
+        "errNameEmpty": "Ad Soyad alanı boş bırakılamaz.",
+        "errEmailEmpty": "E-posta adresi boş bırakılamaz.",
+        "errEmailInvalid": "Geçerli bir e-posta adresi giriniz.",
+        "errMessageShort": "Lütfen en az 10 karakterlik bir mesaj giriniz.",
+        "successMsg": "Mesajınız başarıyla gönderildi!",
+        "errMsg": "Mesaj gönderilirken bir hata oluştu.",
+        "send": "Gönder"
+    },
     "forum": {
         "role": {
             "visitor": "Ziyaretçi",
             "islander": "Adalı"
-        }
+        },
+        "type": {
+            "discussion": "Tartışma",
+            "poll": "Oylama",
+            "complaint": "Şikayet",
+            "info": "Bilgi"
+        },
+        "tabs": {
+            "all": "Tümü",
+            "liked": "Beğenilenler",
+            "polls": "Oylamalar",
+            "hot": "Popüler"
+        },
+        "emptyTitle": "Henüz Gönderi Yok",
+        "emptySubtitle": "Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!",
+        "createPost": "YENİ GÖNDERİ",
+        "islandSelection": "ADANIZI SEÇİN (LOKASYON)",
+        "postType": "GÖNDERİ TİPİ",
+        "pollTitle": "ANKET BAŞLIĞI",
+        "yourMessage": "MESAJINIZ",
+        "pollPlaceholder": "Oylama sorunuzu buraya yazın...",
+        "whatsOnYourMind": "Neler anlatmak istersin?",
+        "addPhoto": "Fotoğraf Ekle (Opsiyonel)",
+        "addPhotoSimple": "Fotoğraf Ekle",
+        "category": "KATEGORİ",
+        "options": "SEÇENEKLER",
+        "optionPlaceholder": "Seçenek {{number}}",
+        "pollDuration": "ANKET SÜRESİ",
+        "shareAnonymously": "Anonim Olarak Paylaş",
+        "anonymousDesc": "İsminiz ve profiliniz gizlenecektir.",
+        "postDetails": "GÖNDERİ DETAYI",
+        "comments": "Yorumlar",
+        "noComments": "Henüz Yorum Yok",
+        "firstComment": "İlk yorumu sen yaparak tartışmaya katıl!",
+        "addComment": "Bir yorum ekle...",
+        "placeAd": "İLAN VER"
     },
     "profile": {
         "emptyPostsTitle": "Henüz Paylaşım Yok",
@@ -180,7 +241,87 @@
         "emptyActivitiesTitle": "Henüz Etkinlik Yok",
         "emptyActivitiesDesc": "Oluşturduğunuz etkinlikler burada görünecek.",
         "emptyLikesTitle": "Henüz Beğeni Yok",
-        "emptyLikesDesc": "Beğendiğiniz paylaşımlar burada görünecek."
+        "emptyLikesDesc": "Beğendiğiniz paylaşımlar burada görünecek.",
+        "logoutTitle": "Çıkış Yap",
+        "logoutConfirm": "Hesabınızdan çıkmak istediğinizden emin misiniz?",
+        "logoutBtn": "Çıkış Yap",
+        "notLoggedInTitle": "Giriş Yapılmadı",
+        "notLoggedInDesc": "Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.",
+        "tabs": {
+            "posts": "Paylaşımlar",
+            "replies": "Yanıtlar",
+            "notifications": "Bildirimler",
+            "listings": "İlanlar",
+            "events": "Etkinlikler",
+            "likes": "Beğeniler"
+        }
+    },
+    "events": {
+        "badge": "ETKİNLİK",
+        "emptyTitle": "Etkinlik Bulunamadı",
+        "emptySubtitle": "Şu an için aktif bir etkinlik bulunmamaktadır. İlk etkinliği siz ekleyebilirsiniz!",
+        "newEvent": "YENİ ETKİNLİK",
+        "editEvent": "ETKİNLİĞİ DÜZENLE",
+        "update": "Güncelle",
+        "eventName": "ETKİNLİK ADI *",
+        "titlePlaceholder": "Etkinlik başlığı...",
+        "startDate": "BAŞLANGIÇ TARİHİ VE SAATİ",
+        "endDate": "BİTİŞ TARİHİ VE SAATİ",
+        "eventLocation": "ETKİNLİK YERİ *",
+        "locationPlaceholder": "Örn: Büyükada Meydan",
+        "orgName": "ORGANİZASYON ADI *",
+        "orgPlaceholder": "Örn: Ada Kültür Derneği",
+        "contactNumber": "İLETİŞİM NUMARASI *",
+        "socialLink": "SOSYAL MEDYA LİNKİ (INSTAGRAM VB.)",
+        "eventDetails": "ETKİNLİK DETAYLARI *",
+        "detailsPlaceholder": "Etkinlik hakkında bilgi verin...",
+        "eventPhoto": "ETKİNLİK FOTOĞRAFI",
+        "addPhoto": "Fotoğraf Ekle"
+    },
+    "ilanlar": {
+        "emptyTitle": "İlan Bulunamadı",
+        "emptySubtitle": "Farklı bir kategori veya arama deneyin. İlk ilanı siz ekleyebilirsiniz!",
+        "newAd": "YENİ İLAN",
+        "adTitle": "İLAN BAŞLIĞI *",
+        "titlePlaceholder": "Ne satıyorsun veya arıyorsun?",
+        "price": "FİYAT (₺)",
+        "invalidPrice": "Geçerli bir fiyat girin (0'dan büyük olmalı)",
+        "description": "AÇIKLAMA *",
+        "descPlaceholder": "Ürün veya hizmet detaylarını yaz...",
+        "contactNumber": "İLETİŞİM NUMARASI *",
+        "11digits": "11 haneli",
+        "invalidNumber": "Geçerli bir numara girin (en az 10 haneli)",
+        "islandSelection": "ADA SEÇİMİ",
+        "category": {
+            "emlak": "Emlak",
+            "esya": "Eşya",
+            "tasit": "Taşıt",
+            "service": "Hizmet",
+            "job": "İş İlanı",
+            "lost": "Kayıp & Buluntu"
+        }
+    },
+    "listings": {
+        "addPhoto": "Fotoğraf Ekle"
+    },
+    "guide": {
+        "title": "Ada AI Rehberine Hoş Geldin",
+        "authSubtitle": "Kişisel rehberinize erişmek ve sorularınızı kaydetmek için giriş yapmanız gerekiyor.",
+        "islandContext": "{{island}} hakkında bilgi vermek istiyorum.",
+        "errorRetry": "Bir hata oluştu, tekrar dene.",
+        "errorGeneric": "Bir hata oluştu.",
+        "welcomeMessage": "Merhaba! 👋 Ben Ada Plus asistanın. Sana en doğru bilgileri verebilmem için öncelikle şu an hangi adada olduğunu öğrenebilir miyim?",
+        "placeholder": "Ada AI'a sor...",
+        "chip": {
+            "sightseeing": "📍 Gezilecek Yerler",
+            "cafes": "☕ Kafeler",
+            "beaches": "🏖️ Plajlar"
+        },
+        "prompt": {
+            "sightseeing": "Gezilecek yerleri listeler misin?",
+            "cafes": "En iyi kafeleri önerir misin?",
+            "beaches": "Plajlar hakkında bilgi verir misin?"
+        }
     },
     "places": {
         "Kınalıada": "Kınalıada",

@@ -40,6 +40,7 @@
         "yourSmartGuide": "Discover the island like a local with your smart travel assistant",
         "guidedTours": "Your personal island AI companion",
         "agoraForum": "Community",
+        "community": "Community",
         "shareExperiences": "Share your ideas with freedom of expression, shape the island's agenda and transform it",
         "error": "Error",
         "success": "Success",
@@ -51,7 +52,23 @@
         "unsavedChanges": "Unsaved Changes",
         "unsavedChangesMsg": "Your entered information will be lost. Do you want to continue?",
         "kvkkAccept": "I Have Read and Understood",
-        "kvkkReadFirst": "Please read the text to the end to confirm"
+        "kvkkReadFirst": "Please read the text to the end to confirm",
+        "welcomeGreeting": "Welcome! 👋",
+        "welcomeGreetingUser": "Welcome, {{name}}! 👋",
+        "welcomeSubtitle": "Ready to explore the islands?",
+        "delivery": "Delivery",
+        "deliverySubtitle": "Food & Groceries",
+        "fullName": "FULL NAME",
+        "fullNamePlaceholder": "Full Name",
+        "email": "EMAIL ADDRESS",
+        "emailPlaceholder": "example@email.com",
+        "message": "YOUR MESSAGE",
+        "messagePlaceholder": "How can we help you?",
+        "contactSubtitle": "Your feedback and suggestions are valuable to us.",
+        "login": "Log In",
+        "editListing": "Edit Listing",
+        "publish": "PUBLISH",
+        "save": "SAVE"
     },
     "islands": {
         "kinaliada": {
@@ -161,11 +178,55 @@
         "photoUploadFailed": "Could not upload photo. Continue without photo?",
         "listingCreateFailed": "Could not create listing. Please try again."
     },
+    "contact": {
+        "errNameEmpty": "Full name cannot be empty.",
+        "errEmailEmpty": "Email cannot be empty.",
+        "errEmailInvalid": "Please enter a valid email.",
+        "errMessageShort": "Please enter at least 10 characters.",
+        "successMsg": "Your message has been sent successfully!",
+        "errMsg": "An error occurred while sending your message.",
+        "send": "Send"
+    },
     "forum": {
         "role": {
             "visitor": "Visitor",
             "islander": "Islander"
-        }
+        },
+        "type": {
+            "discussion": "Discussion",
+            "poll": "Poll",
+            "complaint": "Complaint",
+            "info": "Info"
+        },
+        "tabs": {
+            "all": "All",
+            "liked": "Liked",
+            "polls": "Polls",
+            "hot": "Hot"
+        },
+        "emptyTitle": "No Posts Yet",
+        "emptySubtitle": "Would you like to send the first message to the community? Share something now!",
+        "createPost": "NEW POST",
+        "islandSelection": "SELECT ISLAND (LOCATION)",
+        "postType": "POST TYPE",
+        "pollTitle": "POLL TITLE",
+        "yourMessage": "YOUR MESSAGE",
+        "pollPlaceholder": "Write your poll question here...",
+        "whatsOnYourMind": "What would you like to share?",
+        "addPhoto": "Add Photo (Optional)",
+        "addPhotoSimple": "Add Photo",
+        "category": "CATEGORY",
+        "options": "OPTIONS",
+        "optionPlaceholder": "Option {{number}}",
+        "pollDuration": "POLL DURATION",
+        "shareAnonymously": "Share Anonymously",
+        "anonymousDesc": "Your name and profile will be hidden.",
+        "postDetails": "POST DETAILS",
+        "comments": "Comments",
+        "noComments": "No Comments Yet",
+        "firstComment": "Be the first to comment and join the discussion!",
+        "addComment": "Add a comment...",
+        "placeAd": "PLACE AD"
     },
     "profile": {
         "emptyPostsTitle": "No Posts Yet",
@@ -179,7 +240,87 @@
         "emptyActivitiesTitle": "No Events Yet",
         "emptyActivitiesDesc": "Events you create will appear here.",
         "emptyLikesTitle": "No Likes Yet",
-        "emptyLikesDesc": "Posts you liked will appear here."
+        "emptyLikesDesc": "Posts you liked will appear here.",
+        "logoutTitle": "Log Out",
+        "logoutConfirm": "Are you sure you want to log out?",
+        "logoutBtn": "Log Out",
+        "notLoggedInTitle": "Not Logged In",
+        "notLoggedInDesc": "You must log in to view your profile and manage your posts.",
+        "tabs": {
+            "posts": "Posts",
+            "replies": "Replies",
+            "notifications": "Notifications",
+            "listings": "Listings",
+            "events": "Events",
+            "likes": "Likes"
+        }
+    },
+    "events": {
+        "badge": "EVENT",
+        "emptyTitle": "Event Not Found",
+        "emptySubtitle": "There are no active events at the moment. You can add the first event!",
+        "newEvent": "NEW EVENT",
+        "editEvent": "EDIT EVENT",
+        "update": "Update",
+        "eventName": "EVENT NAME *",
+        "titlePlaceholder": "Event title...",
+        "startDate": "START DATE & TIME",
+        "endDate": "END DATE & TIME",
+        "eventLocation": "EVENT LOCATION *",
+        "locationPlaceholder": "e.g., Buyukada Square",
+        "orgName": "ORGANIZATION NAME *",
+        "orgPlaceholder": "e.g., Island Culture Association",
+        "contactNumber": "CONTACT NUMBER *",
+        "socialLink": "SOCIAL MEDIA LINK",
+        "eventDetails": "EVENT DETAILS *",
+        "detailsPlaceholder": "Provide information about the event...",
+        "eventPhoto": "EVENT PHOTO",
+        "addPhoto": "Add Photo"
+    },
+    "ilanlar": {
+        "emptyTitle": "Listing Not Found",
+        "emptySubtitle": "Try a different category or search. You can add the first listing!",
+        "newAd": "NEW LISTING",
+        "adTitle": "LISTING TITLE *",
+        "titlePlaceholder": "What are you selling or looking for?",
+        "price": "PRICE (₺)",
+        "invalidPrice": "Enter a valid price (must be greater than 0)",
+        "description": "DESCRIPTION *",
+        "descPlaceholder": "Write details about the product or service...",
+        "contactNumber": "CONTACT NUMBER *",
+        "11digits": "11 digits",
+        "invalidNumber": "Enter a valid number (at least 10 digits)",
+        "islandSelection": "SELECT ISLAND",
+        "category": {
+            "emlak": "Real Estate",
+            "esya": "Items",
+            "tasit": "Vehicle",
+            "service": "Service",
+            "job": "Jobs",
+            "lost": "Lost & Found"
+        }
+    },
+    "listings": {
+        "addPhoto": "Add Photo"
+    },
+    "guide": {
+        "title": "Welcome to Ada AI Guide",
+        "authSubtitle": "You need to log in to access your personal guide and save your questions.",
+        "islandContext": "I'm on {{island}}.",
+        "errorRetry": "Something went wrong, please try again.",
+        "errorGeneric": "Something went wrong.",
+        "welcomeMessage": "Hello! 👋 I'm your Ada Plus assistant. To give you the most accurate information, may I first know which island you are currently on?",
+        "placeholder": "Ask Ada AI...",
+        "chip": {
+            "sightseeing": "📍 Sightseeing",
+            "cafes": "☕ Cafes",
+            "beaches": "🏖️ Beaches"
+        },
+        "prompt": {
+            "sightseeing": "What are the must-see places?",
+            "cafes": "Can you recommend the best cafes?",
+            "beaches": "Tell me about the beaches."
+        }
     },
     "places": {
         "Kınalıada": "Kinaliada",

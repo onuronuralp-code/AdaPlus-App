@@ -5,7 +5,6 @@ import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimension
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
 import { fetchActivities, fetchListings } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
@@ -89,8 +88,8 @@ export default function MainMenuScreen() {
 
   const defaultSlide = {
     id: 'default_welcome',
-    title: t('common.readyForAdventure', { defaultValue: i18n.language.startsWith('en') ? 'Ready for an Adventure?' : 'Macera Zamanı?' }),
-    subtitle: t('common.exploreServices', { defaultValue: i18n.language.startsWith('en') ? 'Explore services and the latest events on the islands' : 'Adalardaki hizmetleri ve en yeni etkinlikleri keşfet' }),
+    title: t('common.readyForAdventure'),
+    subtitle: t('common.exploreServices'),
     imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
   };
 
@@ -138,12 +137,12 @@ export default function MainMenuScreen() {
           <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
-                {isLoggedIn && user 
-                  ? `${i18n.language.startsWith('en') ? 'Welcome' : 'Hoş Geldin'}, ${user.fullName.split(' ')[0]}! 👋`
-                  : t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
+                {isLoggedIn && user
+                  ? t('common.welcomeGreetingUser', { name: user.fullName.split(' ')[0] })
+                  : t('common.welcomeGreeting')}
               </Text>
               <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
-                {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
+                {t('common.welcomeSubtitle')}
               </Text>
             </View>
           </View>
@@ -194,7 +193,7 @@ export default function MainMenuScreen() {
             <View style={styles.sectionTitleRow}>
               <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
               <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 20 }]}>
-                {t('common.servicesAndActivities', { defaultValue: i18n.language.startsWith('tr') ? 'Servisler ve Aktiviteler' : 'Services and Activities' })}
+                {t('common.servicesAndActivities')}
               </Text>
             </View>
           </View>
@@ -203,8 +202,8 @@ export default function MainMenuScreen() {
               <GridCard
                 icon="tag.fill"
                 colors={['#3B82F6', '#2563EB']}
-                title={t('common.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}
-                subtitle={t('common.ilanlarSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Real Estate & Services' : 'İş, Emlak, Hizmet' })}
+                title={t('common.ilanlar')}
+                subtitle={t('common.ilanlarSubtitle')}
                 onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
                 style={{ marginRight: 6 }}
                 large={isLargeScreen}
@@ -212,8 +211,8 @@ export default function MainMenuScreen() {
               <GridCard
                 icon="ticket.fill"
                 colors={['#F59E0B', '#D97706']}
-                title={t('common.events', { defaultValue: i18n.language.startsWith('en') ? 'Events' : 'Etkinlikler' })}
-                subtitle={t('common.islandEvents', { defaultValue: i18n.language.startsWith('en') ? 'Discover local events' : 'Etkinlikleri keşfet' })}
+                title={t('common.events')}
+                subtitle={t('common.islandEvents')}
                 onPress={() => router.push('/(tabs)/explore/island/events')}
                 style={{ marginLeft: 6 }}
                 large={isLargeScreen}
@@ -223,8 +222,8 @@ export default function MainMenuScreen() {
               <GridCard
                 icon="safari.fill"
                 colors={['#EC4899', '#BE185D']}
-                title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Tour Guide' : 'Tur Rehberi' })}
-                subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Smart Assistant' : 'Akıllı Asistan' })}
+                title={t('common.adaAI')}
+                subtitle={t('common.yourSmartGuide')}
                 onPress={() => router.push('/guide')}
                 style={{ marginRight: 6 }}
                 large={isLargeScreen}
@@ -232,8 +231,8 @@ export default function MainMenuScreen() {
               <GridCard
                 icon="bag.fill"
                 colors={['#8B5CF6', '#6D28D9']}
-                title={t('common.delivery', { defaultValue: i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis' })}
-                subtitle={t('common.deliverySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Food & Groceries' : 'Yemek ve Market' })}
+                title={t('common.delivery')}
+                subtitle={t('common.deliverySubtitle')}
                 onPress={() => router.push('/(tabs)/explore/island/delivery')}
                 style={{ marginLeft: 6 }}
                 large={isLargeScreen}
@@ -256,10 +255,10 @@ export default function MainMenuScreen() {
               </View>
               <View style={{ flex: 1, marginLeft: 12, paddingRight: 8 }}>
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#059669', marginBottom: 2 }}>
-                  {t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
+                  {t('common.community')}
                 </Text>
                 <Text style={{ fontSize: 12, color: '#4B5563', lineHeight: 16 }} numberOfLines={2}>
-                  {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas and transform the island together.' : 'Ada gündemine hakim ol, fikrini paylaş ve adayı birlikte dönüştür.' })}
+                  {t('common.shareExperiences')}
                 </Text>
               </View>
               <View style={{ backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>

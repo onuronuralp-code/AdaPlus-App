@@ -508,11 +508,11 @@ export default function ProfileScreen() {
                         <TouchableOpacity
                             onPress={() => {
                                 Alert.alert(
-                                    t('profile.logoutTitle', { defaultValue: i18n.language.startsWith('en') ? 'Log Out' : 'Çıkış Yap' }),
-                                    t('profile.logoutConfirm', { defaultValue: i18n.language.startsWith('en') ? 'Are you sure you want to log out?' : 'Hesabınızdan çıkmak istediğinizden emin misiniz?' }),
+                                    t('profile.logoutTitle'),
+                                    t('profile.logoutConfirm'),
                                     [
-                                        { text: t('common.cancel', { defaultValue: i18n.language.startsWith('en') ? 'Cancel' : 'İptal' }), style: 'cancel' },
-                                        { text: t('profile.logoutBtn', { defaultValue: i18n.language.startsWith('en') ? 'Log Out' : 'Çıkış Yap' }), style: 'destructive', onPress: () => logout() },
+                                        { text: t('common.cancel'), style: 'cancel' },
+                                        { text: t('profile.logoutBtn'), style: 'destructive', onPress: () => logout() },
                                     ]
                                 );
                             }}
@@ -528,17 +528,17 @@ export default function ProfileScreen() {
                 <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center' }]}>
                     <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
                     <Text style={styles.emptyTitle}>
-                        {t('profile.notLoggedInTitle', { defaultValue: i18n.language.startsWith('en') ? 'Not Logged In' : 'Giriş Yapılmadı' })}
+                        {t('profile.notLoggedInTitle')}
                     </Text>
                     <Text style={styles.emptySubtitle}>
-                        {t('profile.notLoggedInDesc', { defaultValue: i18n.language.startsWith('en') ? 'You must log in to view your profile and manage your posts.' : 'Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.' })}
+                        {t('profile.notLoggedInDesc')}
                     </Text>
                     <TouchableOpacity 
                         style={styles.loginButton}
                         onPress={() => router.push('/login')}
                     >
                         <Text style={styles.loginButtonText}>
-                            {t('common.login', { defaultValue: i18n.language.startsWith('en') ? 'Log In' : 'Giriş Yap' })}
+                            {t('common.login')}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -597,11 +597,7 @@ export default function ProfileScreen() {
                                 >
                                     <IconSymbol name={tab.icon as any} size={16} color={isActive ? '#fff' : tab.color} />
                                     <Text style={[styles.tabLabel, isActive && { color: '#fff' }]}>
-                                        {t(`profile.tabs.${tab.key}`, { 
-                                            defaultValue: i18n.language.startsWith('en') 
-                                                ? (tab.key === 'posts' ? 'Posts' : tab.key === 'replies' ? 'Replies' : tab.key === 'notifications' ? 'Notifications' : tab.key === 'listings' ? 'Listings' : tab.key === 'events' ? 'Events' : 'Likes') 
-                                                : tab.label 
-                                        })}
+                                        {t(`profile.tabs.${tab.key}`)}
                                     </Text>
                                 </TouchableOpacity>
                             );

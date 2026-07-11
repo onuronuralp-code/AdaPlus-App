@@ -142,7 +142,7 @@ export default function IlanlarScreen() {
         t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
         t('common.unsavedChangesMsg', { defaultValue: 'Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?' }),
         [
-          { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           { text: t('common.closeAnyway', { defaultValue: 'Evet, Kapat' }), style: 'destructive', onPress: resetAndCloseModal },
         ]
       );
@@ -233,7 +233,7 @@ export default function IlanlarScreen() {
       },
     });
 
-    options.push({ text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' });
+    options.push({ text: t('common.cancel'), style: 'cancel' });
 
     Alert.alert(
       t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
@@ -252,7 +252,7 @@ export default function IlanlarScreen() {
         const uploaded = await mediaApi.uploadImage(selectedImage);
         if (!uploaded) {
           Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.photoUploadFailed', { defaultValue: 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?' }), [
-            { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel', onPress: () => setIsUploading(false) },
+            { text: t('common.cancel'), style: 'cancel', onPress: () => setIsUploading(false) },
             { text: t('common.continueAction', { defaultValue: 'Devam Et' }), onPress: async () => { await submitListing(undefined); } },
           ]);
           return;
@@ -361,11 +361,7 @@ export default function IlanlarScreen() {
                   color={isActive ? '#FFFFFF' : '#475569'} 
                 />
                 <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
-                  {t(`ilanlar.category.${key}`, { 
-                    defaultValue: i18n.language.startsWith('en') 
-                      ? (key === 'all' ? 'All' : key === 'emlak' ? 'Real Estate' : key === 'service' ? 'Service' : key === 'job' ? 'Jobs' : 'Lost & Found') 
-                      : cfg.label 
-                  })}
+                  {t(`ilanlar.category.${key}`)}
                 </Text>
               </TouchableOpacity>
             );
@@ -388,8 +384,8 @@ export default function IlanlarScreen() {
         ) : filteredListings.length === 0 ? (
           <EmptyState 
             icon="doc.text.magnifyingglass" 
-            title={t('ilanlar.emptyTitle', { defaultValue: i18n.language.startsWith('en') ? 'Listing Not Found' : 'İlan Bulunamadı' })}
-            subtitle={t('ilanlar.emptySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Try a different category or search. You can add the first listing!' : 'Farklı bir kategori veya arama deneyin. İlk ilanı siz ekleyebilirsiniz!' })}
+            title={t('ilanlar.emptyTitle')}
+            subtitle={t('ilanlar.emptySubtitle')}
             color="#3B82F6"
           />
         ) : (
@@ -433,11 +429,11 @@ export default function IlanlarScreen() {
           <View style={styles.modalHeader}>
             <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
               <TouchableOpacity onPress={handleCloseModal} style={styles.modalHeaderButton}>
-                <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: i18n.language.startsWith('en') ? 'CANCEL' : 'İPTAL' })}</Text>
+                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
             </View>
             <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={styles.modalTitle} numberOfLines={1}>{editingListingId ? t('common.editListing', { defaultValue: 'İlanı Düzenle' }) : t('ilanlar.newAd', { defaultValue: i18n.language.startsWith('en') ? 'NEW LISTING' : 'YENİ İLAN' })}</Text>
+              <Text style={styles.modalTitle} numberOfLines={1}>{editingListingId ? t('common.editListing') : t('ilanlar.newAd')}</Text>
             </View>
             <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
               <TouchableOpacity 
@@ -448,7 +444,7 @@ export default function IlanlarScreen() {
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.publishText} numberOfLines={1}>{editingListingId ? (i18n.language.startsWith('en') ? 'SAVE' : 'KAYDET') : (i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA')}</Text>
+                  <Text style={styles.publishText} numberOfLines={1}>{editingListingId ? t('common.save') : t('common.publish')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -456,7 +452,7 @@ export default function IlanlarScreen() {
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('forum.islandSelection', { defaultValue: i18n.language.startsWith('en') ? 'SELECT ISLAND' : 'ADA SEÇİMİ' })}</Text>
+              <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
               <View style={styles.adCategoryRow}>
                 {islands.map(island => (
                   <TouchableOpacity 
@@ -471,10 +467,10 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.adTitle', { defaultValue: i18n.language.startsWith('en') ? 'LISTING TITLE *' : 'İLAN BAŞLIĞI *' })}</Text>
+              <Text style={styles.inputLabel}>{t('ilanlar.adTitle')}</Text>
               <TextInput
                 style={styles.adTitleInput}
-                placeholder={t('ilanlar.titlePlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'What are you selling or looking for?' : 'Ne satıyorsun veya arıyorsun?' })}
+                placeholder={t('ilanlar.titlePlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={adTitle}
                 onChangeText={setAdTitle}
@@ -482,7 +478,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('forum.category', { defaultValue: i18n.language.startsWith('en') ? 'CATEGORY' : 'KATEGORİ' })}</Text>
+              <Text style={styles.inputLabel}>{t('forum.category')}</Text>
               <View style={styles.adCategoryRow}>
                 {adCategories.map(cat => (
                   <TouchableOpacity 
@@ -496,11 +492,7 @@ export default function IlanlarScreen() {
                       color={adCat === cat.id ? '#3B82F6' : '#64748B'} 
                     />
                     <Text style={[styles.adCatText, adCat === cat.id && styles.activeAdCatText]}>
-                      {t(`ilanlar.category.${cat.id}`, {
-                        defaultValue: i18n.language.startsWith('en')
-                          ? ({ emlak: 'Real Estate', esya: 'Items', tasit: 'Vehicle', service: 'Service', job: 'Jobs', lost: 'Lost & Found' } as any)[cat.id] ?? cat.label
-                          : cat.label
-                      })}
+                      {t(`ilanlar.category.${cat.id}`)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -508,7 +500,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.price', { defaultValue: i18n.language.startsWith('en') ? 'PRICE (₺)' : 'FİYAT (₺)' })}</Text>
+              <Text style={styles.inputLabel}>{t('ilanlar.price')}</Text>
               <TextInput
                 style={styles.adTitleInput}
                 placeholder="0"
@@ -524,15 +516,15 @@ export default function IlanlarScreen() {
                 }}
               />
               {adPrice.length > 0 && !isPriceValid && (
-                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidPrice', { defaultValue: i18n.language.startsWith('en') ? 'Enter a valid price (must be greater than 0)' : 'Geçerli bir fiyat girin (0\'dan büyük olmalı)' })}</Text>
+                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidPrice')}</Text>
               )}
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.description', { defaultValue: i18n.language.startsWith('en') ? 'DESCRIPTION *' : 'AÇIKLAMA *' })}</Text>
+              <Text style={styles.inputLabel}>{t('ilanlar.description')}</Text>
               <TextInput
                 style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
-                placeholder={t('ilanlar.descPlaceholder', { defaultValue: i18n.language.startsWith('en') ? 'Write details about the product or service...' : 'Ürün veya hizmet detaylarını yaz...' })}
+                placeholder={t('ilanlar.descPlaceholder')}
                 placeholderTextColor="#94A3B8"
                 multiline
                 value={adDesc}
@@ -543,7 +535,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.contactNumber', { defaultValue: i18n.language.startsWith('en') ? 'CONTACT NUMBER *' : 'İLETİŞİM NUMARASI *' })} <Text style={{ color: '#94A3B8', fontWeight: '400' }}>({t('ilanlar.11digits', { defaultValue: i18n.language.startsWith('en') ? '11 digits' : '11 haneli' })})</Text></Text>
+              <Text style={styles.inputLabel}>{t('ilanlar.contactNumber')} <Text style={{ color: '#94A3B8', fontWeight: '400' }}>({t('ilanlar.11digits')})</Text></Text>
               <TextInput
                 style={styles.adTitleInput}
                 placeholder="05XXXXXXXXX"
@@ -554,7 +546,7 @@ export default function IlanlarScreen() {
                 maxLength={11}
               />
               {adContact.length > 0 && cleanedContact.length < 10 && (
-                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidNumber', { defaultValue: i18n.language.startsWith('en') ? 'Enter a valid number (at least 10 digits)' : 'Geçerli bir numara girin (en az 10 haneli)' })}</Text>
+                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidNumber')}</Text>
               )}
             </View>
 
@@ -571,7 +563,7 @@ export default function IlanlarScreen() {
             ) : (
               <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
                 <IconSymbol name="camera.fill" size={24} color="#64748B" />
-                <Text style={styles.addPhotoText}>{t('listings.addPhoto', { defaultValue: i18n.language.startsWith('tr') ? 'Fotoğraf Ekle' : 'Add Photo' })}</Text>
+                <Text style={styles.addPhotoText}>{t('listings.addPhoto')}</Text>
               </TouchableOpacity>
             )}
           </ScrollView>

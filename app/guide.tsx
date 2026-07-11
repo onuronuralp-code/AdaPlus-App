@@ -32,25 +32,17 @@ const ISLAND_SLUG: Record<string, string> = {
 };
 
 export default function GuideScreen() {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isLoggedIn } = useAuth();
-    const isTr = i18n.language.startsWith('tr');
-
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
     const scrollRef = useRef<ScrollView>(null);
 
     const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            text: isTr
-                ? 'Merhaba! 👋 Ben Ada Plus asistanın. Sana en doğru bilgileri verebilmem için öncelikle şu an hangi adada olduğunu öğrenebilir miyim?'
-                : "Hello! 👋 I'm your Ada Plus assistant. To give you the most accurate information, may I first know which island you are currently on?",
-            isBot: true,
-        },
+        { id: '1', text: t('guide.welcomeMessage'), isBot: true },
     ]);
 
     const keyboardShift = useRef(new Animated.Value(0)).current;
@@ -94,15 +86,13 @@ export default function GuideScreen() {
                         <IconSymbol name="sparkles" size={36} color="#EC4899" />
                     </View>
                     <Text style={styles.authGateTitle}>
-                        {isTr ? 'Ada AI Rehberine Hoş Geldin' : 'Welcome to Ada AI Guide'}
+                        {t('guide.title')}
                     </Text>
                     <Text style={styles.authGateSubtitle}>
-                        {isTr
-                            ? 'Kişisel rehberinize erişmek ve sorularınızı kaydetmek için giriş yapmanız gerekiyor.'
-                            : 'You need to log in to access your personal guide and save your questions.'}
+                        {t('guide.authSubtitle')}
                     </Text>
                     <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
-                        <Text style={styles.loginButtonText}>{isTr ? 'Giriş Yap' : 'Log In'}</Text>
+                        <Text style={styles.loginButtonText}>{t('common.login')}</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -122,7 +112,7 @@ export default function GuideScreen() {
         setIsLoading(true);
         try {
             const reply = await sendChatMessage(
-                isTr ? `${island} hakkında bilgi vermek istiyorum.` : `I'm on ${island}.`,
+                t('guide.islandContext', { island }),
                 ISLAND_SLUG[island]
             );
             setMessages(prev => prev.map(m =>
@@ -131,7 +121,7 @@ export default function GuideScreen() {
         } catch {
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId
-                    ? { ...m, text: isTr ? 'Bir hata oluştu, tekrar dene.' : 'Something went wrong, please try again.' }
+                    ? { ...m, text: t('guide.errorRetry') }
                     : m
             ));
         } finally {
@@ -162,7 +152,7 @@ export default function GuideScreen() {
             ));
         } catch (e: any) {
             setMessages(prev => prev.map(m =>
-                m.id === thinkingId ? { ...m, text: e?.message || (isTr ? 'Bir hata oluştu.' : 'Something went wrong.') } : m
+                m.id === thinkingId ? { ...m, text: e?.message || t('guide.errorGeneric') } : m
             ));
         } finally {
             setIsLoading(false);
@@ -231,19 +221,19 @@ export default function GuideScreen() {
                     {showQuickSuggestions && (
                         <View style={styles.suggestionsContainer}>
                             <SuggestionChip
-                                text={isTr ? '📍 Gezilecek Yerler' : '📍 Sightseeing'}
+                                text={t('guide.chip.sightseeing')}
                                 disabled={isLoading}
-                                onPress={() => { setPrompt(isTr ? 'Gezilecek yerleri listeler misin?' : 'What are the must-see places?'); }}
+                                onPress={() => { setPrompt(t('guide.prompt.sightseeing')); }}
                             />
                             <SuggestionChip
-                                text={isTr ? '☕ Kafeler' : '☕ Cafes'}
+                                text={t('guide.chip.cafes')}
                                 disabled={isLoading}
-                                onPress={() => { setPrompt(isTr ? 'En iyi kafeleri önerir misin?' : 'Can you recommend the best cafes?'); }}
+                                onPress={() => { setPrompt(t('guide.prompt.cafes')); }}
                             />
                             <SuggestionChip
-                                text={isTr ? '🏖️ Plajlar' : '🏖️ Beaches'}
+                                text={t('guide.chip.beaches')}
                                 disabled={isLoading}
-                                onPress={() => { setPrompt(isTr ? 'Plajlar hakkında bilgi verir misin?' : 'Tell me about the beaches.'); }}
+                                onPress={() => { setPrompt(t('guide.prompt.beaches')); }}
                             />
                         </View>
                     )}
@@ -253,7 +243,7 @@ export default function GuideScreen() {
                     <View style={styles.inputBox}>
                         <TextInput
                             style={styles.textInput}
-                            placeholder={isTr ? 'Ada AI\'a sor...' : 'Ask Ada AI...'}
+                            placeholder={t('guide.placeholder')}
                             placeholderTextColor="#94A3B8"
                             value={prompt}
                             onChangeText={setPrompt}

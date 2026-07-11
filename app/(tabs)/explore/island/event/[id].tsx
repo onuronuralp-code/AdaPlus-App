@@ -174,7 +174,7 @@ export default function EventDetailScreen() {
                     {/* Badge + date */}
                     <View style={styles.metaRow}>
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{t('events.badge', { defaultValue: i18n.language.startsWith('en') ? 'EVENT' : 'ETKİNLİK' })}</Text>
+                            <Text style={styles.badgeText}>{t('events.badge')}</Text>
                         </View>
                         {rsvpCount > 0 && (
                             <View style={styles.attendeePill}>
