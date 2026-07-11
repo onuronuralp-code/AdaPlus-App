@@ -236,9 +236,9 @@ export default function MainMenuScreen() {
 }
 
 function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any) {
-  const iconSize = large ? 32 : 28;
-  const containerSize = large ? 58 : 52;
-  const cardPadding = large ? 20 : 16;
+  const iconSize = large ? 28 : 24;
+  const containerSize = large ? 52 : 44;
+  const cardPadding = large ? 16 : 14;
   const primaryColor = colors ? colors[0] : '#3B82F6';
 
   const content = (
@@ -247,8 +247,8 @@ function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any)
         <IconSymbol name={icon as any} size={iconSize} color="#fff" />
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, large && { fontSize: 18 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.cardSubtitle, large && { fontSize: 14, lineHeight: 20 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
+        <Text style={[styles.cardTitle, large && { fontSize: 16 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.cardSubtitle, large && { fontSize: 13, lineHeight: 18 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
       </View>
       <IconSymbol name={"chevron.right" as any} size={20} color={primaryColor} />
     </>
@@ -274,11 +274,11 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
 
   const content = (
     <>
-      <View style={[styles.gridIconContainer, { backgroundColor: primaryColor }, large && { width: 46, height: 46, borderRadius: 12 }]}>
-        <IconSymbol name={icon as any} size={large ? 26 : 24} color="#fff" />
+      <View style={[styles.gridIconContainer, { backgroundColor: primaryColor }, large && { width: 42, height: 42, borderRadius: 12 }]}>
+        <IconSymbol name={icon as any} size={large ? 24 : 22} color="#fff" />
       </View>
-      <Text style={[styles.gridCardTitle, large && { fontSize: 18 }, { color: primaryColor }]}>{title}</Text>
-      <Text style={[styles.gridCardSubtitle, large && { fontSize: 13, lineHeight: 18 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
+      <Text style={[styles.gridCardTitle, large && { fontSize: 16 }, { color: primaryColor }]}>{title}</Text>
+      <Text style={[styles.gridCardSubtitle, large && { fontSize: 12, lineHeight: 16 }, { color: '#64748B' }]} numberOfLines={1}>{subtitle}</Text>
     </>
   );
 
@@ -448,18 +448,18 @@ const styles = StyleSheet.create({
     marginTop: 0, // Adjusted because we added welcomeContainer
   },
   welcomeContainer: {
-    marginBottom: 24,
+    marginBottom: 16,
     paddingHorizontal: 4,
-    marginTop: 10,
+    marginTop: 6,
   },
   welcomeGreeting: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
     color: '#0D1B2A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   welcomeSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#778DA9',
     fontWeight: '500',
   },
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     marginTop: 0,
-    marginBottom: 18,
+    marginBottom: 12,
   },
   headerLangBtn: {
     flexDirection: 'row',
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#0D1B2A',
   },
@@ -511,8 +511,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 16,
+    padding: 14,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
@@ -520,26 +520,26 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   cardContent: {
     flex: 1,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '800',
     color: '#0D1B2A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   cardSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#778DA9',
-    lineHeight: 18,
+    lineHeight: 16,
   },
   gridRow: {
     flexDirection: 'row',
@@ -547,10 +547,10 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     flex: 1,
-    minHeight: 120,
+    minHeight: 100,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 14,
+    padding: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
@@ -560,12 +560,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gridIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   gridCardGradient: {
     flex: 1,
@@ -575,17 +575,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gridCardTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '800',
     color: '#0D1B2A',
-    marginBottom: 4,
+    marginBottom: 2,
     textAlign: 'center',
   },
   gridCardSubtitle: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#778DA9',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 14,
   },
 
   langIconBox: {
