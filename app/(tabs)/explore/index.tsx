@@ -188,22 +188,26 @@ export default function MainMenuScreen() {
                 large={isLargeScreen}
               />
             </View>
-            <MenuCard
-              icon="safari.fill"
-              colors={['#EC4899', '#BE185D']}
-              title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI - Tour Guide' : 'Ada AI - Tur Rehberi' })}
-              subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Your smart guide to the islands' : 'Adalar için akıllı rehberin' })}
-              onPress={() => router.push('/guide')}
-              large={isLargeScreen}
-            />
-            <MenuCard
-              icon="bubble.left.and.bubble.right.fill"
-              colors={['#10B981', '#059669']}
-              title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
-              subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated, share your ideas, and make the island a better place' : 'Ada gündemine hakim ol, fikrini diğer adalılarla paylaş, ada daha güzel bir yer olsun' })}
-              onPress={() => router.push('/(tabs)/explore/island/forum')}
-              large={isLargeScreen}
-            />
+            <View style={styles.gridRow}>
+              <GridCard
+                icon="safari.fill"
+                colors={['#EC4899', '#BE185D']}
+                title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Tour Guide' : 'Tur Rehberi' })}
+                subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Smart Assistant' : 'Akıllı Asistan' })}
+                onPress={() => router.push('/guide')}
+                style={{ marginRight: 6 }}
+                large={isLargeScreen}
+              />
+              <GridCard
+                icon="bubble.left.and.bubble.right.fill"
+                colors={['#10B981', '#059669']}
+                title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
+                subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Join the forum' : 'Ada Forumu' })}
+                onPress={() => router.push('/(tabs)/explore/island/forum')}
+                style={{ marginLeft: 6 }}
+                large={isLargeScreen}
+              />
+            </View>
           </View>
         </View>
       </Animated.ScrollView>
