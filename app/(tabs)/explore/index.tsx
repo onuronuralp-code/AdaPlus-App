@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from 'react-native';
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -231,10 +231,10 @@ export default function MainMenuScreen() {
               <GridCard
                 icon="bag.fill"
                 colors={['#8B5CF6', '#6D28D9']}
-                title={t('common.delivery')}
-                subtitle={t('common.deliverySubtitle')}
-                onPress={() => router.push('/(tabs)/explore/island/delivery')}
-                style={{ marginLeft: 6 }}
+                title={t('common.delivery', { defaultValue: i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis' })}
+                subtitle={t('common.comingSoon', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında' })}
+                onPress={() => Alert.alert(i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında', i18n.language.startsWith('en') ? 'Delivery service will be available soon!' : 'Paket servis çok yakında hizmetinizde olacak!')}
+                style={{ marginLeft: 6, opacity: 0.8 }}
                 large={isLargeScreen}
               />
             </View>
