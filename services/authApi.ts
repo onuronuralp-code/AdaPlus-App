@@ -3,7 +3,13 @@ import i18n from "../utils/i18n";
 
 const AUTH_BASE_URL = `${API_BASE_URL}/api/v1/auth`;
 
-const sanitizeEmail = (email: string) => email.trim().toLowerCase();
+const isPhoneContact = (contact: string) =>
+  /^\+?[0-9]{7,15}$/.test(contact.trim().replace(/[\s\-()]/g, ''));
+
+const sanitizeContact = (contact: string) => {
+  const trimmed = contact.trim();
+  return isPhoneContact(trimmed) ? trimmed : trimmed.toLowerCase();
+};
 
 const wrapNetworkError = (error: unknown): never => {
   if (error instanceof TypeError) {
@@ -29,16 +35,28 @@ export interface LoginResponse {
 export const authApi = {
   signup: async (
     fullName: string,
-    email: string,
+    contact: string,
     password: string,
     kvkkAccepted: boolean = true,
     termsAccepted: boolean = true,
+    birthDate?: string,
+    island?: string,
   ): Promise<{ message: string }> => {
     try {
+      const sanitized = sanitizeContact(contact);
+      const contactField = isPhoneContact(sanitized) ? { phone: sanitized } : { email: sanitized };
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: fullName.trim(), email: sanitizeEmail(email), password, kvkkAccepted, termsAccepted }),
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          ...contactField,
+          password,
+          kvkkAccepted,
+          termsAccepted,
+          ...(birthDate ? { birthDate } : {}),
+          ...(island ? { island } : {}),
+        }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -52,14 +70,16 @@ export const authApi = {
   },
 
   verifyOtp: async (
-    email: string,
+    contact: string,
     code: string,
   ): Promise<{ message: string }> => {
     try {
+      const sanitized = sanitizeContact(contact);
+      const contactField = isPhoneContact(sanitized) ? { phone: sanitized } : { email: sanitized };
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sanitizeEmail(email), code }),
+        body: JSON.stringify({ ...contactField, code }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -77,7 +97,7 @@ export const authApi = {
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sanitizeEmail(email), password }),
+        body: JSON.stringify({ email: sanitizeContact(email), password }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -88,12 +108,14 @@ export const authApi = {
     }
   },
 
-  resendVerification: async (email: string): Promise<{ message: string }> => {
+  resendVerification: async (contact: string): Promise<{ message: string }> => {
     try {
+      const sanitized = sanitizeContact(contact);
+      const contactField = isPhoneContact(sanitized) ? { phone: sanitized } : { email: sanitized };
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sanitizeEmail(email) }),
+        body: JSON.stringify(contactField),
       });
       const data = await response.json();
       if (!response.ok)
@@ -109,7 +131,7 @@ export const authApi = {
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sanitizeEmail(email) }),
+        body: JSON.stringify({ email: sanitizeContact(email) }),
       });
       const data = await response.json();
       if (!response.ok)

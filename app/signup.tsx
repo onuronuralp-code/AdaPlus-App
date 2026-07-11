@@ -112,8 +112,21 @@ export default function SignUpScreen() {
         setKvkkVisible(false);
         setLoading(true);
         try {
-            await authApi.signup(name.trim(), contact.trim(), password, true, true);
-            router.push({ pathname: '/verify', params: { email: contact.trim() } });
+            const birthDate =
+                birthDay && birthMonth && birthYear
+                    ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
+                    : undefined;
+            await authApi.signup(
+                name.trim(),
+                contact.trim(),
+                password,
+                true,
+                true,
+                birthDate,
+                selectedIsland ?? undefined,
+            );
+            const contactType = isPhonePattern(contact.trim()) ? 'phone' : 'email';
+            router.push({ pathname: '/verify', params: { contact: contact.trim(), type: contactType } });
         } catch (error: any) {
             Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
         } finally {

@@ -9,10 +9,27 @@ import { authApi } from '@/services/authApi';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CODE_LENGTH = 6;
 
+const maskEmail = (email: string) =>
+    email.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + '*'.repeat(b.length) + c);
+
+const maskPhone = (phone: string) => {
+    const clean = phone.replace(/[\s\-()]/g, '');
+    if (clean.length <= 5) return '***';
+    return clean.slice(0, 4) + '***' + clean.slice(-2);
+};
+
 export default function VerifyScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { email } = useLocalSearchParams<{ email: string }>();
+
+    // Support legacy `email` param for any existing deep-links/back-compat
+    const { contact: contactParam, email: emailParam, type } = useLocalSearchParams<{
+        contact?: string;
+        email?: string;
+        type?: 'email' | 'phone';
+    }>();
+    const contact = contactParam || emailParam || '';
+    const isPhone = type === 'phone';
 
     const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
     const [error, setError] = useState('');
@@ -33,7 +50,6 @@ export default function VerifyScreen() {
     const handleChange = (text: string, index: number) => {
         if (error) setError('');
 
-        // Handle paste of full code
         if (text.length > 1) {
             const chars = text.slice(0, CODE_LENGTH).split('');
             const newCode = [...code];
@@ -73,12 +89,14 @@ export default function VerifyScreen() {
 
         setLoading(true);
         try {
-            await authApi.verifyOtp(email || '', fullCode);
-            Alert.alert('Başarılı ✓', 'E-posta doğrulandı! Artık giriş yapabilirsiniz.', [
+            await authApi.verifyOtp(contact, fullCode);
+            const successMsg = isPhone
+                ? 'Telefon numarası doğrulandı! Artık giriş yapabilirsiniz.'
+                : 'E-posta doğrulandı! Artık giriş yapabilirsiniz.';
+            Alert.alert('Başarılı ✓', successMsg, [
                 { text: 'Giriş Yap', onPress: () => router.replace('/login') }
             ]);
         } catch (err: any) {
-            // Backend'den İngilizce dönen hataları yakalayıp düzgün Türkçe gösteriyoruz
             const msg = (err.message || '').toLowerCase();
             if (msg.includes('expired')) {
                 setError('Kodun süresi dolmuş. Lütfen yeni kod isteyin.');
@@ -93,7 +111,7 @@ export default function VerifyScreen() {
     const handleResend = async () => {
         if (!canResend) return;
         try {
-            await authApi.resendVerification(email || '');
+            await authApi.resendVerification(contact);
             setTimer(60);
             setCanResend(false);
             setCode(Array(CODE_LENGTH).fill(''));
@@ -104,9 +122,17 @@ export default function VerifyScreen() {
         }
     };
 
-    const maskedEmail = email
-        ? email.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + '*'.repeat(b.length) + c)
-        : '***@***.com';
+    const maskedContact = isPhone
+        ? maskPhone(contact)
+        : (contact ? maskEmail(contact) : '***@***.com');
+
+    const screenTitle = isPhone ? 'SMS Doğrulama' : 'E-posta Doğrulama';
+    const subtitleContact = isPhone
+        ? `${maskedContact} numarasına gönderilen 6 haneli kodu giriniz.`
+        : `${maskedContact} adresine gönderilen 6 haneli kodu giriniz.`;
+    const infoText = isPhone
+        ? 'Kısa mesajın gelmesi birkaç saniye sürebilir. Hala gelmediyse "Tekrar Gönder" seçeneğini kullanın.'
+        : 'Spam veya gereksiz (junk) klasörünü de kontrol etmeyi unutmayın.';
 
     return (
         <View style={styles.container}>
@@ -128,11 +154,18 @@ export default function VerifyScreen() {
 
                 <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
                     <View style={styles.logoCircle}>
-                        <IconSymbol name="envelope.fill" size={36} color="#3B82F6" />
+                        <IconSymbol
+                            name={isPhone ? 'phone.fill' : 'envelope.fill'}
+                            size={36}
+                            color="#3B82F6"
+                        />
                     </View>
-                    <Text style={styles.welcomeTitle}>E-posta Doğrulama</Text>
+                    <Text style={styles.welcomeTitle}>{screenTitle}</Text>
                     <Text style={styles.welcomeSubtitle}>
-                        <Text style={styles.emailHighlight}>{maskedEmail}</Text> adresine gönderilen 6 haneli kodu giriniz.
+                        <Text style={styles.contactHighlight}>{maskedContact}</Text>
+                        {isPhone
+                            ? ' numarasına gönderilen 6 haneli kodu giriniz.'
+                            : ' adresine gönderilen 6 haneli kodu giriniz.'}
                     </Text>
                 </View>
             </LinearGradient>
@@ -162,12 +195,19 @@ export default function VerifyScreen() {
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
                 <TouchableOpacity
-                    style={styles.primaryButton}
+                    style={[styles.primaryButton, loading && { opacity: 0.7 }]}
                     onPress={handleVerify}
                     activeOpacity={0.8}
+                    disabled={loading}
                 >
-                    <Text style={styles.primaryButtonText}>Doğrula</Text>
-                    <IconSymbol name="chevron.right" size={18} color="#fff" />
+                    {loading ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                        <>
+                            <Text style={styles.primaryButtonText}>Doğrula</Text>
+                            <IconSymbol name="chevron.right" size={18} color="#fff" />
+                        </>
+                    )}
                 </TouchableOpacity>
 
                 <View style={styles.resendContainer}>
@@ -183,9 +223,7 @@ export default function VerifyScreen() {
 
                 <View style={styles.infoBox}>
                     <IconSymbol name="info.circle.fill" size={18} color="#3B82F6" />
-                    <Text style={styles.infoText}>
-                        Spam veya gereksiz (junk) klasörünü de kontrol etmeyi unutmayın.
-                    </Text>
+                    <Text style={styles.infoText}>{infoText}</Text>
                 </View>
             </View>
         </View>
@@ -209,7 +247,7 @@ const styles = StyleSheet.create({
     },
     welcomeTitle: { fontSize: 26, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 12 },
     welcomeSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, paddingHorizontal: 10 },
-    emailHighlight: { color: '#60A5FA', fontWeight: '700' },
+    contactHighlight: { color: '#60A5FA', fontWeight: '700' },
     cardContainer: {
         flex: 1, backgroundColor: '#fff', marginTop: -20,
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
