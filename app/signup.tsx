@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,18 +10,36 @@ import { KVKKModal } from '@/components/KVKKModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+const ISLANDS = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Adalı değilim'];
+
+const isEmailPattern = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+const isPhonePattern = (val: string) => /^\+?[0-9]{7,15}$/.test(val.trim().replace(/[\s\-()]/g, ''));
+
 export default function SignUpScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+    const [contact, setContact] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
-    const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; password?: boolean }>({});
+    const [errors, setErrors] = useState<{ name?: string; contact?: string; password?: string }>({});
+    const [touched, setTouched] = useState<{ name?: boolean; contact?: boolean; password?: boolean }>({});
     const [kvkkVisible, setKvkkVisible] = useState(false);
+
+    // Optional fields
+    const [birthMonth, setBirthMonth] = useState('');
+    const [birthDay, setBirthDay] = useState('');
+    const [birthYear, setBirthYear] = useState('');
+    const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
+    const [islandOpen, setIslandOpen] = useState(false);
+
+    const dayRef = useRef<TextInput>(null);
+    const yearRef = useRef<TextInput>(null);
+
+    // ── Validators ────────────────────────────────────────────────────────────
 
     const validateName = (val: string): string | undefined => {
         const trimmed = val.trim();
@@ -31,11 +49,11 @@ export default function SignUpScreen() {
         return undefined;
     };
 
-    const validateEmail = (val: string): string | undefined => {
+    const validateContact = (val: string): string | undefined => {
         const trimmed = val.trim();
-        if (!trimmed) return t('auth.errors.emailRequired');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return t('auth.errors.invalidEmail');
-        return undefined;
+        if (!trimmed) return 'E-posta veya telefon numarası gereklidir';
+        if (isEmailPattern(trimmed) || isPhonePattern(trimmed)) return undefined;
+        return 'Geçerli bir e-posta adresi veya telefon numarası girin';
     };
 
     const validatePassword = (val: string): string | undefined => {
@@ -44,14 +62,16 @@ export default function SignUpScreen() {
         return undefined;
     };
 
+    // ── Change handlers ───────────────────────────────────────────────────────
+
     const handleNameChange = (val: string) => {
         setName(val);
         if (touched.name) setErrors(prev => ({ ...prev, name: validateName(val) }));
     };
 
-    const handleEmailChange = (val: string) => {
-        setEmail(val);
-        if (touched.email) setErrors(prev => ({ ...prev, email: validateEmail(val) }));
+    const handleContactChange = (val: string) => {
+        setContact(val);
+        if (touched.contact) setErrors(prev => ({ ...prev, contact: validateContact(val) }));
     };
 
     const handlePasswordChange = (val: string) => {
@@ -59,14 +79,16 @@ export default function SignUpScreen() {
         if (touched.password) setErrors(prev => ({ ...prev, password: validatePassword(val) }));
     };
 
+    // ── Blur handlers ─────────────────────────────────────────────────────────
+
     const handleNameBlur = () => {
         setTouched(prev => ({ ...prev, name: true }));
         setErrors(prev => ({ ...prev, name: validateName(name) }));
     };
 
-    const handleEmailBlur = () => {
-        setTouched(prev => ({ ...prev, email: true }));
-        setErrors(prev => ({ ...prev, email: validateEmail(email) }));
+    const handleContactBlur = () => {
+        setTouched(prev => ({ ...prev, contact: true }));
+        setErrors(prev => ({ ...prev, contact: validateContact(contact) }));
     };
 
     const handlePasswordBlur = () => {
@@ -74,14 +96,15 @@ export default function SignUpScreen() {
         setErrors(prev => ({ ...prev, password: validatePassword(password) }));
     };
 
+    // ── Submit ────────────────────────────────────────────────────────────────
+
     const handleSubmit = async () => {
         const nameError = validateName(name);
-        const emailError = validateEmail(email);
+        const contactError = validateContact(contact);
         const passwordError = validatePassword(password);
-        setTouched({ name: true, email: true, password: true });
-        setErrors({ name: nameError, email: emailError, password: passwordError });
-        if (nameError || emailError || passwordError) return;
-
+        setTouched({ name: true, contact: true, password: true });
+        setErrors({ name: nameError, contact: contactError, password: passwordError });
+        if (nameError || contactError || passwordError) return;
         setKvkkVisible(true);
     };
 
@@ -89,9 +112,8 @@ export default function SignUpScreen() {
         setKvkkVisible(false);
         setLoading(true);
         try {
-            // Backend expects kvkkAccepted and termsAccepted as true
-            await authApi.signup(name.trim(), email.trim(), password, true, true);
-            router.push({ pathname: '/verify', params: { email: email.trim() } });
+            await authApi.signup(name.trim(), contact.trim(), password, true, true);
+            router.push({ pathname: '/verify', params: { email: contact.trim() } });
         } catch (error: any) {
             Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
         } finally {
@@ -99,10 +121,12 @@ export default function SignUpScreen() {
         }
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
+
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setIslandOpen(false); }} accessible={false}>
                 <View style={styles.container}>
                     <LinearGradient
                         colors={['#0D1B2A', '#1B263B']}
@@ -143,6 +167,7 @@ export default function SignUpScreen() {
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
                         >
+                            {/* İsim */}
                             <View style={styles.inputGroup}>
                                 <Text style={styles.inputLabel}>{t('auth.nameLabel')}</Text>
                                 <View style={[styles.inputWrapper, errors.name ? styles.inputWrapperError : null]}>
@@ -160,24 +185,30 @@ export default function SignUpScreen() {
                                 {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
                             </View>
 
+                            {/* E-posta ya da Telefon */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
-                                <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
-                                    <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
+                                <Text style={styles.inputLabel}>E-POSTA ADRESİ YA DA TELEFON NUMARASI</Text>
+                                <View style={[styles.inputWrapper, errors.contact ? styles.inputWrapperError : null]}>
+                                    <IconSymbol
+                                        name={isPhonePattern(contact) ? 'phone.fill' : 'envelope.fill'}
+                                        size={18}
+                                        color={errors.contact ? '#EF4444' : '#94A3B8'}
+                                    />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder={t('auth.emailPlaceholder')}
+                                        placeholder="ornek@email.com veya +90 555 000 00 00"
                                         placeholderTextColor="#94A3B8"
                                         keyboardType="email-address"
                                         autoCapitalize="none"
-                                        value={email}
-                                        onChangeText={handleEmailChange}
-                                        onBlur={handleEmailBlur}
+                                        value={contact}
+                                        onChangeText={handleContactChange}
+                                        onBlur={handleContactBlur}
                                     />
                                 </View>
-                                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                                {errors.contact && <Text style={styles.errorText}>{errors.contact}</Text>}
                             </View>
 
+                            {/* Şifre */}
                             <View style={styles.inputGroup}>
                                 <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
                                 <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
@@ -196,6 +227,100 @@ export default function SignUpScreen() {
                                     </TouchableOpacity>
                                 </View>
                                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                            </View>
+
+                            {/* Doğum Tarihi (isteğe bağlı) */}
+                            <View style={[styles.inputGroup, { marginBottom: 20 }]}>
+                                <Text style={styles.inputLabel}>DOĞUM TARİHİ <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
+                                <View style={styles.dateRow}>
+                                    <View style={[styles.dateCell, styles.dateCellShort]}>
+                                        <TextInput
+                                            style={styles.dateCellInput}
+                                            placeholder="AA"
+                                            placeholderTextColor="#94A3B8"
+                                            keyboardType="number-pad"
+                                            maxLength={2}
+                                            value={birthMonth}
+                                            onChangeText={val => {
+                                                const digits = val.replace(/\D/g, '');
+                                                setBirthMonth(digits);
+                                                if (digits.length === 2) dayRef.current?.focus();
+                                            }}
+                                        />
+                                    </View>
+                                    <Text style={styles.dateSep}>/</Text>
+                                    <View style={[styles.dateCell, styles.dateCellShort]}>
+                                        <TextInput
+                                            ref={dayRef}
+                                            style={styles.dateCellInput}
+                                            placeholder="GG"
+                                            placeholderTextColor="#94A3B8"
+                                            keyboardType="number-pad"
+                                            maxLength={2}
+                                            value={birthDay}
+                                            onChangeText={val => {
+                                                const digits = val.replace(/\D/g, '');
+                                                setBirthDay(digits);
+                                                if (digits.length === 2) yearRef.current?.focus();
+                                            }}
+                                        />
+                                    </View>
+                                    <Text style={styles.dateSep}>/</Text>
+                                    <View style={[styles.dateCell, { flex: 1 }]}>
+                                        <TextInput
+                                            ref={yearRef}
+                                            style={styles.dateCellInput}
+                                            placeholder="YYYY"
+                                            placeholderTextColor="#94A3B8"
+                                            keyboardType="number-pad"
+                                            maxLength={4}
+                                            value={birthYear}
+                                            onChangeText={val => setBirthYear(val.replace(/\D/g, ''))}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Yaşadığın Ada (isteğe bağlı) */}
+                            <View style={[styles.inputGroup, { marginBottom: islandOpen ? 8 + ISLANDS.length * 50 : 20, zIndex: 10 }]}>
+                                <Text style={styles.inputLabel}>YAŞADIĞIN ADA <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
+                                <TouchableOpacity
+                                    style={[styles.inputWrapper, islandOpen && styles.inputWrapperFocused]}
+                                    onPress={() => setIslandOpen(o => !o)}
+                                    activeOpacity={0.8}
+                                >
+                                    <IconSymbol name="mappin.and.ellipse" size={18} color="#94A3B8" />
+                                    <Text style={[styles.input, { flex: 1, paddingTop: 0, paddingBottom: 0, color: selectedIsland ? '#0D1B2A' : '#94A3B8' }]}>
+                                        {selectedIsland ?? 'Ada seçiniz'}
+                                    </Text>
+                                    <IconSymbol
+                                        name={islandOpen ? "chevron.up" : "chevron.down"}
+                                        size={16}
+                                        color="#94A3B8"
+                                    />
+                                </TouchableOpacity>
+                                {islandOpen && (
+                                    <View style={styles.dropdownList}>
+                                        {ISLANDS.map((island, idx) => (
+                                            <TouchableOpacity
+                                                key={island}
+                                                style={[
+                                                    styles.dropdownItem,
+                                                    idx < ISLANDS.length - 1 && styles.dropdownItemBorder,
+                                                    selectedIsland === island && styles.dropdownItemSelected,
+                                                ]}
+                                                onPress={() => { setSelectedIsland(island); setIslandOpen(false); }}
+                                            >
+                                                <Text style={[styles.dropdownItemText, selectedIsland === island && styles.dropdownItemTextSelected]}>
+                                                    {island}
+                                                </Text>
+                                                {selectedIsland === island && (
+                                                    <IconSymbol name="checkmark" size={14} color="#3B82F6" />
+                                                )}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
                             </View>
 
                             <TouchableOpacity
@@ -337,6 +462,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         letterSpacing: 1,
     },
+    optionalTag: {
+        fontWeight: '500',
+        color: '#94A3B8',
+        letterSpacing: 0,
+    },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -347,6 +477,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E2E8F0',
     },
+    inputWrapperFocused: {
+        borderColor: '#3B82F6',
+        borderWidth: 1.5,
+    },
     input: {
         flex: 1,
         marginLeft: 12,
@@ -354,6 +488,72 @@ const styles = StyleSheet.create({
         color: '#0D1B2A',
         fontWeight: '500',
     },
+    // Date of birth
+    dateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    dateCell: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        paddingVertical: 14,
+        paddingHorizontal: 12,
+    },
+    dateCellShort: {
+        width: 64,
+    },
+    dateCellInput: {
+        fontSize: 16,
+        color: '#0D1B2A',
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+    dateSep: {
+        fontSize: 18,
+        color: '#94A3B8',
+        fontWeight: '600',
+    },
+    // Island dropdown
+    dropdownList: {
+        marginTop: 4,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
+    },
+    dropdownItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    dropdownItemBorder: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    dropdownItemSelected: {
+        backgroundColor: '#EFF6FF',
+    },
+    dropdownItemText: {
+        fontSize: 15,
+        color: '#1E293B',
+        fontWeight: '500',
+    },
+    dropdownItemTextSelected: {
+        color: '#3B82F6',
+        fontWeight: '700',
+    },
+    // Buttons
     primaryButton: {
         backgroundColor: '#3B82F6',
         borderRadius: 16,
