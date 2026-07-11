@@ -84,70 +84,23 @@ export default function MainMenuScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Hero Header Slider Wrapper */}
+      {/* Hero Header Slider Wrapper (Temporarily Removed) */}
+      {/* 
       <View style={[styles.heroWrapper, { height: heroHeight }]}>
-        <ScrollView 
-          horizontal 
-          pagingEnabled 
-          showsHorizontalScrollIndicator={false}
-          bounces={false}
-          onMomentumScrollEnd={handleScroll}
-        >
-          {slidesToRender.map(slide => (
-            <TouchableWithoutFeedback key={slide.id} onPress={toggleHero}>
-              <View style={[styles.heroImage, { width }]}>
-                <ImageBackground 
-                    source={{ uri: slide.imageUrl }} 
-                    style={{ flex: 1 }}
-                    imageStyle={{ resizeMode: 'cover' }}
-                >
-                  <LinearGradient
-                    colors={['transparent', 'rgba(27,27,47,0.8)', '#1B1B2F']}
-                    style={styles.heroGradient}
-                  />
-                </ImageBackground>
-              </View>
-            </TouchableWithoutFeedback>
-          ))}
-        </ScrollView>
-        {/* Info revealed when hero is expanded */}
-        <View style={styles.heroExpandedInfo}>
-          <View style={styles.expandedInfoContent}>
-            <View style={styles.expandedInfoTextGroup}>
-              <Text style={styles.expandedInfoTitle}>{slidesToRender[activeIndex]?.title}</Text>
-              <Text style={styles.expandedInfoSubtitle} numberOfLines={3}>{slidesToRender[activeIndex]?.subtitle}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.heroActionButton}
-              onPress={() => {
-                const slide = slidesToRender[activeIndex];
-                if (slide?.id && !slide.id.startsWith('default')) {
-                  router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
-                } else {
-                  router.push('/(tabs)/explore/island/events');
-                }
-              }}
-            >
-              <Text style={styles.heroActionButtonText}>Detayları Gör</Text>
-              <IconSymbol name="chevron.right" size={16} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Top bar (Fixed over the slider) */}
-        <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-           {/* Header buttons removed from here */}</View>
+         ... 
       </View>
+      */}
 
       {/* Body Content — scrollable on short screens, fills naturally on tall screens */}
       <Animated.ScrollView
-        style={[styles.body, { transform: [{ translateY: slideAnim }] }]}
+        style={[styles.body, { paddingTop: insets.top + 16 }]}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
         scrollEnabled={true}
       >
-        {/* Pagination Dots */}
+        {/* Pagination Dots (Temporarily Removed) */}
+        {/* 
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
           {slidesToRender.map((_, index) => (
             <View
@@ -156,9 +109,59 @@ export default function MainMenuScreen() {
             />
           ))}
         </View>
+        */}
 
         {/* Services Section */}
         <View style={styles.servicesSection}>
+          <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
+                {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
+              </Text>
+              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
+                {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.inlineSliderContainer}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={width - 48 + 12} // card width + right margin
+              decelerationRate="fast"
+            >
+              {slidesToRender.map((slide, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  style={[styles.inlineSlideCard, { width: width - 48 }]}
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    if (slide?.id && !slide.id.startsWith('default')) {
+                      router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
+                    } else {
+                      router.push('/(tabs)/explore/island/events');
+                    }
+                  }}
+                >
+                  <ImageBackground 
+                    source={{ uri: slide.imageUrl }} 
+                    style={styles.inlineSlideImage}
+                    imageStyle={{ borderRadius: 16 }}
+                  >
+                    <LinearGradient
+                      colors={['transparent', 'rgba(27,27,47,0.9)']}
+                      style={styles.inlineSlideGradient}
+                    >
+                      <Text style={styles.inlineSlideTitle}>{slide.title}</Text>
+                      <Text style={styles.inlineSlideSubtitle} numberOfLines={2}>{slide.subtitle}</Text>
+                    </LinearGradient>
+                  </ImageBackground>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
           <View style={[styles.sectionHeader, isSmallScreen && { marginBottom: 10 }]}>
             <View style={styles.sectionTitleRow}>
               <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
@@ -416,19 +419,15 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    marginTop: -30,
     zIndex: 2,
     paddingHorizontal: 16,
-    paddingTop: 10,
   },
   servicesSection: {
     flex: 1,
     marginTop: 0, // Adjusted because we added welcomeContainer
   },
   welcomeContainer: {
-    marginBottom: 8,
+    marginBottom: 28,
     paddingHorizontal: 4,
     marginTop: 4,
   },
@@ -640,5 +639,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0D1B2A',
     marginTop: 1,
+  },
+  inlineSliderContainer: {
+    marginBottom: 20,
+    marginTop: -8,
+  },
+  inlineSlideCard: {
+    height: 160,
+    marginRight: 12,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+    backgroundColor: '#1B1B2F',
+  },
+  inlineSlideImage: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  inlineSlideGradient: {
+    padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  inlineSlideTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  inlineSlideSubtitle: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
   },
 });
