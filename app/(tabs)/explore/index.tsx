@@ -79,8 +79,8 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  // Set hero height to maintain a 16:9 aspect ratio based on screen width, accounting for the notch/status bar
-  const heroHeight = (width * (9 / 16)) + insets.top;
+  // Set hero height to be much taller as requested (approx 45% of screen height)
+  const heroHeight = SCREEN_HEIGHT * 0.45;
 
   return (
     <View style={styles.container}>
