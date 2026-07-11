@@ -176,9 +176,10 @@ export default function SignUpScreen() {
                     <View style={styles.cardContainer}>
                         <ScrollView
                             style={styles.formScroll}
-                            contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + 24 }]}
+                            contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + 12 }]}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
+                            scrollEnabled={false}
                         >
                             {/* İsim */}
                             <View style={styles.inputGroup}>
@@ -243,7 +244,7 @@ export default function SignUpScreen() {
                             </View>
 
                             {/* Doğum Tarihi (isteğe bağlı) */}
-                            <View style={[styles.inputGroup, { marginBottom: 20 }]}>
+                            <View style={[styles.inputGroup, { marginBottom: 12 }]}>
                                 <Text style={styles.inputLabel}>DOĞUM TARİHİ <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
                                 <View style={styles.dateRow}>
                                     <View style={[styles.dateCell, styles.dateCellShort]}>
@@ -295,7 +296,7 @@ export default function SignUpScreen() {
                             </View>
 
                             {/* Yaşadığın Ada (isteğe bağlı) */}
-                            <View style={[styles.inputGroup, { marginBottom: islandOpen ? 8 + ISLANDS.length * 50 : 20, zIndex: 10 }]}>
+                            <View style={[styles.inputGroup, { marginBottom: islandOpen ? 8 + ISLANDS.length * 40 : 12, zIndex: 10 }]}>
                                 <Text style={styles.inputLabel}>YAŞADIĞIN ADA <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
                                 <TouchableOpacity
                                     style={[styles.inputWrapper, islandOpen && styles.inputWrapperFocused]}
@@ -460,13 +461,13 @@ const styles = StyleSheet.create({
     formScroll: {
         flex: 1,
         paddingHorizontal: 20,
-        paddingTop: 24,
+        paddingTop: 16,
     },
     formContainer: {
         flexGrow: 1,
     },
     inputGroup: {
-        marginBottom: 20,
+        marginBottom: 12,
     },
     inputLabel: {
         fontSize: 11,
@@ -486,7 +487,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
         borderRadius: 16,
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: 10,
         borderWidth: 1,
         borderColor: '#E2E8F0',
     },
@@ -512,7 +513,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        paddingVertical: 14,
+        paddingVertical: 10,
         paddingHorizontal: 12,
     },
     dateCellShort: {
@@ -548,7 +549,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: 10,
     },
     dropdownItemBorder: {
         borderBottomWidth: 1,
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
     primaryButton: {
         backgroundColor: '#3B82F6',
         borderRadius: 16,
-        paddingVertical: 18,
+        paddingVertical: 14,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -589,7 +590,7 @@ const styles = StyleSheet.create({
     divider: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 16,
+        marginVertical: 12,
     },
     line: {
         flex: 1,
