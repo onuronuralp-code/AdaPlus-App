@@ -246,6 +246,7 @@
         "logoutBtn": "Log Out",
         "notLoggedInTitle": "Not Logged In",
         "notLoggedInDesc": "You must log in to view your profile and manage your posts.",
+        "inviteFriend": "Invite a Friend",
         "tabs": {
             "posts": "Posts",
             "replies": "Replies",
@@ -275,7 +276,12 @@
         "eventDetails": "EVENT DETAILS *",
         "detailsPlaceholder": "Provide information about the event...",
         "eventPhoto": "EVENT PHOTO",
-        "addPhoto": "Add Photo"
+        "addPhoto": "Add Photo",
+        "startLabel": "START",
+        "endLabel": "END",
+        "locationLabel": "LOCATION",
+        "organizerLabel": "ORGANIZER",
+        "detailsLabel": "Event Details"
     },
     "ilanlar": {
         "emptyTitle": "Listing Not Found",
@@ -292,6 +298,7 @@
         "invalidNumber": "Enter a valid number (at least 10 digits)",
         "islandSelection": "SELECT ISLAND",
         "category": {
+            "all": "All",
             "emlak": "Real Estate",
             "esya": "Items",
             "tasit": "Vehicle",

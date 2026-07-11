@@ -247,6 +247,7 @@
         "logoutBtn": "Çıkış Yap",
         "notLoggedInTitle": "Giriş Yapılmadı",
         "notLoggedInDesc": "Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.",
+        "inviteFriend": "Arkadaşını Davet Et",
         "tabs": {
             "posts": "Paylaşımlar",
             "replies": "Yanıtlar",
@@ -276,7 +277,12 @@
         "eventDetails": "ETKİNLİK DETAYLARI *",
         "detailsPlaceholder": "Etkinlik hakkında bilgi verin...",
         "eventPhoto": "ETKİNLİK FOTOĞRAFI",
-        "addPhoto": "Fotoğraf Ekle"
+        "addPhoto": "Fotoğraf Ekle",
+        "startLabel": "BAŞLANGIÇ",
+        "endLabel": "BİTİŞ",
+        "locationLabel": "KONUM",
+        "organizerLabel": "ORGANİZATÖR",
+        "detailsLabel": "Etkinlik Detayları"
     },
     "ilanlar": {
         "emptyTitle": "İlan Bulunamadı",
@@ -293,12 +299,13 @@
         "invalidNumber": "Geçerli bir numara girin (en az 10 haneli)",
         "islandSelection": "ADA SEÇİMİ",
         "category": {
+            "all": "Tümü",
             "emlak": "Emlak",
             "esya": "Eşya",
             "tasit": "Taşıt",
             "service": "Hizmet",
             "job": "İş İlanı",
-            "lost": "Kayıp & Buluntu"
+            "lost": "Kayıp"
         }
     },
     "listings": {

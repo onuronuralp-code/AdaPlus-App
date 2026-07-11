@@ -194,11 +194,11 @@ export default function EventDetailScreen() {
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>{t('events.startLabel', { defaultValue: 'BAŞLANGIÇ' })}</Text>
+                            <Text style={styles.infoLabel}>{t('events.startLabel')}</Text>
                             <Text style={styles.infoValue}>{formatDate(activity.startDate)}</Text>
                             {activity.endDate && (
                                 <>
-                                    <Text style={[styles.infoLabel, { marginTop: 6 }]}>{t('events.endLabel', { defaultValue: 'BİTİŞ' })}</Text>
+                                    <Text style={[styles.infoLabel, { marginTop: 6 }]}>{t('events.endLabel')}</Text>
                                     <Text style={styles.infoValue}>{formatDate(activity.endDate)}</Text>
                                 </>
                             )}
@@ -212,7 +212,7 @@ export default function EventDetailScreen() {
                                 <IconSymbol name="mappin.and.ellipse" size={20} color="#64748B" />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.infoLabel}>{t('events.locationLabel', { defaultValue: 'KONUM' })}</Text>
+                                <Text style={styles.infoLabel}>{t('events.locationLabel')}</Text>
                                 <Text style={styles.infoValue}>{activity.eventPlace}</Text>
                             </View>
                         </View>
@@ -224,7 +224,7 @@ export default function EventDetailScreen() {
                             <IconSymbol name="person.fill" size={20} color="#64748B" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>{t('events.organizerLabel', { defaultValue: 'ORGANİZATÖR' })}</Text>
+                            <Text style={styles.infoLabel}>{t('events.organizerLabel')}</Text>
                             <Text style={styles.infoValue}>{activity.organizerName}</Text>
                             {activity.organizerContact && (
                                 <Text style={styles.contactText}>{activity.organizerContact}</Text>
@@ -254,7 +254,7 @@ export default function EventDetailScreen() {
                     <View style={styles.divider} />
 
                     {/* Description */}
-                    <Text style={styles.sectionTitle}>{t('events.detailsLabel', { defaultValue: 'Etkinlik Detayları' })}</Text>
+                    <Text style={styles.sectionTitle}>{t('events.detailsLabel')}</Text>
                     <Text style={styles.description}>{activity.description}</Text>
                 </View>
             </ScrollView>
