@@ -14,6 +14,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useAuth } from '@/context/AuthContext';
+import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
+import { getToken } from '@/utils/tokenStorage';
 
 type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -47,6 +49,8 @@ export default function ProfileScreen() {
     const [fetchError, setFetchError] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteLoading, setInviteLoading] = useState(false);
+    const [inviteEmailError, setInviteEmailError] = useState('');
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
 
@@ -92,14 +96,38 @@ export default function ProfileScreen() {
             .finally(() => setLoadingActivities(false));
     }, [user?.id]);
 
-    const handleSendInvite = () => {
-        if (!inviteEmail.trim() || !inviteEmail.includes('@')) {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Lütfen geçerli bir e-posta adresi girin.');
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const handleSendInvite = async () => {
+        const email = inviteEmail.trim();
+        if (!EMAIL_REGEX.test(email)) {
+            setInviteEmailError('Geçerli bir e-posta adresi girin.');
             return;
         }
-        Alert.alert('Başarılı', 'Davetiye başarıyla gönderildi!');
-        setShowInviteModal(false);
-        setInviteEmail('');
+        setInviteEmailError('');
+        setInviteLoading(true);
+        try {
+            const token = getToken();
+            const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/invites`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ email }),
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || 'Davetiye gönderilemedi.');
+            }
+            Alert.alert('Başarılı', 'Davetiye başarıyla gönderildi!');
+            setShowInviteModal(false);
+            setInviteEmail('');
+        } catch (e: any) {
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), e.message || 'Davetiye gönderilemedi.');
+        } finally {
+            setInviteLoading(false);
+        }
     };
 
     const handleDeletePost = (id: string, isReply: boolean = false) => {
@@ -501,14 +529,16 @@ export default function ProfileScreen() {
                             <Text style={styles.roleText}>{user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}</Text>
                         </View>
 
-                        <TouchableOpacity 
-                            style={styles.inviteButton}
-                            activeOpacity={0.7}
-                            onPress={() => setShowInviteModal(true)}
-                        >
-                            <IconSymbol name="person.badge.plus" size={18} color="#6366F1" />
-                            <Text style={styles.inviteButtonText}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
-                        </TouchableOpacity>
+                        {(user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN') && (
+                            <TouchableOpacity
+                                style={styles.inviteButton}
+                                activeOpacity={0.7}
+                                onPress={() => setShowInviteModal(true)}
+                            >
+                                <IconSymbol name="person.badge.plus" size={18} color="#6366F1" />
+                                <Text style={styles.inviteButtonText}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                 {fetchError && (
@@ -557,7 +587,7 @@ export default function ProfileScreen() {
                 visible={showInviteModal}
                 transparent={true}
                 animationType="fade"
-                onRequestClose={() => setShowInviteModal(false)}
+                onRequestClose={() => { setShowInviteModal(false); setInviteEmailError(''); setInviteEmail(''); }}
             >
                 <KeyboardAvoidingView 
                     style={styles.modalOverlay}
@@ -566,26 +596,32 @@ export default function ProfileScreen() {
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
-                            <TouchableOpacity onPress={() => setShowInviteModal(false)}>
+                            <TouchableOpacity onPress={() => { setShowInviteModal(false); setInviteEmailError(''); setInviteEmail(''); }}>
                                 <IconSymbol name="xmark.circle.fill" size={24} color="#94A3B8" />
                             </TouchableOpacity>
                         </View>
                         <View style={styles.modalBody}>
                             <Text style={styles.modalDescription}>Davet etmek istediğiniz kişinin e-posta adresini girin.</Text>
                             <TextInput
-                                style={styles.inviteInput}
+                                style={[styles.inviteInput, inviteEmailError ? { borderColor: '#EF4444' } : {}]}
                                 placeholder="E-posta adresi"
                                 value={inviteEmail}
-                                onChangeText={setInviteEmail}
+                                onChangeText={(v) => { setInviteEmail(v); setInviteEmailError(''); }}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
-                            <TouchableOpacity 
-                                style={[styles.inviteSendButton, !inviteEmail.trim() && { opacity: 0.5 }]}
+                            {inviteEmailError ? (
+                                <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4 }}>{inviteEmailError}</Text>
+                            ) : null}
+                            <TouchableOpacity
+                                style={[styles.inviteSendButton, (!inviteEmail.trim() || inviteLoading) && { opacity: 0.5 }]}
                                 onPress={handleSendInvite}
-                                disabled={!inviteEmail.trim()}
+                                disabled={!inviteEmail.trim() || inviteLoading}
                             >
-                                <Text style={styles.inviteSendButtonText}>Gönder</Text>
+                                {inviteLoading
+                                    ? <ActivityIndicator size="small" color="#fff" />
+                                    : <Text style={styles.inviteSendButtonText}>Gönder</Text>
+                                }
                             </TouchableOpacity>
                         </View>
                     </View>
