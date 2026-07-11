@@ -209,12 +209,15 @@ export default function LoginScreen() {
                             <Text style={{ color: '#64748B', fontWeight: 'bold' }}>{t('auth.backToLogin')}</Text>
                         </TouchableOpacity>
                     ) : (
-                        <View style={styles.footer}>
-                            <Text style={styles.footerText}>{t('auth.noAccount')}</Text>
-                            <TouchableOpacity onPress={() => router.push('/signup')}>
-                                <Text style={styles.signupText}>{t('auth.signupLink')}</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity 
+                            style={styles.signupButtonOutline} 
+                            onPress={() => router.push('/signup')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.footerText}>
+                                {t('auth.noAccount')} <Text style={styles.signupText}>{t('auth.signupLink')}</Text>
+                            </Text>
+                        </TouchableOpacity>
                     )}
                 </View>
             </View>
@@ -250,9 +253,9 @@ const styles = StyleSheet.create({
     forgotText: { fontSize: 11, fontWeight: '800', color: '#10B981', marginBottom: 8 },
     primaryButton: { backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 18, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
     primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 'auto' },
-    footerText: { fontSize: 14, color: '#94A3B8' },
-    signupText: { fontSize: 14, fontWeight: 'bold', color: '#1e293b' },
+    signupButtonOutline: { marginTop: 24, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, borderRadius: 16, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' },
+    footerText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
+    signupText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
     inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },
     errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', position: 'absolute', bottom: -18, left: 4 },
 });
