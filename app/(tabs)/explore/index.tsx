@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   inlineSlideCard: {
-    height: 220,
+    height: 280,
     marginRight: 12,
     borderRadius: 16,
     shadowColor: '#000',
