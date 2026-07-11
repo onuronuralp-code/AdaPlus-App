@@ -89,8 +89,8 @@ export default function MainMenuScreen() {
 
   const defaultSlide = {
     id: 'default_welcome',
-    title: t('common.readyForAdventure', { defaultValue: 'Macera Zamanı?' }),
-    subtitle: t('common.exploreServices', { defaultValue: 'Adalardaki hizmetleri ve en yeni etkinlikleri keşfet' }),
+    title: t('common.readyForAdventure', { defaultValue: i18n.language.startsWith('en') ? 'Ready for an Adventure?' : 'Macera Zamanı?' }),
+    subtitle: t('common.exploreServices', { defaultValue: i18n.language.startsWith('en') ? 'Explore services and the latest events on the islands' : 'Adalardaki hizmetleri ve en yeni etkinlikleri keşfet' }),
     imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
   };
 
