@@ -135,19 +135,39 @@ export default function MainMenuScreen() {
 
         {/* Services Section */}
         <View style={styles.servicesSection}>
-          <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
+          <LinearGradient
+            colors={['#1E40AF', '#3B82F6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[
+              { 
+                padding: 24, 
+                paddingTop: insets.top + 24,
+                marginHorizontal: -16,
+                marginTop: -(insets.top + 16),
+                borderBottomLeftRadius: 24, 
+                borderBottomRightRadius: 24, 
+                marginBottom: 28, 
+                shadowColor: '#3B82F6',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.25,
+                shadowRadius: 12,
+                elevation: 6
+              },
+              isSmallScreen && { marginBottom: 16 }
+            ]}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.welcomeGreeting, { color: '#FFFFFF' }, isLargeScreen && { fontSize: 26 }]}>
                 {isLoggedIn && user 
                   ? `${i18n.language.startsWith('en') ? 'Welcome' : 'Hoş Geldin'}, ${user.fullName.split(' ')[0]}! 👋`
                   : t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
               </Text>
-              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
+              <Text style={[styles.welcomeSubtitle, { color: 'rgba(255, 255, 255, 0.85)', marginTop: 6 }, isLargeScreen && { fontSize: 15 }]}>
                 {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
               </Text>
             </View>
-
-          </View>
+          </LinearGradient>
 
           <View style={styles.inlineSliderContainer}>
             <ScrollView 
