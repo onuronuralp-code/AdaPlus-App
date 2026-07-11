@@ -114,6 +114,7 @@ export interface RsvpResponse {
 }
 
 const ACTIVITIES_API_BASE_URL = `${BASE}/api/v1/activities`;
+const LISTINGS_API_BASE_URL = `${BASE}/api/v1/listings`;
 
 export const fetchListings = async (): Promise<AppListingDto[]> => {
   try {
