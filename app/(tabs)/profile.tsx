@@ -507,10 +507,14 @@ export default function ProfileScreen() {
                     {isLoggedIn && (
                         <TouchableOpacity
                             onPress={() => {
-                                Alert.alert('Çıkış Yap', 'Hesabınızdan çıkmak istediğinizden emin misiniz?', [
-                                    { text: 'İptal', style: 'cancel' },
-                                    { text: 'Çıkış Yap', style: 'destructive', onPress: () => logout() },
-                                ]);
+                                Alert.alert(
+                                    t('profile.logoutTitle', { defaultValue: i18n.language.startsWith('en') ? 'Log Out' : 'Çıkış Yap' }),
+                                    t('profile.logoutConfirm', { defaultValue: i18n.language.startsWith('en') ? 'Are you sure you want to log out?' : 'Hesabınızdan çıkmak istediğinizden emin misiniz?' }),
+                                    [
+                                        { text: t('common.cancel', { defaultValue: i18n.language.startsWith('en') ? 'Cancel' : 'İptal' }), style: 'cancel' },
+                                        { text: t('profile.logoutBtn', { defaultValue: i18n.language.startsWith('en') ? 'Log Out' : 'Çıkış Yap' }), style: 'destructive', onPress: () => logout() },
+                                    ]
+                                );
                             }}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
@@ -523,13 +527,19 @@ export default function ProfileScreen() {
             {!isLoggedIn ? (
                 <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center' }]}>
                     <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
-                    <Text style={styles.emptyTitle}>Giriş Yapılmadı</Text>
-                    <Text style={styles.emptySubtitle}>Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.</Text>
+                    <Text style={styles.emptyTitle}>
+                        {t('profile.notLoggedInTitle', { defaultValue: i18n.language.startsWith('en') ? 'Not Logged In' : 'Giriş Yapılmadı' })}
+                    </Text>
+                    <Text style={styles.emptySubtitle}>
+                        {t('profile.notLoggedInDesc', { defaultValue: i18n.language.startsWith('en') ? 'You must log in to view your profile and manage your posts.' : 'Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.' })}
+                    </Text>
                     <TouchableOpacity 
                         style={styles.loginButton}
                         onPress={() => router.push('/login')}
                     >
-                        <Text style={styles.loginButtonText}>Giriş Yap</Text>
+                        <Text style={styles.loginButtonText}>
+                            {t('common.login', { defaultValue: i18n.language.startsWith('en') ? 'Log In' : 'Giriş Yap' })}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             ) : (
