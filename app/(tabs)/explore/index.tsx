@@ -258,7 +258,7 @@ export default function MainMenuScreen() {
                   {t('common.community')}
                 </Text>
                 <Text style={{ fontSize: 12, color: '#4B5563', lineHeight: 16 }} numberOfLines={2}>
-                  {t('common.shareExperiences')}
+                  {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Share your experiences and connect with islanders.' : 'Deneyimlerinizi paylaşın ve adalılarla iletişime geçin.' })}
                 </Text>
               </View>
               <View style={{ backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
