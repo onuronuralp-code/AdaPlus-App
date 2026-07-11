@@ -102,7 +102,7 @@ export default function ProfileScreen() {
     const handleSendInvite = async () => {
         const email = inviteEmail.trim();
         if (!EMAIL_REGEX.test(email)) {
-            setInviteEmailError('Geçerli bir e-posta adresi girin.');
+            setInviteEmailError(t('profile.inviteEmailError'));
             return;
         }
         setInviteEmailError('');
@@ -119,13 +119,13 @@ export default function ProfileScreen() {
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                throw new Error(err.message || 'Davetiye gönderilemedi.');
+                throw new Error(err.message || t('profile.inviteSendFailed'));
             }
-            Alert.alert('Başarılı', 'Davetiye başarıyla gönderildi!');
+            Alert.alert(t('common.success'), t('profile.inviteSendSuccess'));
             setShowInviteModal(false);
             setInviteEmail('');
         } catch (e: any) {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), e.message || 'Davetiye gönderilemedi.');
+            Alert.alert(t('common.error'), e.message || t('profile.inviteSendFailed'));
         } finally {
             setInviteLoading(false);
         }
@@ -133,12 +133,12 @@ export default function ProfileScreen() {
 
     const handleDeletePost = (id: string, isReply: boolean = false) => {
         Alert.alert(
-            t('common.delete', { defaultValue: 'Sil' }),
-            t('common.deleteConfirm', { defaultValue: 'Silmek istediğinize emin misiniz?' }),
+            t('common.delete'),
+            t('common.deleteConfirm'),
             [
-                { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 { 
-                    text: t('common.delete', { defaultValue: 'Sil' }), 
+                    text: t('common.delete'), 
                     style: 'destructive',
                     onPress: async () => {
                         try {
@@ -149,7 +149,7 @@ export default function ProfileScreen() {
                                 setPosts(posts.filter(p => p.id !== id));
                             }
                         } catch (error) {
-                            Alert.alert("Hata", "Silinemedi.");
+                            Alert.alert(t('common.error'), t('common.deleteFailed'));
                         }
                     }
                 }
@@ -179,12 +179,12 @@ export default function ProfileScreen() {
 
     const handleDeleteListing = (id: string) => {
         Alert.alert(
-            t('common.delete', { defaultValue: 'Sil' }),
-            t('common.deleteConfirm', { defaultValue: 'Silmek istediğinize emin misiniz?' }),
+            t('common.delete'),
+            t('common.deleteConfirm'),
             [
-                { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 { 
-                    text: t('common.delete', { defaultValue: 'Sil' }), 
+                    text: t('common.delete'), 
                     style: 'destructive',
                     onPress: async () => {
                         const success = await deleteListing(id);
@@ -197,12 +197,12 @@ export default function ProfileScreen() {
 
     const handleDeleteEvent = (id: string) => {
         Alert.alert(
-            t('common.delete', { defaultValue: 'Sil' }),
-            t('common.deleteConfirm', { defaultValue: 'Silmek istediğinize emin misiniz?' }),
+            t('common.delete'),
+            t('common.deleteConfirm'),
             [
-                { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 { 
-                    text: t('common.delete', { defaultValue: 'Sil' }), 
+                    text: t('common.delete'), 
                     style: 'destructive',
                     onPress: async () => {
                         const success = await deleteActivity(id);
@@ -253,10 +253,10 @@ export default function ProfileScreen() {
                                 />
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
                                     <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
-                                        <Text style={{ color: '#64748B' }}>İptal</Text>
+                                        <Text style={{ color: '#64748B' }}>{t('common.cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
-                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>}
+                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>{t('common.saveAction')}</Text>}
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -305,10 +305,10 @@ export default function ProfileScreen() {
                                 />
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
                                     <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
-                                        <Text style={{ color: '#64748B' }}>İptal</Text>
+                                        <Text style={{ color: '#64748B' }}>{t('common.cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => handleSaveEdit(reply.id, true)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
-                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>}
+                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>{t('common.saveAction')}</Text>}
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -496,7 +496,7 @@ export default function ProfileScreen() {
                                 [
                                     { text: 'Türkçe', onPress: () => i18n.changeLanguage('tr') },
                                     { text: 'English', onPress: () => i18n.changeLanguage('en') },
-                                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' }
+                                    { text: t('common.cancel'), style: 'cancel' }
                                 ]
                             );
                         }}
@@ -567,7 +567,7 @@ export default function ProfileScreen() {
                                 onPress={() => setShowInviteModal(true)}
                             >
                                 <IconSymbol name="person.badge.plus" size={18} color="#6366F1" />
-                                <Text style={styles.inviteButtonText}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
+                                <Text style={styles.inviteButtonText}>{t('profile.inviteFriend')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -622,18 +622,19 @@ export default function ProfileScreen() {
                 >
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' })}</Text>
+                            <Text style={styles.modalTitle}>{t('profile.inviteFriend')}</Text>
                             <TouchableOpacity onPress={() => { setShowInviteModal(false); setInviteEmailError(''); setInviteEmail(''); }}>
                                 <IconSymbol name="xmark.circle.fill" size={24} color="#94A3B8" />
                             </TouchableOpacity>
                         </View>
                         <View style={styles.modalBody}>
-                            <Text style={styles.modalDescription}>Davet etmek istediğiniz kişinin e-posta adresini girin.</Text>
+                            <Text style={styles.modalDescription}>{t('profile.inviteDesc')}</Text>
                             <TextInput
                                 style={[styles.inviteInput, inviteEmailError ? { borderColor: '#EF4444' } : {}]}
-                                placeholder="E-posta adresi"
+                                placeholder={t('profile.inviteEmailPlaceholder')}
                                 value={inviteEmail}
                                 onChangeText={(v) => { setInviteEmail(v); setInviteEmailError(''); }}
+                                onBlur={() => { if (inviteEmail.trim() && !EMAIL_REGEX.test(inviteEmail.trim())) setInviteEmailError(t('profile.inviteEmailError')); }}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
@@ -641,13 +642,13 @@ export default function ProfileScreen() {
                                 <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4 }}>{inviteEmailError}</Text>
                             ) : null}
                             <TouchableOpacity
-                                style={[styles.inviteSendButton, (!inviteEmail.trim() || inviteLoading) && { opacity: 0.5 }]}
+                                style={[styles.inviteSendButton, (!inviteEmail.trim() || !EMAIL_REGEX.test(inviteEmail.trim()) || inviteLoading) && { opacity: 0.5 }]}
                                 onPress={handleSendInvite}
-                                disabled={!inviteEmail.trim() || inviteLoading}
+                                disabled={!inviteEmail.trim() || !EMAIL_REGEX.test(inviteEmail.trim()) || inviteLoading}
                             >
                                 {inviteLoading
                                     ? <ActivityIndicator size="small" color="#fff" />
-                                    : <Text style={styles.inviteSendButtonText}>Gönder</Text>
+                                    : <Text style={styles.inviteSendButtonText}>{t('profile.inviteSend')}</Text>
                                 }
                             </TouchableOpacity>
                         </View>
