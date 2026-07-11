@@ -27,15 +27,15 @@ export default function SplashScreen() {
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 
-  const logoW = Math.max(240, Math.min(width * 0.82, 460));
+  const logoW = Math.max(120, Math.min(width * 0.35, 180));
   const tagSize = Math.max(15, Math.min(width * 0.045, 20));
 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.center}>
         <Image
-          source={require("../assets/images/adaplus-logo.png")}
-          style={{ width: logoW, height: logoW * 0.61, resizeMode: "contain" }}
+          source={require("../assets/images/splash-mark.png")}
+          style={{ width: logoW, height: logoW, resizeMode: "contain" }}
           accessibilityLabel="AdaPlus"
         />
         <Text style={[styles.tag, { fontSize: tagSize, marginTop: 8 }]}>
