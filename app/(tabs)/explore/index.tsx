@@ -202,22 +202,22 @@ export default function MainMenuScreen() {
                 large={isLargeScreen}
               />
               <GridCard
-                icon="bubble.left.and.bubble.right.fill"
-                colors={['#10B981', '#059669']}
-                title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
-                subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Join the forum' : 'Ada Forumu' })}
-                onPress={() => router.push('/(tabs)/explore/island/forum')}
+                icon="bag.fill"
+                colors={['#8B5CF6', '#6D28D9']}
+                title={t('common.delivery', { defaultValue: i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis' })}
+                subtitle={t('common.deliverySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Food & Groceries' : 'Yemek ve Market' })}
+                onPress={() => router.push('/(tabs)/explore/island/delivery')}
                 style={{ marginLeft: 6 }}
                 large={isLargeScreen}
               />
             </View>
             <View style={styles.gridRow}>
               <GridCard
-                icon="bag.fill"
-                colors={['#8B5CF6', '#6D28D9']}
-                title={t('common.delivery', { defaultValue: i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis' })}
-                subtitle={t('common.deliverySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Food & Groceries' : 'Yemek ve Market' })}
-                onPress={() => router.push('/(tabs)/explore/island/delivery')}
+                icon="bubble.left.and.bubble.right.fill"
+                colors={['#10B981', '#059669']}
+                title={t('common.community', { defaultValue: i18n.language.startsWith('en') ? 'Community' : 'Topluluk' })}
+                subtitle={t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Join the forum' : 'Ada Forumu' })}
+                onPress={() => router.push('/(tabs)/explore/island/forum')}
                 style={{ marginRight: 6 }}
                 large={isLargeScreen}
               />
