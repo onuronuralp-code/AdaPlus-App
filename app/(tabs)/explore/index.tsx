@@ -128,13 +128,13 @@ export default function MainMenuScreen() {
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
-              snapToInterval={width - 36 + 12} // card width + right margin
+              snapToInterval={width - 32 + 12} // card width + right margin
               decelerationRate="fast"
             >
               {slidesToRender.map((slide, index) => (
                 <TouchableOpacity 
                   key={index} 
-                  style={[styles.inlineSlideCard, { width: width - 36 }]}
+                  style={[styles.inlineSlideCard, { width: width - 32 }]}
                   activeOpacity={0.9}
                   onPress={() => {
                     if (slide?.id && !slide.id.startsWith('default')) {
