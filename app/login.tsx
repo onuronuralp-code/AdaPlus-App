@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     forgotText: { fontSize: 11, fontWeight: '800', color: '#10B981', marginBottom: 8 },
     primaryButton: { backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 18, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
     primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
-    signupButtonOutline: { marginTop: 24, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, borderRadius: 16, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' },
+    signupButtonOutline: { marginTop: 24, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, borderRadius: 16, borderWidth: 1.5, borderColor: '#10B981', backgroundColor: '#FFFFFF' },
     footerText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
     signupText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
     inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },
