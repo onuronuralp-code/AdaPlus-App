@@ -101,7 +101,7 @@ export default function SignUpScreen() {
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <Stack.Screen options={{ headerShown: false }} />
+            <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.container}>
                     <LinearGradient
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     loginText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#EC4899',
+        color: '#3B82F6',
     },
     inputWrapperError: {
         borderColor: '#EF4444',
