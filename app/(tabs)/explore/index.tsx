@@ -340,7 +340,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
     <TouchableOpacity 
       style={[
         styles.gridCard, 
-        { backgroundColor: '#ffffff', padding: 0 },
+        { backgroundColor: `${primaryColor}10`, padding: 0 },
         style
       ]} 
       onPress={onPress} 
@@ -597,14 +597,8 @@ const styles = StyleSheet.create({
   gridCard: {
     flex: 1,
     minHeight: 84,
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: 20,
     padding: 10,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
