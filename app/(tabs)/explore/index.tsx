@@ -142,6 +142,14 @@ export default function MainMenuScreen() {
                 {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
               </Text>
             </View>
+            <TouchableOpacity 
+              style={{ backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 }} 
+              onPress={() => i18n.changeLanguage(i18n.language.startsWith('en') ? 'tr' : 'en')}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>
+                {i18n.language.startsWith('en') ? '🇹🇷 TR' : '🇬🇧 EN'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.inlineSliderContainer}>
