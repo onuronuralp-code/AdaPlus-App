@@ -199,7 +199,7 @@ export default function MainMenuScreen() {
               </Text>
             </View>
           </View>
-          <View style={[styles.cardsContainer, { gap: 8 }]}>
+          <View style={styles.cardsContainer}>
             <View style={styles.gridRow}>
               <GridCard
                 icon="tag.fill"
