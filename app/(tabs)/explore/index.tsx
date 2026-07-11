@@ -199,7 +199,7 @@ export default function MainMenuScreen() {
               </Text>
             </View>
           </View>
-          <View style={styles.cardsContainer}>
+          <View style={[styles.cardsContainer, { gap: 8 }]}>
             <View style={styles.gridRow}>
               <GridCard
                 icon="tag.fill"
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     marginTop: 0,
-    marginBottom: 20,
+    marginBottom: 36,
   },
   headerLangBtn: {
     flexDirection: 'row',

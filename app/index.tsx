@@ -27,7 +27,7 @@ export default function SplashScreen() {
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 
-  const logoW = Math.max(120, Math.min(width * 0.35, 180));
+  const logoW = 240;
   const tagSize = Math.max(15, Math.min(width * 0.045, 20));
 
   return (
