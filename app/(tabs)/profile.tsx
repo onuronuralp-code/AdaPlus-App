@@ -486,21 +486,38 @@ export default function ProfileScreen() {
     return (
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-                <Text style={styles.headerTitle}>{t('common.tabProfile')}</Text>
-                {isLoggedIn && (
+                <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                     <TouchableOpacity
                         onPress={() => {
-                            Alert.alert('Çıkış Yap', 'Hesabınızdan çıkmak istediğinizden emin misiniz?', [
-                                { text: 'İptal', style: 'cancel' },
-                                { text: 'Çıkış Yap', style: 'destructive', onPress: () => logout() },
-                            ]);
+                            Alert.alert(
+                                t('common.settings', { defaultValue: 'Ayarlar' }),
+                                t('common.chooseLanguage', { defaultValue: 'Dil Seçimi / Choose Language' }),
+                                [
+                                    { text: 'Türkçe', onPress: () => i18n.changeLanguage('tr') },
+                                    { text: 'English', onPress: () => i18n.changeLanguage('en') },
+                                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' }
+                                ]
+                            );
                         }}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        style={{ marginTop: 4 }}
                     >
-                        <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
+                        <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
                     </TouchableOpacity>
-                )}
+                    {isLoggedIn && (
+                        <TouchableOpacity
+                            onPress={() => {
+                                Alert.alert('Çıkış Yap', 'Hesabınızdan çıkmak istediğinizden emin misiniz?', [
+                                    { text: 'İptal', style: 'cancel' },
+                                    { text: 'Çıkış Yap', style: 'destructive', onPress: () => logout() },
+                                ]);
+                            }}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
 
             {!isLoggedIn ? (
