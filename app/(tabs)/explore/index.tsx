@@ -197,7 +197,7 @@ export default function MainMenuScreen() {
               </Text>
             </View>
           </View>
-          <View style={[styles.cardsContainer, { gap: 8 }]}>
+          <View style={[styles.cardsContainer, { gap: 16 }]}>
             <View style={styles.gridRow}>
               <GridCard
                 icon="tag.fill"
@@ -311,7 +311,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
   const primaryColor = colors ? colors[0] : '#3B82F6';
 
   const content = (
-    <View style={{ flex: 1, padding: 12, width: '100%' }}>
+    <View style={{ flex: 1, padding: 12, width: '100%', justifyContent: 'space-between' }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
           <IconSymbol name={icon as any} size={24} color={primaryColor} />
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
     marginTop: 0,
-    marginBottom: 36,
+    marginBottom: 16,
   },
   headerLangBtn: {
     flexDirection: 'row',
@@ -582,6 +582,7 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   gridRow: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -700,7 +701,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   inlineSlideCard: {
-    height: 280,
+    height: 200,
     marginRight: 12,
     borderRadius: 16,
     shadowColor: '#000',
