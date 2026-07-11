@@ -53,6 +53,7 @@ export default function ProfileScreen() {
     const [inviteEmailError, setInviteEmailError] = useState('');
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
 
     const loadAll = useCallback(() => {
         if (!user) return;
@@ -157,7 +158,8 @@ export default function ProfileScreen() {
     };
 
     const handleSaveEdit = async (id: string, isReply: boolean = false) => {
-        if (!editingContent.trim()) return;
+        if (!editingContent.trim() || isSavingEdit) return;
+        setIsSavingEdit(true);
         try {
             const request: UpdatePostRequest = { content: editingContent.trim() };
             const updated = await updatePost(id, request);
@@ -170,6 +172,8 @@ export default function ProfileScreen() {
             setEditingContent('');
         } catch (error: any) {
             Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Güncellenirken bir hata oluştu.');
+        } finally {
+            setIsSavingEdit(false);
         }
     };
 
@@ -251,8 +255,8 @@ export default function ProfileScreen() {
                                     <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
                                         <Text style={{ color: '#64748B' }}>İptal</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} style={{ padding: 4 }}>
-                                        <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>
+                                    <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
+                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>}
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -303,8 +307,8 @@ export default function ProfileScreen() {
                                     <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
                                         <Text style={{ color: '#64748B' }}>İptal</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleSaveEdit(reply.id, true)} style={{ padding: 4 }}>
-                                        <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>
+                                    <TouchableOpacity onPress={() => handleSaveEdit(reply.id, true)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
+                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Kaydet</Text>}
                                     </TouchableOpacity>
                                 </View>
                             </View>

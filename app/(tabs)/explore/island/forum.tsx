@@ -879,7 +879,11 @@ export default function ForumScreen() {
                 presentationStyle="pageSheet"
                 onRequestClose={() => setIsDetailModalVisible(false)}
             >
-                <View style={styles.modalContainer}>
+                <KeyboardAvoidingView
+                    style={styles.modalContainer}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={0}
+                >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity onPress={() => setIsDetailModalVisible(false)} style={styles.modalHeaderButton}>
@@ -1033,10 +1037,6 @@ export default function ForumScreen() {
                             )}
                         </View>
                     </ScrollView>
-                    <KeyboardAvoidingView 
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-                    >
                         <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                             <TextInput
                                 style={styles.commentInput}
@@ -1046,16 +1046,15 @@ export default function ForumScreen() {
                                 value={newReplyContent}
                                 onChangeText={setNewReplyContent}
                             />
-                            <TouchableOpacity 
-                                style={[styles.sendCommentBtn, !newReplyContent.trim() && { opacity: 0.5 }]} 
+                            <TouchableOpacity
+                                style={[styles.sendCommentBtn, !newReplyContent.trim() && { opacity: 0.5 }]}
                                 onPress={handleSendReply}
                                 disabled={!newReplyContent.trim()}
                             >
                                 <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                             </TouchableOpacity>
                         </View>
-                    </KeyboardAvoidingView>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
             <Modal
                 visible={isAdModalVisible}
