@@ -166,20 +166,6 @@ export default function MainMenuScreen() {
                 {t('common.servicesAndActivities', { defaultValue: i18n.language.startsWith('tr') ? 'Servisler ve Aktiviteler' : 'Services and Activities' })}
               </Text>
             </View>
-            
-            {/* Language Toggle moved here */}
-            <TouchableOpacity 
-              style={styles.headerLangBtn} 
-              onPress={() => {
-                const nextLang = i18n.language.startsWith('en') ? 'tr' : 'en';
-                i18n.changeLanguage(nextLang);
-              }}
-            >
-              <View style={styles.langIconBox}>
-                <IconSymbol name="globe" size={14} color="#0D1B2A" />
-              </View>
-              <Text style={styles.langValue}>{t('common.currentLang').toUpperCase()}</Text>
-            </TouchableOpacity>
           </View>
           <View style={[styles.cardsContainer, { gap: 16 }]}>
             <View style={styles.gridRow}>
