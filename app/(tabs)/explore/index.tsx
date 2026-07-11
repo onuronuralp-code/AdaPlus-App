@@ -9,6 +9,7 @@ import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
 import { fetchActivities, fetchListings } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
+import { useAuth } from '@/context/AuthContext';
 
 
 
@@ -21,6 +22,7 @@ export default function MainMenuScreen() {
   const isSmallScreen = height < 700;
   const isLargeScreen = height > 900;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
+  const { user, isLoggedIn } = useAuth();
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
 
@@ -136,7 +138,9 @@ export default function MainMenuScreen() {
           <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
-                {t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
+                {isLoggedIn && user 
+                  ? `${i18n.language.startsWith('en') ? 'Welcome' : 'Hoş Geldin'}, ${user.fullName.split(' ')[0]}! 👋`
+                  : t('common.welcomeGreeting', { defaultValue: i18n.language.startsWith('en') ? 'Welcome! 👋' : 'Hoş Geldin! 👋' })}
               </Text>
               <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
                 {t('common.welcomeSubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
