@@ -55,60 +55,6 @@ const ISLAND_ENUM_MAP: Record<string, Island> = {
 const getIslandEnum = (name: string): Island =>
   ISLAND_ENUM_MAP[name] ?? Island.BUYUKADA;
 
-const MOCK_LISTINGS: ListingDto[] = __DEV__ ? [
-  {
-    id: 'mock-1',
-    title: 'Büyükada\'da Satılık Bağ Evi',
-    description: '3+1, deniz manzaralı, bahçeli bağ evi. Ahşap yapı, restore edilmiş. Adaya yürüme mesafesinde.',
-    category: ListingCategory.SATILIK,
-    island: Island.BUYUKADA,
-    price: 4500000,
-    contactInfo: '05321234567',
-    imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&auto=format&fit=crop&q=80',
-    active: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-2',
-    title: 'Fayton Turu Rehberlik Hizmeti',
-    description: 'Adaları faytonla keşfedin! Profesyonel rehber eşliğinde 2 saatlik tur. Grup ve bireysel rezervasyon.',
-    category: ListingCategory.HIZMET,
-    island: Island.HEYBELIADA,
-    price: 850,
-    contactInfo: '05397654321',
-    imageUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&auto=format&fit=crop&q=80',
-    active: true,
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-3',
-    title: 'Kafe & Restoran Garson Aranıyor',
-    description: 'Heybeliada\'daki kafe restoranımızda hafta sonu çalışacak deneyimli garson aranıyor. Yemek dahil.',
-    category: ListingCategory.IS_ILANI,
-    island: Island.HEYBELIADA,
-    price: 0,
-    contactInfo: '05441112233',
-    imageUrl: 'https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&auto=format&fit=crop&q=80',
-    active: true,
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-4',
-    title: 'Vintage Bisiklet Satılık',
-    description: 'Ada\'ya özel vintage Peugeot bisiklet. 3 vites, bakımlı, sepetli. Sezona hazır halde.',
-    category: ListingCategory.ESYA,
-    island: Island.KINALIADA,
-    price: 3200,
-    contactInfo: '05559876543',
-    imageUrl: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800&auto=format&fit=crop&q=80',
-    active: true,
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-] : [];
 
 export default function IlanlarScreen() {
   const { t } = useTranslation();
@@ -207,9 +153,8 @@ export default function IlanlarScreen() {
 
   const isPublishDisabled =
     adTitle.trim().length < 2 ||
-    (adCat === 'emlak' || adCat === 'tasit' || adCat === 'esya' ? parsedPrice <= 0 : false) ||
     adDesc.trim().length < 1 ||
-    cleanedContact.length < 10 ||
+    cleanedContact.length !== 11 ||
     isUploading;
 
   const islands = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
@@ -217,14 +162,7 @@ export default function IlanlarScreen() {
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      if (__DEV__) {
-        const filtered = selectedCategory === 'all'
-          ? MOCK_LISTINGS
-          : selectedCategory === 'emlak'
-            ? MOCK_LISTINGS.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK)
-            : MOCK_LISTINGS.filter(l => l.category === CATEGORY_CONFIG[selectedCategory].backend);
-        setListings(filtered);
-      } else if (selectedCategory === 'emlak') {
+      if (selectedCategory === 'emlak') {
         const data = await listingApi.fetchListings();
         setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
       } else {
@@ -305,12 +243,12 @@ export default function IlanlarScreen() {
   };
 
   const handlePublish = async () => {
-    if (!adTitle.trim() || !adPrice.trim()) return;
+    if (!adTitle.trim()) return;
 
     setIsUploading(true);
     try {
       let imageUrl = selectedImage;
-      if (selectedImage && !selectedImage.startsWith('http')) {
+      if (selectedImage && !selectedImage.startsWith('http') && !selectedImage.startsWith('/')) {
         const uploaded = await mediaApi.uploadImage(selectedImage);
         if (!uploaded) {
           Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.photoUploadFailed', { defaultValue: 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?' }), [
@@ -322,17 +260,28 @@ export default function IlanlarScreen() {
         imageUrl = uploaded;
       }
       await submitListing(imageUrl);
-    } catch {
-      Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' }));
+    } catch (e: any) {
+      if (e?.message !== 'invalid contact' && e?.message !== 'invalid price') {
+        Alert.alert(
+          t('common.error', { defaultValue: 'Hata' }),
+          editingListingId
+            ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
+            : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
+        );
+      }
     } finally {
       setIsUploading(false);
     }
   };
 
   const submitListing = async (imageUrl: string | undefined) => {
-    const finalPrice = parseFloat(adPrice.replace(/\./g, ''));
+    const finalPrice = adPrice.trim() ? parseFloat(adPrice.replace(/\./g, '')) : 0;
     const finalContact = adContact.replace(/\D/g, '');
-    if (isNaN(finalPrice) || finalPrice <= 0 || finalContact.length !== 11) return;
+    if (isNaN(finalPrice) || finalPrice < 0) throw new Error('invalid price');
+    if (finalContact.length !== 11) {
+      Alert.alert('Hata', 'Lütfen geçerli bir 11 haneli telefon numarası girin.');
+      throw new Error('invalid contact');
+    }
 
     const request: listingApi.SaveListingRequest = {
       title: adTitle.trim(),
@@ -362,10 +311,12 @@ export default function IlanlarScreen() {
   };
 
   const adCategories = [
-    { id: 'emlak', label: 'Emlak', icon: 'home-outline' },
-    { id: 'service', label: 'Hizmet', icon: 'hammer-wrench' },
-    { id: 'job', label: 'İş İlanı', icon: 'briefcase-outline' },
-    { id: 'lost', label: 'Kayıp', icon: 'alert-circle-outline' },
+    { id: 'emlak',   label: 'Emlak',    icon: 'home-outline' },
+    { id: 'esya',    label: 'Eşya',     icon: 'archive-outline' },
+    { id: 'tasit',   label: 'Taşıt',    icon: 'car-outline' },
+    { id: 'service', label: 'Hizmet',   icon: 'hammer-wrench' },
+    { id: 'job',     label: 'İş İlanı', icon: 'briefcase-outline' },
+    { id: 'lost',    label: 'Kayıp',    icon: 'alert-circle-outline' },
   ];
 
   const filteredListings = listings.filter(l => {
@@ -497,7 +448,7 @@ export default function IlanlarScreen() {
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.publishText}>{editingListingId ? t('common.update', { defaultValue: 'GÜNCELLE' }) : t('common.publish', { defaultValue: i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA' })}</Text>
+                  <Text style={styles.publishText} numberOfLines={1}>{editingListingId ? (i18n.language.startsWith('en') ? 'SAVE' : 'KAYDET') : (i18n.language.startsWith('en') ? 'PUBLISH' : 'YAYINLA')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -545,10 +496,10 @@ export default function IlanlarScreen() {
                       color={adCat === cat.id ? '#3B82F6' : '#64748B'} 
                     />
                     <Text style={[styles.adCatText, adCat === cat.id && styles.activeAdCatText]}>
-                      {t(`ilanlar.category.${cat.id}`, { 
-                        defaultValue: i18n.language.startsWith('en') 
-                          ? (cat.id === 'emlak' ? 'Real Estate' : cat.id === 'service' ? 'Service' : cat.id === 'job' ? 'Jobs' : 'Lost & Found') 
-                          : cat.label 
+                      {t(`ilanlar.category.${cat.id}`, {
+                        defaultValue: i18n.language.startsWith('en')
+                          ? ({ emlak: 'Real Estate', esya: 'Items', tasit: 'Vehicle', service: 'Service', job: 'Jobs', lost: 'Lost & Found' } as any)[cat.id] ?? cat.label
+                          : cat.label
                       })}
                     </Text>
                   </TouchableOpacity>
@@ -557,7 +508,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.price', { defaultValue: i18n.language.startsWith('en') ? 'PRICE (₺) *' : 'FİYAT (₺) *' })}</Text>
+              <Text style={styles.inputLabel}>{t('ilanlar.price', { defaultValue: i18n.language.startsWith('en') ? 'PRICE (₺)' : 'FİYAT (₺)' })}</Text>
               <TextInput
                 style={styles.adTitleInput}
                 placeholder="0"

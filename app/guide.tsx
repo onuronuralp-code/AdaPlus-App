@@ -223,7 +223,7 @@ export default function GuideScreen() {
                     {showIslandChips && (
                         <View style={styles.suggestionsContainer}>
                             {ISLANDS.map(island => (
-                                <SuggestionChip key={island} text={island} onPress={() => handleIslandSelect(island)} />
+                                <SuggestionChip key={island} text={island} disabled={isLoading} onPress={() => handleIslandSelect(island)} />
                             ))}
                         </View>
                     )}
@@ -232,14 +232,17 @@ export default function GuideScreen() {
                         <View style={styles.suggestionsContainer}>
                             <SuggestionChip
                                 text={isTr ? '📍 Gezilecek Yerler' : '📍 Sightseeing'}
+                                disabled={isLoading}
                                 onPress={() => { setPrompt(isTr ? 'Gezilecek yerleri listeler misin?' : 'What are the must-see places?'); }}
                             />
                             <SuggestionChip
                                 text={isTr ? '☕ Kafeler' : '☕ Cafes'}
+                                disabled={isLoading}
                                 onPress={() => { setPrompt(isTr ? 'En iyi kafeleri önerir misin?' : 'Can you recommend the best cafes?'); }}
                             />
                             <SuggestionChip
                                 text={isTr ? '🏖️ Plajlar' : '🏖️ Beaches'}
+                                disabled={isLoading}
                                 onPress={() => { setPrompt(isTr ? 'Plajlar hakkında bilgi verir misin?' : 'Tell me about the beaches.'); }}
                             />
                         </View>
@@ -275,10 +278,15 @@ export default function GuideScreen() {
     );
 }
 
-function SuggestionChip({ text, onPress }: { text: string; onPress: () => void }) {
+function SuggestionChip({ text, onPress, disabled }: { text: string; onPress: () => void; disabled?: boolean }) {
     return (
-        <TouchableOpacity style={styles.suggestionChip} onPress={onPress}>
-            <Text style={styles.suggestionText}>{text}</Text>
+        <TouchableOpacity
+            style={[styles.suggestionChip, disabled && styles.suggestionChipDisabled]}
+            onPress={onPress}
+            disabled={disabled}
+            activeOpacity={0.7}
+        >
+            <Text style={[styles.suggestionText, disabled && styles.suggestionTextDisabled]}>{text}</Text>
         </TouchableOpacity>
     );
 }
@@ -346,7 +354,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    suggestionChipDisabled: {
+        borderColor: '#CBD5E1',
+        backgroundColor: '#F8FAFC',
+    },
     suggestionText: { fontSize: 12, fontWeight: '700', color: '#EC4899', textAlign: 'center' },
+    suggestionTextDisabled: { color: '#94A3B8' },
     inputContainer: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F1F5F9' },
     inputBox: {
         flexDirection: 'row',

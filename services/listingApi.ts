@@ -92,7 +92,9 @@ export const createListing = async (
     return await response.json();
   } catch (error) {
     console.error("Failed to create listing:", error);
-    triggerNetworkError();
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return null;
   }
 };
@@ -127,7 +129,9 @@ export const updateListing = async (
     return await response.json();
   } catch (error) {
     console.error("Failed to update listing:", error);
-    triggerNetworkError();
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return null;
   }
 };
@@ -162,7 +166,9 @@ export const deleteListing = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error("Failed to delete listing:", error);
-    triggerNetworkError();
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return false;
   }
 };

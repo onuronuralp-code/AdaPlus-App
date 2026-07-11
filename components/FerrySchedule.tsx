@@ -582,7 +582,7 @@ function TripTripCard({ item, onPress, isNext, t, i18n }: any) {
       )}
       <View style={styles.cardContent}>
         <View style={styles.timeGroup}>
-          <Text style={styles.timeMain}>{item.departureTime}</Text>
+          <Text style={styles.timeMain} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{item.departureTime}</Text>
           <View style={styles.timeLine}>
             <View style={styles.tDot} />
             <View style={styles.tBar} />

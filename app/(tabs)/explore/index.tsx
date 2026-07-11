@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
-import { fetchUpcomingActivities } from '@/services/api';
+import { fetchActivities } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
 
 
@@ -26,16 +26,24 @@ export default function MainMenuScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchUpcomingActivities(10).then(data => {
+      fetchActivities().then(data => {
         if (data && data.length > 0) {
-          // take top 5 upcoming events for hero
-          const slides = data.slice(0, 5).map(event => ({
-            id: event.id,
-            title: event.name,
-            subtitle: event.description || event.organizerName || '',
-            imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
-          }));
-          setHeroSlides(slides);
+          const now = new Date();
+          const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+          const visible = data
+            .filter(e => {
+              if (e.endDate) return new Date(e.endDate) >= now;
+              return new Date(e.startDate) >= cutoff;
+            })
+            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+            .slice(0, 5)
+            .map(event => ({
+              id: event.id,
+              title: event.name,
+              subtitle: event.description || event.organizerName || '',
+              imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+            }));
+          setHeroSlides(visible);
         } else {
           setHeroSlides([]);
         }

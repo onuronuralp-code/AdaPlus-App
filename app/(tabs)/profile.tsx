@@ -156,7 +156,7 @@ export default function ProfileScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         const success = await deleteListing(id);
-                        if (success) loadAll();
+                        if (success) setListings(prev => prev.filter(l => l.id !== id));
                     }
                 }
             ]

@@ -9,6 +9,7 @@ import {
     Dimensions,
     ActivityIndicator,
     Linking,
+    Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,14 @@ import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const normalizeInstagramUrl = (url: string): string => {
+    const s = url.trim();
+    if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('instagram://')) return s;
+    const username = s.replace(/^@/, '');
+    if (!username.includes('.')) return `https://www.instagram.com/${username}/`;
+    return `https://${s}`;
+};
 
 export default function EventDetailScreen() {
     const { id } = useLocalSearchParams();
@@ -130,7 +139,7 @@ export default function EventDetailScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Floating back button */}
+            {/* Floating back + share buttons */}
             <View style={[styles.headerActions, { top: insets.top + 10 }]}>
                 <TouchableOpacity
                     style={styles.iconButton}
@@ -140,6 +149,15 @@ export default function EventDetailScreen() {
                     }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => Share.share({
+                        title: activity.name,
+                        message: `${activity.name}\n\n${activity.description}${activity.eventPlace ? `\n\nKonum: ${activity.eventPlace}` : ''}\n\nAdaPlus uygulamasından paylaşıldı`,
+                    })}
+                >
+                    <IconSymbol name="square.and.arrow.up" size={22} color="#1E293B" />
                 </TouchableOpacity>
             </View>
 
@@ -156,7 +174,7 @@ export default function EventDetailScreen() {
                     {/* Badge + date */}
                     <View style={styles.metaRow}>
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{t('events.badge', { defaultValue: 'ETKİNLİK' })}</Text>
+                            <Text style={styles.badgeText}>{t('events.badge', { defaultValue: i18n.language.startsWith('en') ? 'EVENT' : 'ETKİNLİK' })}</Text>
                         </View>
                         {rsvpCount > 0 && (
                             <View style={styles.attendeePill}>
@@ -222,7 +240,7 @@ export default function EventDetailScreen() {
                             </View>
                             <TouchableOpacity
                                 style={{ flex: 1 }}
-                                onPress={() => safeOpenUrl(activity.instagramLink)}
+                                onPress={() => safeOpenUrl(activity.instagramLink ? normalizeInstagramUrl(activity.instagramLink) : undefined)}
                                 activeOpacity={0.7}
                             >
                                 <Text style={styles.infoLabel}>{t('events.socialMediaLabel', { defaultValue: 'SOSYAL MEDYA' })}</Text>
@@ -263,6 +281,9 @@ const styles = StyleSheet.create({
     headerActions: {
         position: 'absolute',
         left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         zIndex: 10,
     },
     iconButton: {

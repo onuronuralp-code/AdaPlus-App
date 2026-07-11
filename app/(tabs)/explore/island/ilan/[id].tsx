@@ -8,6 +8,8 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  Share,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,11 +28,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 type IlanCategory = 'all' | 'emlak' | 'service' | 'lost' | 'job';
 
 const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color: string; bg: string }> = {
-  all:     { label: 'Tümü',      icon: 'square.grid.2x2.fill', color: '#3B82F6', bg: '#EFF6FF' },
-  emlak:   { label: 'Emlak',     icon: 'house.fill',           color: '#10B981', bg: '#ECFDF5' },
-  service: { label: 'Hizmet',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF' },
-  job:     { label: 'İş İlanı',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF' },
-  lost:    { label: 'Kayıp',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2' },
+  all:     { label: 'TÜMÜ',      icon: 'square.grid.2x2.fill', color: '#3B82F6', bg: '#EFF6FF' },
+  emlak:   { label: 'EMLAK',     icon: 'house.fill',           color: '#10B981', bg: '#ECFDF5' },
+  service: { label: 'HİZMET',   icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF' },
+  job:     { label: 'İŞ İLANI', icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF' },
+  lost:    { label: 'KAYIP',    icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2' },
 };
 
 export default function IlanDetailScreen() {
@@ -110,7 +112,10 @@ export default function IlanDetailScreen() {
         }}>
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => Share.share({
+          title: listing.title,
+          message: `${listing.title}\n\n${listing.description}${listing.contactInfo ? `\n\nİletişim: ${listing.contactInfo}` : ''}\n\nAdaPlus uygulamasından paylaşıldı`,
+        })}>
           <IconSymbol name="square.and.arrow.up" size={22} color="#1E293B" />
         </TouchableOpacity>
       </View>
@@ -165,15 +170,21 @@ export default function IlanDetailScreen() {
               </View>
             </View>
 
-            <View style={styles.infoItem}>
-              <View style={styles.infoIcon}>
-                <IconSymbol name="phone.fill" size={20} color="#64748B" />
+            <TouchableOpacity
+              style={styles.infoItem}
+              activeOpacity={listing.contactInfo ? 0.6 : 1}
+              onPress={() => listing.contactInfo && Linking.openURL(`tel:${listing.contactInfo}`).catch(() => {})}
+            >
+              <View style={[styles.infoIcon, listing.contactInfo && { backgroundColor: '#ECFDF5' }]}>
+                <IconSymbol name="phone.fill" size={20} color={listing.contactInfo ? '#10B981' : '#64748B'} />
               </View>
               <View>
                 <Text style={styles.infoLabel}>{t('ilanlar.contactLabel', { defaultValue: 'İLETİŞİM' })}</Text>
-                <Text style={styles.infoValue}>{listing.contactInfo || t('ilanlar.notShared', { defaultValue: 'Paylaşılmamış' })}</Text>
+                <Text style={[styles.infoValue, listing.contactInfo && { color: '#10B981' }]}>
+                  {listing.contactInfo || t('ilanlar.notShared', { defaultValue: 'Paylaşılmamış' })}
+                </Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Safety Warning */}
@@ -242,7 +253,6 @@ const styles = StyleSheet.create({
   categoryBadgeText: {
     fontSize: 12,
     fontWeight: '800',
-    textTransform: 'uppercase',
   },
   timeText: {
     fontSize: 13,
@@ -268,9 +278,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   priceValue: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '900',
     color: '#10B981',
+    flexShrink: 1,
   },
   divider: {
     height: 1,
