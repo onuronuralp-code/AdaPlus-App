@@ -28,8 +28,8 @@ export default function MainMenuScreen() {
   useFocusEffect(
     useCallback(() => {
       Promise.all([fetchActivities(), fetchListings()]).then(([eventsData, listingsData]) => {
-        const events = eventsData || [];
-        const listings = listingsData || [];
+        const events = Array.isArray(eventsData) ? eventsData : (eventsData?.content || eventsData?.data || []);
+        const listings = Array.isArray(listingsData) ? listingsData : (listingsData?.content || listingsData?.data || []);
         
         const now = new Date();
         const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
