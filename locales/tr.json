@@ -181,7 +181,8 @@
         "connectionError": "Bağlantı Hatası",
         "listingsLoadFailed": "İlanlar yüklenemedi. Lütfen tekrar deneyin.",
         "photoUploadFailed": "Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?",
-        "listingCreateFailed": "İlan oluşturulamadı. Lütfen tekrar deneyin."
+        "listingCreateFailed": "İlan oluşturulamadı. Lütfen tekrar deneyin.",
+        "contentPolicyViolation": "İçeriğiniz topluluk kurallarıyla uyuşmuyor. Lütfen düzenleyip tekrar deneyin."
     },
     "contact": {
         "errNameEmpty": "Ad Soyad alanı boş bırakılamaz.",

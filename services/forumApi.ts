@@ -142,6 +142,9 @@ export const createPost = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (body.message === 'content_policy_violation') {
+      throw new Error(i18n.t('errors.contentPolicyViolation'));
+    }
     throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
   }
   return response.json();
@@ -167,6 +170,9 @@ export const updatePost = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (body.message === 'content_policy_violation') {
+      throw new Error(i18n.t('errors.contentPolicyViolation'));
+    }
     throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
   }
   return response.json();
@@ -258,6 +264,9 @@ export const postReply = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (body.message === 'content_policy_violation') {
+      throw new Error(i18n.t('errors.contentPolicyViolation'));
+    }
     throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
   }
   return response.json();

@@ -180,7 +180,8 @@
         "connectionError": "Connection Error",
         "listingsLoadFailed": "Could not load listings. Please try again.",
         "photoUploadFailed": "Could not upload photo. Continue without photo?",
-        "listingCreateFailed": "Could not create listing. Please try again."
+        "listingCreateFailed": "Could not create listing. Please try again.",
+        "contentPolicyViolation": "Your post doesn't meet our community guidelines. Please edit and try again."
     },
     "contact": {
         "errNameEmpty": "Full name cannot be empty.",
