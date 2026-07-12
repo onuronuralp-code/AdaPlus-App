@@ -613,87 +613,107 @@ export default function ForumScreen() {
                 </View>
                 <View style={{ width: 44 }} />
             </View>
-            <View style={styles.tabsWrapper}>
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
-                    contentContainerStyle={styles.tabsContainer} 
-                    bounces={true}
-                >
-                    {tabs.map(tab => {
-                        const isActive = activeTab === tab.id;
-                        return (
-                            <TouchableOpacity 
-                                key={tab.id}
-                                style={[styles.tabItem, isActive && styles.activeTabItem]}
-                                onPress={() => setActiveTab(tab.id)}
-                                activeOpacity={0.7}
-                            >
-                                <IconSymbol 
-                                    name={tab.icon} 
-                                    size={14} 
-                                    color={isActive ? '#FFFFFF' : '#475569'} 
-                                />
-                                <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
-                                    {tab.label}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </ScrollView>
-            </View>
-            <FlatList
-                data={posts.filter(post => {
-                    if (activeTab === 'polls') return post.postType === PostType.POLL;
-                    if (activeTab === 'liked') return post.isLiked;
-                    return true;
-                })}
-                renderItem={renderPost}
-                keyExtractor={item => item.id}
-                style={{ flex: 1 }}
-                showsVerticalScrollIndicator={false}
-                bounces={false}
-                overScrollMode="never"
-                contentContainerStyle={[
-                    styles.listContent, 
-                    posts.filter(post => {
-                        if (activeTab === 'polls') return post.postType === PostType.POLL;
-                        if (activeTab === 'liked') return post.isLiked;
-                        return true;
-                    }).length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }
-                ]}
-                refreshing={isRefreshing}
-                onRefresh={onRefresh}
-                ListEmptyComponent={!isLoading ? (
-                    <EmptyState 
-                        icon="bubble.left.and.bubble.right" 
-                        title={t('forum.emptyTitle')}
-                        subtitle={t('forum.emptySubtitle')}
-                        color="#10B981"
-                        style={{ marginTop: -140 }}
+            {!isLoggedIn ? (
+                <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center', paddingHorizontal: 20 }]}>
+                    <View style={{ alignItems: 'center', marginBottom: 24 }}>
+                        <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
+                    </View>
+                    <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 10 }}>
+                        {t('profile.notLoggedInTitle', { defaultValue: i18n.language.startsWith('en') ? 'Not Logged In' : 'Giriş Yapılmadı' })}
+                    </Text>
+                    <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, paddingHorizontal: 20, marginBottom: 30 }}>
+                        {i18n.language.startsWith('en') ? 'You must log in to view community posts and join the discussion.' : 'Topluluktaki mesajları görmek ve tartışmaya katılmak için giriş yapmalısınız.'}
+                    </Text>
+                    <TouchableOpacity 
+                        style={{ backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, alignSelf: 'center' }}
+                        onPress={() => router.push('/login')}
+                    >
+                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                            {t('common.login', { defaultValue: i18n.language.startsWith('en') ? 'Log In' : 'Giriş Yap' })}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                <>
+                    <View style={styles.tabsWrapper}>
+                        <ScrollView 
+                            horizontal 
+                            showsHorizontalScrollIndicator={false} 
+                            contentContainerStyle={styles.tabsContainer} 
+                            bounces={true}
+                        >
+                            {tabs.map(tab => {
+                                const isActive = activeTab === tab.id;
+                                return (
+                                    <TouchableOpacity 
+                                        key={tab.id}
+                                        style={[styles.tabItem, isActive && styles.activeTabItem]}
+                                        onPress={() => setActiveTab(tab.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <IconSymbol 
+                                            name={tab.icon} 
+                                            size={14} 
+                                            color={isActive ? '#FFFFFF' : '#475569'} 
+                                        />
+                                        <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
+                                            {tab.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
+                    <FlatList
+                        data={posts.filter(post => {
+                            if (activeTab === 'polls') return post.postType === PostType.POLL;
+                            if (activeTab === 'liked') return post.isLiked;
+                            return true;
+                        })}
+                        renderItem={renderPost}
+                        keyExtractor={item => item.id}
+                        style={{ flex: 1 }}
+                        showsVerticalScrollIndicator={false}
+                        bounces={false}
+                        overScrollMode="never"
+                        contentContainerStyle={[
+                            styles.listContent, 
+                            posts.filter(post => {
+                                if (activeTab === 'polls') return post.postType === PostType.POLL;
+                                if (activeTab === 'liked') return post.isLiked;
+                                return true;
+                            }).length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }
+                        ]}
+                        refreshing={isRefreshing}
+                        onRefresh={onRefresh}
+                        ListEmptyComponent={!isLoading ? (
+                            <EmptyState 
+                                icon="bubble.left.and.bubble.right" 
+                                title={t('forum.emptyTitle', { defaultValue: i18n.language.startsWith('en') ? 'No Posts Yet' : 'Henüz Gönderi Yok' })}
+                                subtitle={t('forum.emptySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Would you like to send the first message to the community? Share something now!' : 'Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!' })}
+                                color="#10B981"
+                                style={{ marginTop: -140 }}
+                            />
+                        ) : null}
                     />
-                ) : null}
-            />
-            <TouchableOpacity 
-                style={[styles.fab, { bottom: 20 }]} 
-                onPress={() => {
-                    if (!isLoggedIn) {
-                        router.push('/login');
-                        return;
-                    }
-                    setIsWriteModalVisible(true);
-                }}
-                activeOpacity={0.85}
-            >
-                <LinearGradient
-                    colors={['#ffffff', '#ffffff']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.fabGradient}
-                >
-                    <IconSymbol name="plus" size={32} color="#3B82F6" />
-                </LinearGradient>
-            </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.fab, { bottom: 20 }]} 
+                        onPress={() => {
+                            setIsWriteModalVisible(true);
+                        }}
+                        activeOpacity={0.85}
+                    >
+                        <LinearGradient
+                            colors={['#ffffff', '#ffffff']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.fabGradient}
+                        >
+                            <IconSymbol name="plus" size={32} color="#3B82F6" />
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </>
+            )}
             <Modal
                 visible={isWriteModalVisible}
                 animationType="slide"
@@ -1039,10 +1059,11 @@ export default function ForumScreen() {
                     </ScrollView>
                         <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                             <TextInput
-                                style={styles.commentInput}
-                                placeholder={t('forum.addComment')}
+                                style={[styles.commentInput, { maxHeight: 120 }]}
+                                placeholder={t('forum.addComment', { defaultValue: i18n.language.startsWith('en') ? 'Add a comment...' : 'Bir yorum ekle...' })}
                                 placeholderTextColor="#94A3B8"
                                 multiline
+                                scrollEnabled={true}
                                 value={newReplyContent}
                                 onChangeText={setNewReplyContent}
                             />

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -198,9 +199,65 @@ export function FerrySchedule() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const calendarScrollRef = useRef<ScrollView>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Load initial favorite route
+  useEffect(() => {
+    const loadFav = async () => {
+      try {
+        const fav = await AsyncStorage.getItem('favorite_route');
+        if (fav) {
+          const parsed = JSON.parse(fav);
+          setDeparture(parsed.departure);
+          setDestination(parsed.destination);
+          setIsFavorite(true);
+        }
+      } catch (e) {
+        console.error("Failed to load favorite route", e);
+      }
+    };
+    loadFav();
+  }, []);
+
+  // Check if current selection is favorite
+  useEffect(() => {
+    const checkFav = async () => {
+      if (departure === "Unselected" || destination === "Unselected") {
+        setIsFavorite(false);
+        return;
+      }
+      try {
+        const fav = await AsyncStorage.getItem('favorite_route');
+        if (fav) {
+          const parsed = JSON.parse(fav);
+          setIsFavorite(parsed.departure === departure && parsed.destination === destination);
+        } else {
+          setIsFavorite(false);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    checkFav();
+  }, [departure, destination]);
+
+  const handleToggleFavorite = async () => {
+    if (departure === "Unselected" || destination === "Unselected") return;
+    try {
+      if (isFavorite) {
+        await AsyncStorage.removeItem('favorite_route');
+        setIsFavorite(false);
+      } else {
+        await AsyncStorage.setItem('favorite_route', JSON.stringify({ departure, destination }));
+        setIsFavorite(true);
+      }
+    } catch(e) {
+      console.error("Failed to save favorite route", e);
+    }
+  };
 
   // Optimized Calendar Days (60 days scope)
   const monthDays = useMemo(() => {
@@ -232,10 +289,13 @@ export function FerrySchedule() {
         const froms = departure === "Unselected" ? ALL_LOCATIONS : [departure];
         const isTodaySelection =
           selectedDate.toDateString() === new Date().toDateString();
-        const dateStr =
-          isTodaySelection && isLiveMode
-            ? undefined
-            : `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+        // To prevent the backend from filtering out past ferries for today,
+        // we request the schedule for exactly 7 days from now (which has the same schedule).
+        const queryDate = isTodaySelection && isLiveMode 
+          ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) 
+          : selectedDate;
+          
+        const dateStr = `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, "0")}-${String(queryDate.getDate()).padStart(2, "0")}`;
 
         const pairs = froms
           .filter((f) => f !== destination)
@@ -290,12 +350,28 @@ export function FerrySchedule() {
   const filteredData = useMemo(() => {
     const isToday = selectedDate.toDateString() === new Date().toDateString();
     const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+    
+    if (isToday && isLiveMode) {
+      const upcoming = ferryData.filter((item) => {
+        if (onlyDirect && !item.isDirect) return false;
+        const routeTime = getRouteTimeValue(item.departureTime);
+        return routeTime >= nowMinutes;
+      });
+      
+      // Find the most recent past departure
+      const past = ferryData
+        .filter((item) => {
+          if (onlyDirect && !item.isDirect) return false;
+          const routeTime = getRouteTimeValue(item.departureTime);
+          return routeTime < nowMinutes;
+        })
+        .slice(-1); // last one = most recent past
+      
+      return [...past, ...upcoming];
+    }
+    
     return ferryData.filter((item) => {
       if (onlyDirect && !item.isDirect) return false;
-      if (isToday && isLiveMode) {
-        const routeTime = getRouteTimeValue(item.departureTime);
-        if (routeTime < nowMinutes) return false;
-      }
       return true;
     });
   }, [ferryData, onlyDirect, selectedDate, isLiveMode]);
@@ -350,6 +426,15 @@ export function FerrySchedule() {
         </View>
 
         <View style={styles.largeRouteCard}>
+          {departure !== "Unselected" && destination !== "Unselected" && (
+            <TouchableOpacity 
+              onPress={handleToggleFavorite} 
+              activeOpacity={0.7}
+              style={{ position: 'absolute', top: 12, right: 16, zIndex: 10, padding: 8 }}
+            >
+              <IconSymbol name={isFavorite ? "star.fill" : "star"} size={22} color={isFavorite ? "#EAB308" : "#94A3B8"} />
+            </TouchableOpacity>
+          )}
           <View style={styles.routeRow}>
             <View style={styles.routeCol}>
               <Text style={styles.largeLabel}>{t("common.from")}</Text>
@@ -501,20 +586,27 @@ export function FerrySchedule() {
               </Text>
             </View>
           ) : (
-            filteredData.map((item, idx) => (
-              <AnimatedRE.View
-                key={item.id}
-                entering={FadeInDown.delay(idx * 50).duration(400)}
-              >
-                <TripTripCard
-                  item={item}
-                  onPress={() => setSelectedTrip(item)}
-                  isNext={isLiveMode && idx === 0}
-                  t={t}
-                  i18n={i18n}
-                />
-              </AnimatedRE.View>
-            ))
+            filteredData.map((item, idx) => {
+              const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+              const routeTime = getRouteTimeValue(item.departureTime);
+              const isPast = isLiveMode && routeTime < nowMinutes;
+              const isNext = isLiveMode && !isPast && idx === filteredData.findIndex(f => getRouteTimeValue(f.departureTime) >= nowMinutes);
+              return (
+                <AnimatedRE.View
+                  key={item.id}
+                  entering={FadeInDown.delay(idx * 50).duration(400)}
+                >
+                  <TripTripCard
+                    item={item}
+                    onPress={() => setSelectedTrip(item)}
+                    isNext={isNext}
+                    isPast={isPast}
+                    t={t}
+                    i18n={i18n}
+                  />
+                </AnimatedRE.View>
+              );
+            })
           )}
         </AnimatedRE.ScrollView>
       </View>
@@ -569,10 +661,10 @@ export function FerrySchedule() {
   );
 }
 
-function TripTripCard({ item, onPress, isNext, t, i18n }: any) {
+function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
   return (
     <TouchableOpacity
-      style={[styles.card, isNext && styles.cardNext]}
+      style={[styles.card, isNext && styles.cardNext, isPast && { opacity: 0.45 }]}
       onPress={onPress}
     >
       {isNext && (
@@ -1034,8 +1126,8 @@ function TripDetailPopup({
         Alert.alert(
           i18n.language === "tr" ? "İzin Gerekli" : "Permission Required",
           i18n.language === "tr"
-            ? "Alarm kurabilmek için bildirim izni vermeniz gerekmektedir."
-            : "Notification permission is required to set alarms.",
+            ? "Bildirim gönderebilmek için bildirim izni vermeniz gerekmektedir."
+            : "Notification permission is required to send notifications.",
         );
         return;
       }
@@ -1055,8 +1147,8 @@ function TripDetailPopup({
         Alert.alert(
           i18n.language === "tr" ? "Geçmiş Zaman" : "Past Time",
           i18n.language === "tr"
-            ? "Bu alarm zamanı zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için alarm kurun."
-            : "This alarm time has already passed. Choose a shorter duration or set an alarm for a future trip.",
+            ? "Bu zaman zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için bildirim gönderin."
+            : "This time has already passed. Choose a shorter duration or set a notification for a future trip.",
         );
         return;
       }
@@ -1093,7 +1185,7 @@ function TripDetailPopup({
       setShowAlarmOptions(false);
 
       Alert.alert(
-        i18n.language === "tr" ? "⏰ Alarm Kuruldu" : "⏰ Alarm Set",
+        i18n.language === "tr" ? "✅ Bildirim Ayarlandı" : "✅ Notification Set",
         i18n.language === "tr"
           ? `${trip.departureTime} seferinden ${alarmLabel} önce hatırlatma alacaksınız.`
           : `You will be reminded ${alarmLabel} before the ${trip.departureTime} departure.`,
@@ -1103,8 +1195,8 @@ function TripDetailPopup({
       Alert.alert(
         i18n.language === "tr" ? "Hata" : "Error",
         i18n.language === "tr"
-          ? "Alarm kurulurken bir hata oluştu."
-          : "Failed to set the alarm.",
+          ? "Bildirim gönderilirken bir hata oluştu."
+          : "Failed to set the notification.",
       );
     }
   };
@@ -1283,11 +1375,11 @@ function TripDetailPopup({
                 >
                   {alarmSet
                     ? i18n.language === "tr"
-                      ? `Alarm kuruldu (${alarmSet < 60 ? alarmSet + " dk" : alarmSet / 60 + " saat"} önce)`
-                      : `Alarm set (${alarmSet < 60 ? alarmSet + " min" : alarmSet / 60 + "h"} before)`
+                      ? `Bildirim ayarlandı (${alarmSet < 60 ? alarmSet + " dk" : alarmSet / 60 + " saat"} önce)`
+                      : `Notification set (${alarmSet < 60 ? alarmSet + " min" : alarmSet / 60 + "h"} before)`
                     : i18n.language === "tr"
-                      ? "Alarm Kur"
-                      : "Set Alarm"}
+                      ? "Bildirim Gönder"
+                      : "Send Notification"}
                 </Text>
                 {!alarmSet && (
                   <IconSymbol name="chevron.right" size={14} color="#EA580C" />

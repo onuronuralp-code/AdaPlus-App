@@ -21,7 +21,7 @@ export default function LoginPromptModal({ visible, onClose, onLogin, message }:
             <View style={styles.overlay}>
                 <View style={styles.card}>
                     <View style={styles.iconCircle}>
-                        <IconSymbol name="person.fill" size={28} color="#6366F1" />
+                        <IconSymbol name="person.fill" size={28} color="#10B981" />
                     </View>
                     <Text style={styles.title}>Giriş Gerekli</Text>
                     <Text style={styles.message}>
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: '#EEF2FF',
+        backgroundColor: '#ECFDF5',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
@@ -83,13 +83,13 @@ const styles = StyleSheet.create({
     },
     loginButton: {
         width: '100%',
-        backgroundColor: '#6366F1',
+        backgroundColor: '#10B981',
         borderRadius: 16,
         paddingVertical: 16,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 12,
-        shadowColor: '#6366F1',
+        shadowColor: '#10B981',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.25,
         shadowRadius: 12,

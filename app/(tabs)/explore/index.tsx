@@ -24,6 +24,9 @@ export default function MainMenuScreen() {
   const { user, isLoggedIn } = useAuth();
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [surveyOption, setSurveyOption] = useState<string | null>(null);
+  const [surveySubmitted, setSurveySubmitted] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -233,7 +236,11 @@ export default function MainMenuScreen() {
                 colors={['#8B5CF6', '#6D28D9']}
                 title={t('common.delivery', { defaultValue: i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis' })}
                 subtitle={t('common.comingSoon', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında' })}
-                onPress={() => Alert.alert(i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında', i18n.language.startsWith('en') ? 'Delivery service will be available soon!' : 'Paket servis çok yakında hizmetinizde olacak!')}
+                onPress={() => {
+                  setSurveySubmitted(false);
+                  setSurveyOption(null);
+                  setShowSurvey(true);
+                }}
                 style={{ marginLeft: 6, opacity: 0.8 }}
                 large={isLargeScreen}
               />
@@ -269,6 +276,87 @@ export default function MainMenuScreen() {
           </View>
         </View>
       </Animated.ScrollView>
+
+      {/* Survey Modal */}
+      <Modal
+        visible={showSurvey}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowSurvey(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.5)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <View style={{ width: '100%', backgroundColor: '#fff', borderRadius: 28, padding: 28, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 10 }}>
+            {surveySubmitted ? (
+              <>
+                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                  <IconSymbol name="checkmark" size={28} color="#10B981" />
+                </View>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
+                  {i18n.language.startsWith('en') ? 'Thank You!' : 'Teşekkürler!'}
+                </Text>
+                <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                  {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring delivery services to the islands.' : 'Görüşleriniz alındı. Adalara paket servis hizmetini getirmek için var gücümüzle çalışıyoruz.'}
+                </Text>
+                <TouchableOpacity 
+                  style={{ width: '100%', backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 16, alignItems: 'center' }} 
+                  onPress={() => setShowSurvey(false)}
+                >
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
+                    {i18n.language.startsWith('en') ? 'Close' : 'Kapat'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                  <IconSymbol name="bag.fill" size={28} color="#8B5CF6" />
+                </View>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
+                  {i18n.language.startsWith('en') ? 'Delivery Service' : 'Paket Servis'}
+                </Text>
+                <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                  {i18n.language.startsWith('en') ? 'What kind of delivery service would you use most on the island?' : 'Adada en çok hangi paket servis hizmetine ihtiyaç duyuyorsunuz?'}
+                </Text>
+                
+                {['Yemek & Restoran', 'Market & Bakkal', 'Su & Tüp', 'Eczane'].map((option) => (
+                  <TouchableOpacity 
+                    key={option}
+                    style={{ 
+                      width: '100%', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, marginBottom: 10,
+                      backgroundColor: surveyOption === option ? '#F3E8FF' : '#F8FAFC',
+                      borderWidth: 1, borderColor: surveyOption === option ? '#8B5CF6' : '#E2E8F0',
+                      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+                    }}
+                    onPress={() => setSurveyOption(option)}
+                  >
+                    <Text style={{ fontSize: 15, fontWeight: surveyOption === option ? '700' : '500', color: surveyOption === option ? '#6D28D9' : '#334155' }}>
+                      {option}
+                    </Text>
+                    {surveyOption === option && <IconSymbol name="checkmark.circle.fill" size={20} color="#8B5CF6" />}
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity 
+                  style={{ width: '100%', backgroundColor: surveyOption ? '#8B5CF6' : '#CBD5E1', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
+                  onPress={() => setSurveySubmitted(true)}
+                  disabled={!surveyOption}
+                >
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
+                    {i18n.language.startsWith('en') ? 'Submit' : 'Gönder'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ width: '100%', paddingVertical: 14, alignItems: 'center', marginTop: 4 }} onPress={() => setShowSurvey(false)}>
+                  <Text style={{ color: '#94A3B8', fontSize: 15, fontWeight: '600' }}>
+                    {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -311,18 +399,18 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
   const primaryColor = colors ? colors[0] : '#3B82F6';
 
   const content = (
-    <View style={{ flex: 1, padding: 12, width: '100%', justifyContent: 'space-between' }}>
+    <View style={{ flex: 1, padding: 10, width: '100%', justifyContent: 'space-between' }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
-          <IconSymbol name={icon as any} size={24} color={primaryColor} />
+        <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
+          <IconSymbol name={icon as any} size={20} color={primaryColor} />
         </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ fontSize: 15, fontWeight: '800', color: primaryColor, marginBottom: 2 }}>{title}</Text>
-          <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 16 }}>{subtitle}</Text>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: primaryColor, marginBottom: 1 }}>{title}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B', lineHeight: 14 }}>{subtitle}</Text>
         </View>
       </View>
-      <View style={{ alignSelf: 'flex-end', marginTop: 12, width: 28, height: 28, borderRadius: 14, backgroundColor: `${primaryColor}10`, alignItems: 'center', justifyContent: 'center' }}>
-        <IconSymbol name="arrow.right" size={14} color={primaryColor} />
+      <View style={{ alignSelf: 'flex-end', marginTop: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: `${primaryColor}10`, alignItems: 'center', justifyContent: 'center' }}>
+        <IconSymbol name="arrow.right" size={12} color={primaryColor} />
       </View>
     </View>
   );

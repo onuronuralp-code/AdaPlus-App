@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
     avatarText: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
     roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
     roleText: { fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
-    loginButton: { marginTop: 24, backgroundColor: '#22C55E', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
+    loginButton: { marginTop: 24, backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
     loginButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
     // Tab Bar
