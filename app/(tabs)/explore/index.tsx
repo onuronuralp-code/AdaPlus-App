@@ -257,8 +257,8 @@ export default function MainMenuScreen() {
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#059669', marginBottom: 2 }}>
                   {t('common.community')}
                 </Text>
-                <Text style={{ fontSize: 12, color: '#4B5563', lineHeight: 16 }} numberOfLines={2}>
-                  {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Share your experiences and connect with islanders.' : 'Deneyimlerinizi paylaşın ve adalılarla iletişime geçin.' })}
+                <Text style={{ fontSize: 12, color: '#4B5563', lineHeight: 16 }}>
+                  {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated on the island agenda, express your opinion, transform the island.' : 'Ada gündemine hakim ol, fikrini ifade et, adayı dönüştür.' })}
                 </Text>
               </View>
               <View style={{ backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
