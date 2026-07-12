@@ -286,7 +286,7 @@ function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any)
       </View>
       <View style={styles.cardContent}>
         <Text style={[styles.cardTitle, large && { fontSize: 15 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.cardSubtitle, large && { fontSize: 12, lineHeight: 16 }, { color: '#64748B' }]} numberOfLines={2}>{subtitle}</Text>
+        <Text style={[styles.cardSubtitle, large && { fontSize: 12, lineHeight: 16 }, { color: '#64748B' }]}>{subtitle}</Text>
       </View>
       <IconSymbol name={"chevron.right" as any} size={20} color={primaryColor} />
     </>
@@ -318,7 +318,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ fontSize: 15, fontWeight: '800', color: primaryColor, marginBottom: 2 }}>{title}</Text>
-          <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 16 }} numberOfLines={2}>{subtitle}</Text>
+          <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 16 }}>{subtitle}</Text>
         </View>
       </View>
       <View style={{ alignSelf: 'flex-end', marginTop: 12, width: 28, height: 28, borderRadius: 14, backgroundColor: `${primaryColor}10`, alignItems: 'center', justifyContent: 'center' }}>
