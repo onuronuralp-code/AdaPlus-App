@@ -1504,7 +1504,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  headerContainer: { paddingHorizontal: 20, paddingBottom: 24, zIndex: 10 },
+  headerContainer: { paddingHorizontal: 20, paddingBottom: 16, zIndex: 10 },
   headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1514,7 +1514,7 @@ const styles = StyleSheet.create({
   headerTitles: { flex: 1 },
   headerTitle: {
     fontSize: 26,
-    fontWeight: "800",
+    fontFamily: "Poppins_800ExtraBold",
     color: "#0F172A",
     letterSpacing: -0.5,
   },
