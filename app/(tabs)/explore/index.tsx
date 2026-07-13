@@ -110,7 +110,7 @@ export default function MainMenuScreen() {
     <View style={styles.container}>
       <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: insets.top + 16, paddingHorizontal: 20 }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
+          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 32 }]}>
             {isLoggedIn && user
               ? t('common.welcomeGreetingUser', { name: user.fullName.split(' ')[0] })
               : t('common.welcomeGreeting')}
@@ -608,10 +608,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   welcomeGreeting: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
     color: '#0D1B2A',
     marginBottom: 2,
+    letterSpacing: -0.5,
   },
   welcomeSubtitle: {
     fontSize: 12,
