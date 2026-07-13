@@ -70,7 +70,8 @@ export const fetchListings = async (
 
     // Handle Spring Data Page structure if present
     if (data && data.content && Array.isArray(data.content)) {
-      return data.content;
+      if (data.content.length > 0) return data.content;
+      return MOCK_LISTINGS.filter(item => !category || item.category === category);
     }
 
     // Return mock data if empty or error
