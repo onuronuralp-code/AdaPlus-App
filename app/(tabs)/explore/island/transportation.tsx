@@ -67,10 +67,11 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     headerTitle: {
-        fontSize: 26,
-        fontFamily: 'Poppins_800ExtraBold',
+        fontSize: 32,
+        fontFamily: 'Poppins_900Black',
         color: '#0F172A',
-        letterSpacing: -1,
+        letterSpacing: -1.5,
+        textTransform: 'lowercase',
     },
     scrollContent: {
         padding: 20,

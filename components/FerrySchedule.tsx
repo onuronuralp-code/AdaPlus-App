@@ -1513,10 +1513,11 @@ const styles = StyleSheet.create({
   },
   headerTitles: { flex: 1 },
   headerTitle: {
-    fontSize: 26,
-    fontFamily: "Poppins_800ExtraBold",
+    fontSize: 32,
+    fontFamily: "Poppins_900Black",
     color: "#0F172A",
-    letterSpacing: -1,
+    letterSpacing: -1.5,
+    textTransform: 'lowercase',
   },
   headerSubtitle: { fontSize: 13, color: "#778DA9", fontWeight: "600" },
 
