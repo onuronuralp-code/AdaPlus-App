@@ -10,6 +10,7 @@ import {
   Dimensions,
   Image,
   RefreshControl,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -137,15 +138,18 @@ export default function IlanlarScreen() {
   };
 
   const handleCloseModal = () => {
+    Keyboard.dismiss();
     if (isFormDirty) {
-      Alert.alert(
-        t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
-        t('common.unsavedChangesMsg', { defaultValue: 'İlan eklemekten vazgeçmek istediğinize emin misiniz? Girdiğiniz tüm bilgiler silinecek.' }),
-        [
-          { text: t('common.keepEditing', { defaultValue: 'Düzenlemeye Devam Et' }), style: 'cancel' },
-          { text: t('common.closeAnyway', { defaultValue: 'Evet, İlanı Sil ve Çık' }), style: 'destructive', onPress: resetAndCloseModal },
-        ]
-      );
+      setTimeout(() => {
+        Alert.alert(
+          t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
+          t('common.unsavedChangesMsg', { defaultValue: 'İlan eklemekten vazgeçmek istediğinize emin misiniz? Girdiğiniz tüm bilgiler silinecek.' }),
+          [
+            { text: t('common.keepEditing', { defaultValue: 'Düzenlemeye Devam Et' }), style: 'cancel' },
+            { text: t('common.closeAnyway', { defaultValue: 'Evet, İlanı Sil ve Çık' }), style: 'destructive', onPress: resetAndCloseModal },
+          ]
+        );
+      }, 150);
     } else {
       resetAndCloseModal();
     }
