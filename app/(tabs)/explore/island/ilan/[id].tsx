@@ -291,12 +291,14 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
   infoGrid: {
-    gap: 20,
+    flexDirection: 'row',
+    gap: 12,
   },
   infoItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   infoIcon: {
     width: 44,

@@ -633,11 +633,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
       </View>
 
       <Text style={styles.cardTitle}>{listing.title}</Text>
-      {listing.price > 0 && (
-        <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginBottom: 6 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
-        </View>
-      )}
+
       <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
 
       <View style={styles.cardFooter}>
@@ -646,6 +642,11 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
             <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
             <Text style={styles.metaText}>{listing.island}</Text>
           </View>
+          {listing.price > 0 && (
+            <View style={{ backgroundColor: '#10B981', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'center' }}>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+            </View>
+          )}
           {listing.contactInfo && (
             <View style={styles.metaItem}>
               <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
