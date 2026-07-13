@@ -454,20 +454,6 @@ export default function IlanlarScreen() {
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.description')}</Text>
-              <TextInput
-                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
-                placeholder={t('ilanlar.descPlaceholder')}
-                placeholderTextColor="#94A3B8"
-                multiline
-                value={adDesc}
-                onChangeText={setAdDesc}
-                maxLength={500}
-              />
-              <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
-            </View>
-
-            <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
               <View style={styles.adCategoryRow}>
                 {islands.map(island => (
@@ -534,6 +520,20 @@ export default function IlanlarScreen() {
               {adPrice.length > 0 && !isPriceValid && (
                 <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidPrice')}</Text>
               )}
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>{t('ilanlar.description')}</Text>
+              <TextInput
+                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
+                placeholder={t('ilanlar.descPlaceholder')}
+                placeholderTextColor="#94A3B8"
+                multiline
+                value={adDesc}
+                onChangeText={setAdDesc}
+                maxLength={500}
+              />
+              <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
             </View>
 
             <View style={styles.inputSection}>

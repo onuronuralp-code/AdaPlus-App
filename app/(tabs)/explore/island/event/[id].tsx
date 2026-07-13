@@ -150,15 +150,6 @@ export default function EventDetailScreen() {
                 >
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.iconButton}
-                    onPress={() => Share.share({
-                        title: activity.name,
-                        message: `${activity.name}\n\n${activity.description}${activity.eventPlace ? `\n\nKonum: ${activity.eventPlace}` : ''}\n\nAdaPlus uygulamasından paylaşıldı`,
-                    })}
-                >
-                    <IconSymbol name="square.and.arrow.up" size={22} color="#1E293B" />
-                </TouchableOpacity>
             </View>
 
             {/* Hero image (Fixed) */}

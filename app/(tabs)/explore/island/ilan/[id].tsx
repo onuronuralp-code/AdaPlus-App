@@ -112,12 +112,6 @@ export default function IlanDetailScreen() {
         }}>
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={() => Share.share({
-          title: listing.title,
-          message: `${listing.title}\n\n${listing.description}${listing.contactInfo ? `\n\nİletişim: ${listing.contactInfo}` : ''}\n\nAdaPlus uygulamasından paylaşıldı`,
-        })}>
-          <IconSymbol name="square.and.arrow.up" size={22} color="#1E293B" />
-        </TouchableOpacity>
       </View>
 
       {/* Hero Section / Image Placeholder (Fixed) */}
