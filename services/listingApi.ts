@@ -90,22 +90,28 @@ export const createListing = async (
       console.warn("No JWT token found. Aborting listing creation.");
       return null;
     }
-    const response = await fetchWithTimeout(LISTING_API_BASE, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(request),
-    });
+    
+    // MOCK BEHAVIOR: Instead of calling the backend, we dynamically create a mock listing
+    // and unshift it to the top of our MOCK_LISTINGS array for testing purposes.
+    const newMockListing: ListingDto = {
+      id: `list_new_${Date.now()}`,
+      title: request.title,
+      description: request.description,
+      category: request.category as ListingCategory,
+      island: request.island as Island,
+      price: request.price,
+      priceLabel: "TL",
+      active: request.active ?? true,
+      imageUrl: request.imageUrl,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    MOCK_LISTINGS.unshift(newMockListing);
+    return newMockListing;
 
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
   } catch (error) {
     console.error("Failed to create listing:", error);
-    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
-      triggerNetworkError();
-    }
     return null;
   }
 };
