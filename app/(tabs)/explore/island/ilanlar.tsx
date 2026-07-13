@@ -140,10 +140,10 @@ export default function IlanlarScreen() {
     if (isFormDirty) {
       Alert.alert(
         t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
-        t('common.unsavedChangesMsg', { defaultValue: 'Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?' }),
+        t('common.unsavedChangesMsg', { defaultValue: 'İlan eklemekten vazgeçmek istediğinize emin misiniz? Girdiğiniz tüm bilgiler silinecek.' }),
         [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('common.closeAnyway', { defaultValue: 'Evet, Kapat' }), style: 'destructive', onPress: resetAndCloseModal },
+          { text: t('common.keepEditing', { defaultValue: 'Düzenlemeye Devam Et' }), style: 'cancel' },
+          { text: t('common.closeAnyway', { defaultValue: 'Evet, İlanı Sil ve Çık' }), style: 'destructive', onPress: resetAndCloseModal },
         ]
       );
     } else {
