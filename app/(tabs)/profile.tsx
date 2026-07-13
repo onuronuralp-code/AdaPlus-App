@@ -687,7 +687,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff' },
-    headerTitle: { fontSize: 26, fontFamily: 'Poppins_800ExtraBold', color: '#0F172A', letterSpacing: -0.5 },
+    headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: 100 },
     profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
     avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },

@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' },
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff' },
     backButton: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-    headerTitle: { fontSize: 26, fontFamily: 'Poppins_800ExtraBold', color: '#0F172A', letterSpacing: -0.5 },
+    headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 120 },
     emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#64748B', marginTop: 16, textAlign: 'center' },
     emptySubtitle: { fontSize: 14, color: '#94A3B8', marginTop: 8, textAlign: 'center' },

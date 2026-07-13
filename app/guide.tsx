@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 2,
     },
-    headerTitle: { fontSize: 26, fontFamily: 'Poppins_800ExtraBold', color: '#0F172A', letterSpacing: -0.5, flex: 1 },
+    headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5, flex: 1 },
     islandBadge: {
         backgroundColor: '#FDF2F8',
         borderWidth: 1,
