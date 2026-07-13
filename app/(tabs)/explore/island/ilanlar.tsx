@@ -634,7 +634,9 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
 
       <Text style={styles.cardTitle}>{listing.title}</Text>
       {listing.price > 0 && (
-        <Text style={{ fontSize: 16, fontWeight: '700', color: '#10B981', marginBottom: 6 }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+        <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginBottom: 6 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+        </View>
       )}
       <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
 
