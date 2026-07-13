@@ -36,13 +36,10 @@ import { Provider } from "react-redux";
 
 import { GlobalAlert } from "@/components/GlobalAlert";
 
-import { useFonts, Poppins_800ExtraBold, Poppins_900Black } from "@expo-google-fonts/poppins";
-
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ Poppins_800ExtraBold, Poppins_900Black });
   const colorScheme = useColorScheme();
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
 
