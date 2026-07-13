@@ -137,8 +137,9 @@ export default function IlanDetailScreen() {
           </View>
 
           <Text style={styles.title}>{listing.title}</Text>
-          
-
+          {listing.price > 0 && (
+            <Text style={{ fontSize: 22, fontWeight: '700', color: '#10B981', marginTop: 8 }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+          )}
 
           <View style={styles.divider} />
 
