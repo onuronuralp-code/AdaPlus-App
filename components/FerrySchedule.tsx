@@ -418,7 +418,7 @@ export function FerrySchedule() {
   return (
     <View style={styles.container}>
       {/* Header Section */}
-      <View style={[styles.headerContainer, { paddingTop: insets.top + 20 }]}>
+      <View style={[styles.headerContainer, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerTitles}>
             <Text style={styles.headerTitle}>{t("common.ferrySchedule")}</Text>
