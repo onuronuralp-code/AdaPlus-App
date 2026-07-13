@@ -1514,9 +1514,9 @@ const styles = StyleSheet.create({
   headerTitles: { flex: 1 },
   headerTitle: {
     fontSize: 26,
-    fontWeight: "800",
+    fontFamily: "Poppins_800ExtraBold",
     color: "#0F172A",
-    letterSpacing: -0.5,
+    letterSpacing: -1,
   },
   headerSubtitle: { fontSize: 13, color: "#778DA9", fontWeight: "600" },
 

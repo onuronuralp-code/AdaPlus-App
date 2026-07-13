@@ -75,47 +75,19 @@ export interface CreatePostRequest {
 
 const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;
 
-const MOCK_POSTS: PostDto[] = [
-  {
-    id: "mock1",
-    authorId: "user1",
-    authorName: "Ahmet Yılmaz",
-    authorUserType: UserType.RESIDENT,
-    content: "Adalar'da hafta sonu etkinlikleri hakkında ne düşünüyorsunuz? Bence daha fazla müzik festivali olmalı.",
-    postType: PostType.DISCUSSION,
-    island: Island.BUYUKADA,
-    replyCount: 5,
-    likeCount: 12,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    isLiked: false,
-  },
-  {
-    id: "mock2",
-    authorId: "user2",
-    authorName: "Ayşe Demir",
-    authorUserType: UserType.TOURIST,
-    content: "Bisiklet kiralama fiyatları hakkında bilgisi olan var mı? Hangi rotayı önerirsiniz?",
-    postType: PostType.INFO,
-    island: Island.HEYBELIADA,
-    replyCount: 2,
-    likeCount: 8,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    isLiked: true,
-  },
-  {
-    id: "mock3",
-    authorId: "admin1",
-    authorName: "AdaPlus",
-    authorUserType: UserType.ADMIN,
-    content: "Şiddetli lodos nedeniyle yarınki vapur seferlerinde aksamalar olabilir. Lütfen sefer saatlerini kontrol edin.",
-    postType: PostType.ANNOUNCEMENT,
-    island: Island.BUYUKADA,
-    replyCount: 14,
-    likeCount: 45,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-    isLiked: false,
-  }
-];
+const MOCK_POSTS: PostDto[] = Array.from({ length: 20 }).map((_, index) => ({
+  id: `mock_post_${index + 1}`,
+  authorId: "test_user_1",
+  authorName: "Test Kullanıcı",
+  authorUserType: UserType.RESIDENT,
+  content: `Bu ${index + 1}. forum başlığı/mesajı. Scroll testini kontrol etmek için otomatik oluşturuldu.`,
+  postType: index % 2 === 0 ? PostType.DISCUSSION : PostType.INFO,
+  island: Island.BUYUKADA,
+  replyCount: 20,
+  likeCount: index * 2,
+  createdAt: new Date(Date.now() - 1000 * 60 * 5 * index).toISOString(),
+  isLiked: index % 3 === 0,
+}));
 
 // Helper for fetch with auth if needed
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
@@ -287,7 +259,20 @@ export const fetchReplies = async (postId: string): Promise<PostDto[]> => {
   } catch (error) {
     console.error("Failed to fetch replies:", error);
     triggerNetworkError();
-    return [];
+    // Return 20 mock replies from the same person for scroll testing
+    return Array.from({ length: 20 }).map((_, index) => ({
+      id: `mock_reply_${index + 1}`,
+      authorId: "test_user_1",
+      authorName: "Test Kullanıcı",
+      authorUserType: UserType.RESIDENT,
+      content: `Bu ${index + 1}. yanıt. Yanıt ekranındaki scroll testini kontrol etmek için otomatik oluşturuldu.`,
+      postType: PostType.DISCUSSION,
+      island: Island.BUYUKADA,
+      replyCount: 0,
+      likeCount: index,
+      createdAt: new Date(Date.now() - 1000 * 60 * index).toISOString(),
+      isLiked: false,
+    }));
   }
 };
 

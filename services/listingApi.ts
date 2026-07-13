@@ -43,43 +43,18 @@ export interface SaveListingRequest {
 
 const LISTING_API_BASE = `${API_BASE_URL}/api/v1/listings`;
 
-const MOCK_LISTINGS: ListingDto[] = [
-  {
-    id: "list1",
-    title: "Büyükada'da Kiralık Bisiklet",
-    description: "Az kullanılmış, çok iyi durumda dağ bisikleti. Günlük veya haftalık kiralanabilir.",
-    category: ListingCategory.KIRALIK,
-    island: Island.BUYUKADA,
-    price: 150,
-    priceLabel: "TL/Gün",
-    active: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: "list2",
-    title: "Satılık Ada Vapuru Maketi",
-    description: "El yapımı, ince işçilikli vapur maketi. Ev dekorasyonu için birebir.",
-    category: ListingCategory.SATILIK,
-    island: Island.HEYBELIADA,
-    price: 1200,
-    priceLabel: "TL",
-    active: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: "list3",
-    title: "Kayıp Kedi - Tarçın",
-    description: "Burgazada iskele civarında turuncu beyaz renkli kedimiz kayboldu. Görenlerin iletişime geçmesi rica olunur.",
-    category: ListingCategory.KAYIP,
-    island: Island.BURGAZADA,
-    price: 0,
-    active: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
+const MOCK_LISTINGS: ListingDto[] = Array.from({ length: 20 }).map((_, index) => ({
+  id: `list${index + 1}`,
+  title: `Test İlanı ${index + 1}`,
+  description: `Bu ${index + 1}. ilan açıklaması. Scroll (kaydırma) testini kontrol etmek için otomatik oluşturuldu. Adalar genelindeki genel ilanlar listesi.`,
+  category: index % 3 === 0 ? ListingCategory.KIRALIK : index % 3 === 1 ? ListingCategory.SATILIK : ListingCategory.KAYIP,
+  island: Island.BUYUKADA,
+  price: index * 50,
+  priceLabel: "TL",
+  active: true,
+  createdAt: new Date(Date.now() - 1000 * 60 * 60 * index).toISOString(),
+  updatedAt: new Date().toISOString()
+}));
 
 export const fetchListings = async (
   category?: ListingCategory,
