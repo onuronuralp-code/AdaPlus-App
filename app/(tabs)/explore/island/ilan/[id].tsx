@@ -138,13 +138,7 @@ export default function IlanDetailScreen() {
 
           <Text style={styles.title}>{listing.title}</Text>
           
-          {listing.price > 0 && (
-            <View style={styles.priceContainer}>
-              <Text style={styles.priceLabel}>{t('ilanlar.priceLabel', { defaultValue: 'Fiyat' })}</Text>
-              <Text style={styles.priceValue}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
-              {listing.priceLabel && <Text style={{ fontSize: 14, color: '#94A3B8', marginLeft: 4 }}>{listing.priceLabel}</Text>}
-            </View>
-          )}
+
 
           <View style={styles.divider} />
 

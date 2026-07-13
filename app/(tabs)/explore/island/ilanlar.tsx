@@ -648,11 +648,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
             </View>
           )}
         </View>
-        {listing.price > 0 && (
-          <View style={styles.priceTag}>
-            <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
-          </View>
-        )}
+
       </View>
       </View>
     </TouchableOpacity>
