@@ -34,10 +34,15 @@ import "../utils/i18n";
 import "../utils/i18n";
 import { Provider } from "react-redux";
 
+import { GlobalAlert } from "@/components/GlobalAlert";
+
+import { useFonts, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ Poppins_800ExtraBold });
   const colorScheme = useColorScheme();
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
 
@@ -52,6 +57,10 @@ export default function RootLayout() {
     );
     return () => notificationListener.current?.remove();
   }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -86,6 +95,7 @@ export default function RootLayout() {
               />
             </Stack>
             <StatusBar style="dark" />
+            <GlobalAlert />
           </ThemeProvider>
         </CustomThemeProvider>
         </AuthProvider>

@@ -16,6 +16,8 @@ import i18n from '@/utils/i18n';
 import { useAuth } from '@/context/AuthContext';
 import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
+import { authApi } from '@/services/authApi';
+import { unregisterPushNotifications } from '@/services/notificationService';
 
 type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -485,17 +487,40 @@ export default function ProfileScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                     <TouchableOpacity
                         onPress={() => {
                             Alert.alert(
                                 t('common.settings', { defaultValue: 'Ayarlar' }),
-                                t('common.chooseLanguage', { defaultValue: 'Dil Seçimi / Choose Language' }),
+                                '', // No message needed or general message
                                 [
                                     { text: 'Türkçe', onPress: () => i18n.changeLanguage('tr') },
                                     { text: 'English', onPress: () => i18n.changeLanguage('en') },
+                                    { text: i18n.language.startsWith('en') ? 'Turn off Notifications' : 'Bildirimleri Kapat', onPress: () => {
+                                        unregisterPushNotifications();
+                                        Alert.alert(
+                                            t('common.success', { defaultValue: 'Başarılı' }), 
+                                            i18n.language.startsWith('en') ? 'Notifications have been turned off.' : 'Bildirimler kapatıldı.'
+                                        );
+                                    }},
+                                    ...(isLoggedIn ? [{ text: i18n.language.startsWith('en') ? 'Delete Account' : 'Hesabımı Sil', style: 'destructive' as const, onPress: () => {
+                                        Alert.alert(
+                                            i18n.language.startsWith('en') ? 'Delete Account' : 'Hesabımı Sil',
+                                            i18n.language.startsWith('en') ? 'Are you sure you want to delete your account? This action cannot be undone.' : 'Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                                            [
+                                                { text: t('common.cancel'), style: 'cancel' },
+                                                { text: i18n.language.startsWith('en') ? 'Delete' : 'Sil', style: 'destructive', onPress: async () => {
+                                                    const token = getToken();
+                                                    if (token) {
+                                                        await authApi.deleteAccount(token);
+                                                    }
+                                                    logout();
+                                                }}
+                                            ]
+                                        );
+                                    }}] : []),
                                     { text: t('common.cancel'), style: 'cancel' }
                                 ]
                             );
@@ -661,8 +686,8 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 20, backgroundColor: '#fff' },
-    headerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff' },
+    headerTitle: { fontSize: 26, fontFamily: 'Poppins_800ExtraBold', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: 100 },
     profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
     avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },
@@ -791,11 +816,9 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
     },
     inviteButton: {
         flexDirection: 'row',

@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-mark.png",
+      "image": "./assets/images/adaplus-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
@@ -40,7 +40,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-mark.png",
+          "image": "./assets/images/adaplus-logo.png",
           "imageWidth": 240,
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF",

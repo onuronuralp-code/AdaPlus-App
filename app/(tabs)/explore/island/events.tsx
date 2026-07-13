@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 8,
+        paddingBottom: 16,
         backgroundColor: '#F8FAFC',
     },
     backButton: {
@@ -561,8 +561,8 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     headerTitle: {
-        fontSize: 24,
-        fontWeight: '800',
+        fontSize: 26,
+        fontFamily: 'Poppins_800ExtraBold',
         color: '#0F172A',
         letterSpacing: -0.5,
     },

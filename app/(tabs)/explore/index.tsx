@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert } from 'react-native';
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -13,7 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 
 
 export default function MainMenuScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -25,7 +25,8 @@ export default function MainMenuScreen() {
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [showSurvey, setShowSurvey] = useState(false);
-  const [surveyOption, setSurveyOption] = useState<string | null>(null);
+  const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
+  const [surveyOtherText, setSurveyOtherText] = useState('');
   const [surveySubmitted, setSurveySubmitted] = useState(false);
 
   useFocusEffect(
@@ -100,31 +101,91 @@ export default function MainMenuScreen() {
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / width);
+    const index = Math.round(scrollPosition / (width - 16));
     setActiveIndex(index);
   };
-  // Set hero height to be much taller as requested (approx 45% of screen height)
-  const heroHeight = SCREEN_HEIGHT * 0.45;
+  const heroHeight = 220;
 
   return (
     <View style={styles.container}>
-      {/* Hero Header Slider Wrapper (Temporarily Removed) */}
-      {/* 
-      <View style={[styles.heroWrapper, { height: heroHeight }]}>
-         ... 
+      <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: insets.top + 16, paddingHorizontal: 20 }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
+            {isLoggedIn && user
+              ? t('common.welcomeGreetingUser', { name: user.fullName.split(' ')[0] })
+              : t('common.welcomeGreeting')}
+          </Text>
+          <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
+            {t('common.welcomeSubtitle')}
+          </Text>
+        </View>
       </View>
-      */}
+
+      {/* Hero Header Slider Wrapper */}
+      <View style={[styles.heroWrapper, { height: heroHeight }]}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={width - 8}
+          decelerationRate="fast"
+          bounces={true}
+          contentContainerStyle={{ paddingHorizontal: 4 }}
+          onMomentumScrollEnd={(e) => {
+            const scrollPosition = e.nativeEvent.contentOffset.x;
+            const index = Math.round(scrollPosition / (width - 8));
+            setActiveIndex(index);
+          }}
+        >
+          {slidesToRender.map((slide, index) => (
+            <TouchableOpacity 
+              key={index} 
+              activeOpacity={0.9}
+              onPress={() => {
+                if (slide?.id && !slide.id.startsWith('default')) {
+                  if (slide.type === 'listing') {
+                    router.push({ pathname: '/explore/island/ilan/[id]', params: { id: slide.id } });
+                  } else {
+                    router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
+                  }
+                } else {
+                  router.push('/(tabs)/explore/island/events');
+                }
+              }}
+            >
+              <View style={[styles.heroImage, { width: width - 16, marginHorizontal: 4, borderRadius: 20, overflow: 'hidden' }]}>
+                <ImageBackground 
+                    source={{ uri: slide.imageUrl }} 
+                    style={{ flex: 1 }}
+                    imageStyle={{ resizeMode: 'cover', borderRadius: 24 }}
+                >
+                  <LinearGradient
+                    colors={['transparent', 'rgba(27,27,47,0.8)', '#1B1B2F']}
+                    style={styles.heroGradient}
+                  >
+                    <View style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}>
+                      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 4 }}>{slide.title}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }} numberOfLines={2}>{slide.subtitle}</Text>
+                    </View>
+                  </LinearGradient>
+                </ImageBackground>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Top bar (Fixed over the slider) */}
+        <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]} />
+      </View>
 
       {/* Body Content — scrollable on short screens, fills naturally on tall screens */}
       <Animated.ScrollView
-        style={[styles.body, { paddingTop: insets.top + 16 }]}
+        style={[styles.body, { transform: [{ translateY: slideAnim }] }]}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
-        scrollEnabled={false}
+        scrollEnabled={true}
       >
-        {/* Pagination Dots (Temporarily Removed) */}
-        {/* 
+        {/* Pagination Dots */}
         <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
           {slidesToRender.map((_, index) => (
             <View
@@ -133,64 +194,9 @@ export default function MainMenuScreen() {
             />
           ))}
         </View>
-        */}
 
         {/* Services Section */}
         <View style={styles.servicesSection}>
-          <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }]}>
-                {isLoggedIn && user
-                  ? t('common.welcomeGreetingUser', { name: user.fullName.split(' ')[0] })
-                  : t('common.welcomeGreeting')}
-              </Text>
-              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
-                {t('common.welcomeSubtitle')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.inlineSliderContainer}>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={width - 32 + 12} // card width + right margin
-              decelerationRate="fast"
-            >
-              {slidesToRender.map((slide, index) => (
-                <TouchableOpacity 
-                  key={index} 
-                  style={[styles.inlineSlideCard, { width: width - 32 }]}
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    if (slide?.id && !slide.id.startsWith('default')) {
-                      if (slide.type === 'listing') {
-                        router.push({ pathname: '/explore/island/ilan/[id]', params: { id: slide.id } });
-                      } else {
-                        router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
-                      }
-                    } else {
-                      router.push('/(tabs)/explore/island/events');
-                    }
-                  }}
-                >
-                  <ImageBackground 
-                    source={{ uri: slide.imageUrl }} 
-                    style={styles.inlineSlideImage}
-                    imageStyle={{ borderRadius: 16 }}
-                  >
-                    <LinearGradient
-                      colors={['transparent', 'rgba(27,27,47,0.9)']}
-                      style={styles.inlineSlideGradient}
-                    >
-                      <Text style={styles.inlineSlideTitle}>{slide.title}</Text>
-                      <Text style={styles.inlineSlideSubtitle} numberOfLines={2}>{slide.subtitle}</Text>
-                    </LinearGradient>
-                  </ImageBackground>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
 
           <View style={[styles.sectionHeader, isSmallScreen && { marginBottom: 10 }]}>
             <View style={styles.sectionTitleRow}>
@@ -200,7 +206,7 @@ export default function MainMenuScreen() {
               </Text>
             </View>
           </View>
-          <View style={[styles.cardsContainer, { gap: 16 }]}>
+          <View style={[styles.cardsContainer, { gap: 10 }]}>
             <View style={styles.gridRow}>
               <GridCard
                 icon="tag.fill"
@@ -208,7 +214,7 @@ export default function MainMenuScreen() {
                 title={t('common.ilanlar')}
                 subtitle={t('common.ilanlarSubtitle')}
                 onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
-                style={{ marginRight: 6 }}
+                style={{ marginRight: 4 }}
                 large={isLargeScreen}
               />
               <GridCard
@@ -217,7 +223,7 @@ export default function MainMenuScreen() {
                 title={t('common.events')}
                 subtitle={t('common.islandEvents')}
                 onPress={() => router.push('/(tabs)/explore/island/events')}
-                style={{ marginLeft: 6 }}
+                style={{ marginLeft: 4 }}
                 large={isLargeScreen}
               />
             </View>
@@ -228,7 +234,7 @@ export default function MainMenuScreen() {
                 title={t('common.adaAI')}
                 subtitle={t('common.yourSmartGuide')}
                 onPress={() => router.push('/guide')}
-                style={{ marginRight: 6 }}
+                style={{ marginRight: 4 }}
                 large={isLargeScreen}
               />
               <GridCard
@@ -238,10 +244,11 @@ export default function MainMenuScreen() {
                 subtitle={t('common.comingSoon', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında' })}
                 onPress={() => {
                   setSurveySubmitted(false);
-                  setSurveyOption(null);
+                  setSurveyOptions([]);
+                  setSurveyOtherText('');
                   setShowSurvey(true);
                 }}
-                style={{ marginLeft: 6, opacity: 0.8 }}
+                style={{ marginLeft: 4, opacity: 0.8 }}
                 large={isLargeScreen}
               />
             </View>
@@ -252,7 +259,7 @@ export default function MainMenuScreen() {
                 padding: 16,
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginTop: 6
+                marginTop: 2
               }}
               onPress={() => router.push('/(tabs)/explore/island/forum')}
               activeOpacity={0.8}
@@ -261,10 +268,10 @@ export default function MainMenuScreen() {
                 <IconSymbol name="bubble.left.and.bubble.right.fill" size={24} color="#059669" />
               </View>
               <View style={{ flex: 1, marginLeft: 12, paddingRight: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#059669', marginBottom: 2 }}>
+                <Text style={{ fontSize: 14, fontWeight: '800', color: '#059669', marginBottom: 2 }}>
                   {t('common.community')}
                 </Text>
-                <Text style={{ fontSize: 12, color: '#4B5563', lineHeight: 16 }}>
+                <Text style={{ fontSize: 11, color: '#4B5563', lineHeight: 15 }}>
                   {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated on the island agenda, express your opinion, transform the island.' : 'Ada gündemine hakim ol, fikrini ifade et, adayı dönüştür.' })}
                 </Text>
               </View>
@@ -319,28 +326,48 @@ export default function MainMenuScreen() {
                   {i18n.language.startsWith('en') ? 'What kind of delivery service would you use most on the island?' : 'Adada en çok hangi paket servis hizmetine ihtiyaç duyuyorsunuz?'}
                 </Text>
                 
-                {['Yemek & Restoran', 'Market & Bakkal', 'Su & Tüp', 'Eczane'].map((option) => (
-                  <TouchableOpacity 
-                    key={option}
-                    style={{ 
-                      width: '100%', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, marginBottom: 10,
-                      backgroundColor: surveyOption === option ? '#F3E8FF' : '#F8FAFC',
-                      borderWidth: 1, borderColor: surveyOption === option ? '#8B5CF6' : '#E2E8F0',
-                      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
-                    }}
-                    onPress={() => setSurveyOption(option)}
-                  >
-                    <Text style={{ fontSize: 15, fontWeight: surveyOption === option ? '700' : '500', color: surveyOption === option ? '#6D28D9' : '#334155' }}>
-                      {option}
-                    </Text>
-                    {surveyOption === option && <IconSymbol name="checkmark.circle.fill" size={20} color="#8B5CF6" />}
-                  </TouchableOpacity>
-                ))}
+                <ScrollView style={{ width: '100%', maxHeight: 300, marginBottom: 10 }} showsVerticalScrollIndicator={false}>
+                  {[
+                    i18n.language.startsWith('en') ? 'Food & Restaurant' : 'Yemek & Restoran', 
+                    i18n.language.startsWith('en') ? 'Market & Grocery' : 'Market & Bakkal', 
+                    i18n.language.startsWith('en') ? 'Water & Gas' : 'Su & Tüp', 
+                    i18n.language.startsWith('en') ? 'Pharmacy' : 'Eczane',
+                    i18n.language.startsWith('en') ? 'Cargo' : 'Kargo'
+                  ].map((option) => (
+                    <TouchableOpacity 
+                      key={option}
+                      style={{ 
+                        width: '100%', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, marginBottom: 10,
+                        backgroundColor: surveyOptions.includes(option) ? '#F3E8FF' : '#F8FAFC',
+                        borderWidth: 1, borderColor: surveyOptions.includes(option) ? '#8B5CF6' : '#E2E8F0',
+                        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+                      }}
+                      onPress={() => setSurveyOptions(prev => prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option])}
+                    >
+                      <Text style={{ fontSize: 15, fontWeight: surveyOptions.includes(option) ? '700' : '500', color: surveyOptions.includes(option) ? '#6D28D9' : '#334155' }}>
+                        {option}
+                      </Text>
+                      {surveyOptions.includes(option) && <IconSymbol name="checkmark.circle.fill" size={20} color="#8B5CF6" />}
+                    </TouchableOpacity>
+                  ))}
+                  {(surveyOptions.includes('Kargo') || surveyOptions.includes('Cargo')) && (
+                    <TextInput
+                      style={{
+                        width: '100%', backgroundColor: '#F8FAFC', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 16,
+                        borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, color: '#0F172A', marginTop: 4, marginBottom: 10,
+                      }}
+                      placeholder={i18n.language.startsWith('en') ? 'Please specify...' : 'Lütfen belirtin...'}
+                      placeholderTextColor="#94A3B8"
+                      value={surveyOtherText}
+                      onChangeText={setSurveyOtherText}
+                    />
+                  )}
+                </ScrollView>
 
                 <TouchableOpacity 
-                  style={{ width: '100%', backgroundColor: surveyOption ? '#8B5CF6' : '#CBD5E1', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
+                  style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : '#CBD5E1', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
                   onPress={() => setSurveySubmitted(true)}
-                  disabled={!surveyOption}
+                  disabled={surveyOptions.length === 0}
                 >
                   <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
                     {i18n.language.startsWith('en') ? 'Submit' : 'Gönder'}
@@ -436,7 +463,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1B1B2F',
+    backgroundColor: '#FFFFFF',
   },
   heroWrapper: {
     width: '100%',

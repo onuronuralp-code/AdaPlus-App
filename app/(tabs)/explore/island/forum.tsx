@@ -270,6 +270,7 @@ export default function ForumScreen() {
     };
 
     const MIN_POST_LENGTH = 10;
+    const MAX_POST_LENGTH = 1000;
     const trimmedPostContent = newPostContent.trim();
     const postContentTooShort = newPostType !== 'poll' && trimmedPostContent.length > 0 && trimmedPostContent.length < MIN_POST_LENGTH;
     const isPublishActive = (
@@ -777,6 +778,7 @@ export default function ForumScreen() {
                                 placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder') : t('forum.whatsOnYourMind')}
                                 placeholderTextColor="#CBD5E1"
                                 multiline={newPostType !== 'poll'}
+                                maxLength={newPostType === 'poll' ? 200 : MAX_POST_LENGTH}
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
                                 onChangeText={newPostType === 'poll' ? setPollQuestion : setNewPostContent}
                                 textAlignVertical="top"
@@ -787,8 +789,8 @@ export default function ForumScreen() {
                                 </Text>
                             )}
                             {newPostType !== 'poll' && trimmedPostContent.length >= MIN_POST_LENGTH && (
-                                <Text style={{ color: '#94A3B8', fontSize: 11, marginTop: 4, textAlign: 'right' }}>
-                                    {trimmedPostContent.length} karakter
+                                <Text style={{ color: newPostContent.length >= MAX_POST_LENGTH ? '#EF4444' : '#94A3B8', fontSize: 11, marginTop: 4, textAlign: 'right' }}>
+                                    {newPostContent.length}/{MAX_POST_LENGTH} karakter
                                 </Text>
                             )}
                         </View>
@@ -1008,12 +1010,14 @@ export default function ForumScreen() {
                                             </Text>
                                         </TouchableOpacity>
                                     </View>
-                                    <TouchableOpacity 
-                                        style={styles.reportIconButton}
-                                        onPress={() => handleReport(selectedPost.id)}
-                                    >
-                                        <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#EF4444" />
-                                    </TouchableOpacity>
+                                    {selectedPost.authorId !== user?.id && (
+                                        <TouchableOpacity 
+                                            style={styles.reportIconButton}
+                                            onPress={() => handleReport(selectedPost.id)}
+                                        >
+                                            <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
                             </View>
                         )}
@@ -1051,7 +1055,7 @@ export default function ForumScreen() {
                                     icon="bubble.left.and.bubble.right" 
                                     title={t('forum.noComments')}
                                     subtitle={t('forum.firstComment')}
-                                    color="#10B981"
+                                    color="#64748B"
                                     compact={true}
                                 />
                             )}
@@ -1201,7 +1205,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 8,
+        paddingBottom: 16,
         backgroundColor: 'transparent',
         zIndex: 10,
     },
@@ -1223,10 +1227,10 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerTitle: {
-        fontSize: 24,
-        fontWeight: '900',
+        fontSize: 26,
+        fontFamily: 'Poppins_800ExtraBold',
         color: '#0F172A',
-        letterSpacing: -0.8,
+        letterSpacing: -0.5,
     },
     tabsWrapper: {
         paddingTop: 20,
@@ -1579,9 +1583,13 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 16,
         gap: 8,
+        borderWidth: 1,
+        borderColor: '#F8FAFC',
     },
     activeAdCat: {
-        backgroundColor: '#1E293B',
+        backgroundColor: '#F0F9FF',
+        borderColor: '#3B82F6',
+        borderWidth: 1,
     },
     adCatText: {
         fontSize: 14,
@@ -1589,7 +1597,7 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     activeAdCatText: {
-        color: '#fff',
+        color: '#3B82F6',
     },
     addPhotoBtn: {
         marginTop: 10,

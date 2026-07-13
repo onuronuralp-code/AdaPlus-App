@@ -186,6 +186,26 @@ export default function EventDetailScreen() {
 
                     <Text style={styles.title}>{activity.name}</Text>
 
+                    {/* Description */}
+                    <Text style={[styles.description, { marginTop: 6, marginBottom: 4 }]}>{activity.description}</Text>
+
+                    <TouchableOpacity 
+                        style={[styles.rsvpButton, going && styles.rsvpButtonActive, { marginTop: 16, marginBottom: 8 }]} 
+                        onPress={handleRsvp}
+                        disabled={rsvpLoading}
+                    >
+                        {rsvpLoading ? (
+                            <ActivityIndicator color={going ? '#3B82F6' : '#fff'} />
+                        ) : (
+                            <>
+                                <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? '#3B82F6' : '#fff'} />
+                                <Text style={[styles.rsvpButtonText, going && styles.rsvpButtonTextActive]}>
+                                    {going ? t('events.going', { defaultValue: 'Katılıyorum' }) : t('events.join', { defaultValue: 'Katılacağım' })}
+                                </Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+
                     <View style={styles.divider} />
 
                     {/* Date / time */}
@@ -251,14 +271,8 @@ export default function EventDetailScreen() {
                         </View>
                     )}
 
-                    <View style={styles.divider} />
-
-                    {/* Description */}
-                    <Text style={styles.sectionTitle}>{t('events.detailsLabel')}</Text>
-                    <Text style={styles.description}>{activity.description}</Text>
                 </View>
             </ScrollView>
-
 
             <LoginPromptModal
                 visible={showLoginPrompt}
@@ -398,5 +412,27 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#475569',
         lineHeight: 26,
+    },
+    rsvpButton: {
+        backgroundColor: '#3B82F6',
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        gap: 8,
+    },
+    rsvpButtonActive: {
+        backgroundColor: '#EFF6FF',
+        borderWidth: 1,
+        borderColor: '#BFDBFE',
+    },
+    rsvpButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    rsvpButtonTextActive: {
+        color: '#3B82F6',
     },
 });

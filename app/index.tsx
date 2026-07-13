@@ -34,7 +34,7 @@ export default function SplashScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.center}>
         <Image
-          source={require("../assets/images/splash-mark.png")}
+          source={require("../assets/images/adaplus-logo.png")}
           style={{ width: logoW, height: logoW, resizeMode: "contain" }}
           accessibilityLabel="AdaPlus"
         />

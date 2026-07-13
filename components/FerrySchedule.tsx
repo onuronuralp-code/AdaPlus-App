@@ -454,7 +454,7 @@ export function FerrySchedule() {
                   {departure === "Unselected"
                     ? i18n.language === "tr"
                       ? "Kalkış"
-                      : "Origin"
+                      : "Departure"
                     : departure}
                 </Text>
               </TouchableOpacity>
@@ -492,7 +492,7 @@ export function FerrySchedule() {
                   {destination === "Unselected"
                     ? i18n.language === "tr"
                       ? "Varış"
-                      : "Destination"
+                      : "Arrival"
                     : destination}
                 </Text>
               </TouchableOpacity>
@@ -561,7 +561,7 @@ export function FerrySchedule() {
             </View>
           ) : destination === "Unselected" ? (
             <View style={styles.empty}>
-              <IconSymbol name="ferry" size={56} color="#EA580C" />
+              <IconSymbol name="ferry" size={48} color="#EA580C" />
               <Text style={styles.emptyTitle}>
                 {i18n.language === "tr" ? "Sefer Seç" : "Select Trip"}
               </Text>
@@ -575,7 +575,7 @@ export function FerrySchedule() {
             <View style={styles.empty}>
               <IconSymbol
                 name="calendar.badge.exclamationmark"
-                size={56}
+                size={48}
                 color="#CBD5E1"
               />
               <Text style={styles.emptyTitle}>{t("common.noDepartures")}</Text>
@@ -1513,10 +1513,10 @@ const styles = StyleSheet.create({
   },
   headerTitles: { flex: 1 },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "800",
     color: "#0F172A",
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   headerSubtitle: { fontSize: 13, color: "#778DA9", fontWeight: "600" },
 
@@ -1662,13 +1662,13 @@ const styles = StyleSheet.create({
   loader: { marginTop: 100 },
   empty: { alignItems: "center", marginTop: 80 },
   emptyTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "900",
     color: "#0D1B2A",
-    marginTop: 20,
+    marginTop: 16,
   },
   emptySub: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#778DA9",
     textAlign: "center",
     marginTop: 8,

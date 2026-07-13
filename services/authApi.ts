@@ -183,4 +183,16 @@ export const authApi = {
       return null;
     }
   },
+
+  deleteAccount: async (token: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  },
 };

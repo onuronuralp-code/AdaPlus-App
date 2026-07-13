@@ -326,15 +326,13 @@ export default function IlanlarScreen() {
   });
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => {
-          if (router.canGoBack()) {
-            router.back();
-          } else {
-            router.replace('/(tabs)/explore');
-          }
-        }}>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+        >
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('common.classifieds', { defaultValue: 'İlanlar' })}</Text>
@@ -666,7 +664,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
   backButton: {
     width: 44,
@@ -683,8 +681,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 26,
+    fontFamily: 'Poppins_800ExtraBold',
     color: '#0F172A',
     letterSpacing: -0.5,
   },

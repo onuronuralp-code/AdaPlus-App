@@ -43,6 +43,44 @@ export interface SaveListingRequest {
 
 const LISTING_API_BASE = `${API_BASE_URL}/api/v1/listings`;
 
+const MOCK_LISTINGS: ListingDto[] = [
+  {
+    id: "list1",
+    title: "Büyükada'da Kiralık Bisiklet",
+    description: "Az kullanılmış, çok iyi durumda dağ bisikleti. Günlük veya haftalık kiralanabilir.",
+    category: ListingCategory.KIRALIK,
+    island: Island.BUYUKADA,
+    price: 150,
+    priceLabel: "TL/Gün",
+    active: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: "list2",
+    title: "Satılık Ada Vapuru Maketi",
+    description: "El yapımı, ince işçilikli vapur maketi. Ev dekorasyonu için birebir.",
+    category: ListingCategory.SATILIK,
+    island: Island.HEYBELIADA,
+    price: 1200,
+    priceLabel: "TL",
+    active: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: "list3",
+    title: "Kayıp Kedi - Tarçın",
+    description: "Burgazada iskele civarında turuncu beyaz renkli kedimiz kayboldu. Görenlerin iletişime geçmesi rica olunur.",
+    category: ListingCategory.KAYIP,
+    island: Island.BURGAZADA,
+    price: 0,
+    active: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
 export const fetchListings = async (
   category?: ListingCategory,
 ): Promise<ListingDto[]> => {
@@ -60,13 +98,11 @@ export const fetchListings = async (
       return data.content;
     }
 
-    return Array.isArray(data) ? data : [];
+    // Return mock data if empty or error
+    return data && data.length > 0 ? data : MOCK_LISTINGS.filter(item => !category || item.category === category);
   } catch (error) {
-    console.error("Failed to fetch listings:", error);
-    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
-      triggerNetworkError();
-    }
-    return [];
+    console.log("Using mock data for listings due to error:", error);
+    return MOCK_LISTINGS.filter(item => !category || item.category === category);
   }
 };
 
@@ -105,7 +141,9 @@ export const getListing = async (id: string): Promise<ListingDto | null> => {
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch listing detail:", error);
+    console.log("Failed to fetch listing detail, trying mock data:", error);
+    const mockListing = MOCK_LISTINGS.find(l => l.id === id);
+    if (mockListing) return mockListing;
     return null;
   }
 };

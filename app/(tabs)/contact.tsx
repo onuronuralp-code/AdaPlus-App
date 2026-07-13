@@ -82,7 +82,7 @@ export default function ContactScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>{t('common.tabRequests')}</Text>
       </View>
 
@@ -209,18 +209,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', 
   },
   header: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 20,
     backgroundColor: '#FFFFFF',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 26,
+    fontFamily: 'Poppins_800ExtraBold',
     color: '#0F172A',
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   infoBanner: {
     flexDirection: 'row',

@@ -28,7 +28,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 { backgroundColor: color + '10' },
                 compact && styles.compactIconContainer
             ]}>
-                <IconSymbol name={icon as any} size={compact ? 32 : 48} color={color} />
+                <IconSymbol name={icon as any} size={compact ? 32 : 40} color={color} />
             </View>
             <Text style={[styles.title, compact && styles.compactTitle]}>{title}</Text>
             <Text style={[styles.subtitle, compact && styles.compactSubtitle]}>{subtitle}</Text>
@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     iconContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 24,
@@ -68,11 +68,11 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     title: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '800',
         color: '#0F172A',
         textAlign: 'center',
-        marginBottom: 10,
+        marginBottom: 8,
         letterSpacing: -0.5,
     },
     compactTitle: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     subtitle: {
-        fontSize: 15,
+        fontSize: 14,
         color: '#64748B',
         textAlign: 'center',
         lineHeight: 22,

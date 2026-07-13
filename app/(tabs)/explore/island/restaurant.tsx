@@ -131,10 +131,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 20,
-        backgroundColor: 'transparent',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        paddingBottom: 16,
     },
     backButton: {
         width: 40,
@@ -146,9 +143,10 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#000',
+        fontSize: 26,
+        fontFamily: 'Poppins_800ExtraBold',
+        color: '#0F172A',
+        letterSpacing: -0.5,
     },
     listContent: {
         padding: 20,
