@@ -52,12 +52,9 @@ export default function RootLayout() {
         Alert.alert(title, body);
       },
     );
+    SplashScreen.hideAsync();
     return () => notificationListener.current?.remove();
   }, []);
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
