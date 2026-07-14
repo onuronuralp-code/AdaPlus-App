@@ -1,6 +1,6 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/context/AuthContext';
-import { sendChatMessage } from '@/services/guideApi';
+import { sendChatMessageStream } from '@/services/guideApi';
 import { Stack, useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -111,13 +111,17 @@ export default function GuideScreen() {
 
         setIsLoading(true);
         try {
-            const reply = await sendChatMessage(
+            await sendChatMessageStream(
                 t('guide.islandContext', { island }),
-                ISLAND_SLUG[island]
+                ISLAND_SLUG[island],
+                (chunk) => {
+                    setMessages(prev => prev.map(m => {
+                        if (m.id !== thinkingId) return m;
+                        return { ...m, text: m.text === '...' ? chunk : m.text + chunk };
+                    }));
+                    scrollRef.current?.scrollToEnd({ animated: false });
+                },
             );
-            setMessages(prev => prev.map(m =>
-                m.id === thinkingId ? { ...m, text: reply } : m
-            ));
         } catch {
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId
@@ -146,10 +150,17 @@ export default function GuideScreen() {
 
         setIsLoading(true);
         try {
-            const reply = await sendChatMessage(text, selectedIsland ? ISLAND_SLUG[selectedIsland] : undefined);
-            setMessages(prev => prev.map(m =>
-                m.id === thinkingId ? { ...m, text: reply } : m
-            ));
+            await sendChatMessageStream(
+                text,
+                selectedIsland ? ISLAND_SLUG[selectedIsland] : undefined,
+                (chunk) => {
+                    setMessages(prev => prev.map(m => {
+                        if (m.id !== thinkingId) return m;
+                        return { ...m, text: m.text === '...' ? chunk : m.text + chunk };
+                    }));
+                    scrollRef.current?.scrollToEnd({ animated: false });
+                },
+            );
         } catch (e: any) {
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId ? { ...m, text: e?.message || t('guide.errorGeneric') } : m
