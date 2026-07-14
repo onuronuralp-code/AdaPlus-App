@@ -6,11 +6,13 @@ import {
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
-import { Alert } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { fetchAppVersion, requiresUpdate } from "@/services/appVersionApi";
 
 // Show push notifications as alerts even when the app is in the foreground.
 // Without this handler, Expo drops all incoming notifications silently.
@@ -39,12 +41,16 @@ import { GlobalAlert } from "@/components/GlobalAlert";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const APP_STORE_URL =
+  process.env.EXPO_PUBLIC_APP_STORE_URL ??
+  "https://apps.apple.com/tr/app/ada-plus/id6743840993";
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
+  const [updateRequired, setUpdateRequired] = useState(false);
 
   useEffect(() => {
-    // Show an in-app Alert when a push notification arrives while the app is open.
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (notification) => {
         const title = notification.request.content.title ?? "Bildirim";
@@ -53,11 +59,44 @@ export default function RootLayout() {
       },
     );
     SplashScreen.hideAsync();
+
+    const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
+    fetchAppVersion()
+      .then(({ minimumVersion }) => {
+        if (requiresUpdate(currentVersion, minimumVersion)) {
+          setUpdateRequired(true);
+        }
+      })
+      .catch(() => {
+        // Network error — don't block the app
+      });
+
     return () => notificationListener.current?.remove();
   }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <Modal
+        visible={updateRequired}
+        animationType="fade"
+        transparent={false}
+        statusBarTranslucent
+        onRequestClose={() => {/* blocked — user must update */}}
+      >
+        <View style={updateStyles.container}>
+          <Text style={updateStyles.emoji}>🌊</Text>
+          <Text style={updateStyles.title}>Güncelleme Gerekli</Text>
+          <Text style={updateStyles.body}>
+            Ada+'ı kullanmaya devam etmek için uygulamayı güncellemelisin.
+          </Text>
+          <TouchableOpacity
+            style={updateStyles.button}
+            onPress={() => Linking.openURL(APP_STORE_URL)}
+          >
+            <Text style={updateStyles.buttonText}>App Store'da Güncelle</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
       <Provider store={store}>
         <NetworkProvider>
         <AuthProvider>
@@ -98,3 +137,36 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const updateStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 40,
+  },
+  emoji: { fontSize: 64, marginBottom: 24 },
+  title: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#0F172A",
+    textAlign: "center",
+    marginBottom: 16,
+    letterSpacing: -0.5,
+  },
+  body: {
+    fontSize: 16,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 40,
+  },
+  button: {
+    backgroundColor: "#EC4899",
+    paddingHorizontal: 36,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+});
