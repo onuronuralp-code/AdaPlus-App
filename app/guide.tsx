@@ -213,8 +213,10 @@ export default function GuideScreen() {
                             <View style={[styles.bubble, msg.isBot ? styles.botBubble : styles.userBubble]}>
                                 {msg.text === '...' ? (
                                     <ActivityIndicator size="small" color="#EC4899" />
+                                ) : msg.isBot ? (
+                                    <MarkdownText text={msg.text} style={[styles.messageText, styles.botText]} />
                                 ) : (
-                                    <Text style={[styles.messageText, msg.isBot ? styles.botText : styles.userText]}>
+                                    <Text style={[styles.messageText, styles.userText]}>
                                         {msg.text}
                                     </Text>
                                 )}
@@ -277,6 +279,29 @@ export default function GuideScreen() {
                 </View>
             </Animated.View>
         </SafeAreaView>
+    );
+}
+
+function MarkdownText({ text, style }: { text: string; style?: object | object[] }) {
+    const segments: { content: string; bold: boolean }[] = [];
+    let remaining = text;
+    while (remaining.length > 0) {
+        const boldStart = remaining.indexOf('**');
+        if (boldStart === -1) { segments.push({ content: remaining, bold: false }); break; }
+        if (boldStart > 0) segments.push({ content: remaining.slice(0, boldStart), bold: false });
+        const boldEnd = remaining.indexOf('**', boldStart + 2);
+        if (boldEnd === -1) { segments.push({ content: remaining, bold: false }); break; }
+        segments.push({ content: remaining.slice(boldStart + 2, boldEnd), bold: true });
+        remaining = remaining.slice(boldEnd + 2);
+    }
+    return (
+        <Text style={style}>
+            {segments.map((seg, i) =>
+                seg.bold
+                    ? <Text key={i} style={{ fontWeight: '700', color: '#0F172A' }}>{seg.content}</Text>
+                    : <Text key={i}>{seg.content}</Text>
+            )}
+        </Text>
     );
 }
 
