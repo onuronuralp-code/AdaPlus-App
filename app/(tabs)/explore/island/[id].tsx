@@ -109,10 +109,7 @@ export default function IslandDetailScreen() {
                         style={[StyleSheet.absoluteFill, { opacity: 0.15, borderRadius: 24 }]} 
                         resizeMode="cover"
                     />
-                    <View style={styles.sectionHeader}>
-                        <IconSymbol name={"safari" as any} size={24} color="#EA580C" style={{ marginRight: 8 }} />
-                        <Text style={styles.sectionTitle}>{t('common.servicesAndActivities', { defaultValue: 'Services & Activities' })}</Text>
-                    </View>
+
 
                     {/* Cards */}
                     <ActivityCard

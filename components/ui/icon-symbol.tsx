@@ -92,6 +92,9 @@ const MAPPING = {
   'calendar.badge.exclamationmark': 'event-busy',
   'doc.text.magnifyingglass': 'find-in-page',
   'arrow.uturn.left.circle.fill': 'reply',
+  'bolt.car.fill': 'electric-car',
+  'car.fill': 'directions-car',
+  'slider.horizontal.3': 'tune',
 } as Partial<IconMapping>;
 
 /**

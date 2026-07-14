@@ -718,7 +718,7 @@ export default function ForumScreen() {
             <Modal
                 visible={isWriteModalVisible}
                 animationType="slide"
-                presentationStyle="pageSheet"
+                presentationStyle="fullScreen"
                 onRequestClose={handleCloseWriteModal}
             >
                 <View style={styles.modalContainer}>
@@ -898,7 +898,7 @@ export default function ForumScreen() {
             <Modal
                 visible={isDetailModalVisible}
                 animationType="slide"
-                presentationStyle="pageSheet"
+                presentationStyle="fullScreen"
                 onRequestClose={() => setIsDetailModalVisible(false)}
             >
                 <KeyboardAvoidingView
@@ -917,7 +917,6 @@ export default function ForumScreen() {
                         </View>
                         <View style={{ flex: 1 }} />
                     </View>
-                    <ScrollView style={styles.modalBody}>
                         {selectedPost && (
                             <View style={styles.detailPostContainer}>
                                 <View style={styles.postCardHeader}>
@@ -1021,7 +1020,8 @@ export default function ForumScreen() {
                                 </View>
                             </View>
                         )}
-                        <View style={styles.commentsSection}>
+                        <ScrollView style={styles.modalBody}>
+                            <View style={styles.commentsSection}>
                             <Text style={styles.commentsTitle}>{t('forum.comments')}</Text>
                             {replies.length > 0 ? (
                                 replies.map(reply => (

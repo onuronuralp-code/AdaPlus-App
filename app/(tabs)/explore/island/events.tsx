@@ -305,7 +305,6 @@ export default function EventsScreen() {
                             <View style={styles.eventInfo}>
                                 <View style={styles.titleRow}>
                                     <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
-                                    <IconSymbol name="star.fill" size={20} color="#94A3B8" />
                                 </View>
                                 <View style={styles.eventDetailsRow}>
                                     <IconSymbol name="calendar" size={14} color="#3B82F6" />

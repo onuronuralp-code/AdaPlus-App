@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn npx expo start --ios --port 8082
+expect "Install the recommended Expo Go version?"
+send "Y\r"
+expect eof

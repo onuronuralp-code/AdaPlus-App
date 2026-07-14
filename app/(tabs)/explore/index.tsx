@@ -1,16 +1,130 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useEffect, useCallback } from 'react';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { SwipeButton } from '@/components/SwipeButton';
 import { useTranslation } from 'react-i18next';
-import { fetchActivities, fetchListings } from '@/services/api';
+import { fetchActivities, fetchListings, fetchDepartures } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
 import { useAuth } from '@/context/AuthContext';
+import { unregisterPushNotifications } from '@/services/notificationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useWeather } from '@/hooks/useWeather';
+import { createPost, PostType, Island } from '@/services/forumApi';
+
+const getRouteTimeValue = (time: string): number => {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+};
+
+const TodayOnIsland = () => {
+  const { t } = useTranslation();
+  const router = useRouter();
+  
+  const { weather, loading: weatherLoading } = useWeather();
+  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string} | null>(null);
+  const [ferryLoading, setFerryLoading] = useState(true);
+  
 
 
+  useEffect(() => {
+    let cancelled = false;
+    
+    const fetchFerry = async () => {
+      try {
+        let dep = "Bostancı";
+        let dest = "Büyükada";
+        const favRouteStr = await AsyncStorage.getItem('favorite_route');
+        if (favRouteStr) {
+          const fav = JSON.parse(favRouteStr);
+          dep = fav.departure;
+          dest = fav.destination;
+        }
+
+        const dateObj = new Date();
+        const dateStr = dateObj.toISOString().split("T")[0];
+        const departures = await fetchDepartures(dep, dest, dateStr);
+
+        if (!cancelled) {
+          const nowMinutes = dateObj.getHours() * 60 + dateObj.getMinutes();
+          const upcoming = departures.filter(d => getRouteTimeValue(d.time) >= nowMinutes);
+          upcoming.sort((a, b) => getRouteTimeValue(a.time) - getRouteTimeValue(b.time));
+
+          if (upcoming.length > 0) {
+            setNextFerry({ from: dep, to: dest, time: upcoming[0].time, provider: upcoming[0].provider });
+          }
+        }
+      } catch (err) {
+        console.log("Failed to fetch next ferry", err);
+      } finally {
+        if (!cancelled) setFerryLoading(false);
+      }
+    };
+    fetchFerry();
+    
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+      {/* Weather Badge */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 }}>
+        <IconSymbol name="sun.max.fill" size={14} color="#F97316" />
+        <Text style={{ fontSize: 12, fontWeight: '700', color: '#C2410C', marginLeft: 6 }}>
+          {weatherLoading ? '...' : (weather ? `${weather.temperature}°` : '28°')}
+        </Text>
+      </View>
+
+      {/* Ferry Badge */}
+      <TouchableOpacity 
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, flex: 1 }}
+        onPress={() => {
+          if (nextFerry) {
+            router.push({
+              pathname: '/(tabs)/home',
+              params: { from: nextFerry.from, to: nextFerry.to, time: nextFerry.time }
+            });
+          } else {
+            router.push('/(tabs)/home');
+          }
+        }}
+        activeOpacity={0.8}
+      >
+        <IconSymbol name="ferry.fill" size={14} color="#3B82F6" />
+        <Text style={{ fontSize: 12, fontWeight: '700', color: '#1D4ED8', marginLeft: 6 }} numberOfLines={1}>
+          {ferryLoading ? 'Yükleniyor...' : (nextFerry ? `${nextFerry.time} ${nextFerry.provider ? nextFerry.provider + ' ' : ''}${nextFerry.from}-${nextFerry.to}` : 'Sefer Bulunamadı')}
+        </Text>
+        <IconSymbol name="chevron.right" size={12} color="#93C5FD" style={{ marginLeft: 'auto' }} />
+      </TouchableOpacity>
+    </View>
+  );
+};
+const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChange: (lang: string) => void }) => {
+  const isTr = currentLang.startsWith('tr');
+
+  return (
+    <TouchableOpacity 
+      style={{ 
+        width: 44, 
+        height: 44, 
+        borderRadius: 22, 
+        backgroundColor: '#F1F5F9', 
+        alignItems: 'center', 
+        justifyContent: 'center'
+      }}
+      onPress={() => onChange(isTr ? 'en' : 'tr')}
+      activeOpacity={0.7}
+    >
+      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
+        {isTr ? 'TR' : 'EN'}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 export default function MainMenuScreen() {
   const { t, i18n } = useTranslation();
@@ -28,6 +142,33 @@ export default function MainMenuScreen() {
   const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
   const [surveyOtherText, setSurveyOtherText] = useState('');
   const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [totalEventsCount, setTotalEventsCount] = useState(0);
+  const [totalListingsCount, setTotalListingsCount] = useState(0);
+
+  const [postText, setPostText] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
+
+  const handleCreatePost = async () => {
+    if (!postText.trim()) return;
+    setIsPosting(true);
+    try {
+      await createPost({
+        content: postText,
+        postType: PostType.DISCUSSION,
+        island: Island.BUYUKADA,
+        anonymous: false,
+      });
+      setPostText('');
+      Alert.alert(t('explore.postSuccess'), t('explore.postSuccessDesc'), [
+        { text: t('explore.goToCommunity'), onPress: () => router.push('/(tabs)/explore/island/forum') },
+        { text: t('explore.ok') }
+      ]);
+    } catch (error) {
+      Alert.alert(t('explore.postError'), t('explore.postErrorDesc'));
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -67,6 +208,9 @@ export default function MainMenuScreen() {
           .sort((a, b) => b.date - a.date) // sort by newest first
           .slice(0, 5);
 
+        setTotalEventsCount(validEvents.length);
+        setTotalListingsCount(validListings.length);
+
         if (combined.length > 0) {
           setHeroSlides(combined);
         } else {
@@ -101,24 +245,61 @@ export default function MainMenuScreen() {
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (width - 16));
+    const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = 220;
+  const heroHeight = 260;
 
   return (
     <View style={styles.container}>
-      <View style={[styles.welcomeContainer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: insets.top + 16, paddingHorizontal: 20 }, isSmallScreen && { marginBottom: 12, marginTop: 4 }]}>
+      <View style={[styles.welcomeContainer, { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start', 
+        paddingTop: insets.top + 12, 
+        paddingHorizontal: 20 
+      }, isSmallScreen && { marginBottom: 12 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
           <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 32 }]}>
             {isLoggedIn && user
-              ? t('common.welcomeGreetingUser', { name: user.fullName.split(' ')[0] })
-              : t('common.welcomeGreeting')}
+              ? `${t('explore.goodMorning')}, ${user.fullName.split(' ')[0]}! ☀️`
+              : `${t('explore.goodMorning')}, Onur! ☀️`}
           </Text>
-          <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
-            {t('common.welcomeSubtitle')}
-          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
+              {t('explore.todayEventsWaiting', { count: totalEventsCount })}
+            </Text>
+          </View>
         </View>
+        <LanguageToggle 
+          currentLang={i18n.language} 
+          onChange={(lang) => i18n.changeLanguage(lang)} 
+        />
+      </View>
+
+      {/* Create Post Input & Quick Info */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 16, paddingHorizontal: 16, height: 50, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
+            <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#059669" />
+            <TextInput
+              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: '#0F172A' }}
+              placeholder={t('explore.whatsHappening')}
+              placeholderTextColor="#94A3B8"
+              value={postText}
+              onChangeText={setPostText}
+              onSubmitEditing={handleCreatePost}
+            />
+          </View>
+          <TouchableOpacity 
+             style={{ width: 50, height: 50, backgroundColor: '#059669', borderRadius: 16, alignItems: 'center', justifyContent: 'center', opacity: postText.trim() ? 1 : 0.5 }}
+             onPress={handleCreatePost}
+             disabled={!postText.trim() || isPosting}
+          >
+            {isPosting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
+          </TouchableOpacity>
+        </View>
+        <TodayOnIsland />
       </View>
 
       {/* Hero Header Slider Wrapper */}
@@ -126,13 +307,12 @@ export default function MainMenuScreen() {
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          snapToInterval={width - 8}
+          snapToInterval={width}
           decelerationRate="fast"
           bounces={true}
-          contentContainerStyle={{ paddingHorizontal: 4 }}
           onMomentumScrollEnd={(e) => {
             const scrollPosition = e.nativeEvent.contentOffset.x;
-            const index = Math.round(scrollPosition / (width - 8));
+            const index = Math.round(scrollPosition / width);
             setActiveIndex(index);
           }}
         >
@@ -152,21 +332,61 @@ export default function MainMenuScreen() {
                 }
               }}
             >
-              <View style={[styles.heroImage, { width: width - 16, marginHorizontal: 4, borderRadius: 20, overflow: 'hidden' }]}>
+              <View style={[styles.heroImage, { width: width - 40, marginHorizontal: 20, borderRadius: 24, overflow: 'hidden' }]}>
                 <ImageBackground 
                     source={{ uri: slide.imageUrl }} 
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, padding: 20, justifyContent: 'space-between' }}
                     imageStyle={{ resizeMode: 'cover', borderRadius: 24 }}
                 >
                   <LinearGradient
-                    colors={['transparent', 'rgba(27,27,47,0.8)', '#1B1B2F']}
-                    style={styles.heroGradient}
-                  >
-                    <View style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}>
-                      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 4 }}>{slide.title}</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }} numberOfLines={2}>{slide.subtitle}</Text>
+                    colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
+                    style={[StyleSheet.absoluteFill, { borderRadius: 24 }]}
+                  />
+                  
+                  {/* Top Row */}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
+                    <View style={{ backgroundColor: '#3B82F6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
+                      <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '800' }}>ÖNE ÇIKAN ETKİNLİK</Text>
                     </View>
-                  </LinearGradient>
+                    <TouchableOpacity 
+                      style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}
+                      onPress={() => router.push('/(tabs)/explore/island/events')}
+                    >
+                      <Text style={{ color: '#0F172A', fontSize: 11, fontWeight: '700', marginRight: 4 }}>Tüm Etkinlikler</Text>
+                      <IconSymbol name="arrow.right" size={12} color="#0F172A" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Bottom Content */}
+                  <View style={{ zIndex: 10, paddingBottom: 10 }}>
+                    <Text style={{ color: '#FFF', fontSize: 24, fontWeight: '900', marginBottom: 12, lineHeight: 30, width: '90%' }} numberOfLines={2}>
+                      {slide.title}
+                    </Text>
+
+                    {/* Details Row */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <IconSymbol name="mappin.circle.fill" size={14} color="#E2E8F0" />
+                        <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>Büyükada</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <IconSymbol name="calendar" size={14} color="#E2E8F0" />
+                        <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>
+                          {new Date(slide.date).toLocaleDateString('tr-TR', {day: 'numeric', month: 'long'})}
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <IconSymbol name="person.3.fill" size={14} color="#E2E8F0" />
+                        <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>250+ Katılımcı</Text>
+                      </View>
+                    </View>
+
+                    {/* Kayıt Ol Button */}
+                    <TouchableOpacity style={{ backgroundColor: '#FFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ color: '#0F172A', fontSize: 13, fontWeight: '800', marginRight: 4 }}>Kayıt Ol</Text>
+                      <IconSymbol name="arrow.right" size={14} color="#0F172A" />
+                    </TouchableOpacity>
+                  </View>
                 </ImageBackground>
               </View>
             </TouchableOpacity>
@@ -175,7 +395,84 @@ export default function MainMenuScreen() {
 
         {/* Top bar (Fixed over the slider) */}
         <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]} />
+
+        {/* Pagination Dots */}
+        <View pointerEvents="none" style={{ position: 'absolute', bottom: 12, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 }}>
+          {slidesToRender.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot, 
+                activeIndex === index ? styles.activeDot : null,
+                { backgroundColor: activeIndex === index ? '#FFFFFF' : 'rgba(255,255,255,0.4)' }
+              ]}
+            />
+          ))}
+        </View>
       </View>
+      {/* Hızlı Erişim Section (Header Removed) */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={{ marginTop: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 20 }}
+      >
+        {/* Etkinlikler */}
+        <TouchableOpacity 
+          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
+          onPress={() => router.push('/(tabs)/explore/island/events')}
+        >
+          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <IconSymbol name="calendar" size={24} color="#3B82F6" />
+          </View>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 2 }}>{t('explore.events')}</Text>
+          <Text style={{ fontSize: 10, color: '#64748B' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+        </TouchableOpacity>
+
+        {/* Ada AI */}
+        <TouchableOpacity 
+          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
+          onPress={() => router.push('/guide')}
+        >
+          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <IconSymbol name="pawprint.fill" size={24} color="#EC4899" />
+          </View>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
+          <Text style={{ fontSize: 10, color: '#64748B' }}>{t('explore.yourGuide')}</Text>
+        </TouchableOpacity>
+
+        {/* İlanlar */}
+        <TouchableOpacity 
+          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FEF08A', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
+          onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
+        >
+          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <IconSymbol name="megaphone.fill" size={24} color="#EAB308" />
+          </View>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 2 }}>{t('explore.listings')}</Text>
+          <Text style={{ fontSize: 10, color: '#64748B' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+        </TouchableOpacity>
+
+        {/* Paket Servis */}
+        <TouchableOpacity 
+          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
+          onPress={() => {
+            setSurveySubmitted(false);
+            setSurveyOptions([]);
+            setSurveyOtherText('');
+            setShowSurvey(true);
+          }}
+        >
+          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <IconSymbol name="bag.fill" size={24} color="#8B5CF6" />
+          </View>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 4, textAlign: 'center' }}>{t('explore.delivery')}</Text>
+          <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
+            <Text style={{ fontSize: 9, color: '#8B5CF6', fontWeight: '700' }}>Yakında</Text>
+          </View>
+        </TouchableOpacity>
+
+      </ScrollView>
 
       {/* Body Content — scrollable on short screens, fills naturally on tall screens */}
       <Animated.ScrollView
@@ -185,104 +482,12 @@ export default function MainMenuScreen() {
         bounces={false}
         scrollEnabled={true}
       >
-        {/* Pagination Dots */}
-        <View style={[styles.paginationUnderHero, isSmallScreen && { height: 14, marginBottom: 4 }]}>
-          {slidesToRender.map((_, index) => (
-            <View
-              key={index}
-              style={[styles.dot, activeIndex === index ? styles.activeDot : null]}
-            />
-          ))}
-        </View>
-
-        {/* Services Section */}
-        <View style={styles.servicesSection}>
-
-          <View style={[styles.sectionHeader, isSmallScreen && { marginBottom: 10 }]}>
-            <View style={styles.sectionTitleRow}>
-              <IconSymbol name="safari.fill" size={isLargeScreen ? 24 : 20} color="#EA580C" />
-              <Text style={[styles.sectionTitle, isLargeScreen && { fontSize: 20 }]}>
-                {t('common.servicesAndActivities')}
-              </Text>
-            </View>
-          </View>
-          <View style={[styles.cardsContainer, { gap: 10 }]}>
-            <View style={styles.gridRow}>
-              <GridCard
-                icon="tag.fill"
-                colors={['#3B82F6', '#2563EB']}
-                title={t('common.ilanlar')}
-                subtitle={t('common.ilanlarSubtitle')}
-                onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
-                style={{ marginRight: 4 }}
-                large={isLargeScreen}
-              />
-              <GridCard
-                icon="ticket.fill"
-                colors={['#F59E0B', '#D97706']}
-                title={t('common.events')}
-                subtitle={t('common.islandEvents')}
-                onPress={() => router.push('/(tabs)/explore/island/events')}
-                style={{ marginLeft: 4 }}
-                large={isLargeScreen}
-              />
-            </View>
-            <View style={styles.gridRow}>
-              <GridCard
-                icon="safari.fill"
-                colors={['#EC4899', '#BE185D']}
-                title={t('common.adaAI')}
-                subtitle={t('common.yourSmartGuide')}
-                onPress={() => router.push('/guide')}
-                style={{ marginRight: 4 }}
-                large={isLargeScreen}
-              />
-              <GridCard
-                icon="bag.fill"
-                colors={['#8B5CF6', '#6D28D9']}
-                title={t('common.delivery', { defaultValue: i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis' })}
-                subtitle={t('common.comingSoon', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında' })}
-                onPress={() => {
-                  setSurveySubmitted(false);
-                  setSurveyOptions([]);
-                  setSurveyOtherText('');
-                  setShowSurvey(true);
-                }}
-                style={{ marginLeft: 4, opacity: 0.8 }}
-                large={isLargeScreen}
-              />
-            </View>
-            <TouchableOpacity 
-              style={{
-                backgroundColor: '#F0FDF4',
-                borderRadius: 20,
-                padding: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginTop: 2
-              }}
-              onPress={() => router.push('/(tabs)/explore/island/forum')}
-              activeOpacity={0.8}
-            >
-              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#D1FAE5', alignItems: 'center', justifyContent: 'center' }}>
-                <IconSymbol name="bubble.left.and.bubble.right.fill" size={24} color="#059669" />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12, paddingRight: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#059669', marginBottom: 2 }}>
-                  {t('common.community')}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#4B5563', lineHeight: 15 }}>
-                  {t('common.shareExperiences', { defaultValue: i18n.language.startsWith('en') ? 'Stay updated on the island agenda, express your opinion, transform the island.' : 'Ada gündemine hakim ol, fikrini ifade et, adayı dönüştür.' })}
-                </Text>
-              </View>
-              <View style={{ backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold', marginRight: 4 }}>Join Now</Text>
-                <IconSymbol name="arrow.right" size={14} color="#fff" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
       </Animated.ScrollView>
+
+      {/* Pinned Topluluk Banner (Above Nav Bar) */}
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16, paddingTop: 16, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+        <SwipeButton onSwipeComplete={() => router.push('/(tabs)/explore/island/forum')} />
+      </View>
 
       {/* Survey Modal */}
       <Modal
@@ -303,7 +508,7 @@ export default function MainMenuScreen() {
                   {i18n.language.startsWith('en') ? 'Thank You!' : 'Teşekkürler!'}
                 </Text>
                 <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
-                  {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring delivery services to the islands.' : 'Görüşleriniz alındı. Adalara paket servis hizmetini getirmek için var gücümüzle çalışıyoruz.'}
+                  {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring electric vehicle services to the islands.' : 'Görüşleriniz alındı. Adalara elektrikli taşıt hizmetini getirmek için var gücümüzle çalışıyoruz.'}
                 </Text>
                 <TouchableOpacity 
                   style={{ width: '100%', backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 16, alignItems: 'center' }} 
@@ -317,22 +522,22 @@ export default function MainMenuScreen() {
             ) : (
               <>
                 <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                  <IconSymbol name="bag.fill" size={28} color="#8B5CF6" />
+                  <IconSymbol name="bolt.car.fill" size={28} color="#8B5CF6" />
                 </View>
                 <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
-                  {i18n.language.startsWith('en') ? 'Delivery Service' : 'Paket Servis'}
+                  {i18n.language.startsWith('en') ? 'Electric Vehicle' : 'Elektrikli Taşıt'}
                 </Text>
                 <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
-                  {i18n.language.startsWith('en') ? 'What kind of delivery service would you use most on the island?' : 'Adada en çok hangi paket servis hizmetine ihtiyaç duyuyorsunuz?'}
+                  {i18n.language.startsWith('en') ? 'What kind of electric vehicle service would you use most on the island?' : 'Adada en çok hangi elektrikli taşıt hizmetine ihtiyaç duyuyorsunuz?'}
                 </Text>
                 
                 <ScrollView style={{ width: '100%', maxHeight: 300, marginBottom: 10 }} showsVerticalScrollIndicator={false}>
                   {[
-                    i18n.language.startsWith('en') ? 'Food & Restaurant' : 'Yemek & Restoran', 
-                    i18n.language.startsWith('en') ? 'Market & Grocery' : 'Market & Bakkal', 
-                    i18n.language.startsWith('en') ? 'Water & Gas' : 'Su & Tüp', 
-                    i18n.language.startsWith('en') ? 'Pharmacy' : 'Eczane',
-                    i18n.language.startsWith('en') ? 'Cargo' : 'Kargo'
+                    i18n.language.startsWith('en') ? 'Golf Cart' : 'Golf Aracı', 
+                    i18n.language.startsWith('en') ? 'Electric Scooter' : 'Elektrikli Scooter', 
+                    i18n.language.startsWith('en') ? 'Electric Bicycle' : 'Elektrikli Bisiklet', 
+                    i18n.language.startsWith('en') ? 'Freight Vehicle' : 'Yük Taşıma Aracı',
+                    i18n.language.startsWith('en') ? 'Other' : 'Diğer'
                   ].map((option) => (
                     <TouchableOpacity 
                       key={option}
@@ -350,7 +555,7 @@ export default function MainMenuScreen() {
                       {surveyOptions.includes(option) && <IconSymbol name="checkmark.circle.fill" size={20} color="#8B5CF6" />}
                     </TouchableOpacity>
                   ))}
-                  {(surveyOptions.includes('Kargo') || surveyOptions.includes('Cargo')) && (
+                  {(surveyOptions.includes('Diğer') || surveyOptions.includes('Other')) && (
                     <TextInput
                       style={{
                         width: '100%', backgroundColor: '#F8FAFC', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 16,
@@ -422,22 +627,25 @@ function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any)
   );
 }
 
-function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any) {
+function GridCard({ icon, title, subtitle, onPress, style, colors, large, iconImage }: any) {
   const primaryColor = colors ? colors[0] : '#3B82F6';
 
   const content = (
-    <View style={{ flex: 1, padding: 10, width: '100%', justifyContent: 'space-between' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
-          <IconSymbol name={icon as any} size={20} color={primaryColor} />
-        </View>
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: primaryColor, marginBottom: 1 }}>{title}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B', lineHeight: 14 }}>{subtitle}</Text>
+    <View style={{ flex: 1, padding: 8, width: '100%' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', height: 48 }}>
+        {iconImage ? (
+          <Image source={iconImage} style={{ width: 44, height: 44, borderRadius: 12, marginRight: 8 }} resizeMode="contain" />
+        ) : (
+          <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+            <IconSymbol name={icon as any} size={16} color={primaryColor} />
+          </View>
+        )}
+        <View style={{ flex: 1, paddingRight: 16, justifyContent: 'center' }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: primaryColor }}>{title}</Text>
         </View>
       </View>
-      <View style={{ alignSelf: 'flex-end', marginTop: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: `${primaryColor}10`, alignItems: 'center', justifyContent: 'center' }}>
-        <IconSymbol name="arrow.right" size={12} color={primaryColor} />
+      <View style={{ position: 'absolute', bottom: 8, right: 8, width: 20, height: 20, borderRadius: 10, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
+        <IconSymbol name="arrow.right" size={10} color={primaryColor} />
       </View>
     </View>
   );
@@ -446,9 +654,10 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large }: any)
     <TouchableOpacity 
       style={[
         styles.gridCard, 
-        { backgroundColor: `${primaryColor}10`, padding: 0 },
+        { backgroundColor: '#FFFFFF', padding: 0, borderWidth: 1, borderColor: '#F1F5F9' },
         style
       ]} 
+
       onPress={onPress} 
       activeOpacity={0.7}
     >
@@ -704,11 +913,12 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     flex: 1,
-    minHeight: 84,
+    minHeight: 64,
     borderRadius: 20,
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   gridIconContainer: {
     width: 34,

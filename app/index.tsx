@@ -27,8 +27,7 @@ export default function SplashScreen() {
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 
-  const logoW = 240;
-  const tagSize = Math.max(15, Math.min(width * 0.045, 20));
+  const logoW = 320;
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -38,9 +37,6 @@ export default function SplashScreen() {
           style={{ width: logoW, height: logoW, resizeMode: "contain" }}
           accessibilityLabel="AdaPlus"
         />
-        <Text style={[styles.tag, { fontSize: tagSize, marginTop: 8 }]}>
-          Adaları keşfetmeye hazır mısın?
-        </Text>
       </View>
 
 

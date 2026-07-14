@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -185,6 +185,7 @@ const getTrackingStatus = (route: FerryRoute, selectedDate: Date) => {
 
 export function FerrySchedule() {
   const router = useRouter();
+  const params = useLocalSearchParams<{from?: string, to?: string, time?: string}>();
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -204,23 +205,37 @@ export function FerrySchedule() {
   const calendarScrollRef = useRef<ScrollView>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Load initial favorite route
+  // Load initial route (from params or favorites)
   useEffect(() => {
-    const loadFav = async () => {
-      try {
-        const fav = await AsyncStorage.getItem('favorite_route');
-        if (fav) {
-          const parsed = JSON.parse(fav);
-          setDeparture(parsed.departure);
-          setDestination(parsed.destination);
-          setIsFavorite(true);
+    const loadInitial = async () => {
+      if (params.from && params.to) {
+        setDeparture(params.from as string);
+        setDestination(params.to as string);
+      } else {
+        try {
+          const fav = await AsyncStorage.getItem('favorite_route');
+          if (fav) {
+            const parsed = JSON.parse(fav);
+            setDeparture(parsed.departure);
+            setDestination(parsed.destination);
+          }
+        } catch (e) {
+          console.error("Failed to load favorite route", e);
         }
-      } catch (e) {
-        console.error("Failed to load favorite route", e);
       }
     };
-    loadFav();
-  }, []);
+    loadInitial();
+  }, [params.from, params.to]);
+
+  // Handle auto-selecting the specific ferry trip passed in params
+  useEffect(() => {
+    if (params.time && ferryData.length > 0) {
+      const match = ferryData.find(f => f.departureTime === params.time);
+      if (match) {
+        setSelectedTrip(match);
+      }
+    }
+  }, [ferryData, params.time]);
 
   // Check if current selection is favorite
   useEffect(() => {
