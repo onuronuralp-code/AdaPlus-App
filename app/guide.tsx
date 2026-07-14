@@ -282,28 +282,49 @@ export default function GuideScreen() {
     );
 }
 
-function MarkdownText({ text, style }: { text: string; style?: object | object[] }) {
-    const segments: { content: string; bold: boolean }[] = [];
+function parseBoldSegments(text: string): React.ReactNode[] {
+    const nodes: React.ReactNode[] = [];
     let remaining = text;
+    let key = 0;
     while (remaining.length > 0) {
-        const boldStart = remaining.indexOf('**');
-        if (boldStart === -1) { segments.push({ content: remaining, bold: false }); break; }
-        if (boldStart > 0) segments.push({ content: remaining.slice(0, boldStart), bold: false });
-        const boldEnd = remaining.indexOf('**', boldStart + 2);
-        if (boldEnd === -1) { segments.push({ content: remaining, bold: false }); break; }
-        segments.push({ content: remaining.slice(boldStart + 2, boldEnd), bold: true });
-        remaining = remaining.slice(boldEnd + 2);
+        const s = remaining.indexOf('**');
+        if (s === -1) { nodes.push(remaining); break; }
+        if (s > 0) nodes.push(remaining.slice(0, s));
+        const e = remaining.indexOf('**', s + 2);
+        if (e === -1) { nodes.push(remaining); break; }
+        nodes.push(<Text key={key++} style={{ fontWeight: '700', color: '#0F172A' }}>{remaining.slice(s + 2, e)}</Text>);
+        remaining = remaining.slice(e + 2);
     }
+    return nodes;
+}
+
+function MarkdownText({ text, style }: { text: string; style?: object | object[] }) {
+    const lines = text.split('\n');
     return (
-        <Text style={style}>
-            {segments.map((seg, i) =>
-                seg.bold
-                    ? <Text key={i} style={{ fontWeight: '700', color: '#0F172A' }}>{seg.content}</Text>
-                    : <Text key={i}>{seg.content}</Text>
-            )}
-        </Text>
+        <View>
+            {lines.map((line, i) => {
+                if (line.trim() === '') return <View key={i} style={{ height: 4 }} />;
+                const isBullet = line.startsWith('- ');
+                const content = isBullet ? line.slice(2) : line;
+                if (isBullet) {
+                    return (
+                        <View key={i} style={mdStyles.bulletRow}>
+                            <Text style={[style, mdStyles.bullet]}>•</Text>
+                            <Text style={[style, mdStyles.bulletText]}>{parseBoldSegments(content)}</Text>
+                        </View>
+                    );
+                }
+                return <Text key={i} style={style}>{parseBoldSegments(content)}</Text>;
+            })}
+        </View>
     );
 }
+
+const mdStyles = StyleSheet.create({
+    bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 8 },
+    bullet: { marginRight: 8, lineHeight: 22 },
+    bulletText: { flex: 1, lineHeight: 22 },
+});
 
 function SuggestionChip({ text, onPress, disabled }: { text: string; onPress: () => void; disabled?: boolean }) {
     return (
