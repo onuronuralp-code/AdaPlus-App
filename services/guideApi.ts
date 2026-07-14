@@ -3,6 +3,13 @@ import { API_BASE_URL } from './config';
 
 const GUIDE_TIMEOUT_MS = 60_000;
 
+// Spring sends "data:text" (no space); SSE spec allows "data: text" too.
+function parseSseLine(line: string): string | null {
+  if (!line.startsWith('data:')) return null;
+  const value = line.slice(5).replace(/^ /, '');
+  return value || null;
+}
+
 export const sendChatMessageStream = async (
   message: string,
   island: string | undefined,
@@ -29,7 +36,17 @@ export const sendChatMessageStream = async (
       throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
     }
 
-    const reader = response.body!.getReader();
+    if (!response.body) {
+      // React Native older builds: body is null — read full text and parse SSE lines
+      const text = await response.text();
+      for (const line of text.split('\n')) {
+        const chunk = parseSseLine(line);
+        if (chunk) onChunk(chunk);
+      }
+      return;
+    }
+
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
 
@@ -42,18 +59,14 @@ export const sendChatMessageStream = async (
       buffer = lines.pop() ?? '';
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const chunk = line.slice(6);
-          if (chunk) onChunk(chunk);
-        }
+        const chunk = parseSseLine(line);
+        if (chunk) onChunk(chunk);
       }
     }
 
-    // Flush remaining buffer
-    if (buffer.startsWith('data: ')) {
-      const chunk = buffer.slice(6);
-      if (chunk) onChunk(chunk);
-    }
+    // Flush any remaining data in the buffer
+    const remaining = parseSseLine(buffer);
+    if (remaining) onChunk(remaining);
   } catch (e: any) {
     if (e?.name === 'AbortError') {
       throw new Error('Yanıt çok uzun sürdü, lütfen tekrar dene.');

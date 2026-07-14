@@ -122,7 +122,8 @@ export default function GuideScreen() {
                     scrollRef.current?.scrollToEnd({ animated: false });
                 },
             );
-        } catch {
+        } catch (e) {
+            console.error('[Guide] island stream error:', e);
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId
                     ? { ...m, text: t('guide.errorRetry') }
