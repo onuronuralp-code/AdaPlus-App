@@ -164,7 +164,12 @@ export default function IlanDetailScreen() {
             <TouchableOpacity
               style={styles.infoItem}
               activeOpacity={listing.contactInfo ? 0.6 : 1}
-              onPress={() => listing.contactInfo && Linking.openURL(`tel:${listing.contactInfo}`).catch(() => {})}
+              onPress={() => {
+                const isValidPhone = (s: string) => /^\+?[0-9\s\-().]{7,20}$/.test(s);
+                if (listing.contactInfo && isValidPhone(listing.contactInfo)) {
+                  Linking.openURL(`tel:${listing.contactInfo.replace(/[^\d+]/g, '')}`).catch(() => {});
+                }
+              }}
             >
               <View style={[styles.infoIcon, listing.contactInfo && { backgroundColor: '#ECFDF5' }]}>
                 <IconSymbol name="phone.fill" size={20} color={listing.contactInfo ? '#10B981' : '#64748B'} />

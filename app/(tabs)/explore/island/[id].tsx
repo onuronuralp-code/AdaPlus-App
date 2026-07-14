@@ -41,8 +41,9 @@ export default function IslandDetailScreen() {
         };
     });
 
-    // Fallback if no image passed, though discover page should pass it
-    const heroImage = typeof image === 'string' ? { uri: image } : { uri: 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=600&auto=format&fit=crop' };
+    const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1549488497-66a9d5926c48?q=80&w=600&auto=format&fit=crop';
+    const isValidImageUrl = (url: string) => /^https?:\/\/.+/.test(url);
+    const heroImage = typeof image === 'string' && isValidImageUrl(image) ? { uri: image } : { uri: FALLBACK_IMAGE };
 
     const islandSlug = typeof name === 'string' ? name.toLowerCase() : '';
     const islandName = typeof name === 'string' ? name : 'Discover Island';

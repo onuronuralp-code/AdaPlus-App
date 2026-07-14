@@ -47,6 +47,8 @@ ada-plus-backend/
 
 # env
 .env
+.env.*
+!.env.example
 
 # E2E test artifacts (screenshots and results are large binary/generated files)
 e2e/screenshots/

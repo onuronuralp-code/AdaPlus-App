@@ -125,7 +125,7 @@ export default function FerryTrackingScreen() {
 
   const loadLivePosition = useCallback(
     async (isInitial = false) => {
-      if (!tripId) {
+      if (!tripId || !/^[a-zA-Z0-9_\-]{1,128}$/.test(tripId)) {
         setError("Trip information is missing.");
         setLoading(false);
         return;

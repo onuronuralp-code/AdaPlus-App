@@ -27,6 +27,7 @@ export default function ResetPasswordScreen() {
 
     const validateToken = (val: string): string | undefined => {
         if (!val.trim()) return t('auth.errors.tokenRequired');
+        if (val.trim().length > 512 || !/^[a-zA-Z0-9_\-.]{6,512}$/.test(val.trim())) return t('auth.errors.tokenRequired');
         return undefined;
     };
 

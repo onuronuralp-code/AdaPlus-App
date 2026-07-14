@@ -28,7 +28,7 @@ export default function VerifyScreen() {
         email?: string;
         type?: 'email' | 'phone';
     }>();
-    const contact = contactParam || emailParam || '';
+    const contact = (contactParam || emailParam || '').slice(0, 320);
     const isPhone = type === 'phone';
 
     const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
