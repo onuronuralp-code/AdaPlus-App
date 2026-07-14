@@ -122,12 +122,13 @@ export default function GuideScreen() {
                     scrollRef.current?.scrollToEnd({ animated: false });
                 },
             );
-        } catch (e) {
+        } catch (e: any) {
             console.error('[Guide] island stream error:', e);
+            const msg = e?.message === 'daily_limit_reached'
+                ? t('guide.dailyLimitReached')
+                : t('guide.errorRetry');
             setMessages(prev => prev.map(m =>
-                m.id === thinkingId
-                    ? { ...m, text: t('guide.errorRetry') }
-                    : m
+                m.id === thinkingId ? { ...m, text: msg } : m
             ));
         } finally {
             setIsLoading(false);
@@ -163,8 +164,12 @@ export default function GuideScreen() {
                 },
             );
         } catch (e: any) {
+            console.error('[Guide] Send stream error:', e);
+            const msg = e?.message === 'daily_limit_reached'
+                ? t('guide.dailyLimitReached')
+                : (e?.message || t('guide.errorGeneric'));
             setMessages(prev => prev.map(m =>
-                m.id === thinkingId ? { ...m, text: e?.message || t('guide.errorGeneric') } : m
+                m.id === thinkingId ? { ...m, text: msg } : m
             ));
         } finally {
             setIsLoading(false);

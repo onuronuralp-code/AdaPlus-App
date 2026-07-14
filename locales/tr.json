@@ -329,6 +329,7 @@
         "islandContext": "{{island}} hakkında bilgi vermek istiyorum.",
         "errorRetry": "Bir hata oluştu, tekrar dene.",
         "errorGeneric": "Bir hata oluştu.",
+        "dailyLimitReached": "Günlük 10 mesaj limitine ulaştın. Yarın tekrar görüşürüz! 🌊",
         "welcomeMessage": "Merhaba! 👋 Ben Ada Plus asistanın. Sana en doğru bilgileri verebilmem için öncelikle şu an hangi adada olduğunu öğrenebilir miyim?",
         "placeholder": "Ada AI'a sor...",
         "chip": {
