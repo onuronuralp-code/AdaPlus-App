@@ -3,10 +3,11 @@ import { API_BASE_URL } from './config';
 
 const GUIDE_TIMEOUT_MS = 60_000;
 
-// Spring sends "data:text" (no space); SSE spec allows "data: text" too.
+// Spring writes "data:" immediately followed by the token — no separator space added.
+// A leading space in the token IS part of the data (word boundary), never strip it.
 function parseSseLine(line: string): string | null {
   if (!line.startsWith('data:')) return null;
-  const value = line.slice(5).replace(/^ /, '');
+  const value = line.slice(5);
   return value || null;
 }
 
