@@ -1,96 +1,49 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, Animated, PanResponder, StyleSheet, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Pressable, Vibration } from 'react-native';
 import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
+  isLoggedIn?: boolean;
 }
 
-const THUMB_SIZE = 60;
-const PADDING = 8;
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const MAX_TRANSLATE = SCREEN_WIDTH - 40 - (PADDING * 2) - THUMB_SIZE;
-
-export function SwipeButton({ onSwipeComplete }: SwipeButtonProps) {
+export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonProps) {
   const { t, i18n } = useTranslation();
-  const pan = useRef(new Animated.ValueXY()).current;
-  const [completed, setCompleted] = useState(false);
-  const completedRef = useRef(false);
+  const router = useRouter();
 
-  useEffect(() => {
-    completedRef.current = completed;
-  }, [completed]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderMove: (e, gesture) => {
-        if (completedRef.current) return;
-        let newX = gesture.dx;
-        if (newX < 0) newX = 0;
-        if (newX > MAX_TRANSLATE) newX = MAX_TRANSLATE;
-        pan.setValue({ x: newX, y: 0 });
-      },
-      onPanResponderRelease: (e, gesture) => {
-        if (completedRef.current) return;
-        if (gesture.dx > MAX_TRANSLATE * 0.6) {
-          completedRef.current = true;
-          setCompleted(true);
-          Animated.spring(pan, {
-            toValue: { x: MAX_TRANSLATE, y: 0 },
-            useNativeDriver: false,
-          }).start(() => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            onSwipeComplete();
-            setTimeout(() => {
-              Animated.spring(pan, {
-                toValue: { x: 0, y: 0 },
-                useNativeDriver: false,
-              }).start(() => {
-                setCompleted(false);
-                completedRef.current = false;
-              });
-            }, 1000);
-          });
-        } else {
-          Animated.spring(pan, {
-            toValue: { x: 0, y: 0 },
-            useNativeDriver: false,
-            friction: 5,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Vibration.vibrate(50);
+    
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+    
+    onSwipeComplete();
+  };
 
   return (
-    <View style={styles.container}>
-      <Animated.View 
-        style={[
-          styles.fillTrack, 
-          { width: Animated.add(pan.x, THUMB_SIZE) }
-        ]} 
-      />
-      <View style={styles.textContainer}>
-        <Text style={styles.subtext}>
-          {completed 
-            ? t('common.unlocked', { defaultValue: i18n.language.startsWith('en') ? 'Going to Community...' : 'Topluluğa gidiliyor...' })
-            : t('common.swipeToJoin', { defaultValue: i18n.language.startsWith('en') ? 'Swipe to go to Community' : 'Topluluğa gitmek için kaydır' })}
+    <Pressable 
+      style={({ pressed }) => [
+        styles.container,
+        pressed && { backgroundColor: '#F0FDF4', borderColor: '#34D399' }
+      ]}
+      onPress={handlePress}
+    >
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={24} color="#059669" />
+        </View>
+        <Text style={styles.text}>
+          {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
         </Text>
+        <IconSymbol name="arrow.right" size={20} color="#059669" />
       </View>
-
-      <Animated.View
-        style={[styles.thumb, { transform: [{ translateX: pan.x }], backgroundColor: completed ? '#10B981' : '#059669' }]}
-        {...panResponder.panHandlers}
-      >
-        <IconSymbol name={completed ? "checkmark" : "arrow.right"} size={24} color="#FFFFFF" />
-      </Animated.View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -101,45 +54,33 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1.5,
     borderColor: '#A7F3D0',
-    padding: PADDING,
+    padding: 8,
     justifyContent: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
-    overflow: 'hidden',
   },
-  textContainer: {
-    position: 'absolute',
-    left: 40,
-    right: PADDING,
+  content: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 16,
   },
-  subtext: {
-    color: '#059669',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  thumb: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    backgroundColor: '#059669',
+  iconContainer: {
+    width: 60,
+    height: 60,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    left: PADDING,
-    zIndex: 10,
-  },
-  fillTrack: {
-    position: 'absolute',
-    left: PADDING,
-    top: PADDING,
-    bottom: PADDING,
     backgroundColor: '#D1FAE5',
-    borderRadius: 18,
-    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    flex: 1,
+    fontWeight: '700',
+    fontSize: 16,
+    color: '#059669',
+    marginLeft: 54,
   },
 });

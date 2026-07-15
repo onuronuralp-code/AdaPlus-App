@@ -141,18 +141,15 @@ export default function SignUpScreen() {
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
             <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setIslandOpen(false); }} accessible={false}>
                 <View style={styles.container}>
-                    <LinearGradient
-                        colors={['#0D1B2A', '#1B263B']}
-                        style={styles.headerBackground}
-                    >
+                    <View style={styles.headerBackground}>
                         <Image
-                            source={require('@/assets/images/begonvil.jpeg')}
-                            style={StyleSheet.absoluteFillObject}
+                            source={require('@/assets/images/sunset.jpg')}
+                            style={{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }}
                             resizeMode="cover"
                         />
-                        <LinearGradient
-                            colors={['rgba(13, 27, 42, 0.4)', '#1B263B']}
-                            style={StyleSheet.absoluteFillObject}
+                        <LinearGradient 
+                            colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
+                            style={[{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }]}
                         />
                         <TouchableOpacity
                             style={[styles.backButton, { top: insets.top + 10 }]}
@@ -164,14 +161,14 @@ export default function SignUpScreen() {
                             <IconSymbol name="chevron.left" size={24} color="#fff" />
                         </TouchableOpacity>
 
-                        <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
+                        <View style={[styles.branding, { paddingTop: insets.top - 10, paddingBottom: 20 }]}>
                             <View style={styles.logoCircle}>
                                 <IconSymbol name="person.fill" size={36} color="#fff" />
                             </View>
                             <Text style={styles.welcomeTitle}>{t('auth.signupTitle')}</Text>
                             <Text style={styles.welcomeSubtitle}>{t('auth.signupSubtitle')}</Text>
                         </View>
-                    </LinearGradient>
+                    </View>
 
                     <View style={styles.cardContainer}>
                         <ScrollView
@@ -188,15 +185,15 @@ export default function SignUpScreen() {
                                     <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder={t('auth.namePlaceholder')}
-                                        placeholderTextColor="#94A3B8"
+                                        placeholder={(!name && errors.name) ? errors.name : t('auth.namePlaceholder')}
+                                        placeholderTextColor={(!name && errors.name) ? "#EF4444" : "#94A3B8"}
                                         value={name}
                                         onChangeText={handleNameChange}
                                         onBlur={handleNameBlur}
                                         autoCapitalize="words"
                                     />
                                 </View>
-                                {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+                                {(errors.name && name.length > 0) ? <Text style={styles.errorText}>{errors.name}</Text> : null}
                             </View>
 
                             {/* E-posta ya da Telefon */}
@@ -210,8 +207,8 @@ export default function SignUpScreen() {
                                     />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="ornek@email.com veya +90 555 000 00 00"
-                                        placeholderTextColor="#94A3B8"
+                                        placeholder={(!contact && errors.contact) ? errors.contact : "ornek@email.com veya +90 555 000 00 00"}
+                                        placeholderTextColor={(!contact && errors.contact) ? "#EF4444" : "#94A3B8"}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
                                         value={contact}
@@ -219,7 +216,7 @@ export default function SignUpScreen() {
                                         onBlur={handleContactBlur}
                                     />
                                 </View>
-                                {errors.contact && <Text style={styles.errorText}>{errors.contact}</Text>}
+                                {(errors.contact && contact.length > 0) ? <Text style={styles.errorText}>{errors.contact}</Text> : null}
                             </View>
 
                             {/* Şifre */}
@@ -229,8 +226,8 @@ export default function SignUpScreen() {
                                     <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
                                         style={[styles.input, { flex: 1 }]}
-                                        placeholder={t('auth.passwordPlaceholder')}
-                                        placeholderTextColor="#94A3B8"
+                                        placeholder={(!password && errors.password) ? errors.password : t('auth.passwordPlaceholder')}
+                                        placeholderTextColor={(!password && errors.password) ? "#EF4444" : "#94A3B8"}
                                         secureTextEntry={!showPassword}
                                         value={password}
                                         onChangeText={handlePasswordChange}
@@ -240,7 +237,7 @@ export default function SignUpScreen() {
                                         <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                     </TouchableOpacity>
                                 </View>
-                                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                                {(errors.password && password.length > 0) ? <Text style={styles.errorText}>{errors.password}</Text> : null}
                             </View>
 
                             {/* Doğum Tarihi (isteğe bağlı) */}
@@ -406,8 +403,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     headerBackground: {
-        height: SCREEN_HEIGHT * 0.358,
+        height: SCREEN_HEIGHT * 0.36,
         paddingHorizontal: 30,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     backButton: {
         position: 'absolute',

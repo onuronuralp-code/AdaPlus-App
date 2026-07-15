@@ -112,6 +112,18 @@ export default function IlanDetailScreen() {
         }}>
           <IconSymbol name="chevron.left" size={24} color="#1E293B" />
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.iconButton} onPress={async () => {
+          try {
+            await Share.share({
+              message: `${listing.title}\n\n${listing.description}\n\nAda Plus'ta incele!`,
+            });
+          } catch (error) {
+            console.log('Share error:', error);
+          }
+        }}>
+          <IconSymbol name="square.and.arrow.up" size={20} color="#1E293B" />
+        </TouchableOpacity>
       </View>
 
       {/* Hero Section / Image Placeholder (Fixed) */}

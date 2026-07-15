@@ -68,36 +68,7 @@ export default function GuideScreen() {
         return () => { show.remove(); hide.remove(); };
     }, [insets.bottom]);
 
-    // ── Auth gate ─────────────────────────────────────────────────────────────
-
-    if (!isLoggedIn) {
-        return (
-            <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-                <Stack.Screen options={{ headerShown: false }} />
-                <StatusBar barStyle="dark-content" />
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <IconSymbol name="chevron.left" size={24} color="#000" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{t('common.adaAI')}</Text>
-                </View>
-                <View style={styles.authGate}>
-                    <View style={styles.authGateIcon}>
-                        <IconSymbol name="sparkles" size={36} color="#EC4899" />
-                    </View>
-                    <Text style={styles.authGateTitle}>
-                        {t('guide.title')}
-                    </Text>
-                    <Text style={styles.authGateSubtitle}>
-                        {t('guide.authSubtitle')}
-                    </Text>
-                    <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
-                        <Text style={styles.loginButtonText}>{t('common.login')}</Text>
-                    </TouchableOpacity>
-                </View>
-            </SafeAreaView>
-        );
-    }
+    // Auth gate temporarily removed for guest access
 
     // ── Island selection ──────────────────────────────────────────────────────
 

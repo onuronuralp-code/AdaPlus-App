@@ -9,6 +9,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  ImageBackground,
   RefreshControl,
   Keyboard,
 } from 'react-native';
@@ -30,6 +31,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { EmptyState } from '@/components/EmptyState';
 import * as mediaApi from '@/services/mediaApi';
 import LoginPromptModal from '@/components/LoginPromptModal';
+import { resolveImageUrl } from '@/services/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -603,12 +605,15 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
     addSuffix: true, 
     locale: i18n.language.startsWith('tr') ? tr : enUS 
   });
+  const resolvedUrl = resolveImageUrl(listing.imageUrl);
+  const hasUserImage = listing.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
 
   return (
     <TouchableOpacity
       style={[
         styles.card,
         { borderColor: `${cfg.color}33` },
+        hasUserImage ? { padding: 0, height: 200, overflow: 'hidden', borderWidth: 0 } : {}
       ]}
       activeOpacity={0.7}
       onPress={() => {
@@ -618,44 +623,70 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
           });
       }}
     >
-      {listing.imageUrl && listing.imageUrl.startsWith('https://') ? (
-        <Image source={{ uri: listing.imageUrl }} style={styles.cardImage} resizeMode="cover" />
-      ) : null}
-      <View style={{ padding: 18 }}>
-      <View style={styles.cardHeader}>
-        <View style={styles.headerLeft}>
-          <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
-            <IconSymbol name={cfg.icon as any} size={12} color={cfg.color} />
-            <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
-          </View>
-        </View>
-        <Text style={styles.timeAgo}>{timeAgo}</Text>
-      </View>
-
-      <Text style={styles.cardTitle}>{listing.title}</Text>
-
-      <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
-
-      <View style={styles.cardFooter}>
-        <View style={styles.cardMeta}>
-          <View style={styles.metaItem}>
-            <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
-            <Text style={styles.metaText}>{listing.island}</Text>
-          </View>
-          {listing.contactInfo && (
-            <View style={styles.metaItem}>
-              <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
-              <Text style={styles.metaText}>{listing.contactInfo.substring(0, 15)}...</Text>
+      {hasUserImage ? (
+        <ImageBackground source={{ uri: resolvedUrl }} style={{ width: '100%', height: '100%', justifyContent: 'flex-end' }} resizeMode="cover">
+          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={{ padding: 18, paddingTop: 40 }}>
+            <View style={[styles.cardHeader, { marginBottom: 8 }]}>
+              <View style={styles.headerLeft}>
+                <View style={[styles.categoryBadge, { backgroundColor: cfg.color }]}>
+                  <IconSymbol name={cfg.icon as any} size={12} color="#fff" />
+                  <Text style={[styles.categoryBadgeText, { color: '#fff' }]}>{cfg.label}</Text>
+                </View>
+              </View>
+              <Text style={[styles.timeAgo, { color: '#E2E8F0' }]}>{timeAgo}</Text>
             </View>
-          )}
-        </View>
-        {listing.price > 0 && (
-          <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+            <Text style={[styles.cardTitle, { color: '#fff' }]} numberOfLines={2}>{listing.title}</Text>
+            <View style={[styles.cardFooter, { marginTop: 8, borderTopWidth: 0, paddingTop: 0 }]}>
+              <View style={styles.cardMeta}>
+                <View style={styles.metaItem}>
+                  <IconSymbol name="mappin.circle.fill" size={14} color="#E2E8F0" />
+                  <Text style={[styles.metaText, { color: '#E2E8F0' }]}>{listing.island}</Text>
+                </View>
+              </View>
+              {listing.price > 0 && (
+                <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+                </View>
+              )}
+            </View>
+          </LinearGradient>
+        </ImageBackground>
+      ) : (
+        <View style={{ padding: 18 }}>
+          <View style={styles.cardHeader}>
+            <View style={styles.headerLeft}>
+              <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
+                <IconSymbol name={cfg.icon as any} size={12} color={cfg.color} />
+                <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+              </View>
+            </View>
+            <Text style={styles.timeAgo}>{timeAgo}</Text>
           </View>
-        )}
-      </View>
-      </View>
+
+          <Text style={styles.cardTitle}>{listing.title}</Text>
+          <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
+
+          <View style={styles.cardFooter}>
+            <View style={styles.cardMeta}>
+              <View style={styles.metaItem}>
+                <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
+                <Text style={styles.metaText}>{listing.island}</Text>
+              </View>
+              {listing.contactInfo && (
+                <View style={styles.metaItem}>
+                  <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
+                  <Text style={styles.metaText}>{listing.contactInfo.substring(0, 15)}...</Text>
+                </View>
+              )}
+            </View>
+            {listing.price > 0 && (
+              <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }

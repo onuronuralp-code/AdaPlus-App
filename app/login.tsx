@@ -109,18 +109,15 @@ export default function LoginScreen() {
             <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
             
-            <LinearGradient 
-                colors={['rgba(30, 41, 59, 0.7)', '#0f172a']} 
-                style={styles.headerBackground}
-            >
-                <Image 
-                    source={require('@/assets/images/begonvil.jpeg')}
-                    style={StyleSheet.absoluteFillObject}
+            <View style={styles.headerBackground}>
+                <Image
+                    source={require('@/assets/images/begonvil_alt.png')}
+                    style={{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }}
                     resizeMode="cover"
                 />
                 <LinearGradient 
-                    colors={['rgba(30, 41, 59, 0.4)', '#0f172a']} 
-                    style={StyleSheet.absoluteFillObject}
+                    colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
+                    style={[{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }]}
                 />
                 <TouchableOpacity 
                     style={[styles.backButton, { top: insets.top + 10 }]} 
@@ -132,7 +129,7 @@ export default function LoginScreen() {
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
+                <View style={[styles.branding, { paddingTop: insets.top - 10, paddingBottom: 20 }]}>
                     <View style={styles.logoCircle}>
                         <IconSymbol name="person.fill" size={36} color="#fff" />
                     </View>
@@ -143,7 +140,7 @@ export default function LoginScreen() {
                             : t('auth.loginSubtitle')}
                     </Text>
                 </View>
-            </LinearGradient>
+            </View>
 
             <View style={styles.cardContainer}>
                 <View style={styles.formContainer}>
@@ -153,8 +150,8 @@ export default function LoginScreen() {
                             <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder={t('auth.emailPlaceholder')}
-                                placeholderTextColor="#94A3B8"
+                                placeholder={(!email && errors.email) ? errors.email : t('auth.emailPlaceholder')}
+                                placeholderTextColor={(!email && errors.email) ? "#EF4444" : "#94A3B8"}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 value={email}
@@ -162,7 +159,7 @@ export default function LoginScreen() {
                                 onBlur={handleEmailBlur}
                             />
                         </View>
-                        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                        {(errors.email && email.length > 0) ? <Text style={styles.errorText}>{errors.email}</Text> : null}
                     </View>
 
                     {!isForgotPassword && (
@@ -177,8 +174,8 @@ export default function LoginScreen() {
                                 <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
                                     style={[styles.input, { flex: 1 }]} 
-                                    placeholder={t('auth.passwordPlaceholder')}
-                                    placeholderTextColor="#94A3B8"
+                                    placeholder={(!password && errors.password) ? errors.password : t('auth.passwordPlaceholder')}
+                                    placeholderTextColor={(!password && errors.password) ? "#EF4444" : "#94A3B8"}
                                     secureTextEntry={!showPassword}
                                     value={password}
                                     onChangeText={handlePasswordChange}
@@ -188,7 +185,7 @@ export default function LoginScreen() {
                                     <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                 </TouchableOpacity>
                             </View>
-                            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                            {(errors.password && password.length > 0) ? <Text style={styles.errorText}>{errors.password}</Text> : null}
                         </View>
                     )}
 
@@ -230,7 +227,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    headerBackground: { height: SCREEN_HEIGHT * 0.358, paddingHorizontal: 30 },
+    headerBackground: { height: SCREEN_HEIGHT * 0.35, paddingHorizontal: 30, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
     backButton: { 
         position: 'absolute', 
         left: 20, 

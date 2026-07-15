@@ -567,8 +567,9 @@ export function FerrySchedule() {
         <AnimatedRE.ScrollView
           contentContainerStyle={styles.scrollBody}
           showsVerticalScrollIndicator={false}
-          bounces={false}
-          overScrollMode="never"
+          bounces={true}
+          alwaysBounceVertical={true}
+          overScrollMode="auto"
         >
           {loading ? (
             <View style={styles.loader}>
@@ -622,6 +623,34 @@ export function FerrySchedule() {
                 </AnimatedRE.View>
               );
             })
+          )}
+          
+          {(!loading && filteredData.length > 0) && (
+            <AnimatedRE.View entering={FadeInDown.delay(filteredData.length * 50).duration(400)}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#EFF6FF',
+                  paddingVertical: 14,
+                  borderRadius: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 16,
+                  marginBottom: 32,
+                  flexDirection: 'row',
+                  gap: 8,
+                }}
+                onPress={() => {
+                  const nextDay = new Date(selectedDate);
+                  nextDay.setDate(selectedDate.getDate() + 1);
+                  setSelectedDate(nextDay);
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#3B82F6' }}>
+                  {i18n.language === 'tr' ? 'Sonraki Güne Geç' : 'Go to Next Day'}
+                </Text>
+                <IconSymbol name="chevron.right" size={16} color="#3B82F6" />
+              </TouchableOpacity>
+            </AnimatedRE.View>
           )}
         </AnimatedRE.ScrollView>
       </View>
@@ -1270,6 +1299,12 @@ function TripDetailPopup({
               </Text>
               <Text style={styles.popupSub}>{trip.provider}</Text>
             </View>
+            <TouchableOpacity 
+              onPress={onClose} 
+              style={{ position: 'absolute', right: 0, top: 0, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 20 }}
+            >
+              <IconSymbol name="xmark" size={16} color="#64748B" />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.popupTimes}>
@@ -1397,7 +1432,7 @@ function TripDetailPopup({
                       : "Send Notification"}
                 </Text>
                 {!alarmSet && (
-                  <IconSymbol name="chevron.right" size={14} color="#EA580C" />
+                  <IconSymbol name="chevron.right" size={14} color="#FFFFFF" />
                 )}
               </TouchableOpacity>
             ) : (
@@ -1445,26 +1480,29 @@ const alarmStyles = StyleSheet.create({
   alarmButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF7ED",
+    justifyContent: "center",
+    backgroundColor: "#3B82F6",
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 14,
     gap: 10,
-    borderWidth: 1,
-    borderColor: "#FDBA74",
+    shadowColor: "#3B82F6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   alarmButtonActive: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#6EE7B7",
+    backgroundColor: "#10B981",
+    shadowColor: "#10B981",
   },
   alarmButtonText: {
-    flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
-    color: "#EA580C",
+    color: "#FFFFFF",
   },
   alarmButtonTextActive: {
-    color: "#059669",
+    color: "#FFFFFF",
   },
   alarmOptionsContainer: {
     backgroundColor: "#FFFBF5",
@@ -1859,7 +1897,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F9FA",
     padding: 20,
     borderRadius: 24,
-    marginBottom: 24,
+    marginBottom: 4,
   },
   pTimeCol: { alignItems: "center", flex: 1 },
   pTimeLab: {
@@ -1881,8 +1919,8 @@ const styles = StyleSheet.create({
   trackOff: { backgroundColor: "#F1F5F9" },
   trackBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
   viaSection: {
-    marginTop: 24,
-    paddingTop: 24,
+    marginTop: 8,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
   },
@@ -1913,6 +1951,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginLeft: 12,
+    paddingRight: 60,
   },
   timelineDot: {
     width: 8,

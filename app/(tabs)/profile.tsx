@@ -18,6 +18,7 @@ import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
+import { SettingsModal } from '../settingsModal';
 
 type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -52,6 +53,7 @@ export default function ProfileScreen() {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [inviteEmailError, setInviteEmailError] = useState('');
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
@@ -490,45 +492,13 @@ export default function ProfileScreen() {
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                    <TouchableOpacity
-                        onPress={() => {
-                            Alert.alert(
-                                t('common.settings', { defaultValue: 'Ayarlar' }),
-                                '', // No message needed or general message
-                                [
-                                    { text: 'Türkçe', onPress: () => i18n.changeLanguage('tr') },
-                                    { text: 'English', onPress: () => i18n.changeLanguage('en') },
-                                    { text: i18n.language.startsWith('en') ? 'Turn off Notifications' : 'Bildirimleri Kapat', onPress: () => {
-                                        unregisterPushNotifications();
-                                        Alert.alert(
-                                            t('common.success', { defaultValue: 'Başarılı' }), 
-                                            i18n.language.startsWith('en') ? 'Notifications have been turned off.' : 'Bildirimler kapatıldı.'
-                                        );
-                                    }},
-                                    ...(isLoggedIn ? [{ text: i18n.language.startsWith('en') ? 'Delete Account' : 'Hesabımı Sil', style: 'destructive' as const, onPress: () => {
-                                        Alert.alert(
-                                            i18n.language.startsWith('en') ? 'Delete Account' : 'Hesabımı Sil',
-                                            i18n.language.startsWith('en') ? 'Are you sure you want to delete your account? This action cannot be undone.' : 'Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
-                                            [
-                                                { text: t('common.cancel'), style: 'cancel' },
-                                                { text: i18n.language.startsWith('en') ? 'Delete' : 'Sil', style: 'destructive', onPress: async () => {
-                                                    const token = getToken();
-                                                    if (token) {
-                                                        await authApi.deleteAccount(token);
-                                                    }
-                                                    logout();
-                                                }}
-                                            ]
-                                        );
-                                    }}] : []),
-                                    { text: t('common.cancel'), style: 'cancel' }
-                                ]
-                            );
-                        }}
+                    <TouchableOpacity 
+                        onPress={() => setShowSettingsModal(true)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
                     </TouchableOpacity>
+
                     {isLoggedIn && (
                         <TouchableOpacity
                             onPress={() => {
@@ -680,6 +650,7 @@ export default function ProfileScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
+            <SettingsModal visible={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
         </View>
     );
 }

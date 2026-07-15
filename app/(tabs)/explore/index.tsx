@@ -2,19 +2,39 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput } from 'react-native';
+import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+
+const playNote = async (noteModule: any) => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(noteModule);
+    await sound.playAsync();
+    sound.setOnPlaybackStatusUpdate((status: any) => {
+      if (status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  } catch (e) {
+    console.log('Error playing note:', e);
+  }
+};
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SwipeButton } from '@/components/SwipeButton';
 import { useTranslation } from 'react-i18next';
 import { fetchActivities, fetchListings, fetchDepartures } from '@/services/api';
-import { resolveImageUrl } from '@/services/config';
+import { API_BASE_URL, resolveImageUrl } from '@/services/config';
+import { EventDto, getEventsList } from '@/services/eventApi';
+import { fetchNotifications, markNotificationRead, NotificationDto } from '@/services/notificationApi';
+import { ListingDto } from '@/services/listingApi';
 import { useAuth } from '@/context/AuthContext';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
+import { soundManager } from '@/utils/soundManager';
 
 const getRouteTimeValue = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
@@ -95,10 +115,9 @@ const TodayOnIsland = () => {
         activeOpacity={0.8}
       >
         <IconSymbol name="ferry.fill" size={14} color="#3B82F6" />
-        <Text style={{ fontSize: 12, fontWeight: '700', color: '#1D4ED8', marginLeft: 6 }} numberOfLines={1}>
-          {ferryLoading ? 'Yükleniyor...' : (nextFerry ? `${nextFerry.time} ${nextFerry.provider ? nextFerry.provider + ' ' : ''}${nextFerry.from}-${nextFerry.to}` : 'Sefer Bulunamadı')}
+        <Text style={{ fontSize: 12, fontWeight: '700', color: '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
+          {ferryLoading ? 'Yükleniyor...' : (nextFerry ? `${nextFerry.time} ${nextFerry.from}-${nextFerry.to}${nextFerry.provider ? ' (' + nextFerry.provider + ')' : ''}` : 'Sefer Bulunamadı')}
         </Text>
-        <IconSymbol name="chevron.right" size={12} color="#93C5FD" style={{ marginLeft: 'auto' }} />
       </TouchableOpacity>
     </View>
   );
@@ -129,6 +148,13 @@ const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChan
 export default function MainMenuScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const isNavigating = useRef(false);
+  const navigateWithDebounce = (path: any) => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
+    router.push(path);
+    setTimeout(() => { isNavigating.current = false; }, 1000);
+  };
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [selectedIsland, setSelectedIsland] = useState("Büyükada");
@@ -136,6 +162,7 @@ export default function MainMenuScreen() {
   const isLargeScreen = height > 900;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { user, isLoggedIn } = useAuth();
+  const [instrument, setInstrument] = useState('xylophone');
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [showSurvey, setShowSurvey] = useState(false);
@@ -147,6 +174,10 @@ export default function MainMenuScreen() {
 
   const [postText, setPostText] = useState('');
   const [isPosting, setIsPosting] = useState(false);
+
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   const handleCreatePost = async () => {
     if (!postText.trim()) return;
@@ -172,7 +203,21 @@ export default function MainMenuScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([fetchActivities(), fetchListings()]).then(([eventsData, listingsData]) => {
+      AsyncStorage.getItem('selected_instrument').then(val => {
+          if (val) setInstrument(val);
+      });
+
+      const fetchActiveBanner = async () => {
+          try {
+              const res = await fetch(`${API_BASE_URL}/api/v1/banners/active`);
+              if (res.status === 200) {
+                  return await res.json();
+              }
+          } catch (e) { console.log('Banner error', e); }
+          return null;
+      };
+
+      Promise.all([fetchActivities(), fetchListings(), fetchActiveBanner()]).then(([eventsData, listingsData, bannerData]) => {
         const events = Array.isArray(eventsData) ? eventsData : (eventsData?.content || eventsData?.data || []);
         const listings = Array.isArray(listingsData) ? listingsData : (listingsData?.content || listingsData?.data || []);
         
@@ -207,6 +252,17 @@ export default function MainMenuScreen() {
         const combined = [...validEvents, ...validListings]
           .sort((a, b) => b.date - a.date) // sort by newest first
           .slice(0, 5);
+
+        if (bannerData && bannerData.active) {
+            combined.unshift({
+                id: bannerData.id,
+                type: 'banner',
+                title: bannerData.title,
+                subtitle: bannerData.body,
+                imageUrl: resolveImageUrl(bannerData.imageUrl) || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80',
+                actionUrl: bannerData.actionUrl
+            });
+        }
 
         setTotalEventsCount(validEvents.length);
         setTotalListingsCount(validListings.length);
@@ -252,6 +308,7 @@ export default function MainMenuScreen() {
 
   return (
     <View style={styles.container}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false} scrollEnabled={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -262,8 +319,8 @@ export default function MainMenuScreen() {
         <View style={{ flex: 1, paddingRight: 10 }}>
           <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 32 }]}>
             {isLoggedIn && user
-              ? `${t('explore.goodMorning')}, ${user.fullName.split(' ')[0]}! ☀️`
-              : `${t('explore.goodMorning')}, Onur! ☀️`}
+              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}! ☀️`
+              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! ☀️`}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
             <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}>
@@ -271,11 +328,34 @@ export default function MainMenuScreen() {
             </Text>
           </View>
         </View>
-        <LanguageToggle 
-          currentLang={i18n.language} 
-          onChange={(lang) => i18n.changeLanguage(lang)} 
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity 
+            style={{ 
+              width: 44, 
+              height: 44, 
+              borderRadius: 22, 
+              backgroundColor: '#F1F5F9', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+            onPress={async () => {
+              if (!isLoggedIn) {
+                Alert.alert(t('common.loginRequired', { defaultValue: 'Giriş Yapmalısınız' }), t('explore.loginToViewNotifications', { defaultValue: 'Bildirimlerinizi görmek için lütfen giriş yapın.' }));
+                return;
+              }
+              setShowNotificationModal(true);
+              setLoadingNotifications(true);
+              const data = await fetchNotifications();
+              setNotifications(data);
+              setLoadingNotifications(false);
+            }}
+            activeOpacity={0.7}
+          >
+            <IconSymbol name="bell.fill" size={20} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
       </View>
+
 
       {/* Create Post Input & Quick Info */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
@@ -283,18 +363,19 @@ export default function MainMenuScreen() {
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 16, paddingHorizontal: 16, height: 50, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
             <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#059669" />
             <TextInput
-              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: '#0F172A' }}
-              placeholder={t('explore.whatsHappening')}
+              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: '#0F172A', opacity: isLoggedIn ? 1 : 0.6 }}
+              placeholder={isLoggedIn ? t('explore.whatsHappening') : t('common.loginRequired', { defaultValue: 'Topluluğa yazmak için giriş yapın' })}
               placeholderTextColor="#94A3B8"
               value={postText}
               onChangeText={setPostText}
               onSubmitEditing={handleCreatePost}
+              editable={isLoggedIn}
             />
           </View>
           <TouchableOpacity 
-             style={{ width: 50, height: 50, backgroundColor: '#059669', borderRadius: 16, alignItems: 'center', justifyContent: 'center', opacity: postText.trim() ? 1 : 0.5 }}
+             style={{ width: 50, height: 50, backgroundColor: '#059669', borderRadius: 16, alignItems: 'center', justifyContent: 'center', opacity: (isLoggedIn && postText.trim()) ? 1 : 0.5 }}
              onPress={handleCreatePost}
-             disabled={!postText.trim() || isPosting}
+             disabled={!isLoggedIn || !postText.trim() || isPosting}
           >
             {isPosting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
           </TouchableOpacity>
@@ -332,58 +413,72 @@ export default function MainMenuScreen() {
                 }
               }}
             >
-              <View style={[styles.heroImage, { width: width - 40, marginHorizontal: 20, borderRadius: 24, overflow: 'hidden' }]}>
+              <View style={[styles.heroImage, { width: width - 24, marginHorizontal: 12, borderRadius: 20, overflow: 'hidden' }]}>
                 <ImageBackground 
                     source={{ uri: slide.imageUrl }} 
-                    style={{ flex: 1, padding: 20, justifyContent: 'space-between' }}
-                    imageStyle={{ resizeMode: 'cover', borderRadius: 24 }}
+                    style={{ flex: 1, padding: 20, justifyContent: 'space-between', paddingHorizontal: 20 }}
+                    imageStyle={{ resizeMode: 'cover', borderRadius: 20 }}
                 >
                   <LinearGradient
                     colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
-                    style={[StyleSheet.absoluteFill, { borderRadius: 24 }]}
+                    style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
                   />
                   
                   {/* Top Row */}
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
-                    <View style={{ backgroundColor: '#3B82F6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
-                      <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '800' }}>ÖNE ÇIKAN ETKİNLİK</Text>
+                    <View style={{ backgroundColor: slide.type === 'listing' ? '#10B981' : '#3B82F6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
+                      <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '800' }}>
+                        {slide.type === 'listing' ? 'ÖNE ÇIKAN İLAN' : (slide.type === 'banner' ? 'DUYURU' : 'ÖNE ÇIKAN ETKİNLİK')}
+                      </Text>
                     </View>
                     <TouchableOpacity 
                       style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}
-                      onPress={() => router.push('/(tabs)/explore/island/events')}
+                      onPress={() => router.push(slide.type === 'listing' ? '/(tabs)/explore/island/ilanlar' : '/(tabs)/explore/island/events')}
                     >
-                      <Text style={{ color: '#0F172A', fontSize: 11, fontWeight: '700', marginRight: 4 }}>Tüm Etkinlikler</Text>
+                      <Text style={{ color: '#0F172A', fontSize: 11, fontWeight: '700', marginRight: 4 }}>
+                        {slide.type === 'listing' ? 'Tüm İlanlar' : 'Tüm Etkinlikler'}
+                      </Text>
                       <IconSymbol name="arrow.right" size={12} color="#0F172A" />
                     </TouchableOpacity>
                   </View>
 
                   {/* Bottom Content */}
                   <View style={{ zIndex: 10, paddingBottom: 10 }}>
-                    <Text style={{ color: '#FFF', fontSize: 24, fontWeight: '900', marginBottom: 12, lineHeight: 30, width: '90%' }} numberOfLines={2}>
+                    <Text style={{ color: '#FFF', fontSize: 20, fontWeight: '900', marginBottom: 12, lineHeight: 26, width: '90%' }} numberOfLines={2}>
                       {slide.title}
                     </Text>
 
                     {/* Details Row */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <IconSymbol name="mappin.circle.fill" size={14} color="#E2E8F0" />
-                        <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>Büyükada</Text>
+                    {slide.type !== 'banner' && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <IconSymbol name="mappin.circle.fill" size={14} color="#E2E8F0" />
+                          <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>{slide.island || 'Büyükada'}</Text>
+                        </View>
+                        {slide.type === 'event' && slide.date && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <IconSymbol name="calendar" size={14} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>
+                              {new Date(slide.date).toLocaleDateString('tr-TR', {day: 'numeric', month: 'long'})}
+                            </Text>
+                          </View>
+                        )}
+                        {slide.type === 'listing' && slide.price > 0 && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <IconSymbol name="tag.fill" size={14} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>
+                              {slide.price.toLocaleString('tr-TR')} ₺
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <IconSymbol name="calendar" size={14} color="#E2E8F0" />
-                        <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>
-                          {new Date(slide.date).toLocaleDateString('tr-TR', {day: 'numeric', month: 'long'})}
-                        </Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <IconSymbol name="person.3.fill" size={14} color="#E2E8F0" />
-                        <Text style={{ color: '#E2E8F0', fontSize: 11, marginLeft: 4 }}>250+ Katılımcı</Text>
-                      </View>
-                    </View>
+                    )}
 
-                    {/* Kayıt Ol Button */}
+                    {/* Button */}
                     <TouchableOpacity style={{ backgroundColor: '#FFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={{ color: '#0F172A', fontSize: 13, fontWeight: '800', marginRight: 4 }}>Kayıt Ol</Text>
+                      <Text style={{ color: '#0F172A', fontSize: 13, fontWeight: '800', marginRight: 4 }}>
+                        {slide.type === 'listing' ? 'İncele' : 'Kayıt Ol'}
+                      </Text>
                       <IconSymbol name="arrow.right" size={14} color="#0F172A" />
                     </TouchableOpacity>
                   </View>
@@ -410,84 +505,147 @@ export default function MainMenuScreen() {
           ))}
         </View>
       </View>
+
+
+
+
       {/* Hızlı Erişim Section (Header Removed) */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        style={{ marginTop: 16 }}
+        style={{ marginTop: 16, marginBottom: 0 }}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 20 }}
       >
         {/* Etkinlikler */}
-        <TouchableOpacity 
-          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
-          onPress={() => router.push('/(tabs)/explore/island/events')}
+        <Pressable 
+          style={({ pressed }) => [{ width: 100, height: 130, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          onPress={() => navigateWithDebounce('/(tabs)/explore/island/events')}
+          onPressIn={() => { 
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
+            soundManager.play(instrument === 'guitar' ? require('../../../assets/sounds/note_c_guitar.wav') : require('../../../assets/sounds/note_c.wav'));
+          }}
         >
           <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <IconSymbol name="calendar" size={24} color="#3B82F6" />
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 2 }}>{t('explore.events')}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
           <Text style={{ fontSize: 10, color: '#64748B' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Ada AI */}
-        <TouchableOpacity 
-          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
-          onPress={() => router.push('/guide')}
+        <Pressable 
+          style={({ pressed }) => [{ width: 100, height: 130, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          onPress={() => navigateWithDebounce('/guide')}
+          onPressIn={() => { 
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
+            soundManager.play(instrument === 'guitar' ? require('../../../assets/sounds/note_d_guitar.wav') : require('../../../assets/sounds/note_d.wav'));
+          }}
         >
           <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <IconSymbol name="pawprint.fill" size={24} color="#EC4899" />
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
           <Text style={{ fontSize: 10, color: '#64748B' }}>{t('explore.yourGuide')}</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* İlanlar */}
-        <TouchableOpacity 
-          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FEF08A', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
-          onPress={() => router.push('/(tabs)/explore/island/ilanlar')}
+        <Pressable 
+          style={({ pressed }) => [{ width: 100, height: 130, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FEF08A', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          onPress={() => navigateWithDebounce('/(tabs)/explore/island/ilanlar')}
+          onPressIn={() => { 
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
+            soundManager.play(instrument === 'guitar' ? require('../../../assets/sounds/note_e_guitar.wav') : require('../../../assets/sounds/note_e.wav'));
+          }}
         >
           <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <IconSymbol name="megaphone.fill" size={24} color="#EAB308" />
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 2 }}>{t('explore.listings')}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
           <Text style={{ fontSize: 10, color: '#64748B' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Paket Servis */}
-        <TouchableOpacity 
-          style={{ width: 100, height: 130, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}
+        <Pressable 
+          style={({ pressed }) => [{ width: 100, height: 130, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 12, paddingTop: 20, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
           onPress={() => {
             setSurveySubmitted(false);
             setSurveyOptions([]);
             setSurveyOtherText('');
             setShowSurvey(true);
           }}
+          onPressIn={() => { 
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
+            soundManager.play(instrument === 'guitar' ? require('../../../assets/sounds/note_f_guitar.wav') : require('../../../assets/sounds/note_f.wav'));
+          }}
         >
           <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <IconSymbol name="bag.fill" size={24} color="#8B5CF6" />
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 4, textAlign: 'center' }}>{t('explore.delivery')}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#8B5CF6', marginBottom: 4, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
           <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
             <Text style={{ fontSize: 9, color: '#8B5CF6', fontWeight: '700' }}>Yakında</Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
+      </ScrollView>
+
+      {/* Topluluk Banner (At the bottom) */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 0, paddingBottom: 60, backgroundColor: 'transparent' }}>
+        <SwipeButton isLoggedIn={isLoggedIn} onSwipeComplete={() => router.push('/(tabs)/explore/island/forum')} />
+      </View>
 
       </ScrollView>
 
-      {/* Body Content — scrollable on short screens, fills naturally on tall screens */}
-      <Animated.ScrollView
-        style={[styles.body, { transform: [{ translateY: slideAnim }] }]}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 12) + 16 }}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        scrollEnabled={true}
+      {/* Notification Modal */}
+      <Modal
+        visible={showNotificationModal}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setShowNotificationModal(false)}
       >
-      </Animated.ScrollView>
-
-      {/* Pinned Topluluk Banner (Above Nav Bar) */}
-      <View style={{ paddingHorizontal: 20, paddingBottom: 16, paddingTop: 16, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
-        <SwipeButton onSwipeComplete={() => router.push('/(tabs)/explore/island/forum')} />
-      </View>
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, height: '80%', padding: 24, paddingBottom: insets.bottom || 24, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: '#0F172A' }}>Bildirimler</Text>
+              <TouchableOpacity onPress={() => setShowNotificationModal(false)} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                <IconSymbol name="xmark" size={16} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            
+            {loadingNotifications ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#3B82F6" />
+              </View>
+            ) : notifications.length === 0 ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <IconSymbol name="bell.slash" size={48} color="#CBD5E1" />
+                <Text style={{ marginTop: 16, fontSize: 16, fontWeight: '600', color: '#64748B' }}>Henüz bildiriminiz yok.</Text>
+              </View>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {notifications.map(notif => (
+                  <TouchableOpacity 
+                    key={notif.id} 
+                    style={{ backgroundColor: notif.read ? '#F8FAFC' : '#EFF6FF', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: notif.read ? '#F1F5F9' : '#BFDBFE' }}
+                    onPress={async () => {
+                      if (!notif.read) {
+                        await markNotificationRead(notif.id);
+                        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+                      }
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
+                      <Text style={{ fontSize: 12, color: '#94A3B8' }}>{new Date(notif.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</Text>
+                    </View>
+                    <Text style={{ fontSize: 14, color: '#475569', lineHeight: 20 }}>{notif.body}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Survey Modal */}
       <Modal
@@ -522,21 +680,20 @@ export default function MainMenuScreen() {
             ) : (
               <>
                 <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                  <IconSymbol name="bolt.car.fill" size={28} color="#8B5CF6" />
+                  <IconSymbol name="bag.fill" size={28} color="#8B5CF6" />
                 </View>
                 <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
-                  {i18n.language.startsWith('en') ? 'Electric Vehicle' : 'Elektrikli Taşıt'}
+                  {i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}
                 </Text>
                 <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
-                  {i18n.language.startsWith('en') ? 'What kind of electric vehicle service would you use most on the island?' : 'Adada en çok hangi elektrikli taşıt hizmetine ihtiyaç duyuyorsunuz?'}
+                  {i18n.language.startsWith('en') ? 'What kind of delivery service would you use most on the island?' : 'Adada en çok hangi paket servis hizmetine ihtiyaç duyuyorsunuz?'}
                 </Text>
                 
                 <ScrollView style={{ width: '100%', maxHeight: 300, marginBottom: 10 }} showsVerticalScrollIndicator={false}>
                   {[
-                    i18n.language.startsWith('en') ? 'Golf Cart' : 'Golf Aracı', 
-                    i18n.language.startsWith('en') ? 'Electric Scooter' : 'Elektrikli Scooter', 
-                    i18n.language.startsWith('en') ? 'Electric Bicycle' : 'Elektrikli Bisiklet', 
-                    i18n.language.startsWith('en') ? 'Freight Vehicle' : 'Yük Taşıma Aracı',
+                    i18n.language.startsWith('en') ? 'Cargo / Parcel' : 'Kargo', 
+                    i18n.language.startsWith('en') ? 'Supermarket / Restaurant' : 'Market / Restorant', 
+                    i18n.language.startsWith('en') ? 'Water / Gas Cylinder' : 'Su / Tüp', 
                     i18n.language.startsWith('en') ? 'Other' : 'Diğer'
                   ].map((option) => (
                     <TouchableOpacity 
@@ -803,8 +960,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    backgroundColor: '#fff',
-    zIndex: 2,
+    backgroundColor: 'transparent',
     paddingHorizontal: 16,
   },
   servicesSection: {

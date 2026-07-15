@@ -87,17 +87,14 @@ export default function ResetPasswordScreen() {
             <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             
-            <LinearGradient 
-                colors={['#1E293B', '#0F172A']} 
-                style={styles.headerBackground}
-            >
+            <View style={styles.headerBackground}>
                 <Image 
                     source={require('@/assets/images/begonvil.jpeg')}
                     style={StyleSheet.absoluteFillObject}
                     resizeMode="cover"
                 />
                 <LinearGradient 
-                    colors={['rgba(30, 41, 59, 0.4)', '#0F172A']} 
+                    colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
                     style={StyleSheet.absoluteFillObject}
                 />
                 <TouchableOpacity 
@@ -117,7 +114,7 @@ export default function ResetPasswordScreen() {
                     <Text style={styles.welcomeTitle}>{t('auth.resetTitle')}</Text>
                     <Text style={styles.welcomeSubtitle}>{t('auth.resetSubtitle')}</Text>
                 </View>
-            </LinearGradient>
+            </View>
 
             <View style={styles.cardContainer}>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formContainer}>
@@ -204,7 +201,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     headerBackground: {
-        height: SCREEN_HEIGHT * 0.35,
+        height: SCREEN_HEIGHT * 0.32,
         paddingHorizontal: 30,
         justifyContent: 'center',
     },

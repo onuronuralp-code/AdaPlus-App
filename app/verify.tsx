@@ -232,7 +232,7 @@ export default function VerifyScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    headerBackground: { height: SCREEN_HEIGHT * 0.358, paddingHorizontal: 30 },
+    headerBackground: { height: SCREEN_HEIGHT * 0.32, paddingHorizontal: 30 },
     backButton: {
         position: 'absolute', left: 20, zIndex: 10, width: 40, height: 40,
         borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)',

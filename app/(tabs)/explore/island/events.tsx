@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -291,32 +291,61 @@ export default function EventsScreen() {
                         />
                     </View>
                 ) : (
-                    events.map((event) => (
+                    events.map((event) => {
+                        const resolvedUrl = resolveImageUrl(event.imageUrl);
+                        const hasUserImage = event.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
+                        
+                        return (
                         <TouchableOpacity
                             key={event.id}
-                            style={styles.eventCard}
+                            style={[styles.eventCard, hasUserImage ? { padding: 0, height: 220, overflow: 'hidden' } : {}]}
                             activeOpacity={0.8}
                             onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                         >
-                            <Image
-                                source={{ uri: (() => { const u = resolveImageUrl(event.imageUrl); return (u && u.startsWith('https://')) ? u : 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'; })() }}
-                                style={styles.eventImage}
-                            />
-                            <View style={styles.eventInfo}>
-                                <View style={styles.titleRow}>
-                                    <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
-                                </View>
-                                <View style={styles.eventDetailsRow}>
-                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
-                                    <Text style={[styles.eventDate, { color: '#3B82F6' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
-                                </View>
-                                <View style={styles.eventDetailsRow}>
-                                    <IconSymbol name="person.fill" size={14} color="#778DA9" />
-                                    <Text style={styles.eventLocation} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
-                                </View>
-                            </View>
+                            {hasUserImage ? (
+                                <ImageBackground
+                                    source={{ uri: resolvedUrl }}
+                                    style={{ width: '100%', height: '100%', justifyContent: 'flex-end' }}
+                                    resizeMode="cover"
+                                >
+                                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.eventInfo}>
+                                        <View style={styles.titleRow}>
+                                            <Text style={[styles.eventTitle, { color: '#fff' }]} numberOfLines={1}>{event.name}</Text>
+                                        </View>
+                                        <View style={styles.eventDetailsRow}>
+                                            <IconSymbol name="calendar" size={14} color="#60A5FA" />
+                                            <Text style={[styles.eventDate, { color: '#60A5FA' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                        </View>
+                                        <View style={styles.eventDetailsRow}>
+                                            <IconSymbol name="person.fill" size={14} color="#CBD5E1" />
+                                            <Text style={[styles.eventLocation, { color: '#CBD5E1' }]} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                        </View>
+                                    </LinearGradient>
+                                </ImageBackground>
+                            ) : (
+                                <>
+                                    <Image
+                                        source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
+                                        style={styles.eventImage}
+                                    />
+                                    <View style={styles.eventInfo}>
+                                        <View style={styles.titleRow}>
+                                            <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
+                                        </View>
+                                        <View style={styles.eventDetailsRow}>
+                                            <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                            <Text style={[styles.eventDate, { color: '#3B82F6' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                        </View>
+                                        <View style={styles.eventDetailsRow}>
+                                            <IconSymbol name="person.fill" size={14} color="#778DA9" />
+                                            <Text style={styles.eventLocation} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                        </View>
+                                    </View>
+                                </>
+                            )}
                         </TouchableOpacity>
-                    ))
+                        );
+                    })
                 )}
             </ScrollView>
 
