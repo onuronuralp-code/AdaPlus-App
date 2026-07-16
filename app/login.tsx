@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, KeyboardAvoidingView, Platform } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,9 +20,17 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [focusedField, setFocusedField] = useState('');
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
     const { login: setAuthLogin } = useAuth();
+
+    useFocusEffect(
+        useCallback(() => {
+            setErrors({});
+            setTouched({});
+        }, [])
+    );
 
     const validateEmail = (val: string): string | undefined => {
         const trimmed = val.trim();
@@ -57,6 +66,7 @@ export default function LoginScreen() {
     };
 
     const handleSubmit = async () => {
+        if (loading) return;
         const emailError = validateEmail(email);
         const passwordError = validatePassword(password);
         setTouched({ email: true, password: true });
@@ -84,6 +94,7 @@ export default function LoginScreen() {
     };
 
     const handleForgotPasswordSubmit = async () => {
+        if (loading) return;
         const emailError = validateEmail(email);
         setTouched(prev => ({ ...prev, email: true }));
         setErrors(prev => ({ ...prev, email: emailError }));
@@ -150,16 +161,19 @@ export default function LoginScreen() {
                             <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
-                                placeholder={(!email && errors.email) ? errors.email : t('auth.emailPlaceholder')}
-                                placeholderTextColor={(!email && errors.email) ? "#EF4444" : "#94A3B8"}
+                                placeholder={(errors.email && focusedField !== 'email') ? errors.email : t('auth.emailPlaceholder')}
+                                placeholderTextColor={(errors.email && focusedField !== 'email') ? "#EF4444" : "#94A3B8"}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
-                                value={email}
+                                value={(errors.email && focusedField !== 'email') ? '' : email}
                                 onChangeText={handleEmailChange}
-                                onBlur={handleEmailBlur}
+                                onFocus={() => setFocusedField('email')}
+                                onBlur={() => {
+                                    setFocusedField('');
+                                    handleEmailBlur();
+                                }}
                             />
                         </View>
-                        {(errors.email && email.length > 0) ? <Text style={styles.errorText}>{errors.email}</Text> : null}
                     </View>
 
                     {!isForgotPassword && (
@@ -174,18 +188,21 @@ export default function LoginScreen() {
                                 <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
                                     style={[styles.input, { flex: 1 }]} 
-                                    placeholder={(!password && errors.password) ? errors.password : t('auth.passwordPlaceholder')}
-                                    placeholderTextColor={(!password && errors.password) ? "#EF4444" : "#94A3B8"}
+                                    placeholder={(errors.password && focusedField !== 'password') ? errors.password : t('auth.passwordPlaceholder')}
+                                    placeholderTextColor={(errors.password && focusedField !== 'password') ? "#EF4444" : "#94A3B8"}
                                     secureTextEntry={!showPassword}
-                                    value={password}
+                                    value={(errors.password && focusedField !== 'password') ? '' : password}
                                     onChangeText={handlePasswordChange}
-                                    onBlur={handlePasswordBlur}
+                                    onFocus={() => setFocusedField('password')}
+                                    onBlur={() => {
+                                        setFocusedField('');
+                                        handlePasswordBlur();
+                                    }}
                                 />
                                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
                                     <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                 </TouchableOpacity>
                             </View>
-                            {(errors.password && password.length > 0) ? <Text style={styles.errorText}>{errors.password}</Text> : null}
                         </View>
                     )}
 
@@ -209,8 +226,9 @@ export default function LoginScreen() {
                     ) : (
                         <TouchableOpacity 
                             style={styles.signupButtonOutline} 
-                            onPress={() => router.push('/signup')}
+                            onPress={() => router.replace('/signup')}
                             activeOpacity={0.7}
+                            disabled={loading}
                         >
                             <Text style={styles.footerText}>
                                 {t('auth.noAccount')} <Text style={styles.signupText}>{t('auth.signupLink')}</Text>
@@ -256,5 +274,5 @@ const styles = StyleSheet.create({
     footerText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
     signupText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
     inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },
-    errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', position: 'absolute', bottom: -18, left: 4 },
+    errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginTop: 4, marginLeft: 4 },
 });

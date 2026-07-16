@@ -72,7 +72,7 @@ export const authApi = {
   verifyOtp: async (
     contact: string,
     code: string,
-  ): Promise<{ message: string }> => {
+  ): Promise<LoginResponse> => {
     try {
       const sanitized = sanitizeContact(contact);
       const contactField = isPhoneContact(sanitized) ? { phone: sanitized } : { email: sanitized };
@@ -86,7 +86,7 @@ export const authApi = {
         throw new Error(
           data.message || data.error || i18n.t('errors.otpInvalid'),
         );
-      return data;
+      return data as LoginResponse;
     } catch (error) {
       return wrapNetworkError(error);
     }

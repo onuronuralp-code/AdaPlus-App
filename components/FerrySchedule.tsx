@@ -1167,12 +1167,14 @@ function TripDetailPopup({
         finalStatus = asked;
       }
       if (finalStatus !== "granted") {
-        Alert.alert(
-          i18n.language === "tr" ? "İzin Gerekli" : "Permission Required",
-          i18n.language === "tr"
-            ? "Bildirim gönderebilmek için bildirim izni vermeniz gerekmektedir."
-            : "Notification permission is required to send notifications.",
-        );
+        setTimeout(() => {
+          Alert.alert(
+            i18n.language === "tr" ? "İzin Gerekli" : "Permission Required",
+            i18n.language === "tr"
+              ? "Bildirim gönderebilmek için bildirim izni vermeniz gerekmektedir."
+              : "Notification permission is required to send notifications.",
+          );
+        }, 100);
         return;
       }
 
@@ -1188,12 +1190,14 @@ function TripDetailPopup({
 
       // Check if alarm time is in the past
       if (alarmDate.getTime() <= Date.now()) {
-        Alert.alert(
-          i18n.language === "tr" ? "Geçmiş Zaman" : "Past Time",
-          i18n.language === "tr"
-            ? "Bu zaman zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için bildirim gönderin."
-            : "This time has already passed. Choose a shorter duration or set a notification for a future trip.",
-        );
+        setTimeout(() => {
+          Alert.alert(
+            i18n.language === "tr" ? "Geçmiş Zaman" : "Past Time",
+            i18n.language === "tr"
+              ? "Bu zaman zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için bildirim gönderin."
+              : "This time has already passed. Choose a shorter duration or set a notification for a future trip.",
+          );
+        }, 100);
         return;
       }
 
@@ -1227,21 +1231,16 @@ function TripDetailPopup({
 
       setAlarmSet(minutesBefore);
       setShowAlarmOptions(false);
-
-      Alert.alert(
-        i18n.language === "tr" ? "✅ Bildirim Ayarlandı" : "✅ Notification Set",
-        i18n.language === "tr"
-          ? `${trip.departureTime} seferinden ${alarmLabel} önce hatırlatma alacaksınız.`
-          : `You will be reminded ${alarmLabel} before the ${trip.departureTime} departure.`,
-      );
     } catch (error) {
       console.error("Failed to schedule alarm:", error);
-      Alert.alert(
-        i18n.language === "tr" ? "Hata" : "Error",
-        i18n.language === "tr"
-          ? "Bildirim gönderilirken bir hata oluştu."
-          : "Failed to set the notification.",
-      );
+      setTimeout(() => {
+        Alert.alert(
+          i18n.language === "tr" ? "Hata" : "Error",
+          i18n.language === "tr"
+            ? "Bildirim gönderilirken bir hata oluştu."
+            : "Failed to set the notification.",
+        );
+      }, 100);
     }
   };
 

@@ -17,6 +17,7 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -45,28 +46,7 @@ export default function GuideScreen() {
         { id: '1', text: t('guide.welcomeMessage'), isBot: true },
     ]);
 
-    const keyboardShift = useRef(new Animated.Value(0)).current;
 
-    useEffect(() => {
-        if (Platform.OS === 'android') return;
-        const show = Keyboard.addListener('keyboardWillShow', (e) => {
-            Animated.timing(keyboardShift, {
-                toValue: -(e.endCoordinates.height - insets.bottom),
-                duration: e.duration,
-                easing: Easing.bezier(0.33, 0.66, 0.66, 1),
-                useNativeDriver: true,
-            }).start();
-        });
-        const hide = Keyboard.addListener('keyboardWillHide', (e) => {
-            Animated.timing(keyboardShift, {
-                toValue: 0,
-                duration: e.duration,
-                easing: Easing.bezier(0.33, 0.66, 0.66, 1),
-                useNativeDriver: true,
-            }).start();
-        });
-        return () => { show.remove(); hide.remove(); };
-    }, [insets.bottom]);
 
     // Auth gate temporarily removed for guest access
 
@@ -168,7 +148,7 @@ export default function GuideScreen() {
                 )}
             </View>
 
-            <Animated.View style={{ flex: 1, transform: [{ translateY: keyboardShift }] }}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
                     ref={scrollRef}
                     style={styles.content}
@@ -253,7 +233,7 @@ export default function GuideScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </Animated.View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -322,6 +302,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 8,
+        paddingTop: 16,
+        marginTop: 10,
         backgroundColor: '#F8FAFC',
     },
     backButton: {

@@ -1,7 +1,7 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -20,6 +20,8 @@ import { EmptyState } from '@/components/EmptyState';
 import { resolveImageUrl } from '@/services/config';
 
 
+const ENABLE_PHOTO_UPLOAD = false; // Feature flag for photo upload in community posts
+
 export default function ForumScreen() {
     const { t } = useTranslation();
     const router = useRouter();
@@ -31,6 +33,18 @@ export default function ForumScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
+    const writeModalSlideAnim = React.useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+    React.useEffect(() => {
+        if (isWriteModalVisible) {
+            writeModalSlideAnim.setValue(Dimensions.get('window').height);
+            Animated.spring(writeModalSlideAnim, {
+                toValue: 0,
+                useNativeDriver: true,
+                bounciness: 0,
+            }).start();
+        }
+    }, [isWriteModalVisible]);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
     const [newPostType, setNewPostType] = useState('discussion');
@@ -42,8 +56,22 @@ export default function ForumScreen() {
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
     const [replies, setReplies] = useState<PostDto[]>([]);
     const [isAdModalVisible, setIsAdModalVisible] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+    React.useEffect(() => {
+        const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
+            setKeyboardHeight(e.endCoordinates.height);
+        });
+        const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
+            setKeyboardHeight(0);
+        });
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [newReplyContent, setNewReplyContent] = useState('');
     const [pollDurationHours, setPollDurationHours] = useState(24);
@@ -216,57 +244,70 @@ export default function ForumScreen() {
         return mapping[island] || island;
     };
 
-    const pickImage = () => {
-        const options: any[] = [];
-
-        options.push({
-            text: t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }),
-            onPress: async () => {
-                try {
-                    const permission = await ImagePicker.requestCameraPermissionsAsync();
-                    if (!permission.granted) {
-                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
-                        return;
-                    }
-                    const result = await ImagePicker.launchCameraAsync({
-                        allowsEditing: true,
-                        aspect: [4, 3],
-                        quality: 0.8,
-                    });
-                    if (!result.canceled) {
-                        setSelectedImage(result.assets[0].uri);
-                    }
-                } catch (e: any) {
-                    Alert.alert(
-                        t('common.error', { defaultValue: 'Hata' }),
-                        t('common.cameraNotAvailable', { defaultValue: 'Kamera bu cihazda kullanılamıyor. Lütfen galeriden seçin.' })
-                    );
-                }
-            },
-        });
-
-        options.push({
-            text: t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' }),
-            onPress: async () => {
+    const pickImage = async () => {
+        const handleGallery = async () => {
+            try {
                 const result = await ImagePicker.launchImageLibraryAsync({
                     mediaTypes: ['images'],
+                    allowsEditing: false, // allowsEditing must be false for allowsMultipleSelection to work on iOS
+                    allowsMultipleSelection: true,
+                    selectionLimit: 5 - selectedImages.length,
+                    quality: 0.8,
+                });
+                if (!result.canceled) {
+                    const newImages = result.assets.map(a => a.uri);
+                    setSelectedImages(prev => [...prev, ...newImages].slice(0, 5));
+                }
+            } catch (e) {
+                console.log('Error picking image:', e);
+            }
+        };
+
+        const handleCamera = async () => {
+            try {
+                const permission = await ImagePicker.requestCameraPermissionsAsync();
+                if (!permission.granted) {
+                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
+                    return;
+                }
+                const result = await ImagePicker.launchCameraAsync({
                     allowsEditing: true,
                     aspect: [4, 3],
                     quality: 0.8,
                 });
                 if (!result.canceled) {
-                    setSelectedImage(result.assets[0].uri);
+                    setSelectedImages(prev => [...prev, result.assets[0].uri].slice(0, 5));
                 }
-            },
-        });
+            } catch (e) {
+                console.log('Error picking from camera:', e);
+            }
+        };
 
-        options.push({ text: t('common.cancel'), style: 'cancel' });
-
-        Alert.alert(
-            t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
-            t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
-            options
-        );
+        if (Platform.OS === 'ios') {
+            ActionSheetIOS.showActionSheetWithOptions(
+                {
+                    options: [t('common.cancel', { defaultValue: 'İptal' }), t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }), t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' })],
+                    cancelButtonIndex: 0,
+                },
+                (buttonIndex) => {
+                    if (buttonIndex === 1) {
+                        handleCamera();
+                    } else if (buttonIndex === 2) {
+                        handleGallery();
+                    }
+                }
+            );
+        } else {
+            Alert.alert(
+                t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
+                t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
+                [
+                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                    { text: t('common.takePhoto', { defaultValue: 'Fotoğraf Çek' }), onPress: handleCamera },
+                    { text: t('common.chooseFromGallery', { defaultValue: 'Galeriden Seç' }), onPress: handleGallery },
+                ]
+            );
+        }
     };
 
     const MIN_POST_LENGTH = 10;
@@ -279,14 +320,20 @@ export default function ForumScreen() {
         : trimmedPostContent.length >= MIN_POST_LENGTH
     ) && !isUploading;
 
-    const isWriteFormDirty = newPostContent.trim().length > 0 || pollQuestion.trim().length > 0 || !!selectedImage;
+    const isWriteFormDirty = newPostContent.trim().length > 0 || pollQuestion.trim().length > 0 || selectedImages.length > 0;
 
     const resetWriteForm = () => {
-        setNewPostContent('');
-        setPollQuestion('');
-        setPollOptions(['', '']);
-        setSelectedImage(null);
-        setIsWriteModalVisible(false);
+        Animated.timing(writeModalSlideAnim, {
+            toValue: Dimensions.get('window').height,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(() => {
+            setNewPostContent('');
+            setPollQuestion('');
+            setPollOptions(['', '']);
+            setSelectedImages([]);
+            setIsWriteModalVisible(false);
+        });
     };
 
     const handleCloseWriteModal = () => {
@@ -310,8 +357,15 @@ export default function ForumScreen() {
 
         setIsUploading(true);
         let imageUrl = undefined;
-        if (selectedImage) {
-            imageUrl = await mediaApi.uploadImage(selectedImage) || undefined;
+        if (selectedImages.length > 0) {
+            const uploadedUrls = [];
+            for (const uri of selectedImages) {
+                const uploaded = await mediaApi.uploadImage(uri);
+                if (uploaded) uploadedUrls.push(uploaded);
+            }
+            if (uploadedUrls.length > 0) {
+                imageUrl = uploadedUrls.join(',');
+            }
         }
 
         try {
@@ -330,7 +384,7 @@ export default function ForumScreen() {
                 setPollQuestion('');
                 setPollOptions(['', '']);
                 setPollDurationHours(24);
-                setSelectedImage(null);
+                setSelectedImages([]);
                 setIsAnonymous(false);
                 setEditingPostId(null);
                 setIsWriteModalVisible(false);
@@ -717,13 +771,23 @@ export default function ForumScreen() {
             )}
             <Modal
                 visible={isWriteModalVisible}
-                animationType="slide"
-                presentationStyle="fullScreen"
+                animationType="fade"
+                transparent={true}
                 onRequestClose={handleCloseWriteModal}
             >
-                <View style={styles.modalContainer}>
-                    <View style={[styles.modalHeader, { paddingTop: 16 }]}>
-                        <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
+                <KeyboardAvoidingView 
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                >
+                    <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', justifyContent: 'flex-end' }}>
+                        <TouchableOpacity 
+                            style={StyleSheet.absoluteFill} 
+                            activeOpacity={1} 
+                            onPress={handleCloseWriteModal} 
+                        />
+                        <Animated.View style={[styles.modalContainer, { flex: 0, height: '75%', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
+                            <View style={[styles.modalHeader, { paddingTop: 24 }]}>
+                                <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
                         <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
@@ -794,18 +858,30 @@ export default function ForumScreen() {
                                 </Text>
                             )}
                         </View>
-                        {newPostType !== 'poll' && (
+                        {newPostType !== 'poll' && ENABLE_PHOTO_UPLOAD && (
                             <View style={styles.formSection}>
-                                {selectedImage ? (
-                                    <View style={styles.imagePreviewContainer}>
-                                        <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-                                        <TouchableOpacity 
-                                            style={styles.removeImageBtn} 
-                                            onPress={() => setSelectedImage(null)}
-                                        >
-                                            <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
-                                        </TouchableOpacity>
-                                    </View>
+                                {selectedImages.length > 0 ? (
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }}>
+                                        {selectedImages.map((uri, index) => (
+                                            <View key={index} style={[styles.imagePreviewContainer, { marginRight: 10 }]}>
+                                                <Image source={{ uri }} style={styles.imagePreview} />
+                                                <TouchableOpacity 
+                                                    style={styles.removeImageBtn} 
+                                                    onPress={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
+                                                >
+                                                    <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
+                                        {selectedImages.length < 5 && (
+                                            <TouchableOpacity 
+                                                style={[styles.addPhotoBtn, { width: 100, height: 100, borderRadius: 20, marginTop: 0 }]}
+                                                onPress={pickImage}
+                                            >
+                                                <IconSymbol name="plus" size={28} color="#94A3B8" />
+                                            </TouchableOpacity>
+                                        )}
+                                    </ScrollView>
                                 ) : (
                                     <TouchableOpacity 
                                         style={[styles.addPhotoBtn, { marginTop: -10, marginBottom: 10, height: 100, borderRadius: 20 }]}
@@ -893,18 +969,18 @@ export default function ForumScreen() {
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
-                </View>
+                        </Animated.View>
+                    </View>
+                </KeyboardAvoidingView>
             </Modal>
             <Modal
                 visible={isDetailModalVisible}
                 animationType="slide"
-                presentationStyle="fullScreen"
+                presentationStyle="pageSheet"
                 onRequestClose={() => setIsDetailModalVisible(false)}
             >
-                <KeyboardAvoidingView
-                    style={styles.modalContainer}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    keyboardVerticalOffset={0}
+                <View
+                    style={[styles.modalContainer, { paddingBottom: Platform.OS === 'ios' ? keyboardHeight : 0 }]}
                 >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
@@ -990,9 +1066,15 @@ export default function ForumScreen() {
                                     </View>
                                 )}
                                 {selectedPost.imageUrl && (
-                                    <View style={styles.detailImageWrapper}>
-                                        <Image source={{ uri: resolveImageUrl(selectedPost.imageUrl) }} style={styles.detailImage} />
-                                    </View>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.detailImageWrapper}>
+                                        {selectedPost.imageUrl.split(',').map((url: string, index: number) => (
+                                            <Image 
+                                                key={index} 
+                                                source={{ uri: resolveImageUrl(url.trim()) }} 
+                                                style={[styles.detailImage, { marginRight: 10, width: selectedPost.imageUrl.includes(',') ? 300 : '100%' }]} 
+                                            />
+                                        ))}
+                                    </ScrollView>
                                 )}
                                 <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
                                     <View style={styles.interactionGroup}>
@@ -1079,7 +1161,7 @@ export default function ForumScreen() {
                                 <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                             </TouchableOpacity>
                         </View>
-                </KeyboardAvoidingView>
+                </View>
             </Modal>
             <Modal
                 visible={isAdModalVisible}
@@ -1239,15 +1321,15 @@ const styles = StyleSheet.create({
     },
     tabsContainer: {
         paddingHorizontal: 20,
-        gap: 10,
+        gap: 12,
     },
     tabItem: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 14,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 16,
         backgroundColor: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -1536,7 +1618,7 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         color: '#94A3B8',
         letterSpacing: 2,
-        marginBottom: 16,
+        marginBottom: 10,
     },
     chipContainer: {
         gap: 10,
@@ -1755,7 +1837,7 @@ const styles = StyleSheet.create({
         opacity: 0.3,
     },
     formSection: {
-        marginBottom: 32,
+        marginBottom: 20,
         paddingHorizontal: 20,
     },
     premiumTextInput: {
@@ -1773,8 +1855,7 @@ const styles = StyleSheet.create({
     writeOptionsDivider: {
         height: 1,
         backgroundColor: '#F1F5F9',
-        marginVertical: 12,
-        marginBottom: 32,
+        marginVertical: 16,
     },
     writeChip: {
         paddingHorizontal: 16,

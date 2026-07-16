@@ -357,6 +357,7 @@
         "Maltepe": "Maltepe"
     },
     "explore": {
+        "welcome": "Hoşgeldin",
         "goodMorning": "Günaydın",
         "todayEventsWaiting": "Bugün Büyükada'da {{count}} etkinlik seni bekliyor.",
         "whatsHappening": "Ada'da neler oluyor? Paylaş...",

@@ -6,34 +6,11 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/services/authApi';
 import { getToken } from '@/utils/tokenStorage';
-import { soundManager } from '@/utils/soundManager';
 
 export const SettingsModal = ({ visible, onClose }: { visible: boolean; onClose: () => void }) => {
     const { t, i18n } = useTranslation();
     const { logout } = useAuth();
     const isTr = i18n.language.startsWith('tr');
-    const [isGuitar, setIsGuitar] = useState(false);
-    const [soundEnabled, setSoundEnabled] = useState(true);
-
-    useEffect(() => {
-        if (visible) {
-            AsyncStorage.getItem('selected_instrument').then(val => {
-                if (val === 'guitar') setIsGuitar(true);
-                else setIsGuitar(false);
-            });
-            setSoundEnabled(soundManager.getSoundEnabled());
-        }
-    }, [visible]);
-
-    const handleSetSound = async (enabled: boolean) => {
-        setSoundEnabled(enabled);
-        await soundManager.setSoundEnabled(enabled);
-    };
-
-    const handleSetInstrument = async (instrument: string) => {
-        setIsGuitar(instrument === 'guitar');
-        await AsyncStorage.setItem('selected_instrument', instrument);
-    };
 
     const handleDeleteAccount = () => {
         Alert.alert(
@@ -91,56 +68,6 @@ export const SettingsModal = ({ visible, onClose }: { visible: boolean; onClose:
                         </View>
                     </View>
 
-                    {/* Ses (Sound) Toggle */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderColor: '#F1F5F9' }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center' }}>
-                                <IconSymbol name="speaker.wave.2.fill" size={20} color="#CA8A04" />
-                            </View>
-                            <View>
-                                <Text style={{ fontSize: 16, fontWeight: '600', color: '#0F172A' }}>{t('common.sound', { defaultValue: 'Ses' })}</Text>
-                            </View>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 20, padding: 4 }}>
-                            <TouchableOpacity 
-                                onPress={() => handleSetSound(true)}
-                                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: soundEnabled ? '#FFF' : 'transparent', shadowColor: soundEnabled ? '#000' : 'transparent', shadowOffset: {width:0, height:2}, shadowOpacity: 0.1, shadowRadius: 4, elevation: soundEnabled ? 2 : 0 }}
-                            >
-                                <Text style={{ fontSize: 14, fontWeight: soundEnabled ? '700' : '500', color: soundEnabled ? '#0F172A' : '#64748B' }}>Açık</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => handleSetSound(false)}
-                                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: !soundEnabled ? '#FFF' : 'transparent', shadowColor: !soundEnabled ? '#000' : 'transparent', shadowOffset: {width:0, height:2}, shadowOpacity: 0.1, shadowRadius: 4, elevation: !soundEnabled ? 2 : 0 }}
-                            >
-                                <Text style={{ fontSize: 14, fontWeight: !soundEnabled ? '700' : '500', color: !soundEnabled ? '#0F172A' : '#64748B' }}>Kapalı</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderColor: '#F1F5F9' }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center' }}>
-                                <IconSymbol name="music.note" size={20} color="#EC4899" />
-                            </View>
-                            <View>
-                                <Text style={{ fontSize: 16, fontWeight: '600', color: '#0F172A' }}>{t('common.instrument', { defaultValue: 'Enstrüman' })}</Text>
-                            </View>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 20, padding: 4 }}>
-                            <TouchableOpacity 
-                                onPress={() => handleSetInstrument('xylophone')}
-                                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: !isGuitar ? '#FFF' : 'transparent', shadowColor: !isGuitar ? '#000' : 'transparent', shadowOffset: {width:0, height:2}, shadowOpacity: 0.1, shadowRadius: 4, elevation: !isGuitar ? 2 : 0 }}
-                            >
-                                <Text style={{ fontSize: 14, fontWeight: !isGuitar ? '700' : '500', color: !isGuitar ? '#0F172A' : '#64748B' }}>Ksilofon</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => handleSetInstrument('guitar')}
-                                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: isGuitar ? '#FFF' : 'transparent', shadowColor: isGuitar ? '#000' : 'transparent', shadowOffset: {width:0, height:2}, shadowOpacity: 0.1, shadowRadius: 4, elevation: isGuitar ? 2 : 0 }}
-                            >
-                                <Text style={{ fontSize: 14, fontWeight: isGuitar ? '700' : '500', color: isGuitar ? '#0F172A' : '#64748B' }}>Gitar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
 
                     <TouchableOpacity 
                         onPress={handleDeleteAccount}

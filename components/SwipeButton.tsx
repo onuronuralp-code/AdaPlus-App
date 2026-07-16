@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Vibration } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions } from 'react-native';
 import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,8 @@ interface SwipeButtonProps {
 export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { height } = useWindowDimensions();
+  const isLargeScreen = height > 900;
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -30,18 +32,19 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
     <Pressable 
       style={({ pressed }) => [
         styles.container,
+        isLargeScreen && { height: 90 },
         pressed && { backgroundColor: '#F0FDF4', borderColor: '#34D399' }
       ]}
       onPress={handlePress}
     >
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <IconSymbol name="bubble.left.and.bubble.right.fill" size={24} color="#059669" />
+        <View style={[styles.iconContainer, isLargeScreen && { width: 72, height: 72, borderRadius: 22 }]}>
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 28 : 24} color="#059669" />
         </View>
-        <Text style={styles.text}>
+        <Text style={[styles.text, isLargeScreen && { fontSize: 19, marginLeft: 44 }]}>
           {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
         </Text>
-        <IconSymbol name="arrow.right" size={20} color="#059669" />
+        <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : 20} color="#059669" />
       </View>
     </Pressable>
   );

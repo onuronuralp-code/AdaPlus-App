@@ -673,8 +673,8 @@ const styles = StyleSheet.create({
 
     // Tab Bar
     tabBar: { paddingVertical: 16 },
-    tabScroll: { paddingHorizontal: 20, gap: 10 },
-    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+    tabScroll: { paddingHorizontal: 20, gap: 12 },
+    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
     tabLabel: { fontSize: 13, fontWeight: '700', color: '#475569' },
 
     // Content

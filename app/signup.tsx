@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,6 +28,7 @@ export default function SignUpScreen() {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; contact?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ name?: boolean; contact?: boolean; password?: boolean }>({});
+    const [focusedField, setFocusedField] = useState('');
     const [kvkkVisible, setKvkkVisible] = useState(false);
 
     // Optional fields
@@ -37,9 +39,17 @@ export default function SignUpScreen() {
     const [islandOpen, setIslandOpen] = useState(false);
 
     const dayRef = useRef<TextInput>(null);
+    const monthRef = useRef<TextInput>(null);
     const yearRef = useRef<TextInput>(null);
 
     // ── Validators ────────────────────────────────────────────────────────────
+
+    useFocusEffect(
+        useCallback(() => {
+            setErrors({});
+            setTouched({});
+        }, [])
+    );
 
     const validateName = (val: string): string | undefined => {
         const trimmed = val.trim();
@@ -99,6 +109,7 @@ export default function SignUpScreen() {
     // ── Submit ────────────────────────────────────────────────────────────────
 
     const handleSubmit = async () => {
+        if (loading) return;
         const nameError = validateName(name);
         const contactError = validateContact(contact);
         const passwordError = validatePassword(password);
@@ -109,6 +120,7 @@ export default function SignUpScreen() {
     };
 
     const handleSignupAfterKVKK = async () => {
+        if (loading) return;
         setKvkkVisible(false);
         setLoading(true);
         try {
@@ -185,15 +197,18 @@ export default function SignUpScreen() {
                                     <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder={(!name && errors.name) ? errors.name : t('auth.namePlaceholder')}
-                                        placeholderTextColor={(!name && errors.name) ? "#EF4444" : "#94A3B8"}
-                                        value={name}
+                                        placeholder={(errors.name && focusedField !== 'name') ? errors.name : t('auth.namePlaceholder')}
+                                        placeholderTextColor={(errors.name && focusedField !== 'name') ? "#EF4444" : "#94A3B8"}
+                                        value={(errors.name && focusedField !== 'name') ? '' : name}
                                         onChangeText={handleNameChange}
-                                        onBlur={handleNameBlur}
+                                        onFocus={() => setFocusedField('name')}
+                                        onBlur={() => {
+                                            setFocusedField('');
+                                            handleNameBlur();
+                                        }}
                                         autoCapitalize="words"
                                     />
                                 </View>
-                                {(errors.name && name.length > 0) ? <Text style={styles.errorText}>{errors.name}</Text> : null}
                             </View>
 
                             {/* E-posta ya da Telefon */}
@@ -207,16 +222,19 @@ export default function SignUpScreen() {
                                     />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder={(!contact && errors.contact) ? errors.contact : "ornek@email.com veya +90 555 000 00 00"}
-                                        placeholderTextColor={(!contact && errors.contact) ? "#EF4444" : "#94A3B8"}
+                                        placeholder={(errors.contact && focusedField !== 'contact') ? errors.contact : "ornek@email.com veya +90 555 000 00 00"}
+                                        placeholderTextColor={(errors.contact && focusedField !== 'contact') ? "#EF4444" : "#94A3B8"}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
-                                        value={contact}
+                                        value={(errors.contact && focusedField !== 'contact') ? '' : contact}
                                         onChangeText={handleContactChange}
-                                        onBlur={handleContactBlur}
+                                        onFocus={() => setFocusedField('contact')}
+                                        onBlur={() => {
+                                            setFocusedField('');
+                                            handleContactBlur();
+                                        }}
                                     />
                                 </View>
-                                {(errors.contact && contact.length > 0) ? <Text style={styles.errorText}>{errors.contact}</Text> : null}
                             </View>
 
                             {/* Şifre */}
@@ -226,40 +244,27 @@ export default function SignUpScreen() {
                                     <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
                                         style={[styles.input, { flex: 1 }]}
-                                        placeholder={(!password && errors.password) ? errors.password : t('auth.passwordPlaceholder')}
-                                        placeholderTextColor={(!password && errors.password) ? "#EF4444" : "#94A3B8"}
+                                        placeholder={(errors.password && focusedField !== 'password') ? errors.password : t('auth.passwordPlaceholder')}
+                                        placeholderTextColor={(errors.password && focusedField !== 'password') ? "#EF4444" : "#94A3B8"}
                                         secureTextEntry={!showPassword}
-                                        value={password}
+                                        value={(errors.password && focusedField !== 'password') ? '' : password}
                                         onChangeText={handlePasswordChange}
-                                        onBlur={handlePasswordBlur}
+                                        onFocus={() => setFocusedField('password')}
+                                        onBlur={() => {
+                                            setFocusedField('');
+                                            handlePasswordBlur();
+                                        }}
                                     />
                                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
                                         <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                     </TouchableOpacity>
                                 </View>
-                                {(errors.password && password.length > 0) ? <Text style={styles.errorText}>{errors.password}</Text> : null}
                             </View>
 
                             {/* Doğum Tarihi (isteğe bağlı) */}
                             <View style={[styles.inputGroup, { marginBottom: 12 }]}>
                                 <Text style={styles.inputLabel}>DOĞUM TARİHİ <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
                                 <View style={styles.dateRow}>
-                                    <View style={[styles.dateCell, styles.dateCellShort]}>
-                                        <TextInput
-                                            style={styles.dateCellInput}
-                                            placeholder="AA"
-                                            placeholderTextColor="#94A3B8"
-                                            keyboardType="number-pad"
-                                            maxLength={2}
-                                            value={birthMonth}
-                                            onChangeText={val => {
-                                                const digits = val.replace(/\D/g, '');
-                                                setBirthMonth(digits);
-                                                if (digits.length === 2) dayRef.current?.focus();
-                                            }}
-                                        />
-                                    </View>
-                                    <Text style={styles.dateSep}>/</Text>
                                     <View style={[styles.dateCell, styles.dateCellShort]}>
                                         <TextInput
                                             ref={dayRef}
@@ -272,6 +277,23 @@ export default function SignUpScreen() {
                                             onChangeText={val => {
                                                 const digits = val.replace(/\D/g, '');
                                                 setBirthDay(digits);
+                                                if (digits.length === 2) monthRef.current?.focus();
+                                            }}
+                                        />
+                                    </View>
+                                    <Text style={styles.dateSep}>/</Text>
+                                    <View style={[styles.dateCell, styles.dateCellShort]}>
+                                        <TextInput
+                                            ref={monthRef}
+                                            style={styles.dateCellInput}
+                                            placeholder="AA"
+                                            placeholderTextColor="#94A3B8"
+                                            keyboardType="number-pad"
+                                            maxLength={2}
+                                            value={birthMonth}
+                                            onChangeText={val => {
+                                                const digits = val.replace(/\D/g, '');
+                                                setBirthMonth(digits);
                                                 if (digits.length === 2) yearRef.current?.focus();
                                             }}
                                         />
@@ -379,7 +401,7 @@ export default function SignUpScreen() {
 
                             <View style={styles.footer}>
                                 <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>
-                                <TouchableOpacity onPress={() => router.push('/login')}>
+                                <TouchableOpacity onPress={() => router.replace('/login')}>
                                     <Text style={styles.loginText}>{t('auth.loginLink')}</Text>
                                 </TouchableOpacity>
                             </View>
@@ -673,8 +695,7 @@ const styles = StyleSheet.create({
         color: '#EF4444',
         fontSize: 12,
         fontWeight: '600',
-        position: 'absolute',
-        bottom: -18,
-        left: 4,
+        marginTop: 4,
+        marginLeft: 4,
     },
 });

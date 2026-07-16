@@ -49,6 +49,7 @@ export function GlobalAlert() {
   const isSuccess = alertState.title.toLowerCase().includes('başarılı') || alertState.title.toLowerCase().includes('success') || alertState.title.toLowerCase().includes('alındı') || alertState.title.toLowerCase().includes('gönderildi');
   const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('sil') || alertState.title.toLowerCase().includes('bildir');
   const isSettings = alertState.title.toLowerCase().includes('ayar') || alertState.title.toLowerCase().includes('setting');
+  const isLogout = alertState.title.toLowerCase().includes('çıkış') || alertState.title.toLowerCase().includes('logout');
   
   let iconName = 'info.circle.fill';
   let iconColor = '#3B82F6';
@@ -64,13 +65,18 @@ export function GlobalAlert() {
     iconBg = '#ECFDF5';
   } else if (isWarning) {
     iconName = 'exclamationmark.triangle.fill';
-    iconColor = '#F59E0B';
-    iconBg = '#FFFBEB';
+    iconColor = '#EF4444';
+    iconBg = '#FEF2F2';
   } else if (isSettings) {
     iconName = 'gearshape.fill';
-    iconColor = '#8B5CF6';
-    iconBg = '#F3E8FF';
+    iconColor = '#64748B';
+    iconBg = '#F1F5F9';
+  } else if (isLogout) {
+    iconName = 'rectangle.portrait.and.arrow.right';
+    iconColor = '#EF4444';
+    iconBg = '#FEF2F2';
   }
+
 
   const renderButtons = () => {
     const buttons = alertState.buttons || [];
@@ -102,13 +108,13 @@ export function GlobalAlert() {
             style={[styles.button, styles.secondaryButton, { flex: 1, marginRight: 8 }]}
             onPress={() => handlePress(cancelBtn.onPress)}
           >
-            <Text style={styles.secondaryButtonText}>{cancelBtn.text}</Text>
+            <Text style={styles.secondaryButtonText} numberOfLines={1} adjustsFontSizeToFit>{cancelBtn.text}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, isDestructive ? styles.destructiveButton : styles.primaryButton, isSuccess && !isDestructive && { backgroundColor: '#10B981' }, { flex: 1, marginLeft: 8 }]}
             onPress={() => handlePress(confirmBtn.onPress)}
           >
-            <Text style={isDestructive ? styles.destructiveButtonText : styles.primaryButtonText}>{confirmBtn.text}</Text>
+            <Text style={isDestructive ? styles.destructiveButtonText : styles.primaryButtonText} numberOfLines={1} adjustsFontSizeToFit>{confirmBtn.text}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -219,7 +225,7 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -229,23 +235,26 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
+    textAlign: 'center',
   },
   secondaryButton: {
     backgroundColor: '#F1F5F9',
   },
   secondaryButtonText: {
     color: '#475569',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
+    textAlign: 'center',
   },
   destructiveButton: {
     backgroundColor: '#EF4444',
   },
   destructiveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
+    textAlign: 'center',
   },
 });

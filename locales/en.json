@@ -357,6 +357,7 @@
         "Maltepe": "Maltepe"
     },
     "explore": {
+        "welcome": "Welcome",
         "goodMorning": "Good morning",
         "todayEventsWaiting": "Today {{count}} events are waiting for you in Büyükada.",
         "whatsHappening": "What is happening on the island? Share...",
