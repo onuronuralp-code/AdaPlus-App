@@ -4,6 +4,7 @@ import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useRef } from 'react';
 
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
@@ -16,8 +17,13 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const { height } = useWindowDimensions();
   const isLargeScreen = height > 900;
   const isIphone16 = height === 852;
+  const isNavigating = useRef(false);
 
   const handlePress = () => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
+    setTimeout(() => { isNavigating.current = false; }, 1000);
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Vibration.vibrate(50);
     

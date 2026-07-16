@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  ActionSheetIOS,
+  Platform,
   Animated,
   Dimensions,
   Modal,
@@ -1167,6 +1169,7 @@ function TripDetailPopup({
         finalStatus = asked;
       }
       if (finalStatus !== "granted") {
+        onClose();
         setTimeout(() => {
           Alert.alert(
             i18n.language === "tr" ? "İzin Gerekli" : "Permission Required",
@@ -1174,7 +1177,7 @@ function TripDetailPopup({
               ? "Bildirim gönderebilmek için bildirim izni vermeniz gerekmektedir."
               : "Notification permission is required to send notifications.",
           );
-        }, 100);
+        }, 400);
         return;
       }
 
@@ -1190,6 +1193,7 @@ function TripDetailPopup({
 
       // Check if alarm time is in the past
       if (alarmDate.getTime() <= Date.now()) {
+        onClose();
         setTimeout(() => {
           Alert.alert(
             i18n.language === "tr" ? "Geçmiş Zaman" : "Past Time",
@@ -1197,7 +1201,7 @@ function TripDetailPopup({
               ? "Bu zaman zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için bildirim gönderin."
               : "This time has already passed. Choose a shorter duration or set a notification for a future trip.",
           );
-        }, 100);
+        }, 400);
         return;
       }
 
@@ -1233,6 +1237,7 @@ function TripDetailPopup({
       setShowAlarmOptions(false);
     } catch (error) {
       console.error("Failed to schedule alarm:", error);
+      onClose();
       setTimeout(() => {
         Alert.alert(
           i18n.language === "tr" ? "Hata" : "Error",
@@ -1240,7 +1245,7 @@ function TripDetailPopup({
             ? "Bildirim gönderilirken bir hata oluştu."
             : "Failed to set the notification.",
         );
-      }, 100);
+      }, 400);
     }
   };
 
@@ -1300,7 +1305,7 @@ function TripDetailPopup({
             </View>
             <TouchableOpacity 
               onPress={onClose} 
-              style={{ position: 'absolute', right: 0, top: 0, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 20 }}
+              style={{ position: 'absolute', right: -12, top: -4, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 20 }}
             >
               <IconSymbol name="xmark" size={16} color="#64748B" />
             </TouchableOpacity>
@@ -1504,51 +1509,53 @@ const alarmStyles = StyleSheet.create({
     color: "#FFFFFF",
   },
   alarmOptionsContainer: {
-    backgroundColor: "#FFFBF5",
-    borderRadius: 14,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#FDE68A",
+    borderColor: "#BFDBFE",
   },
   alarmOptionsTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "800",
-    color: "#92400E",
+    color: "#1D4ED8",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginBottom: 12,
   },
   alarmOption: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 8,
-    gap: 10,
+    gap: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    borderColor: "#DBEAFE",
+    shadowColor: "#3B82F6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 1,
+    elevation: 2,
   },
   alarmOptionText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#0F172A",
+    color: "#1E3A8A",
   },
   alarmCancelBtn: {
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 14,
     marginTop: 4,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 12,
   },
   alarmCancelText: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#94A3B8",
+    fontWeight: "700",
+    color: "#1D4ED8",
   },
 });
 

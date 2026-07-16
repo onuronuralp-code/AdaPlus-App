@@ -64,7 +64,7 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
                         <Text style={styles.text}>AdaPlus, bir girişim projesi olup aşağıdaki gerçek kişiler tarafından yürütülmektedir:</Text>
                         <Text style={styles.bullet}>• Onur Önüralp — İstanbul</Text>
                         <Text style={styles.bullet}>• Ara Kris Ütücü — İstanbul</Text>
-                        <Text style={styles.text}>İletişim: adaplusapp@gmail.com</Text>
+                        <Text style={styles.text}>İletişim: noreply@adaplus.app</Text>
 
                         <Text style={styles.sectionTitle}>2. Kişisel Verilerin Toplanma Yöntemi ve Hukuki Sebebi</Text>
                         <Text style={styles.text}>Kişisel verileriniz aşağıdaki yöntemlerle toplanmaktadır:</Text>

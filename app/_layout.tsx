@@ -37,6 +37,7 @@ import "../utils/i18n";
 import { Provider } from "react-redux";
 
 import { GlobalAlert } from "@/components/GlobalAlert";
+import { GlobalInvisiblePopup } from "@/components/GlobalInvisiblePopup";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -48,7 +49,7 @@ const APP_STORE_URL =
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
-  const [updateRequired, setUpdateRequired] = useState(false);
+  const [updateRequired, setUpdateRequired] = useState(true);
 
   useEffect(() => {
     notificationListener.current = Notifications.addNotificationReceivedListener(
@@ -60,11 +61,29 @@ export default function RootLayout() {
     );
     SplashScreen.hideAsync();
 
+    const showUpdateAlert = () => {
+      Alert.alert(
+        "Güncelleme Gerekli",
+        "AdaPlus'ı kullanmaya devam etmek için uygulamayı güncellemelisin.",
+        [
+          {
+            text: "App Store'da Güncelle",
+            onPress: () => {
+              Linking.openURL(APP_STORE_URL);
+              // Kullanıcı uygulamaya geri dönerse alerti tekrar göster
+              setTimeout(showUpdateAlert, 1000);
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    };
+
     const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
     fetchAppVersion()
       .then(({ minimumVersion }) => {
         if (requiresUpdate(currentVersion, minimumVersion)) {
-          setUpdateRequired(true);
+          showUpdateAlert();
         }
       })
       .catch(() => {
@@ -76,27 +95,6 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Modal
-        visible={updateRequired}
-        animationType="fade"
-        transparent={false}
-        statusBarTranslucent
-        onRequestClose={() => {/* blocked — user must update */}}
-      >
-        <View style={updateStyles.container}>
-          <Text style={updateStyles.emoji}>🌊</Text>
-          <Text style={updateStyles.title}>Güncelleme Gerekli</Text>
-          <Text style={updateStyles.body}>
-            Ada+'ı kullanmaya devam etmek için uygulamayı güncellemelisin.
-          </Text>
-          <TouchableOpacity
-            style={updateStyles.button}
-            onPress={() => Linking.openURL(APP_STORE_URL)}
-          >
-            <Text style={updateStyles.buttonText}>App Store'da Güncelle</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
       <Provider store={store}>
         <NetworkProvider>
         <AuthProvider>
@@ -129,6 +127,7 @@ export default function RootLayout() {
             </Stack>
             <StatusBar style="dark" />
             <GlobalAlert />
+            <GlobalInvisiblePopup />
           </ThemeProvider>
         </CustomThemeProvider>
         </AuthProvider>

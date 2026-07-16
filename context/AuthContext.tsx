@@ -76,10 +76,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const isLoggedIn = !!user;
 
+    // Temporary override to give the user ISLANDER permissions for testing
+    const testUser = user ? { ...user, role: 'ISLANDER' as any, userType: 'RESIDENT' as any } : null;
+
     if (!isInitialized) return null;
 
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn, login, logout, updateProfile }}>
+        <AuthContext.Provider value={{ user: testUser, isLoggedIn, login, logout, updateProfile }}>
             {children}
         </AuthContext.Provider>
     );

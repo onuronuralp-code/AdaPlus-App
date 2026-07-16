@@ -178,47 +178,47 @@ export default function MainMenuScreen() {
   const [unseenListingsCount, setUnseenListingsCount] = useState(0);
   const [allEventIds, setAllEventIds] = useState<string[]>([]);
 
-  const [postText, setPostText] = useState('');
-  const [isPosting, setIsPosting] = useState(false);
-  const [showConfirmPostModal, setShowConfirmPostModal] = useState(false);
-  const [isAnonymousPost, setIsAnonymousPost] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [isInviting, setIsInviting] = useState(false);
 
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
-  const handlePressSend = () => {
-    if (!postText.trim()) return;
-    Keyboard.dismiss();
-    setShowConfirmPostModal(true);
-  };
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim();
+    if (!email) return;
+    
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_REGEX.test(email)) {
+      Alert.alert(t('common.error'), t('profile.inviteEmailError'));
+      return;
+    }
 
-  const handleConfirmCreatePost = async () => {
-    if (!postText.trim()) return;
-    setIsPosting(true);
-    setShowConfirmPostModal(false);
+    Keyboard.dismiss();
+    setIsInviting(true);
+
     try {
-      await createPost({
-        content: postText,
-        postType: PostType.DISCUSSION,
-        island: Island.BUYUKADA,
-        anonymous: isAnonymousPost,
+      const { getToken } = require('@/utils/tokenStorage');
+      const token = await getToken();
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/invites`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ email })
       });
-      setPostText('');
-      setIsAnonymousPost(false);
-      setTimeout(() => {
-        Alert.alert(t('explore.postSuccess'), t('explore.postSuccessDesc'), [
-          { text: t('explore.goToCommunity'), onPress: () => router.push('/(tabs)/explore/island/forum') },
-          { text: t('explore.ok') }
-        ]);
-      }, 300);
+      if (!response.ok) {
+          throw new Error(t('profile.inviteSendFailed'));
+      }
+      Alert.alert(t('common.success'), t('profile.inviteSendSuccess'));
+      setInviteEmail('');
     } catch (error) {
-      console.error('Failed to create post:', error);
-      setTimeout(() => {
-        Alert.alert(t('common.error'), t('explore.postError'));
-      }, 300);
+      console.error('Failed to send invite:', error);
+      Alert.alert(t('common.error'), t('profile.inviteSendFailed'));
     } finally {
-      setIsPosting(false);
+      setIsInviting(false);
     }
   };
 
@@ -306,7 +306,13 @@ export default function MainMenuScreen() {
           setHeroSlides([]);
         }
       }).catch(err => console.log('Error fetching hero slider data:', err));
-    }, [])
+
+      if (isLoggedIn) {
+        fetchNotifications().then(data => {
+            if (data && Array.isArray(data)) setNotifications(data);
+        }).catch(e => console.log('Error prefetching notifications', e));
+      }
+    }, [isLoggedIn])
   );
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
@@ -377,64 +383,54 @@ export default function MainMenuScreen() {
               let notificationsData: any[] = [];
               if (isLoggedIn) {
                   try {
-                      notificationsData = await fetchNotifications();
+                      const fetchedData = await fetchNotifications();
+                      notificationsData = Array.isArray(fetchedData) ? fetchedData : [];
                   } catch (e) {
                       console.log('Error fetching notifications', e);
                   }
               }
               
-              if (!notificationsData || notificationsData.length === 0) {
-                  notificationsData = [
-                      {
-                          id: 'mock-1',
-                          type: 'SYSTEM' as any,
-                          title: 'AdaPlus\'a Hoşgeldiniz!',
-                          body: 'Adalar topluluğuna katıldığınız için teşekkür ederiz. İlk gönderinizi oluşturarak topluluğa merhaba diyebilirsiniz.',
-                          read: false,
-                          createdAt: new Date().toISOString()
-                      },
-                      {
-                          id: 'mock-2',
-                          type: 'ACTIVITY' as any,
-                          title: 'Yeni Etkinlik: Ada Konseri',
-                          body: 'Bu hafta sonu gerçekleşecek müzik festivaline biletler tükenmek üzere. Detaylar için etkinliği inceleyin!',
-                          read: true,
-                          createdAt: new Date(Date.now() - 86400000).toISOString()
-                      }
-                  ];
-              }
               setNotifications(notificationsData);
               setLoadingNotifications(false);
             }}
             activeOpacity={0.7}
           >
             <IconSymbol name="bell.fill" size={20} color="#0F172A" />
+            {notifications.filter(n => !n.read).length > 0 && (
+              <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
+                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                  {notifications.filter(n => !n.read).length}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
 
 
-      {/* Create Post Input & Quick Info */}
+      {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 16, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
-            <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#059669" />
+            <IconSymbol name="envelope.fill" size={20} color="#059669" />
             <TextInput
-              style={{ flex: 1, marginLeft: 10, fontSize: isLargeScreen ? 17 : 16, color: '#0F172A', opacity: isLoggedIn ? 1 : 0.6 }}
-              placeholder={isLoggedIn ? t('explore.whatsHappening') : t('common.loginRequired', { defaultValue: i18n.language.startsWith('en') ? 'Log in to write to the community' : 'Topluluğa yazmak için giriş yapın' })}
-              placeholderTextColor="#94A3B8"
-              value={postText}
-              onChangeText={setPostText}
-              onSubmitEditing={handlePressSend}
-              editable={isLoggedIn}
+              style={{ flex: 1, fontSize: isLargeScreen ? 16 : 15, color: '#0F172A', opacity: (user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'center' }}
+              placeholder={(user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' })}
+              placeholderTextColor="#059669"
+              value={inviteEmail}
+              onChangeText={setInviteEmail}
+              onSubmitEditing={handleSendInvite}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={user?.role === 'ISLANDER' || user?.role === 'ADMIN'}
             />
           </View>
           <TouchableOpacity 
-             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 16, alignItems: 'center', justifyContent: 'center', opacity: (isLoggedIn && postText.trim()) ? 1 : 0.5 }}
-             onPress={handlePressSend}
-             disabled={!isLoggedIn || !postText.trim() || isPosting}
+             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 16, alignItems: 'center', justifyContent: 'center', opacity: ((user?.role === 'ISLANDER' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+             onPress={handleSendInvite}
+             disabled={!(user?.role === 'ISLANDER' || user?.role === 'ADMIN') || !inviteEmail.trim() || isInviting}
           >
-            {isPosting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
+            {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
           </TouchableOpacity>
         </View>
         <TodayOnIsland />
@@ -674,51 +670,12 @@ export default function MainMenuScreen() {
 
       {/* Topluluk Banner (At the bottom) */}
       <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isIphone11 ? 4 : (isLargeScreen ? -4 : (isIphone16 ? -16 : -8)), paddingBottom: 60, backgroundColor: 'transparent' }}>
-        <SwipeButton isLoggedIn={isLoggedIn} onSwipeComplete={() => router.push('/(tabs)/explore/island/forum')} />
+        <SwipeButton isLoggedIn={isLoggedIn} onSwipeComplete={() => navigateWithDebounce('/(tabs)/explore/island/forum')} />
       </View>
 
       </ScrollView>
 
-      {/* Confirmation Modal */}
-      <Modal visible={showConfirmPostModal} transparent animationType="fade">
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400 }}>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 12 }}>{i18n.language.startsWith('en') ? 'Are you sure?' : 'Emin misiniz?'}</Text>
-            <Text style={{ fontSize: 16, color: '#475569', marginBottom: 24 }}>
-              {i18n.language.startsWith('en') ? 'Are you sure you want to share this post with the community?' : 'Bu mesajı toplulukla paylaşmak istediğinize emin misiniz?'}
-            </Text>
-            
-            <TouchableOpacity 
-              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}
-              onPress={() => setIsAnonymousPost(!isAnonymousPost)}
-              activeOpacity={0.7}
-            >
-              <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: isAnonymousPost ? '#059669' : '#CBD5E1', backgroundColor: isAnonymousPost ? '#059669' : '#FFF', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                {isAnonymousPost && <IconSymbol name="checkmark" size={14} color="#FFF" />}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#0F172A' }}>{i18n.language.startsWith('en') ? 'Post Anonymously' : 'Anonim Olarak Paylaş'}</Text>
-                <Text style={{ fontSize: 13, color: '#64748B', marginTop: 2 }}>{i18n.language.startsWith('en') ? 'Your name will be hidden' : 'İsminiz diğer kullanıcılardan gizlenecek'}</Text>
-              </View>
-            </TouchableOpacity>
 
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <TouchableOpacity 
-                style={{ flex: 1, paddingVertical: 14, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center' }}
-                onPress={() => setShowConfirmPostModal(false)}
-              >
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#64748B' }}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={{ flex: 1, paddingVertical: 14, borderRadius: 16, backgroundColor: '#059669', alignItems: 'center' }}
-                onPress={handleConfirmCreatePost}
-              >
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>{t('common.share', { defaultValue: 'Paylaş' })}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Notification Modal */}
       <Modal

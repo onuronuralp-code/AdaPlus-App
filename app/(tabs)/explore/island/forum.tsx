@@ -764,22 +764,24 @@ export default function ForumScreen() {
                             />
                         ) : null}
                     />
-                    <TouchableOpacity 
-                        style={[styles.fab, { bottom: 20 }]} 
-                        onPress={() => {
-                            setIsWriteModalVisible(true);
-                        }}
-                        activeOpacity={0.85}
-                    >
-                        <LinearGradient
-                            colors={['#ffffff', '#ffffff']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.fabGradient}
+                    {(user?.role === 'ISLANDER' || user?.role === 'ADMIN') && (
+                        <TouchableOpacity 
+                            style={[styles.fab, { bottom: 20 }]} 
+                            onPress={() => {
+                                setIsWriteModalVisible(true);
+                            }}
+                            activeOpacity={0.85}
                         >
-                            <IconSymbol name="plus" size={32} color="#3B82F6" />
-                        </LinearGradient>
-                    </TouchableOpacity>
+                            <LinearGradient
+                                colors={['#ffffff', '#ffffff']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={styles.fabGradient}
+                            >
+                                <IconSymbol name="plus" size={32} color="#3B82F6" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    )}
                 </>
             )}
             <Modal
@@ -1157,6 +1159,7 @@ export default function ForumScreen() {
                             )}
                         </View>
                     </ScrollView>
+                    {(user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? (
                         <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                             <TextInput
                                 style={[styles.commentInput, { maxHeight: 120 }]}
@@ -1175,6 +1178,13 @@ export default function ForumScreen() {
                                 <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                             </TouchableOpacity>
                         </View>
+                    ) : (
+                        <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16), justifyContent: 'center' }]}>
+                            <Text style={{ textAlign: 'center', color: '#94A3B8', padding: 12, fontWeight: '500' }}>
+                                {t('common.islanderOnlyWrite', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can write' : 'Sadece Adalılar yazabilir' })}
+                            </Text>
+                        </View>
+                    )}
                 </KeyboardAvoidingView>
             </Modal>
             <Modal
@@ -1951,12 +1961,12 @@ const styles = StyleSheet.create({
         color: '#94A3B8',
     },
     imagePreviewContainer: {
-        width: '100%',
-        height: 200,
+        width: 100,
+        height: 100,
         borderRadius: 20,
         overflow: 'hidden',
         marginBottom: 10,
-        marginTop: -10,
+        marginTop: 0,
     },
     imagePreview: {
         width: '100%',

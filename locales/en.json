@@ -74,7 +74,10 @@
         "login": "Log In",
         "editListing": "Edit Listing",
         "publish": "PUBLISH",
-        "save": "SAVE"
+        "save": "SAVE",
+        "settings": "Settings",
+        "language": "Language",
+        "deleteAccount": "Delete Account"
     },
     "islands": {
         "kinaliada": {
@@ -260,6 +263,8 @@
         "inviteSendSuccess": "Invitation sent successfully!",
         "inviteSendFailed": "Could not send the invitation.",
         "inviteSend": "Send",
+        "deleteAccountTitle": "Delete Account",
+        "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
         "tabs": {
             "posts": "Posts",
             "replies": "Replies",

@@ -40,6 +40,7 @@ export default function GuideScreen() {
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
+    const [guestMessageCount, setGuestMessageCount] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
 
     const [messages, setMessages] = useState<Message[]>([
@@ -74,10 +75,20 @@ export default function GuideScreen() {
                 },
             );
         } catch (e: any) {
-            console.error('[Guide] island stream error:', e);
-            const msg = e?.message === 'daily_limit_reached'
-                ? t('guide.dailyLimitReached')
-                : t('guide.errorRetry');
+            let msg = t('guide.errorRetry', { defaultValue: 'Bir hata oluştu, lütfen tekrar dene.' });
+            if (e?.message === 'daily_limit_reached') {
+                msg = t('guide.dailyLimitReached');
+            } else if (e?.message?.toLowerCase().includes('authentication') || e?.message?.toLowerCase().includes('unauthorized') || e?.message?.includes('401')) {
+                console.warn('[Guide] Auth error gracefully caught:', e.message);
+                if (isLoggedIn) {
+                    msg = t('guide.authExpiredReply', { defaultValue: 'Merhaba! ✨ Sisteme giriş yapmış görünüyorsun ancak oturum süren dolmuş veya bu özelliğe erişim yetkin (Adalı rolü vs.) bulunmuyor olabilir. Lütfen hesabından çıkıp tekrar giriş yapmayı dener misin?' });
+                } else {
+                    msg = t('guide.authRequiredReply', { defaultValue: 'Merhaba! ✨ Sana yardımcı olmayı çok isterim ama sohbetimize devam edebilmemiz için önce giriş yapman gerekiyor. Profil sekmesinden giriş yapıp tekrar gelir misin?' });
+                }
+            } else {
+                console.error('[Guide] island stream error:', e);
+            }
+            
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId ? { ...m, text: msg } : m
             ));
@@ -94,6 +105,18 @@ export default function GuideScreen() {
         if (!text || isLoading) return;
         setPrompt('');
         Keyboard.dismiss();
+
+        if (!isLoggedIn && guestMessageCount >= 3) {
+            const userMsg: Message = { id: Date.now().toString(), text, isBot: false };
+            const authMsg: Message = { 
+                id: (Date.now() + 1).toString(), 
+                text: t('guide.guestLimitReached', { defaultValue: 'Misafir olarak 3 soru sorma hakkını doldurdun! ✨ Sohbetimize devam edebilmemiz için lütfen giriş yap.' }), 
+                isBot: true 
+            };
+            setMessages(prev => [...prev, userMsg, authMsg]);
+            scrollRef.current?.scrollToEnd({ animated: true });
+            return;
+        }
 
         const userMsg: Message = { id: Date.now().toString(), text, isBot: false };
         const thinkingId = (Date.now() + 1).toString();
@@ -114,11 +137,22 @@ export default function GuideScreen() {
                     scrollRef.current?.scrollToEnd({ animated: false });
                 },
             );
+            if (!isLoggedIn) setGuestMessageCount(prev => prev + 1);
         } catch (e: any) {
-            console.error('[Guide] Send stream error:', e);
-            const msg = e?.message === 'daily_limit_reached'
-                ? t('guide.dailyLimitReached')
-                : (e?.message || t('guide.errorGeneric'));
+            let msg = e?.message || t('guide.errorGeneric', { defaultValue: 'Bir hata oluştu.' });
+            if (e?.message === 'daily_limit_reached') {
+                msg = t('guide.dailyLimitReached');
+            } else if (e?.message?.toLowerCase().includes('authentication') || e?.message?.toLowerCase().includes('unauthorized') || e?.message?.includes('401')) {
+                console.warn('[Guide] Auth error gracefully caught:', e.message);
+                if (isLoggedIn) {
+                    msg = t('guide.authExpiredReply', { defaultValue: 'Merhaba! ✨ Sisteme giriş yapmış görünüyorsun ancak oturum süren dolmuş veya bu özelliğe erişim yetkin (Adalı rolü vs.) bulunmuyor olabilir. Lütfen hesabından çıkıp tekrar giriş yapmayı dener misin?' });
+                } else {
+                    msg = t('guide.authRequiredReply', { defaultValue: 'Merhaba! ✨ Sana yardımcı olmayı çok isterim ama sohbetimize devam edebilmemiz için önce giriş yapman gerekiyor. Profil sekmesinden giriş yapıp tekrar gelir misin?' });
+                }
+            } else {
+                console.error('[Guide] Send stream error:', e);
+            }
+
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId ? { ...m, text: msg } : m
             ));
@@ -130,6 +164,8 @@ export default function GuideScreen() {
 
     const showIslandChips = messages.length === 1;
     const showQuickSuggestions = !showIslandChips && messages.length > 1;
+
+
 
     return (
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>

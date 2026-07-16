@@ -655,7 +655,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
           <Image 
              source={{ uri: resolvedUrl }} 
              style={{ width: '100%', height: '100%' }} 
-             resizeMode="contain" 
+             resizeMode="cover" 
           />
         </View>
       )}
@@ -1069,8 +1069,8 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   imagePreviewContainer: {
-    width: '100%',
-    height: 200,
+    width: 100,
+    height: 100,
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 20,

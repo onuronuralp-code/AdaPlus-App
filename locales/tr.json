@@ -74,7 +74,10 @@
         "login": "Giriş Yap",
         "editListing": "İlanı Düzenle",
         "publish": "YAYINLA",
-        "save": "KAYDET"
+        "save": "KAYDET",
+        "settings": "Ayarlar",
+        "language": "Dil (Language)",
+        "deleteAccount": "Hesabı Sil"
     },
     "islands": {
         "kinaliada": {
@@ -260,6 +263,8 @@
         "inviteSendSuccess": "Davetiye başarıyla gönderildi!",
         "inviteSendFailed": "Davetiye gönderilemedi.",
         "inviteSend": "Gönder",
+        "deleteAccountTitle": "Hesabı Sil",
+        "deleteAccountConfirm": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
         "tabs": {
             "posts": "Paylaşımlar",
             "replies": "Yanıtlar",
