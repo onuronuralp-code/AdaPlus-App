@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -108,40 +108,14 @@ export default function EventsScreen() {
     };
 
     const pickImage = () => {
-        const cameraAvailable = ImagePicker.getCameraPermissionsAsync !== undefined;
-        const options: any[] = [];
-
-        options.push({
-            text: t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }),
-            onPress: async () => {
-                try {
-                    const permission = await ImagePicker.requestCameraPermissionsAsync();
-                    if (!permission.granted) {
-                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
-                        return;
-                    }
-                    const result = await ImagePicker.launchCameraAsync({
-                        allowsEditing: true,
-                        aspect: [4, 3],
-                        quality: 0.8,
-                    });
-                    if (!result.canceled) {
-                        setSelectedImage(result.assets[0].uri);
-                    }
-                } catch (e: any) {
-                    Alert.alert(
-                        t('common.error', { defaultValue: 'Hata' }),
-                        t('common.cameraNotAvailable', { defaultValue: 'Kamera bu cihazda kullanılamıyor. Lütfen galeriden seçin.' })
-                    );
+        const takePhoto = async () => {
+            try {
+                const permission = await ImagePicker.requestCameraPermissionsAsync();
+                if (!permission.granted) {
+                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
+                    return;
                 }
-            },
-        });
-
-        options.push({
-            text: t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' }),
-            onPress: async () => {
-                const result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes: ['images'],
+                const result = await ImagePicker.launchCameraAsync({
                     allowsEditing: true,
                     aspect: [4, 3],
                     quality: 0.8,
@@ -149,16 +123,55 @@ export default function EventsScreen() {
                 if (!result.canceled) {
                     setSelectedImage(result.assets[0].uri);
                 }
-            },
-        });
+            } catch (e: any) {
+                Alert.alert(
+                    t('common.error', { defaultValue: 'Hata' }),
+                    t('common.cameraNotAvailable', { defaultValue: 'Kamera bu cihazda kullanılamıyor. Lütfen galeriden seçin.' })
+                );
+            }
+        };
 
-        options.push({ text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' });
+        const chooseFromGallery = async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8,
+            });
+            if (!result.canceled) {
+                setSelectedImage(result.assets[0].uri);
+            }
+        };
 
-        Alert.alert(
-            t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
-            t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
-            options
-        );
+        if (Platform.OS === 'ios') {
+            ActionSheetIOS.showActionSheetWithOptions(
+                {
+                    options: [
+                        t('common.cancel', { defaultValue: 'İptal' }),
+                        t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }),
+                        t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' })
+                    ],
+                    cancelButtonIndex: 0,
+                },
+                (buttonIndex) => {
+                    if (buttonIndex === 1) {
+                        setTimeout(takePhoto, 500);
+                    } else if (buttonIndex === 2) {
+                        setTimeout(chooseFromGallery, 500);
+                    }
+                }
+            );
+        } else {
+            Alert.alert(
+                t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
+                t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
+                [
+                    { text: t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }), onPress: () => setTimeout(takePhoto, 500) },
+                    { text: t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' }), onPress: () => setTimeout(chooseFromGallery, 500) },
+                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' }
+                ]
+            );
+        }
     };
 
     const handlePublishEvent = async () => {
@@ -298,51 +311,37 @@ export default function EventsScreen() {
                         return (
                         <TouchableOpacity
                             key={event.id}
-                            style={[styles.eventCard, hasUserImage ? { padding: 0, height: 220, overflow: 'hidden' } : {}]}
+                            style={styles.eventCard}
                             activeOpacity={0.8}
                             onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                         >
                             {hasUserImage ? (
-                                <ImageBackground
-                                    source={{ uri: resolvedUrl }}
-                                    style={{ width: '100%', height: '100%', justifyContent: 'flex-end' }}
-                                    resizeMode="cover"
-                                >
-                                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.eventInfo}>
-                                        <View style={styles.titleRow}>
-                                            <Text style={[styles.eventTitle, { color: '#fff' }]} numberOfLines={1}>{event.name}</Text>
-                                        </View>
-                                        <View style={styles.eventDetailsRow}>
-                                            <IconSymbol name="calendar" size={14} color="#60A5FA" />
-                                            <Text style={[styles.eventDate, { color: '#60A5FA' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
-                                        </View>
-                                        <View style={styles.eventDetailsRow}>
-                                            <IconSymbol name="person.fill" size={14} color="#CBD5E1" />
-                                            <Text style={[styles.eventLocation, { color: '#CBD5E1' }]} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
-                                        </View>
-                                    </LinearGradient>
-                                </ImageBackground>
-                            ) : (
-                                <>
+                                <View style={{ width: '100%', height: 200, backgroundColor: '#F1F5F9' }}>
                                     <Image
-                                        source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                        style={styles.eventImage}
+                                        source={{ uri: resolvedUrl }}
+                                        style={{ width: '100%', height: '100%' }}
+                                        resizeMode="contain"
                                     />
-                                    <View style={styles.eventInfo}>
-                                        <View style={styles.titleRow}>
-                                            <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
-                                        </View>
-                                        <View style={styles.eventDetailsRow}>
-                                            <IconSymbol name="calendar" size={14} color="#3B82F6" />
-                                            <Text style={[styles.eventDate, { color: '#3B82F6' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
-                                        </View>
-                                        <View style={styles.eventDetailsRow}>
-                                            <IconSymbol name="person.fill" size={14} color="#778DA9" />
-                                            <Text style={styles.eventLocation} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
-                                        </View>
-                                    </View>
-                                </>
+                                </View>
+                            ) : (
+                                <Image
+                                    source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
+                                    style={styles.eventImage}
+                                />
                             )}
+                            <View style={styles.eventInfo}>
+                                <View style={styles.titleRow}>
+                                    <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
+                                </View>
+                                <View style={styles.eventDetailsRow}>
+                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                    <Text style={[styles.eventDate, { color: '#3B82F6' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                </View>
+                                <View style={styles.eventDetailsRow}>
+                                    <IconSymbol name="person.fill" size={14} color="#778DA9" />
+                                    <Text style={styles.eventLocation} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                </View>
+                            </View>
                         </TouchableOpacity>
                         );
                     })

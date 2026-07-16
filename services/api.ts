@@ -102,6 +102,7 @@ export interface AppActivityDto {
   eventPlace?: string;
   instagramLink?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   status?: string;
   submittedById?: string;
   rsvpCount?: number;

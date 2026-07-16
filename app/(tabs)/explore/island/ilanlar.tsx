@@ -12,13 +12,15 @@ import {
   ImageBackground,
   RefreshControl,
   Keyboard,
+  Platform,
+  ActionSheetIOS,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
-import { Modal, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { Modal, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as listingApi from '@/services/listingApi';
@@ -72,7 +74,7 @@ export default function IlanlarScreen() {
   const [selectedCategory, setSelectedCategory] = useState<IlanCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdModalVisible, setIsAdModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [editingListingId, setEditingListingId] = useState<string | null>(null);
@@ -100,7 +102,7 @@ export default function IlanlarScreen() {
              const islandName = Object.keys(ISLAND_ENUM_MAP).find(key => ISLAND_ENUM_MAP[key] === listing.island);
              if (islandName) setAdIsland(islandName);
           }
-          if (listing.imageUrl) setSelectedImage(listing.imageUrl);
+          if (listing.imageUrls && listing.imageUrls.length > 0) setSelectedImages(listing.imageUrls); else if (listing.imageUrl) setSelectedImages([listing.imageUrl]);
           
           let frontendCat: IlanCategory = 'emlak';
           if (listing.category === ListingCategory.SATILIK || listing.category === ListingCategory.KIRALIK) {
@@ -129,11 +131,11 @@ export default function IlanlarScreen() {
   const parsedPrice = adPrice.trim() === '' ? 0 : parseFloat(rawPrice);
   const isPriceValid = !isNaN(parsedPrice) && parsedPrice >= 0;
   const cleanedContact = adContact.replace(/\D/g, '');
-  const isFormDirty = adTitle.trim().length > 0 || adDesc.trim().length > 0 || adContact.length > 0 || adPrice.length > 0 || !!selectedImage;
+  const isFormDirty = adTitle.trim().length > 0 || adDesc.trim().length > 0 || adContact.length > 0 || adPrice.length > 0 || selectedImages.length > 0;
 
   const resetAndCloseModal = () => {
     setIsAdModalVisible(false);
-    setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(''); setSelectedImage(null);
+    setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(''); setSelectedImages([]);
     setAdSubCat('sell');
     setAdIsland('Büyükada');
     setEditingListingId(null);
@@ -196,56 +198,77 @@ export default function IlanlarScreen() {
   };
 
   const pickImage = () => {
-    const options: any[] = [];
+    if (selectedImages.length >= 5) {
+      Alert.alert('Sınır Aşıldı', 'En fazla 5 fotoğraf ekleyebilirsiniz.');
+      return;
+    }
 
-    options.push({
-      text: t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }),
-      onPress: async () => {
-        try {
-          const permission = await ImagePicker.requestCameraPermissionsAsync();
-          if (!permission.granted) {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
-            return;
-          }
-          const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.8,
-          });
-          if (!result.canceled) {
-            setSelectedImage(result.assets[0].uri);
-          }
-        } catch (e: any) {
-          Alert.alert(
-            t('common.error', { defaultValue: 'Hata' }),
-            t('common.cameraNotAvailable', { defaultValue: 'Kamera bu cihazda kullanılamıyor. Lütfen galeriden seçin.' })
-          );
+    const takePhoto = async () => {
+      try {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.cameraPermissionDenied', { defaultValue: 'Kamera izni verilmedi.' }));
+          return;
         }
-      },
-    });
-
-    options.push({
-      text: t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' }),
-      onPress: async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
+        const result = await ImagePicker.launchCameraAsync({
           allowsEditing: true,
           aspect: [4, 3],
           quality: 0.8,
         });
         if (!result.canceled) {
-          setSelectedImage(result.assets[0].uri);
+          setSelectedImages(prev => [...prev, result.assets[0].uri].slice(0, 5));
         }
-      },
-    });
+      } catch (e: any) {
+        Alert.alert(
+          t('common.error', { defaultValue: 'Hata' }),
+          t('common.cameraNotAvailable', { defaultValue: 'Kamera bu cihazda kullanılamıyor. Lütfen galeriden seçin.' })
+        );
+      }
+    };
 
-    options.push({ text: t('common.cancel'), style: 'cancel' });
+    const chooseFromGallery = async () => {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        allowsMultipleSelection: true,
+        selectionLimit: 5 - selectedImages.length,
+        quality: 0.8,
+      });
+      if (!result.canceled) {
+        const newUris = result.assets.map(a => a.uri);
+        setSelectedImages(prev => [...prev, ...newUris].slice(0, 5));
+      }
+    };
 
-    Alert.alert(
-      t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
-      t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
-      options
-    );
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [
+            t('common.cancel', { defaultValue: 'İptal' }),
+            t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }),
+            t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' })
+          ],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            setTimeout(takePhoto, 500);
+          } else if (buttonIndex === 2) {
+            setTimeout(chooseFromGallery, 500);
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        t('common.selectPhoto', { defaultValue: 'Fotoğraf Seç' }),
+        t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
+        [
+          { text: t('common.takePhoto', { defaultValue: '📷 Fotoğraf Çek' }), onPress: () => setTimeout(takePhoto, 500) },
+          { text: t('common.chooseFromGallery', { defaultValue: '🖼️ Galeriden Seç' }), onPress: () => setTimeout(chooseFromGallery, 500) },
+          { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' }
+        ]
+      );
+    }
   };
 
   const handlePublish = async () => {
@@ -253,19 +276,18 @@ export default function IlanlarScreen() {
 
     setIsUploading(true);
     try {
-      let imageUrl = selectedImage;
-      if (selectedImage && !selectedImage.startsWith('http') && !selectedImage.startsWith('/')) {
-        const uploaded = await mediaApi.uploadImage(selectedImage);
-        if (!uploaded) {
-          Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('errors.photoUploadFailed', { defaultValue: 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?' }), [
-            { text: t('common.cancel'), style: 'cancel', onPress: () => setIsUploading(false) },
-            { text: t('common.continueAction', { defaultValue: 'Devam Et' }), onPress: async () => { await submitListing(undefined); } },
-          ]);
-          return;
+      let uploadedUrls: string[] = [];
+      for (const uri of selectedImages) {
+        if (!uri.startsWith('http') && !uri.startsWith('/')) {
+          const uploaded = await mediaApi.uploadImage(uri);
+          if (uploaded) {
+            uploadedUrls.push(uploaded);
+          }
+        } else {
+          uploadedUrls.push(uri);
         }
-        imageUrl = uploaded;
       }
-      await submitListing(imageUrl);
+      await submitListing(uploadedUrls);
     } catch (e: any) {
       if (e?.message !== 'invalid contact' && e?.message !== 'invalid price') {
         Alert.alert(
@@ -280,7 +302,7 @@ export default function IlanlarScreen() {
     }
   };
 
-  const submitListing = async (imageUrl: string | undefined) => {
+  const submitListing = async (imageUrls: string[]) => {
     const finalPrice = adPrice.trim() ? parseFloat(adPrice.replace(/\./g, '')) : 0;
     const finalContact = adContact.replace(/\D/g, '');
     if (isNaN(finalPrice) || finalPrice < 0) throw new Error('invalid price');
@@ -297,7 +319,8 @@ export default function IlanlarScreen() {
       price: finalPrice,
       active: true,
       contactInfo: finalContact,
-      imageUrl: imageUrl
+      imageUrl: imageUrls.length > 0 ? imageUrls[0] : undefined,
+      imageUrls: imageUrls
     };
 
     const resultListing = editingListingId 
@@ -554,17 +577,22 @@ export default function IlanlarScreen() {
               )}
             </View>
 
-            {selectedImage ? (
-              <View style={styles.imagePreviewContainer}>
-                <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-                <TouchableOpacity 
-                  style={styles.removeImageBtn} 
-                  onPress={() => setSelectedImage(null)}
-                >
-                  <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-            ) : (
+            {selectedImages.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+                {selectedImages.map((uri, idx) => (
+                  <View key={idx} style={[styles.imagePreviewContainer, { marginRight: 12, marginBottom: 0 }]}>
+                    <Image source={{ uri }} style={styles.imagePreview} />
+                    <TouchableOpacity 
+                      style={styles.removeImageBtn} 
+                      onPress={() => setSelectedImages(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+            {selectedImages.length < 5 && (
               <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
                 <IconSymbol name="camera.fill" size={24} color="#64748B" />
                 <Text style={styles.addPhotoText}>{t('listings.addPhoto')}</Text>
@@ -612,8 +640,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
     <TouchableOpacity
       style={[
         styles.card,
-        { borderColor: `${cfg.color}33` },
-        hasUserImage ? { padding: 0, height: 200, overflow: 'hidden', borderWidth: 0 } : {}
+        { borderColor: `${cfg.color}33` }
       ]}
       activeOpacity={0.7}
       onPress={() => {
@@ -623,70 +650,49 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
           });
       }}
     >
-      {hasUserImage ? (
-        <ImageBackground source={{ uri: resolvedUrl }} style={{ width: '100%', height: '100%', justifyContent: 'flex-end' }} resizeMode="cover">
-          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={{ padding: 18, paddingTop: 40 }}>
-            <View style={[styles.cardHeader, { marginBottom: 8 }]}>
-              <View style={styles.headerLeft}>
-                <View style={[styles.categoryBadge, { backgroundColor: cfg.color }]}>
-                  <IconSymbol name={cfg.icon as any} size={12} color="#fff" />
-                  <Text style={[styles.categoryBadgeText, { color: '#fff' }]}>{cfg.label}</Text>
-                </View>
-              </View>
-              <Text style={[styles.timeAgo, { color: '#E2E8F0' }]}>{timeAgo}</Text>
+      {hasUserImage && (
+        <View style={{ width: '100%', height: 200, backgroundColor: '#F1F5F9' }}>
+          <Image 
+             source={{ uri: resolvedUrl }} 
+             style={{ width: '100%', height: '100%' }} 
+             resizeMode="contain" 
+          />
+        </View>
+      )}
+      <View style={{ padding: 18 }}>
+        <View style={styles.cardHeader}>
+          <View style={styles.headerLeft}>
+            <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
+              <IconSymbol name={cfg.icon as any} size={12} color={cfg.color} />
+              <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
             </View>
-            <Text style={[styles.cardTitle, { color: '#fff' }]} numberOfLines={2}>{listing.title}</Text>
-            <View style={[styles.cardFooter, { marginTop: 8, borderTopWidth: 0, paddingTop: 0 }]}>
-              <View style={styles.cardMeta}>
-                <View style={styles.metaItem}>
-                  <IconSymbol name="mappin.circle.fill" size={14} color="#E2E8F0" />
-                  <Text style={[styles.metaText, { color: '#E2E8F0' }]}>{listing.island}</Text>
-                </View>
-              </View>
-              {listing.price > 0 && (
-                <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
-                </View>
-              )}
-            </View>
-          </LinearGradient>
-        </ImageBackground>
-      ) : (
-        <View style={{ padding: 18 }}>
-          <View style={styles.cardHeader}>
-            <View style={styles.headerLeft}>
-              <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
-                <IconSymbol name={cfg.icon as any} size={12} color={cfg.color} />
-                <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
-              </View>
-            </View>
-            <Text style={styles.timeAgo}>{timeAgo}</Text>
           </View>
+          <Text style={styles.timeAgo}>{timeAgo}</Text>
+        </View>
 
-          <Text style={styles.cardTitle}>{listing.title}</Text>
-          <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
+        <Text style={styles.cardTitle}>{listing.title}</Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
 
-          <View style={styles.cardFooter}>
-            <View style={styles.cardMeta}>
-              <View style={styles.metaItem}>
-                <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
-                <Text style={styles.metaText}>{listing.island}</Text>
-              </View>
-              {listing.contactInfo && (
-                <View style={styles.metaItem}>
-                  <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
-                  <Text style={styles.metaText}>{listing.contactInfo.substring(0, 15)}...</Text>
-                </View>
-              )}
+        <View style={styles.cardFooter}>
+          <View style={styles.cardMeta}>
+            <View style={styles.metaItem}>
+              <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
+              <Text style={styles.metaText}>{listing.island}</Text>
             </View>
-            {listing.price > 0 && (
-              <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+            {listing.contactInfo && (
+              <View style={styles.metaItem}>
+                <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
+                <Text style={styles.metaText}>{listing.contactInfo.substring(0, 15)}...</Text>
               </View>
             )}
           </View>
+          {listing.price > 0 && (
+            <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+            </View>
+          )}
         </View>
-      )}
+      </View>
     </TouchableOpacity>
   );
 }

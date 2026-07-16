@@ -22,6 +22,7 @@ export interface ListingDto {
   price: number;
   priceLabel?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   contactInfo?: string;
   active: boolean;
   status?: string;
@@ -37,6 +38,7 @@ export interface SaveListingRequest {
   island: Island;
   price: number;
   imageUrl?: string;
+  imageUrls?: string[];
   contactInfo?: string;
   active: boolean;
 }

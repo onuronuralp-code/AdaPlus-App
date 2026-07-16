@@ -132,7 +132,13 @@ export default function IlanDetailScreen() {
           colors={[cfg.bg, '#fff']}
           style={StyleSheet.absoluteFill}
         />
-        {listing.imageUrl ? (
+        {listing.imageUrls && listing.imageUrls.length > 0 ? (
+          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={StyleSheet.absoluteFill}>
+            {listing.imageUrls.map((url, idx) => (
+              <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%' }} resizeMode="cover" />
+            ))}
+          </ScrollView>
+        ) : listing.imageUrl ? (
           <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
           <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />

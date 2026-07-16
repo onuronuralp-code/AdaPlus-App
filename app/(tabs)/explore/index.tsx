@@ -24,7 +24,8 @@ const playNote = async (noteModule: any) => {
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SwipeButton } from '@/components/SwipeButton';
 import { useTranslation } from 'react-i18next';
-import { fetchActivities, fetchListings, fetchDepartures } from '@/services/api';
+import { fetchActivities, fetchDepartures } from '@/services/api';
+import { fetchListings } from '@/services/listingApi';
 import { API_BASE_URL, resolveImageUrl } from '@/services/config';
 import { EventDto, getEventsList } from '@/services/eventApi';
 import { fetchNotifications, markNotificationRead, NotificationDto } from '@/services/notificationApi';
@@ -162,6 +163,7 @@ export default function MainMenuScreen() {
   const isSmallScreen = height < 700;
   const isLargeScreen = height > 900;
   const isIphone11 = Math.round(height) === 896;
+  const isIphone16 = Math.round(height) === 852;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { user, isLoggedIn } = useAuth();
 
@@ -671,7 +673,7 @@ export default function MainMenuScreen() {
       </ScrollView>
 
       {/* Topluluk Banner (At the bottom) */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isIphone11 ? 4 : (isLargeScreen ? -4 : 0), paddingBottom: 60, backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isIphone11 ? 4 : (isLargeScreen ? -4 : (isIphone16 ? -16 : -8)), paddingBottom: 60, backgroundColor: 'transparent' }}>
         <SwipeButton isLoggedIn={isLoggedIn} onSwipeComplete={() => router.push('/(tabs)/explore/island/forum')} />
       </View>
 

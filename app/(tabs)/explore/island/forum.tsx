@@ -33,6 +33,7 @@ export default function ForumScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
+    const [isRulesModalVisible, setIsRulesModalVisible] = useState(false);
     const writeModalSlideAnim = React.useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
     React.useEffect(() => {
@@ -149,7 +150,13 @@ export default function ForumScreen() {
 
                 const reply = await forumApi.postReply(selectedPost.id, request);
                 if (reply) {
-                    setReplies([...replies, reply]);
+                    const completeReply = {
+                        ...reply,
+                        authorId: reply.authorId || user?.id,
+                        authorName: reply.authorName || user?.fullName || 'Anonim',
+                        authorUserType: reply.authorUserType || user?.userType || UserType.VISITOR
+                    };
+                    setReplies([...replies, completeReply]);
                     setNewReplyContent('');
                     // Update main posts list to reflect new comment count
                     setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: p.replyCount + 1 } : p));
@@ -291,9 +298,9 @@ export default function ForumScreen() {
                 },
                 (buttonIndex) => {
                     if (buttonIndex === 1) {
-                        handleCamera();
+                        setTimeout(handleCamera, 500);
                     } else if (buttonIndex === 2) {
-                        handleGallery();
+                        setTimeout(handleGallery, 500);
                     }
                 }
             );
@@ -303,8 +310,8 @@ export default function ForumScreen() {
                 t('common.selectPhotoDesc', { defaultValue: 'Fotoğrafı nereden eklemek istersiniz?' }),
                 [
                     { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
-                    { text: t('common.takePhoto', { defaultValue: 'Fotoğraf Çek' }), onPress: handleCamera },
-                    { text: t('common.chooseFromGallery', { defaultValue: 'Galeriden Seç' }), onPress: handleGallery },
+                    { text: t('common.takePhoto', { defaultValue: 'Fotoğraf Çek' }), onPress: () => setTimeout(handleCamera, 500) },
+                    { text: t('common.chooseFromGallery', { defaultValue: 'Galeriden Seç' }), onPress: () => setTimeout(handleGallery, 500) },
                 ]
             );
         }
@@ -400,7 +407,13 @@ export default function ForumScreen() {
                 };
 
                 const createdPost = await forumApi.createPost(request);
-                setPosts([createdPost, ...posts]);
+                const completePost = {
+                    ...createdPost,
+                    authorId: createdPost.authorId || user?.id,
+                    authorName: createdPost.authorName || user?.fullName || 'Anonim',
+                    authorUserType: createdPost.authorUserType || user?.userType || UserType.VISITOR
+                };
+                setPosts([completePost, ...posts]);
                 setNewPostContent('');
                 setNewPostType('discussion');
                 setPollQuestion('');
@@ -666,7 +679,9 @@ export default function ForumScreen() {
                 <View style={styles.headerTitles}>
                     <Text style={styles.headerTitle}>{t('common.community')}</Text>
                 </View>
-                <View style={{ width: 44 }} />
+                <TouchableOpacity onPress={() => setIsRulesModalVisible(true)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                    <IconSymbol name="doc.text.fill" size={22} color="#1E293B" />
+                </TouchableOpacity>
             </View>
             {!isLoggedIn ? (
                 <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center', paddingHorizontal: 20 }]}>
@@ -729,8 +744,6 @@ export default function ForumScreen() {
                         keyExtractor={item => item.id}
                         style={{ flex: 1 }}
                         showsVerticalScrollIndicator={false}
-                        bounces={false}
-                        overScrollMode="never"
                         contentContainerStyle={[
                             styles.listContent, 
                             posts.filter(post => {
@@ -979,8 +992,9 @@ export default function ForumScreen() {
                 presentationStyle="pageSheet"
                 onRequestClose={() => setIsDetailModalVisible(false)}
             >
-                <View
-                    style={[styles.modalContainer, { paddingBottom: Platform.OS === 'ios' ? keyboardHeight : 0 }]}
+                <KeyboardAvoidingView
+                    style={styles.modalContainer}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
@@ -993,6 +1007,7 @@ export default function ForumScreen() {
                         </View>
                         <View style={{ flex: 1 }} />
                     </View>
+                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                         {selectedPost && (
                             <View style={styles.detailPostContainer}>
                                 <View style={styles.postCardHeader}>
@@ -1102,8 +1117,7 @@ export default function ForumScreen() {
                                 </View>
                             </View>
                         )}
-                        <ScrollView style={styles.modalBody}>
-                            <View style={styles.commentsSection}>
+                        <View style={styles.commentsSection}>
                             <Text style={styles.commentsTitle}>{t('forum.comments')}</Text>
                             {replies.length > 0 ? (
                                 replies.map(reply => (
@@ -1161,7 +1175,7 @@ export default function ForumScreen() {
                                 <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                             </TouchableOpacity>
                         </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
             <Modal
                 visible={isAdModalVisible}
@@ -1274,6 +1288,37 @@ export default function ForumScreen() {
                 }}
                 message={t('auth.loginToPost', { defaultValue: 'Paylaşım yapmak için giriş yapmalısınız.' })}
             />
+
+            {/* Rules Modal */}
+            <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsRulesModalVisible(false)}>
+                <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+                    <View style={styles.modalHeader}>
+                        <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
+                            <IconSymbol name="xmark" size={24} color="#64748B" />
+                        </TouchableOpacity>
+                        <Text style={styles.modalTitle}>{t('common.communityRules', { defaultValue: 'Topluluk Kuralları' })}</Text>
+                        <View style={{ width: 40 }} />
+                    </View>
+                    <ScrollView style={{ flex: 1, padding: 20 }}>
+                        <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 16, marginBottom: 40, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
+                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır.</Text>
+                            
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam ve Reklam</Text>
+                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>İlgisiz, tekrarlayan mesajlar atmak veya ticari amaçlı izinsiz reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
+                            
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Mahremiyet ve Kişisel Veriler</Text>
+                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kendinizin veya başkalarının kişisel iletişim bilgilerini (telefon numarası, açık adres vb.) açık alanda paylaşmayın.</Text>
+                            
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Konu Dışı Paylaşımlar</Text>
+                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Lütfen adalarla veya topluluğu ilgilendiren konularla alakalı paylaşımlar yapmaya özen gösterin.</Text>
+                            
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderasyon</Text>
+                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kurallara uymayan mesajlar moderatörler tarafından silinebilir ve kural ihlali yapan kullanıcıların topluluğa erişimi kısıtlanabilir.</Text>
+                        </View>
+                    </ScrollView>
+                </View>
+            </Modal>
         </View>
     );
 }

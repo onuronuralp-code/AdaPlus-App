@@ -15,6 +15,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const router = useRouter();
   const { height } = useWindowDimensions();
   const isLargeScreen = height > 900;
+  const isIphone16 = height === 852;
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -33,18 +34,27 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
       style={({ pressed }) => [
         styles.container,
         isLargeScreen && { height: 90 },
+        isIphone16 && { height: 58 },
         pressed && { backgroundColor: '#F0FDF4', borderColor: '#34D399' }
       ]}
       onPress={handlePress}
     >
       <View style={styles.content}>
-        <View style={[styles.iconContainer, isLargeScreen && { width: 72, height: 72, borderRadius: 22 }]}>
-          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 28 : 24} color="#059669" />
+        <View style={[
+          styles.iconContainer, 
+          isLargeScreen && { width: 72, height: 72, borderRadius: 22 },
+          isIphone16 && { width: 44, height: 44, borderRadius: 14 }
+        ]}>
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 28 : (isIphone16 ? 18 : 24)} color="#059669" />
         </View>
-        <Text style={[styles.text, isLargeScreen && { fontSize: 19, marginLeft: 44 }]}>
+        <Text style={[
+          styles.text, 
+          isLargeScreen && { fontSize: 19, marginLeft: 44 },
+          isIphone16 && { fontSize: 14, marginLeft: 24 }
+        ]}>
           {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
         </Text>
-        <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : 20} color="#059669" />
+        <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : (isIphone16 ? 16 : 20)} color="#059669" />
       </View>
     </Pressable>
   );
