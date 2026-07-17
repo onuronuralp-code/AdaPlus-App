@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     backButton: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#f5f5f5',
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#FEF9C3', // Light yellow to match dining theme
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 8,
         marginBottom: 20,
         alignItems: 'flex-start',
     },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     },
     placeCard: {
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 20,
         marginBottom: 16,
         shadowColor: "#000",
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     placeIconBg: {
         width: 48,
         height: 48,
-        borderRadius: 24,
+        borderRadius: 16,
         backgroundColor: '#FEF9C3',
         alignItems: 'center',
         justifyContent: 'center',
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 8,
         backgroundColor: '#FEF9C3',
-        borderRadius: 20,
+        borderRadius: 14,
     },
     actionButtonText: {
         color: '#EAB308',
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 8,
         backgroundColor: '#EAB308',
-        borderRadius: 20,
+        borderRadius: 14,
     },
     menuButtonText: {
         color: '#fff',

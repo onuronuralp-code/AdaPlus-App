@@ -7,7 +7,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import * as Notifications from "expo-notifications";
@@ -102,7 +102,7 @@ export default function RootLayout() {
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <Stack screenOptions={{ animation: "slide_from_right" }}>
+            <Stack screenOptions={{ animation: "fade" }}>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="login" options={{ headerShown: false }} />
               <Stack.Screen name="signup" options={{ headerShown: false }} />
@@ -147,12 +147,13 @@ const updateStyles = StyleSheet.create({
   },
   emoji: { fontSize: 64, marginBottom: 24 },
   title: {
-    fontSize: 26,
-    fontWeight: "800",
+    fontSize: 24,
+    fontWeight: "700",
     color: "#0F172A",
     textAlign: "center",
     marginBottom: 16,
     letterSpacing: -0.5,
+    fontFamily: Platform.OS === "android" ? "Roboto" : undefined,
   },
   body: {
     fontSize: 16,
@@ -160,12 +161,19 @@ const updateStyles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 24,
     marginBottom: 40,
+    fontFamily: Platform.OS === "android" ? "Roboto" : undefined,
   },
   button: {
     backgroundColor: "#EC4899",
-    paddingHorizontal: 36,
+    paddingHorizontal: 32,
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 100, // fully rounded pill for Material 3 buttons
+    elevation: 2,
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+    fontFamily: Platform.OS === "android" ? "Roboto" : undefined,
+  },
 });

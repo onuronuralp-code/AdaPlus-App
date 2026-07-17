@@ -153,17 +153,16 @@ export default function ContactScreen() {
               )}
             </View>
 
-            <View style={styles.inputGroup}>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
               <Text style={styles.inputLabel}>{t('common.message')}</Text>
-              <View style={[styles.inputWrapper, styles.textAreaWrapper, errors.message ? styles.inputWrapperError : null]}>
+              <View style={[styles.inputWrapper, styles.textAreaWrapper, errors.message ? styles.inputWrapperError : null, { flex: 1 }]}>
                 <TextInput
-                  style={[styles.input, styles.textArea]}
+                  style={[styles.input, styles.textArea, { flex: 1 }]}
                   placeholder={t('common.messagePlaceholder')}
                   placeholderTextColor="#CBD5E1"
                   value={message}
                   onChangeText={setMessage}
                   multiline
-                  numberOfLines={4}
                   textAlignVertical="top"
                 />
               </View>
@@ -226,7 +225,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC', 
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 18,
     marginBottom: 24,
     borderWidth: 1,
@@ -235,7 +234,7 @@ const styles = StyleSheet.create({
   infoIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 10,
     backgroundColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
@@ -249,13 +248,15 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 100, // Extra space for fixed footer
+    paddingBottom: 0,
   },
   formCard: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 32,
+    borderRadius: 20,
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC', 
-    borderRadius: 20,
+    borderRadius: 14,
     paddingHorizontal: 18,
     borderWidth: 1.5,
     borderColor: '#F1F5F9',
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   textArea: {
-    minHeight: 120,
+    minHeight: 180,
     paddingTop: 14,
   },
   errorRow: {
@@ -342,8 +343,8 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flexDirection: 'row',
-    borderRadius: 24,
-    paddingVertical: 20,
+    borderRadius: 14,
+    paddingVertical: 17,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,

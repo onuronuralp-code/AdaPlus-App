@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     closeButton: {
         width: 32,
         height: 32,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#F1F5F9',
         alignItems: 'center',
         justifyContent: 'center',
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         paddingVertical: 8,
         paddingHorizontal: 12,
-        borderRadius: 20,
+        borderRadius: 14,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     markerContainer: {
         width: 24,
         height: 24,
-        borderRadius: 12,
+        borderRadius: 8,
         backgroundColor: 'rgba(59, 130, 246, 0.2)',
         alignItems: 'center',
         justifyContent: 'center',
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#3B82F6',
         paddingVertical: 6,
         paddingHorizontal: 12,
-        borderRadius: 20,
+        borderRadius: 14,
         marginBottom: 8,
         alignSelf: 'flex-end',
         shadowColor: "#000",
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     reviewCard: {
         backgroundColor: '#F8FAFC',
         padding: 16,
-        borderRadius: 16,
+        borderRadius: 12,
         marginBottom: 12,
     },
     reviewHeader: {

@@ -1,12 +1,21 @@
-import { useRouter } from "expo-router";
-import * as ExpoSplashScreen from "expo-splash-screen";
 import {
   Poppins_500Medium,
+  Poppins_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/poppins";
-import React, { useEffect } from "react";
-import { Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import * as ExpoSplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import {
+  Image,
+  StyleSheet,
+  useWindowDimensions,
+  View
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const NAVY = "#1E3A5F";
 const SEA = "#2F84C8";
@@ -16,7 +25,10 @@ export default function SplashScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  const [fontsLoaded] = useFonts({ Poppins_500Medium });
+  const [fontsLoaded] = useFonts({
+    Poppins_500Medium,
+    Poppins_800ExtraBold,
+  });
 
   useEffect(() => {
     if (!fontsLoaded) return;
@@ -38,8 +50,6 @@ export default function SplashScreen() {
           accessibilityLabel="AdaPlus"
         />
       </View>
-
-
     </SafeAreaView>
   );
 }
@@ -51,6 +61,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
+  },
+  title: {
+    fontFamily: "Poppins_800ExtraBold",
+    textAlign: "center",
+    letterSpacing: -0.5,
   },
   tag: {
     fontFamily: "Poppins_500Medium",

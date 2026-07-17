@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import ErrorModal from '@/components/ErrorModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -24,6 +25,8 @@ export default function LoginScreen() {
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
     const { login: setAuthLogin } = useAuth();
+    const [errorModalVisible, setErrorModalVisible] = useState(false);
+    const [errorModalMsg, setErrorModalMsg] = useState('');
 
     useFocusEffect(
         useCallback(() => {
@@ -86,7 +89,8 @@ export default function LoginScreen() {
                     { text: 'Doğrula', onPress: () => router.push({ pathname: '/verify', params: { email: email.trim() } }) },
                 ]);
             } else {
-                Alert.alert('Giriş Hatası', msg);
+                setErrorModalMsg(msg);
+                setErrorModalVisible(true);
             }
         } finally {
             setLoading(false);
@@ -108,7 +112,8 @@ export default function LoginScreen() {
                 { text: 'Kapat', onPress: () => setIsForgotPassword(false), style: 'cancel' }
             ]);
         } catch (error: any) {
-            Alert.alert('Hata', error.message || 'Bağlantı gönderilemedi.');
+            setErrorModalMsg(error.message || 'Bağlantı gönderilemedi.');
+            setErrorModalVisible(true);
         } finally {
             setLoading(false);
         }
@@ -116,9 +121,9 @@ export default function LoginScreen() {
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.container}>
-            <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
             
             <View style={styles.headerBackground}>
                 <Image
@@ -134,7 +139,7 @@ export default function LoginScreen() {
                     style={[styles.backButton, { top: insets.top + 10 }]} 
                     onPress={() => {
                         if (router.canGoBack()) router.back();
-                        else router.replace('/(tabs)/explore');
+                        else router.back();
                     }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
@@ -239,6 +244,12 @@ export default function LoginScreen() {
             </View>
         </View>
         </TouchableWithoutFeedback>
+        <ErrorModal 
+            visible={errorModalVisible}
+            onClose={() => setErrorModalVisible(false)}
+            title={t('common.error', { defaultValue: 'Hata' })}
+            message={errorModalMsg}
+        />
         </KeyboardAvoidingView>
     );
 }
@@ -252,25 +263,25 @@ const styles = StyleSheet.create({
         zIndex: 10, 
         width: 44, 
         height: 44, 
-        borderRadius: 16, 
+        borderRadius: 12, 
         backgroundColor: 'rgba(255,255,255,0.15)', 
         alignItems: 'center', 
         justifyContent: 'center'
     },
     branding: { alignItems: 'center' },
     logoCircle: { width: 72, height: 72, borderRadius: 36, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
-    welcomeTitle: { fontSize: 24, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },
-    welcomeSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
+    welcomeTitle: { fontSize: 32, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },
+    welcomeSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
     cardContainer: { flex: 1, backgroundColor: '#fff', marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 16 },
     formContainer: { flex: 1, paddingBottom: 20 },
     inputGroup: { marginBottom: 16 },
     inputLabel: { fontSize: 11, fontWeight: '800', color: '#415A77', marginBottom: 8, letterSpacing: 1 },
-    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: '#E2E8F0' },
+    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: '#E2E8F0' },
     input: { flex: 1, marginLeft: 12, fontSize: 16, color: '#0D1B2A', fontWeight: '500' },
     forgotText: { fontSize: 11, fontWeight: '800', color: '#10B981', marginBottom: 8 },
-    primaryButton: { backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
+    primaryButton: { backgroundColor: '#10B981', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
     primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
-    signupButtonOutline: { marginTop: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 14, borderRadius: 16, borderWidth: 1.5, borderColor: '#10B981', backgroundColor: '#FFFFFF' },
+    signupButtonOutline: { marginTop: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 14, borderRadius: 12, borderWidth: 1.5, borderColor: '#10B981', backgroundColor: '#FFFFFF' },
     footerText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
     signupText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
     inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },

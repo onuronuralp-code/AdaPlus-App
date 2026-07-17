@@ -181,7 +181,6 @@ export default function ForumScreen() {
 
     const tabs = [
         { id: 'all', icon: 'square.grid.2x2.fill', label: t('forum.tabs.all') },
-        { id: 'liked', icon: 'heart.fill', label: t('forum.tabs.liked') },
         { id: 'polls', icon: 'chart.bar.fill', label: t('forum.tabs.polls') },
         { id: 'hot', icon: 'flame.fill', label: t('forum.tabs.hot') },
     ] as const;
@@ -577,11 +576,11 @@ export default function ForumScreen() {
                             </View>
                             {item.authorId === user?.id && (
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <TouchableOpacity onPress={() => handleEditPost(item)} style={{ padding: 4, marginLeft: 8 }}>
-                                        <IconSymbol name="pencil" size={16} color="#6366F1" />
+                                    <TouchableOpacity onPress={() => handleEditPost(item)} style={{ padding: 10, marginLeft: 4 }}>
+                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeletePost(item.id)} style={{ padding: 4, marginLeft: 8 }}>
-                                        <IconSymbol name="trash.fill" size={16} color="#EF4444" />
+                                    <TouchableOpacity onPress={() => handleDeletePost(item.id)} style={{ padding: 10, marginLeft: 4 }}>
+                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -695,7 +694,7 @@ export default function ForumScreen() {
                         {i18n.language.startsWith('en') ? 'You must log in to view community posts and join the discussion.' : 'Topluluktaki mesajları görmek ve tartışmaya katılmak için giriş yapmalısınız.'}
                     </Text>
                     <TouchableOpacity 
-                        style={{ backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, alignSelf: 'center' }}
+                        style={{ backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, alignSelf: 'center' }}
                         onPress={() => router.push('/login')}
                     >
                         <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
@@ -737,7 +736,6 @@ export default function ForumScreen() {
                     <FlatList
                         data={posts.filter(post => {
                             if (activeTab === 'polls') return post.postType === PostType.POLL;
-                            if (activeTab === 'liked') return post.isLiked;
                             return true;
                         })}
                         renderItem={renderPost}
@@ -748,7 +746,6 @@ export default function ForumScreen() {
                             styles.listContent, 
                             posts.filter(post => {
                                 if (activeTab === 'polls') return post.postType === PostType.POLL;
-                                if (activeTab === 'liked') return post.isLiked;
                                 return true;
                             }).length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }
                         ]}
@@ -788,6 +785,8 @@ export default function ForumScreen() {
                 visible={isWriteModalVisible}
                 animationType="fade"
                 transparent={true}
+                statusBarTranslucent={true}
+                navigationBarTranslucent={true}
                 onRequestClose={handleCloseWriteModal}
             >
                 <KeyboardAvoidingView 
@@ -800,7 +799,7 @@ export default function ForumScreen() {
                             activeOpacity={1} 
                             onPress={handleCloseWriteModal} 
                         />
-                        <Animated.View style={[styles.modalContainer, { flex: 0, height: '75%', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
+                        <Animated.View style={[styles.modalContainer, { flex: 0, height: '75%', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
                             <View style={[styles.modalHeader, { paddingTop: 24 }]}>
                                 <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
@@ -890,7 +889,7 @@ export default function ForumScreen() {
                                         ))}
                                         {selectedImages.length < 5 && (
                                             <TouchableOpacity 
-                                                style={[styles.addPhotoBtn, { width: 100, height: 100, borderRadius: 20, marginTop: 0 }]}
+                                                style={[styles.addPhotoBtn, { width: 100, height: 100, borderRadius: 14, marginTop: 0 }]}
                                                 onPress={pickImage}
                                             >
                                                 <IconSymbol name="plus" size={28} color="#94A3B8" />
@@ -899,7 +898,7 @@ export default function ForumScreen() {
                                     </ScrollView>
                                 ) : (
                                     <TouchableOpacity 
-                                        style={[styles.addPhotoBtn, { marginTop: -10, marginBottom: 10, height: 100, borderRadius: 20 }]}
+                                        style={[styles.addPhotoBtn, { marginTop: -10, marginBottom: 10, height: 100, borderRadius: 14 }]}
                                         onPress={pickImage}
                                     >
                                         <IconSymbol name="photo.fill" size={28} color="#94A3B8" />
@@ -992,10 +991,13 @@ export default function ForumScreen() {
                 visible={isDetailModalVisible}
                 animationType="slide"
                 presentationStyle="pageSheet"
+                transparent={true}
+                statusBarTranslucent
+                navigationBarTranslucent
                 onRequestClose={() => setIsDetailModalVisible(false)}
             >
                 <KeyboardAvoidingView
-                    style={styles.modalContainer}
+                    style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={styles.modalHeader}>
@@ -1038,11 +1040,11 @@ export default function ForumScreen() {
                                         </View>
                                         {selectedPost.authorId === user?.id && (
                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <TouchableOpacity onPress={() => handleEditPost(selectedPost)} style={{ padding: 8 }}>
-                                                    <IconSymbol name="pencil" size={20} color="#6366F1" />
+                                                <TouchableOpacity onPress={() => handleEditPost(selectedPost)} style={{ padding: 12 }}>
+                                                    <IconSymbol name="pencil" size={22} color="#6366F1" />
                                                 </TouchableOpacity>
-                                                <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ padding: 8 }}>
-                                                    <IconSymbol name="trash.fill" size={20} color="#EF4444" />
+                                                <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ padding: 12 }}>
+                                                    <IconSymbol name="trash.fill" size={22} color="#EF4444" />
                                                 </TouchableOpacity>
                                             </View>
                                         )}
@@ -1136,11 +1138,11 @@ export default function ForumScreen() {
                                             </View>
                                             {reply.authorId === user?.id && (
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                    <TouchableOpacity onPress={() => handleEditReply(reply)} style={{ padding: 4, marginLeft: 4 }}>
-                                                        <IconSymbol name="pencil" size={14} color="#6366F1" />
+                                                    <TouchableOpacity onPress={() => handleEditReply(reply)} style={{ padding: 10, marginLeft: 4 }}>
+                                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
                                                     </TouchableOpacity>
-                                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id)} style={{ padding: 4, marginLeft: 4 }}>
-                                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id)} style={{ padding: 10, marginLeft: 4 }}>
+                                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
                                                     </TouchableOpacity>
                                                 </View>
                                             )}
@@ -1190,7 +1192,7 @@ export default function ForumScreen() {
             <Modal
                 visible={isAdModalVisible}
                 animationType="slide"
-                presentationStyle="pageSheet"
+                presentationStyle="fullScreen"
                 onRequestClose={() => setIsAdModalVisible(false)}
             >
                 <KeyboardAvoidingView 
@@ -1300,7 +1302,7 @@ export default function ForumScreen() {
             />
 
             {/* Rules Modal */}
-            <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsRulesModalVisible(false)}>
+            <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
                     <View style={styles.modalHeader}>
                         <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
@@ -1310,7 +1312,7 @@ export default function ForumScreen() {
                         <View style={{ width: 40 }} />
                     </View>
                     <ScrollView style={{ flex: 1, padding: 20 }}>
-                        <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 16, marginBottom: 40, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
+                        <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 12, marginBottom: 40, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
                             <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
                             <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır.</Text>
                             
@@ -1349,7 +1351,7 @@ const styles = StyleSheet.create({
     backButton: {
         width: 44,
         height: 44,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1384,7 +1386,7 @@ const styles = StyleSheet.create({
         gap: 8,
         paddingHorizontal: 20,
         paddingVertical: 12,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -1464,7 +1466,7 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     bubbleImageWrapper: {
-        borderRadius: 12,
+        borderRadius: 8,
         overflow: 'hidden',
         marginTop: 8,
         marginBottom: 4,
@@ -1477,7 +1479,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 36,
         height: 36,
-        borderRadius: 12,
+        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -1524,7 +1526,7 @@ const styles = StyleSheet.create({
     },
     imageWrapper: {
         marginTop: 8,
-        borderRadius: 12,
+        borderRadius: 8,
         overflow: 'hidden',
         height: 140,
         backgroundColor: '#F1F5F9',
@@ -1571,7 +1573,7 @@ const styles = StyleSheet.create({
         bottom: 20,
         width: 64,
         height: 64,
-        borderRadius: 32,
+        borderRadius: 20,
         backgroundColor: '#FFFFFF',
         elevation: 12,
         shadowColor: '#000',
@@ -1582,7 +1584,7 @@ const styles = StyleSheet.create({
     fabGradient: {
         width: '100%',
         height: '100%',
-        borderRadius: 32,
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -1592,7 +1594,7 @@ const styles = StyleSheet.create({
     },
     renderedPollOption: {
         height: 52,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#F8FAFC',
         overflow: 'hidden',
         justifyContent: 'center',
@@ -1652,7 +1654,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#10B981',
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderRadius: 16,
+        borderRadius: 12,
     },
     publishButtonDisabled: {
         backgroundColor: '#F1F5F9',
@@ -1682,7 +1684,7 @@ const styles = StyleSheet.create({
     chip: {
         paddingHorizontal: 18,
         paddingVertical: 10,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#F8FAFC',
         borderWidth: 1,
         borderColor: '#E2E8F0',
@@ -1701,7 +1703,7 @@ const styles = StyleSheet.create({
     },
     adTitleInput: {
         backgroundColor: '#F8FAFC',
-        borderRadius: 20,
+        borderRadius: 14,
         padding: 18,
         fontSize: 16,
         color: '#1A1A1A',
@@ -1718,7 +1720,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
         paddingHorizontal: 14,
         paddingVertical: 12,
-        borderRadius: 16,
+        borderRadius: 12,
         gap: 8,
         borderWidth: 1,
         borderColor: '#F8FAFC',
@@ -1776,7 +1778,7 @@ const styles = StyleSheet.create({
         textAlign: 'left',
     },
     detailImageWrapper: {
-        borderRadius: 24,
+        borderRadius: 16,
         overflow: 'hidden',
         height: 300,
         backgroundColor: '#F1F5F9',
@@ -1826,7 +1828,7 @@ const styles = StyleSheet.create({
     commentInput: {
         flex: 1,
         backgroundColor: '#F8FAFC',
-        borderRadius: 24,
+        borderRadius: 16,
         paddingHorizontal: 20,
         paddingVertical: 12,
         fontSize: 15,
@@ -1878,7 +1880,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#CBD5E1',
         paddingHorizontal: 20,
         paddingVertical: 10,
-        borderRadius: 16,
+        borderRadius: 12,
     },
     activePremiumPublishBtn: {
         backgroundColor: '#3B82F6',
@@ -1902,7 +1904,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         minHeight: 120,
         backgroundColor: '#F8FAFC',
-        borderRadius: 20,
+        borderRadius: 14,
         padding: 20,
         borderWidth: 1,
         borderColor: '#F1F5F9',
@@ -1915,7 +1917,7 @@ const styles = StyleSheet.create({
     writeChip: {
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderRadius: 14,
+        borderRadius: 10,
         backgroundColor: '#F8FAFC',
         borderWidth: 1,
         borderColor: '#F1F5F9',
@@ -1963,7 +1965,7 @@ const styles = StyleSheet.create({
     imagePreviewContainer: {
         width: 100,
         height: 100,
-        borderRadius: 20,
+        borderRadius: 14,
         overflow: 'hidden',
         marginBottom: 10,
         marginTop: 0,
@@ -1978,7 +1980,7 @@ const styles = StyleSheet.create({
         top: 10,
         right: 10,
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderRadius: 8,
     },
     anonToggle: {
         flexDirection: 'row',
@@ -1986,7 +1988,7 @@ const styles = StyleSheet.create({
         gap: 12,
         backgroundColor: '#F8FAFC',
         padding: 16,
-        borderRadius: 20,
+        borderRadius: 14,
         borderWidth: 1,
         borderColor: '#F1F5F9',
     },
@@ -2034,7 +2036,7 @@ const styles = StyleSheet.create({
     emptyStateButton: {
         marginHorizontal: 60,
         marginTop: -20,
-        borderRadius: 20,
+        borderRadius: 14,
         overflow: 'hidden',
         elevation: 4,
         shadowColor: '#000',

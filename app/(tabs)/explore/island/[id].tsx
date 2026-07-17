@@ -107,7 +107,7 @@ export default function IslandDetailScreen() {
                 <View style={styles.body}>
                     <Image 
                         source={require('@/assets/images/island_doodle.png')} 
-                        style={[StyleSheet.absoluteFill, { opacity: 0.15, borderRadius: 24 }]} 
+                        style={[StyleSheet.absoluteFill, { opacity: 0.15, borderRadius: 16 }]} 
                         resizeMode="cover"
                     />
 
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 16,
         marginBottom: 16,
         borderColor: '#eee',
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     iconContainer: {
         width: 48,
         height: 48,
-        borderRadius: 24,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 16,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 20,
         backgroundColor: 'rgba(0, 0, 0, 0.55)',
-        borderRadius: 12,
+        borderRadius: 8,
         paddingVertical: 8,
         paddingHorizontal: 12,
         zIndex: 10,

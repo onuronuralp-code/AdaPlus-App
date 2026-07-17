@@ -100,10 +100,12 @@ export default function GuideScreen() {
 
     // ── Send message ──────────────────────────────────────────────────────────
 
-    const handleSend = async () => {
-        const text = prompt.trim();
+    const handleSend = async (textToSubmit?: string | any) => {
+        const text = (typeof textToSubmit === 'string' ? textToSubmit : prompt).trim();
         if (!text || isLoading) return;
-        setPrompt('');
+        if (typeof textToSubmit !== 'string') {
+            setPrompt('');
+        }
         Keyboard.dismiss();
 
         if (!isLoggedIn && guestMessageCount >= 3) {
@@ -162,8 +164,8 @@ export default function GuideScreen() {
         }
     };
 
-    const showIslandChips = !selectedIsland;
-    const showQuickSuggestions = !!selectedIsland && messages.length > 2;
+    const showIslandChips = messages.length === 1;
+    const showQuickSuggestions = !showIslandChips && messages.length > 1;
 
 
 
@@ -184,7 +186,7 @@ export default function GuideScreen() {
                 )}
             </View>
 
-            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <ScrollView
                     ref={scrollRef}
                     style={styles.content}
@@ -199,7 +201,7 @@ export default function GuideScreen() {
                         <View key={msg.id} style={[styles.messageRow, msg.isBot ? styles.botRow : styles.userRow]}>
                             {msg.isBot && (
                                 <View style={styles.botAvatar}>
-                                    <IconSymbol name="sparkles" size={16} color="#fff" />
+                                    <IconSymbol name="pawprint.fill" size={16} color="#fff" />
                                 </View>
                             )}
                             <View style={[styles.bubble, msg.isBot ? styles.botBubble : styles.userBubble]}>
@@ -229,17 +231,17 @@ export default function GuideScreen() {
                             <SuggestionChip
                                 text={t('guide.chip.sightseeing')}
                                 disabled={isLoading}
-                                onPress={() => { setPrompt(t('guide.prompt.sightseeing')); }}
+                                onPress={() => handleSend(t('guide.prompt.sightseeing'))}
                             />
                             <SuggestionChip
                                 text={t('guide.chip.cafes')}
                                 disabled={isLoading}
-                                onPress={() => { setPrompt(t('guide.prompt.cafes')); }}
+                                onPress={() => handleSend(t('guide.prompt.cafes'))}
                             />
                             <SuggestionChip
                                 text={t('guide.chip.beaches')}
                                 disabled={isLoading}
-                                onPress={() => { setPrompt(t('guide.prompt.beaches')); }}
+                                onPress={() => handleSend(t('guide.prompt.beaches'))}
                             />
                         </View>
                     )}
@@ -345,7 +347,7 @@ const styles = StyleSheet.create({
     backButton: {
         width: 44,
         height: 44,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
@@ -363,23 +365,23 @@ const styles = StyleSheet.create({
         borderColor: '#EC4899',
         paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: 12,
+        borderRadius: 8,
     },
     islandBadgeText: { fontSize: 12, fontWeight: '700', color: '#EC4899' },
     content: { flex: 1, backgroundColor: '#F8FAFC' },
-    messageRow: { flexDirection: 'row', marginBottom: 20, alignItems: 'flex-end', width: '100%' },
+    messageRow: { flexDirection: 'row', marginBottom: 20, alignItems: 'flex-end' },
     botRow: { justifyContent: 'flex-start' },
     userRow: { justifyContent: 'flex-end' },
     botAvatar: {
         width: 32,
         height: 32,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#EC4899',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 10,
     },
-    bubble: { maxWidth: '80%', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 20, minHeight: 44, justifyContent: 'center' },
+    bubble: { maxWidth: '80%', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, minHeight: 44, justifyContent: 'center' },
     botBubble: { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#E2E8F0' },
     userBubble: { backgroundColor: '#0F172A', borderBottomRightRadius: 4 },
     messageText: { fontSize: 15, lineHeight: 22 },
@@ -390,7 +392,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingVertical: 8,
         paddingHorizontal: 12,
-        borderRadius: 12,
+        borderRadius: 8,
         borderWidth: 1,
         borderColor: '#EC4899',
         alignItems: 'center',
@@ -407,7 +409,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'flex-end',
         backgroundColor: '#F1F5F9',
-        borderRadius: 24,
+        borderRadius: 16,
         paddingHorizontal: 16,
         paddingVertical: 8,
     },
@@ -415,7 +417,7 @@ const styles = StyleSheet.create({
     sendButton: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 14,
         backgroundColor: '#EC4899',
         alignItems: 'center',
         justifyContent: 'center',
@@ -425,7 +427,7 @@ const styles = StyleSheet.create({
     sendButtonDisabled: { backgroundColor: '#E2E8F0' },
 
     // Auth gate
-    authGate: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+    authGate: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, marginTop: -50 },
     authGateIcon: {
         width: 80,
         height: 80,
@@ -437,6 +439,6 @@ const styles = StyleSheet.create({
     },
     authGateTitle: { fontSize: 22, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 12 },
     authGateSubtitle: { fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-    loginButton: { backgroundColor: '#EC4899', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16 },
+    loginButton: { backgroundColor: '#EC4899', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 },
     loginButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

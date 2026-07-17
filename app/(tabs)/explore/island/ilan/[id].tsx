@@ -78,7 +78,7 @@ export default function IlanDetailScreen() {
           onPress={() => loadError
             ? listingApi.getListing(id as string).then(d => d && (setListing(d), setLoadError(false))).catch(() => {})
             : (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore/island/ilanlar'))}
-          style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 }}
+          style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }}
         >
           <Text style={{ color: '#3B82F6', fontWeight: '700' }}>{loadError ? 'Tekrar Dene' : 'Geri Dön'}</Text>
         </TouchableOpacity>
@@ -110,7 +110,7 @@ export default function IlanDetailScreen() {
           if (router.canGoBack()) router.back();
           else router.replace('/(tabs)/explore/island/ilanlar');
         }}>
-          <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+          <IconSymbol name="chevron.left" size={28} color="#1E293B" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.iconButton} onPress={async () => {
@@ -122,7 +122,7 @@ export default function IlanDetailScreen() {
             console.log('Share error:', error);
           }
         }}>
-          <IconSymbol name="square.and.arrow.up" size={20} color="#1E293B" />
+          <IconSymbol name="square.and.arrow.up" size={24} color="#1E293B" />
         </TouchableOpacity>
       </View>
 
@@ -203,7 +203,7 @@ export default function IlanDetailScreen() {
 
           {/* Safety Warning */}
           <View style={styles.warningCard}>
-            <IconSymbol name="shield.fill" size={20} color="#F59E0B" />
+            <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#F59E0B" />
             <Text style={styles.warningText}>
               {t('ilanlar.safetyWarning', { defaultValue: 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz.' })}
             </Text>
@@ -231,8 +231,8 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   infoIcon: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 10,
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFFBEB',
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 14,
     marginTop: 32,
     gap: 12,
     alignItems: 'center',

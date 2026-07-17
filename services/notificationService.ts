@@ -1,4 +1,10 @@
-import * as Notifications from 'expo-notifications';
+let Notifications: any = null;
+// Push notifications are temporarily disabled in Expo Go Android to prevent a hard crash
+// try {
+//   Notifications = require('expo-notifications');
+// } catch (e) {
+//   console.warn('[Notifications] expo-notifications is not supported in Expo Go on Android SDK 53+');
+// }
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { API_BASE_URL } from './config';
@@ -6,6 +12,7 @@ import { getToken } from '@/utils/tokenStorage';
 
 export async function registerForPushNotifications(): Promise<void> {
   try {
+    if (!Notifications) return;
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
     if (existing !== 'granted') {
@@ -47,6 +54,7 @@ export async function registerForPushNotifications(): Promise<void> {
 
 export async function unregisterPushNotifications(): Promise<void> {
   try {
+    if (!Notifications) return;
     const projectId =
       Constants.expoConfig?.extra?.eas?.projectId ?? 'f842f1f6-7573-43a1-a1a9-58b9e270eff6';
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });

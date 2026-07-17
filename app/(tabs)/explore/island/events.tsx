@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
+import SuccessModal from '@/components/SuccessModal';
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomDateTimePicker from '@/components/CustomDateTimePicker';
 
@@ -27,6 +28,8 @@ export default function EventsScreen() {
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
     const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [successModalMessage, setSuccessModalMessage] = useState('');
 
     const params = useLocalSearchParams();
     
@@ -201,7 +204,7 @@ export default function EventsScreen() {
                 }
                 imageUrl = uploaded;
             }
-            await publishEvent(imageUrl);
+            await publishEvent(imageUrl || undefined);
         } catch {
             Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Etkinlik oluşturulamadı. Lütfen tekrar deneyin.');
         } finally {
@@ -253,12 +256,12 @@ export default function EventsScreen() {
         setContactNumber('');
         setSocialLink('');
         setSelectedImage(null);
-        Alert.alert(
-            t('common.success', { defaultValue: 'Başarılı' }),
+        setSuccessModalMessage(
             editingActivityId 
                 ? t('common.eventUpdated', { defaultValue: 'Etkinlik başarıyla güncellendi.' })
                 : t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
         );
+        setSuccessModalVisible(true);
         loadEvents(true);
     };
 
@@ -271,7 +274,7 @@ export default function EventsScreen() {
                     if (router.canGoBack()) {
                         router.back();
                     } else {
-                        router.replace('/(tabs)/explore');
+                        router.back();
                     }
                 }}>
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
@@ -297,10 +300,10 @@ export default function EventsScreen() {
                 ) : events.length === 0 ? (
                     <View style={{ flex: 1, justifyContent: 'center' }}>
                         <EmptyState 
-                            icon="calendar.badge.exclamationmark" 
+                            icon="calendar" 
                             title={t('events.emptyTitle')}
                             subtitle={t('events.emptySubtitle')}
-                            color="#F59E0B"
+                            color="#3B82F6"
                         />
                     </View>
                 ) : (
@@ -373,10 +376,13 @@ export default function EventsScreen() {
                 visible={isAddModalVisible}
                 animationType="slide"
                 presentationStyle="pageSheet"
+                transparent={true}
+                statusBarTranslucent={true}
+                navigationBarTranslucent={true}
                 onRequestClose={() => setIsAddModalVisible(false)}
             >
                 <KeyboardAvoidingView 
-                    style={styles.modalContainer} 
+                    style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={styles.modalHeader}>
@@ -466,7 +472,7 @@ export default function EventsScreen() {
                             visible={showEndPicker}
                             value={endDate}
                             title="Bitiş Tarihi ve Saati"
-                            accentColor="#64748B"
+                            accentColor="#3B82F6"
                             onConfirm={(date) => { setEndDate(date); setShowEndPicker(false); }}
                             onCancel={() => setShowEndPicker(false)}
                         />
@@ -557,6 +563,13 @@ export default function EventsScreen() {
                 }}
                 message={t('auth.loginToPost', { defaultValue: 'Etkinlik eklemek için giriş yapmalısınız.' })}
             />
+
+            <SuccessModal 
+                visible={successModalVisible}
+                onClose={() => setSuccessModalVisible(false)}
+                title={t('common.success', { defaultValue: 'Başarılı' })}
+                message={successModalMessage}
+            />
         </View>
     );
 }
@@ -576,7 +589,7 @@ const styles = StyleSheet.create({
     backButton: {
         width: 44,
         height: 44,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
@@ -599,7 +612,7 @@ const styles = StyleSheet.create({
     },
     eventCard: {
         backgroundColor: '#fff',
-        borderRadius: 20,
+        borderRadius: 14,
         marginBottom: 20,
         overflow: 'hidden',
         shadowColor: '#000',
@@ -664,7 +677,7 @@ const styles = StyleSheet.create({
         bottom: 20,
         width: 64,
         height: 64,
-        borderRadius: 32,
+        borderRadius: 20,
         backgroundColor: '#FFFFFF',
         elevation: 12,
         shadowColor: '#000',
@@ -675,7 +688,7 @@ const styles = StyleSheet.create({
     fabGradient: {
         width: '100%',
         height: '100%',
-        borderRadius: 32,
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -711,7 +724,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#10B981',
         paddingHorizontal: 12,
         paddingVertical: 8,
-        borderRadius: 12,
+        borderRadius: 8,
     },
     publishText: {
         color: '#fff',
@@ -731,7 +744,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: '#F8FAFC',
-        borderRadius: 14,
+        borderRadius: 10,
         padding: 16,
         fontSize: 16,
         color: '#1A1A1A',
@@ -746,7 +759,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: '#F8FAFC',
-        borderRadius: 14,
+        borderRadius: 10,
         padding: 16,
         borderWidth: 1,
         borderColor: '#E2E8F0',
@@ -766,7 +779,7 @@ const styles = StyleSheet.create({
     imagePreview: {
         width: 100,
         height: 100,
-        borderRadius: 14,
+        borderRadius: 10,
     },
     removeImageBtn: {
         position: 'absolute',
@@ -778,7 +791,7 @@ const styles = StyleSheet.create({
     },
     addPhotoBtn: {
         height: 120,
-        borderRadius: 14,
+        borderRadius: 10,
         borderWidth: 2,
         borderColor: '#E2E8F0',
         borderStyle: 'dashed',
@@ -809,7 +822,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#FEF2F2',
         padding: 12,
-        borderRadius: 12,
+        borderRadius: 8,
         marginBottom: 20,
         gap: 8,
         borderWidth: 1,

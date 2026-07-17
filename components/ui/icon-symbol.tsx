@@ -28,9 +28,12 @@ const MAPPING = {
   'boat': 'directions-boat',
   'ferry': 'directions-boat',
   'chevron.up': 'expand-less',
+  'chevron.down': 'expand-more',
   'map': 'map',
   // Below are added map targets to align SFSymbol to MaterialIcons
-  'sun.max.fill': 'beach-access',
+  'sun.max.fill': 'wb-sunny',
+  'cloud.fill': 'cloud',
+  'cloud.rain.fill': 'water-drop',
   'figure.walk': 'hiking',
   'fork.knife': 'restaurant',
   'building.columns.fill': 'museum', // Used for Mosque and other grand buildings
@@ -55,7 +58,9 @@ const MAPPING = {
   // Agora Forum icons
   'plus': 'add',
   'chevron.left': 'chevron-left',
+  'mappin.and.ellipse': 'location-on',
   'bubble.left.fill': 'chat',
+  'bubble.left': 'chat-bubble-outline',
   'heart.fill': 'favorite',
   'heart': 'favorite-border',
   'person.fill': 'person',
@@ -75,6 +80,7 @@ const MAPPING = {
   'pencil.tip': 'draw',
   'xmark': 'close',
   'xmark.circle.fill': 'cancel',
+  'trash.fill': 'delete',
   'exclamationmark.triangle.fill': 'warning',
   'bubble.left.and.bubble.right': 'chat',
   'mappin.circle.fill': 'location-on',
@@ -94,7 +100,20 @@ const MAPPING = {
   'arrow.uturn.left.circle.fill': 'reply',
   'bolt.car.fill': 'electric-car',
   'car.fill': 'directions-car',
+  'archivebox.fill': 'inventory',
+  'wrench.and.screwdriver.fill': 'build',
   'slider.horizontal.3': 'tune',
+  'pawprint.fill': 'pets',
+  'bag.fill': 'shopping-bag',
+  'beach.umbrella.fill': 'beach-access',
+  'building.2.fill': 'location-city',
+  'arrow.left.and.right': 'swap-horiz',
+  'clock.fill': 'access-time',
+  'briefcase.fill': 'work',
+  'gearshape.fill': 'settings',
+  'rectangle.portrait.and.arrow.right': 'logout',
+  'person.circle.fill': 'account-circle',
+  'person.crop.circle.badge.exclamationmark': 'person-off',
 } as Partial<IconMapping>;
 
 /**

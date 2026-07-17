@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         backgroundColor: '#fff',
-        borderRadius: 24,
+        borderRadius: 16,
         overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 16 },
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     navButton: {
         width: 36,
         height: 36,
-        borderRadius: 12,
+        borderRadius: 8,
         backgroundColor: '#F1F5F9',
         alignItems: 'center',
         justifyContent: 'center',
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     timeValueBox: {
         width: 64,
         height: 52,
-        borderRadius: 14,
+        borderRadius: 10,
         borderWidth: 2,
         backgroundColor: '#F8FAFC',
         alignItems: 'center',
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     cancelButton: {
         flex: 1,
         paddingVertical: 14,
-        borderRadius: 14,
+        borderRadius: 10,
         backgroundColor: '#F1F5F9',
         alignItems: 'center',
     },
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     confirmButton: {
         flex: 1,
         paddingVertical: 14,
-        borderRadius: 14,
+        borderRadius: 10,
         alignItems: 'center',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.25,

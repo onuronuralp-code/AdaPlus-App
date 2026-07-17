@@ -447,10 +447,13 @@ export default function IlanlarScreen() {
         visible={isAdModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
+        transparent={true}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
         onRequestClose={handleCloseModal}
       >
         <KeyboardAvoidingView 
-          style={styles.modalContainer} 
+          style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.modalHeader}>
@@ -711,7 +714,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -732,7 +735,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -758,7 +761,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 14,
+    borderRadius: 10,
     backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -918,7 +921,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
     elevation: 12,
     shadowColor: '#000',
@@ -929,14 +932,14 @@ const styles = StyleSheet.create({
   fabGradient: {
     width: '100%',
     height: '100%',
-    borderRadius: 32,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyStateButton: {
     marginHorizontal: 60,
     marginTop: -20,
-    borderRadius: 20,
+    borderRadius: 14,
     overflow: 'hidden',
     elevation: 4,
     shadowColor: '#000',
@@ -987,7 +990,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   publishButtonDisabled: {
     backgroundColor: '#E2E8F0',
@@ -1014,7 +1017,7 @@ const styles = StyleSheet.create({
   },
   adTitleInput: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
     fontSize: 16,
     color: '#1E293B',
@@ -1033,7 +1036,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 8,
     gap: 6,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -1054,7 +1057,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 40,
     height: 120,
-    borderRadius: 20,
+    borderRadius: 14,
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: '#CBD5E1',
@@ -1071,7 +1074,7 @@ const styles = StyleSheet.create({
   imagePreviewContainer: {
     width: 100,
     height: 100,
-    borderRadius: 20,
+    borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 20,
   },
@@ -1085,6 +1088,6 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 8,
   },
 });

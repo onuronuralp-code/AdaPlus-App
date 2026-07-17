@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     backButton: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#f5f5f5',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#EFF6FF',
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 8,
         marginBottom: 20,
         alignItems: 'flex-start',
     },
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     },
     routeCard: {
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 20,
         marginBottom: 20,
         shadowColor: "#000",
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     iconCircle: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 14,
         backgroundColor: '#EFF6FF',
         alignItems: 'center',
         justifyContent: 'center',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     // Date Picker Styles
     datePickerContainer: {
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 16,
         marginBottom: 20,
         shadowColor: "#000",
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     dayCircle: {
         width: 28,
         height: 28,
-        borderRadius: 14,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
     },

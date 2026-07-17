@@ -46,7 +46,7 @@ export default function MyPostsScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.navigate('/(tabs)/profile')}>
+                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                     <IconSymbol name="chevron.left" size={24} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Paylaştıklarım</Text>
@@ -91,13 +91,13 @@ export default function MyPostsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' },
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff' },
-    backButton: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+    backButton: { width: 40, height: 40, borderRadius: 8, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
     headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 120 },
     emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#64748B', marginTop: 16, textAlign: 'center' },
     emptySubtitle: { fontSize: 14, color: '#94A3B8', marginTop: 8, textAlign: 'center' },
     list: { padding: 16 },
-    card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 16, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
+    card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
     content: { fontSize: 15, color: '#1E293B', lineHeight: 22, marginBottom: 12 },
     footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 12 },
     time: { fontSize: 12, color: '#94A3B8' },

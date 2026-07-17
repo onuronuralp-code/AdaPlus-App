@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     iconCircle: {
         width: 64,
         height: 64,
-        borderRadius: 32,
+        borderRadius: 20,
         backgroundColor: '#ECFDF5',
         alignItems: 'center',
         justifyContent: 'center',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     loginButton: {
         width: '100%',
         backgroundColor: '#10B981',
-        borderRadius: 16,
+        borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
         justifyContent: 'center',

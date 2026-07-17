@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     modalContainer: {
         width: '90%',
         backgroundColor: '#fff',
-        borderRadius: 24,
+        borderRadius: 16,
         overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     },
     acceptButton: {
         backgroundColor: '#10B981',
-        borderRadius: 12,
+        borderRadius: 8,
         paddingVertical: 14,
         alignItems: 'center',
         justifyContent: 'center',

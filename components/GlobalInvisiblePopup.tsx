@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     width: '100%',
     minHeight: 400,
-    borderRadius: 32,
+    borderRadius: 20,
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     paddingVertical: 14,
     paddingHorizontal: 40,
-    borderRadius: 16,
+    borderRadius: 12,
     marginTop: 'auto',
   },
   buttonText: {

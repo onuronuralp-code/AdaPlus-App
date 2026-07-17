@@ -124,9 +124,9 @@ export default function EventDetailScreen() {
                 <TouchableOpacity
                     onPress={() => {
                         if (router.canGoBack()) router.back();
-                        else router.replace('/(tabs)/explore/island/events');
+                        else router.back();
                     }}
-                    style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 }}
+                    style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }}
                 >
                     <Text style={{ color: '#3B82F6', fontWeight: '700' }}>Geri Dön</Text>
                 </TouchableOpacity>
@@ -145,7 +145,7 @@ export default function EventDetailScreen() {
                     style={styles.iconButton}
                     onPress={() => {
                         if (router.canGoBack()) router.back();
-                        else router.replace('/(tabs)/explore/island/events');
+                        else router.back();
                     }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#1E293B" />
@@ -176,7 +176,7 @@ export default function EventDetailScreen() {
                 bounces={true}
                 contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
             >
-                <View style={[styles.content, { marginTop: 0 }]}>
+                <View style={styles.content}>
                     {/* Badge + date */}
                     <View style={styles.metaRow}>
                         <View style={styles.badge}>
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     iconButton: {
         width: 44,
         height: 44,
-        borderRadius: 14,
+        borderRadius: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.55)',
         alignItems: 'center',
         justifyContent: 'center',
@@ -326,8 +326,15 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 24,
-        marginTop: 0,
+        marginTop: -32,
         backgroundColor: '#fff',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 10,
     },
     metaRow: {
         flexDirection: 'row',
@@ -382,7 +389,7 @@ const styles = StyleSheet.create({
     infoIcon: {
         width: 44,
         height: 44,
-        borderRadius: 14,
+        borderRadius: 10,
         backgroundColor: '#F1F5F9',
         alignItems: 'center',
         justifyContent: 'center',
@@ -421,7 +428,7 @@ const styles = StyleSheet.create({
     },
     rsvpButton: {
         backgroundColor: '#3B82F6',
-        borderRadius: 16,
+        borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

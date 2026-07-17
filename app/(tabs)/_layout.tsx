@@ -122,7 +122,7 @@ export default function TabLayout() {
         <Animated.View
           style={{
             position: 'absolute',
-            bottom: Platform.OS === 'ios' ? 88 - 1 : 68 - 1,
+            bottom: Platform.OS === 'ios' ? 88 - 1 : 84 - 1,
             left: 0,
             width: 42,
             height: 2.5,
@@ -143,16 +143,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
-    height: Platform.OS === 'ios' ? 88 : 68,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    height: Platform.OS === 'ios' ? 88 : 84,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 28,
     paddingTop: 12,
   },
   tabBarDark: {
     backgroundColor: '#050A18',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
-    height: Platform.OS === 'ios' ? 88 : 68,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    height: Platform.OS === 'ios' ? 88 : 84,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 28,
     paddingTop: 12,
   },
   tabLabel: {

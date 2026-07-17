@@ -16,6 +16,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  DeviceEventEmitter,
 } from "react-native";
 import AnimatedRE, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -202,6 +203,16 @@ export function FerrySchedule() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(true);
+  const [showScheduleDropdown, setShowScheduleDropdown] = useState(false);
+  const [alarmModalVisible, setAlarmModalVisible] = useState(false);
+
+  // Monitor all modals to hide the navbar
+  const isAnyModalVisible = showDepartureDropdown || showDestinationDropdown || showScheduleDropdown || alarmModalVisible || showDatePicker;
+
+  useEffect(() => {
+    DeviceEventEmitter.emit('toggleNavbar', !isAnyModalVisible);
+  }, [isAnyModalVisible]);
+
   const [isFavorite, setIsFavorite] = useState(false);
 
   const calendarScrollRef = useRef<ScrollView>(null);
@@ -633,7 +644,7 @@ export function FerrySchedule() {
                 style={{
                   backgroundColor: '#EFF6FF',
                   paddingVertical: 14,
-                  borderRadius: 16,
+                  borderRadius: 12,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginTop: 16,
@@ -831,7 +842,7 @@ function ScheduleDatePicker({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent={true}>
       <View style={styles.modalBg}>
         <TouchableOpacity
           style={{ flex: 1 }}
@@ -1004,7 +1015,7 @@ function LocationPicker({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent={true}>
       <View style={styles.modalBg}>
         <TouchableOpacity
           style={{ flex: 1 }}
@@ -1191,15 +1202,31 @@ function TripDetailPopup({
         departureDate.getTime() - minutesBefore * 60 * 1000,
       );
 
-      // Check if alarm time is in the past
+      const timeUntilDeparture = departureDate.getTime() - Date.now();
+
+      // Check if departure is less than 30 minutes away
+      if (timeUntilDeparture < 30 * 60 * 1000) {
+        onClose();
+        setTimeout(() => {
+          Alert.alert(
+            i18n.language === "tr" ? "Yetersiz Süre" : "Not Enough Time",
+            i18n.language === "tr"
+              ? "Seferin kalkmasına 30 dakikadan az kaldığı için hatırlatıcı ayarlanamaz."
+              : "A reminder cannot be set because there is less than 30 minutes left until departure."
+          );
+        }, 400);
+        return;
+      }
+
+      // Check if alarm time is in the past (e.g. 60 min reminder for a trip 40 mins away)
       if (alarmDate.getTime() <= Date.now()) {
         onClose();
         setTimeout(() => {
           Alert.alert(
-            i18n.language === "tr" ? "Geçmiş Zaman" : "Past Time",
+            i18n.language === "tr" ? "Geçersiz Süre" : "Invalid Duration",
             i18n.language === "tr"
-              ? "Bu zaman zaten geçmiş. Daha yakın bir süre seçin veya gelecekteki bir sefer için bildirim gönderin."
-              : "This time has already passed. Choose a shorter duration or set a notification for a future trip.",
+              ? "Seçilen hatırlatma süresi, kalan süreden daha uzun. Lütfen daha kısa bir süre seçin."
+              : "The selected reminder duration is longer than the time left. Please choose a shorter duration."
           );
         }, 400);
         return;
@@ -1268,7 +1295,7 @@ function TripDetailPopup({
   ];
 
   return (
-    <Modal transparent animationType="fade">
+    <Modal transparent animationType="fade" statusBarTranslucent={true}>
       <TouchableOpacity
         style={styles.modalBg}
         activeOpacity={1}
@@ -1305,7 +1332,7 @@ function TripDetailPopup({
             </View>
             <TouchableOpacity 
               onPress={onClose} 
-              style={{ position: 'absolute', right: -12, top: -4, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 20 }}
+              style={{ position: 'absolute', right: -12, top: -4, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 14 }}
             >
               <IconSymbol name="xmark" size={16} color="#64748B" />
             </TouchableOpacity>
@@ -1415,7 +1442,7 @@ function TripDetailPopup({
               <TouchableOpacity
                 style={[
                   alarmStyles.alarmButton,
-                  alarmSet && alarmStyles.alarmButtonActive,
+                  alarmSet ? alarmStyles.alarmButtonActive : null,
                 ]}
                 onPress={() => setShowAlarmOptions(true)}
                 activeOpacity={0.7}
@@ -1424,7 +1451,7 @@ function TripDetailPopup({
                 <Text
                   style={[
                     alarmStyles.alarmButtonText,
-                    alarmSet && alarmStyles.alarmButtonTextActive,
+                    alarmSet ? alarmStyles.alarmButtonTextActive : null,
                   ]}
                 >
                   {alarmSet
@@ -1488,7 +1515,7 @@ const alarmStyles = StyleSheet.create({
     backgroundColor: "#3B82F6",
     paddingVertical: 14,
     paddingHorizontal: 18,
-    borderRadius: 14,
+    borderRadius: 10,
     gap: 10,
     shadowColor: "#3B82F6",
     shadowOffset: { width: 0, height: 4 },
@@ -1510,7 +1537,7 @@ const alarmStyles = StyleSheet.create({
   },
   alarmOptionsContainer: {
     backgroundColor: "#EFF6FF",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
     borderWidth: 1,
     borderColor: "#BFDBFE",
@@ -1529,7 +1556,7 @@ const alarmStyles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 8,
     marginBottom: 8,
     gap: 12,
     borderWidth: 1,
@@ -1550,7 +1577,7 @@ const alarmStyles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 4,
     backgroundColor: '#DBEAFE',
-    borderRadius: 12,
+    borderRadius: 8,
   },
   alarmCancelText: {
     fontSize: 14,
@@ -1619,7 +1646,7 @@ const styles = StyleSheet.create({
   largeSwapBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 14,
     backgroundColor: "#EA580C",
     alignItems: "center",
     justifyContent: "center",
@@ -1648,7 +1675,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF7ED",
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 14,
+    borderRadius: 10,
   },
   scheduleTypeText: {
     fontSize: 12,
@@ -1661,7 +1688,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     backgroundColor: "#F8F9FA",
-    borderRadius: 20,
+    borderRadius: 14,
     borderWidth: 1.5,
     borderColor: "#F1F5F9",
     gap: 16,
@@ -1678,7 +1705,7 @@ const styles = StyleSheet.create({
   optionIconBox: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1738,13 +1765,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#0D1B2A",
     paddingHorizontal: 28,
     paddingVertical: 16,
-    borderRadius: 20,
+    borderRadius: 14,
   },
   primaryBtnText: { color: "#fff", fontWeight: "800" },
 
   card: {
     backgroundColor: "#fff",
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 18,
     marginBottom: 14,
     shadowColor: "#000",
@@ -1837,7 +1864,7 @@ const styles = StyleSheet.create({
     width: (SCREEN_WIDTH - 60) / 2,
     height: 60,
     backgroundColor: "#F8F9FA",
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -1859,7 +1886,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     backgroundColor: "#F8F9FA",
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#F1F5F9",
   },
@@ -1873,7 +1900,7 @@ const styles = StyleSheet.create({
 
   popup: {
     backgroundColor: "#fff",
-    borderRadius: 32,
+    borderRadius: 20,
     padding: 24,
     width: "90%",
     alignSelf: "center",
@@ -1889,7 +1916,7 @@ const styles = StyleSheet.create({
   popupIcon: {
     width: 52,
     height: 52,
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: "#FFF7ED",
     alignItems: "center",
     justifyContent: "center",
@@ -1902,7 +1929,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "#F8F9FA",
     padding: 20,
-    borderRadius: 24,
+    borderRadius: 16,
     marginBottom: 4,
   },
   pTimeCol: { alignItems: "center", flex: 1 },

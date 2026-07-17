@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -265,19 +265,19 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <View style={{ flex: 1 }}>
                                     <Text style={[styles.postContent, { marginBottom: 6 }]}>{post.content}</Text>
                                     <View style={styles.postFooter}>
                                         <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
                                     </View>
                                 </View>
-                                <View style={{ flexDirection: 'row', marginLeft: 12 }}>
+                                <View style={{ flexDirection: 'row', marginLeft: 12, marginTop: -4 }}>
                                     <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={styles.actionBtn}>
-                                        <IconSymbol name="pencil" size={14} color="#6366F1" />
+                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeletePost(post.id, false)} style={[styles.actionBtn, { marginLeft: 8 }]}>
-                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                    <TouchableOpacity onPress={() => handleDeletePost(post.id, false)} style={[styles.actionBtn, { marginLeft: 4 }]}>
+                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -317,19 +317,19 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <View style={{ flex: 1 }}>
                                     <Text style={styles.postContent}>{reply.content}</Text>
                                     <View style={styles.postFooter}>
                                         <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
                                     </View>
                                 </View>
-                                <View style={{ flexDirection: 'row', marginLeft: 12 }}>
+                                <View style={{ flexDirection: 'row', marginLeft: 12, marginTop: -4 }}>
                                     <TouchableOpacity onPress={() => { setEditingPostId(reply.id); setEditingContent(reply.content); }} style={styles.actionBtn}>
-                                        <IconSymbol name="pencil" size={14} color="#6366F1" />
+                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id, true)} style={[styles.actionBtn, { marginLeft: 8 }]}>
-                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id, true)} style={[styles.actionBtn, { marginLeft: 4 }]}>
+                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -407,10 +407,10 @@ export default function ProfileScreen() {
                         </View>
                         <View style={{ flexDirection: 'row', gap: 6, marginLeft: 12 }}>
                             <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={styles.actionBtn}>
-                                <IconSymbol name="pencil" size={14} color="#3B82F6" />
+                                <IconSymbol name="pencil" size={18} color="#3B82F6" />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={styles.actionBtn}>
-                                <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                <IconSymbol name="trash.fill" size={18} color="#EF4444" />
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
@@ -435,10 +435,10 @@ export default function ProfileScreen() {
                                 </View>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                     <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={styles.actionBtn}>
-                                        <IconSymbol name="pencil" size={14} color="#3B82F6" />
+                                        <IconSymbol name="pencil" size={18} color="#3B82F6" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={styles.actionBtn}>
-                                        <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                    <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={[styles.actionBtn, { marginLeft: 8 }]}>
+                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -660,21 +660,21 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff' },
     headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: 100 },
-    profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
+    profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
     avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },
     userName: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
     userBio: { fontSize: 14, color: '#64748B', marginBottom: 8 },
     avatarPlaceholder: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center', marginBottom: 14, borderWidth: 3, borderColor: '#F1F5F9' },
     avatarText: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
-    roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+    roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
     roleText: { fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
-    loginButton: { marginTop: 24, backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
+    loginButton: { marginTop: 24, backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
     loginButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
     // Tab Bar
     tabBar: { paddingVertical: 16 },
-    tabScroll: { paddingHorizontal: 20, gap: 12 },
-    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+    tabScroll: { paddingHorizontal: 20, gap: 12, paddingVertical: 6 },
+    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
     tabLabel: { fontSize: 13, fontWeight: '700', color: '#475569' },
 
     // Content
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     notifIcon: {
         width: 32,
         height: 32,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: '#FFF1F2',
         alignItems: 'center',
         justifyContent: 'center',
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         paddingHorizontal: 20,
         paddingVertical: 10,
-        borderRadius: 20,
+        borderRadius: 14,
         backgroundColor: '#F1F5F9',
         borderWidth: 1,
         borderColor: '#E2E8F0',
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
         paddingHorizontal: 14,
         paddingVertical: 10,
-        borderRadius: 12,
+        borderRadius: 8,
     },
     errorBannerText: {
         flex: 1,
@@ -784,9 +784,9 @@ const styles = StyleSheet.create({
         color: '#92400E',
     },
     actionBtn: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 12,
         backgroundColor: 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         paddingHorizontal: 20,
         paddingVertical: 10,
-        borderRadius: 20,
+        borderRadius: 14,
         backgroundColor: '#EEF2FF',
         borderWidth: 1,
         borderColor: '#C7D2FE',
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
     modalContent: {
         width: '85%',
         backgroundColor: '#fff',
-        borderRadius: 20,
+        borderRadius: 14,
         overflow: 'hidden',
     },
     modalHeader: {
@@ -856,7 +856,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        borderRadius: 12,
+        borderRadius: 8,
         padding: 14,
         fontSize: 16,
         marginBottom: 20,
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
     inviteSendButton: {
         backgroundColor: '#6366F1',
         paddingVertical: 14,
-        borderRadius: 12,
+        borderRadius: 8,
         alignItems: 'center',
     },
     inviteSendButtonText: {

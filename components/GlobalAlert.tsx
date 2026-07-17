@@ -153,6 +153,8 @@ export function GlobalAlert() {
       transparent
       visible={alertState.visible}
       animationType="fade"
+      statusBarTranslucent={true}
+      navigationBarTranslucent={true}
       onRequestClose={() => handlePress(alertState.buttons?.find(b => b.style === 'cancel')?.onPress)}
     >
       <View style={styles.overlay}>
@@ -183,7 +185,7 @@ const styles = StyleSheet.create({
   },
   alertContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 340,
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },

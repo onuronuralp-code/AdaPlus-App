@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView } from 'react-native';
+import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
@@ -35,7 +35,6 @@ import { unregisterPushNotifications } from '@/services/notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
-import { getToken } from '@/utils/tokenStorage';
 
 const getRouteTimeValue = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
@@ -95,16 +94,20 @@ const TodayOnIsland = () => {
   return (
     <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
       {/* Weather Badge */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 12 }}>
-        <IconSymbol name="sun.max.fill" size={isLargeScreen ? 18 : 14} color="#F97316" />
-        <Text style={{ fontSize: isLargeScreen ? 14 : 13, fontWeight: '700', color: '#C2410C', marginLeft: 6 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8 }}>
+        <IconSymbol 
+          name={weatherLoading ? 'sun.max.fill' : (weather?.condition === 'rainy' ? 'cloud.rain.fill' : (weather?.condition === 'cloudy' ? 'cloud.fill' : 'sun.max.fill'))} 
+          size={isLargeScreen ? 18 : 14} 
+          color={weatherLoading ? '#F97316' : (weather?.condition === 'rainy' ? '#3B82F6' : (weather?.condition === 'cloudy' ? '#94A3B8' : '#F97316'))} 
+        />
+        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#C2410C', marginLeft: 6 }}>
           {weatherLoading ? '...' : (weather ? `${weather.temperature}°` : '28°')}
         </Text>
       </View>
 
       {/* Ferry Badge */}
-      <TouchableOpacity 
-        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 12, flex: 1 }}
+      <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1 }}
         onPress={() => {
           if (nextFerry) {
             router.push({
@@ -115,13 +118,13 @@ const TodayOnIsland = () => {
             router.push('/(tabs)/home');
           }
         }}
-        activeOpacity={0.8}
+        
       >
         <IconSymbol name="ferry.fill" size={isLargeScreen ? 18 : 14} color="#3B82F6" />
-        <Text style={{ fontSize: isLargeScreen ? 14 : 13, fontWeight: '700', color: '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
+        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
           {ferryLoading ? (i18n.language.startsWith('en') ? 'Loading...' : 'Yükleniyor...') : (nextFerry ? `${nextFerry.time} ${nextFerry.from}-${nextFerry.to}${nextFerry.provider ? ' (' + nextFerry.provider + ')' : ''}` : (i18n.language.startsWith('en') ? 'No schedule found' : 'Sefer Bulunamadı'))}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };
@@ -129,7 +132,7 @@ const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChan
   const isTr = currentLang.startsWith('tr');
 
   return (
-    <TouchableOpacity 
+    <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
       style={{ 
         width: 44, 
         height: 44, 
@@ -139,12 +142,12 @@ const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChan
         justifyContent: 'center'
       }}
       onPress={() => onChange(isTr ? 'en' : 'tr')}
-      activeOpacity={0.7}
+      
     >
-      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
+      <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>
         {isTr ? 'TR' : 'EN'}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -173,14 +176,6 @@ export default function MainMenuScreen() {
   const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
   const [surveyOtherText, setSurveyOtherText] = useState('');
   const [surveySubmitted, setSurveySubmitted] = useState(false);
-  const [surveySubmitting, setSurveySubmitting] = useState(false);
-  const [surveyAlreadyVoted, setSurveyAlreadyVoted] = useState(false);
-
-  React.useEffect(() => {
-    AsyncStorage.getItem('survey_delivery_voted').then(val => {
-      if (val === 'true') setSurveyAlreadyVoted(true);
-    });
-  }, []);
   const [totalEventsCount, setTotalEventsCount] = useState(0);
   const [totalListingsCount, setTotalListingsCount] = useState(0);
   const [unseenEventsCount, setUnseenEventsCount] = useState(0);
@@ -189,55 +184,11 @@ export default function MainMenuScreen() {
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
+  const [isInviteFocused, setIsInviteFocused] = useState(false);
 
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
-
-  const OPTION_CODES: Record<string, string> = {
-    'Cargo / Parcel': 'CARGO', 'Kargo': 'CARGO',
-    'Supermarket / Restaurant': 'SUPERMARKET', 'Market / Restorant': 'SUPERMARKET',
-    'Water / Gas Cylinder': 'WATER_GAS', 'Su / Tüp': 'WATER_GAS',
-    'Other': 'OTHER', 'Diğer': 'OTHER',
-  };
-
-  const handleSurveySubmit = async () => {
-    if (!isLoggedIn) {
-      Alert.alert(
-        i18n.language.startsWith('en') ? 'Login Required' : 'Giriş Gerekli',
-        i18n.language.startsWith('en') ? 'Please log in to vote.' : 'Oy kullanmak için giriş yapmalısınız.'
-      );
-      return;
-    }
-    const codes = surveyOptions.map(o => OPTION_CODES[o]).filter(Boolean);
-    if (codes.length === 0) return;
-    setSurveySubmitting(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/demand/delivery`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ options: codes, otherText: surveyOtherText || null, island: null }),
-      });
-      if (res.status === 409) {
-        setSurveySubmitted(true);
-        setSurveyAlreadyVoted(true);
-        AsyncStorage.setItem('survey_delivery_voted', 'true');
-        return;
-      }
-      if (!res.ok) throw new Error('failed');
-      setSurveySubmitted(true);
-      setSurveyAlreadyVoted(true);
-      AsyncStorage.setItem('survey_delivery_voted', 'true');
-    } catch {
-      Alert.alert(
-        i18n.language.startsWith('en') ? 'Error' : 'Hata',
-        i18n.language.startsWith('en') ? 'Could not submit. Please try again.' : 'Gönderilemedi, tekrar deneyin.'
-      );
-    } finally {
-      setSurveySubmitting(false);
-    }
-  };
 
   const handleSendInvite = async () => {
     const email = inviteEmail.trim();
@@ -410,19 +361,23 @@ export default function MainMenuScreen() {
         paddingHorizontal: 20 
       }, isSmallScreen && { marginBottom: 12 }, isLargeScreen && { marginBottom: 20 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 32 }, { marginBottom: 8 }]}>
+          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }, { marginBottom: 8 }]}>
             {isLoggedIn && user
               ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}! 🌸`
               : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! 🌸`}
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 17 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text 
+              style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               {t('explore.todayEventsWaiting', { count: totalEventsCount })}
             </Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity 
+          <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
             style={{ 
               width: 44, 
               height: 44, 
@@ -447,17 +402,17 @@ export default function MainMenuScreen() {
               setNotifications(notificationsData);
               setLoadingNotifications(false);
             }}
-            activeOpacity={0.7}
+            
           >
             <IconSymbol name="bell.fill" size={20} color="#0F172A" />
             {notifications.filter(n => !n.read).length > 0 && (
               <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
-                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>
                   {notifications.filter(n => !n.read).length}
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 
@@ -465,11 +420,13 @@ export default function MainMenuScreen() {
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 16, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, }}>
             <IconSymbol name="envelope.fill" size={20} color="#059669" />
             <TextInput
-              style={{ flex: 1, fontSize: isLargeScreen ? 16 : 15, color: '#0F172A', opacity: (user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'center' }}
-              placeholder={(user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' })}
+              style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
+              onFocus={() => setIsInviteFocused(true)}
+              onBlur={() => setIsInviteFocused(false)}
+              placeholder={isInviteFocused ? '' : ((user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' }))}
               placeholderTextColor="#059669"
               value={inviteEmail}
               onChangeText={setInviteEmail}
@@ -479,13 +436,13 @@ export default function MainMenuScreen() {
               editable={user?.role === 'ISLANDER' || user?.role === 'ADMIN'}
             />
           </View>
-          <TouchableOpacity 
-             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 16, alignItems: 'center', justifyContent: 'center', opacity: ((user?.role === 'ISLANDER' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+          <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.role === 'ISLANDER' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
              onPress={handleSendInvite}
              disabled={!(user?.role === 'ISLANDER' || user?.role === 'ADMIN') || !inviteEmail.trim() || isInviting}
           >
             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <TodayOnIsland />
       </View>
@@ -505,9 +462,9 @@ export default function MainMenuScreen() {
           }}
         >
           {slidesToRender.map((slide, index) => (
-            <TouchableOpacity 
+            <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
               key={index} 
-              activeOpacity={0.9}
+              
               onPress={() => {
                 if (slide?.id && !slide.id.startsWith('default')) {
                   if (slide.type === 'listing') {
@@ -520,22 +477,22 @@ export default function MainMenuScreen() {
                 }
               }}
             >
-              <View style={[styles.heroImage, { width: width - 24, marginHorizontal: 12, borderRadius: 20, overflow: 'hidden' }]}>
+              <View style={[styles.heroImage, { width: width - 24, marginHorizontal: 12, borderRadius: 12, overflow: 'hidden' }]}>
                 <ImageBackground 
                     source={{ uri: slide.imageUrl }} 
                     style={{ flex: 1, padding: 20, justifyContent: 'space-between', paddingHorizontal: 20 }}
-                    imageStyle={{ resizeMode: 'cover', borderRadius: 20 }}
+                    imageStyle={{ resizeMode: 'cover', borderRadius: 12 }}
                 >
                   <LinearGradient
                     colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
-                    style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+                    style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
                   />
                   
                   {/* Top Row */}
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
-                    <View style={{ backgroundColor: slide.type === 'listing' ? '#10B981' : '#3B82F6', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
-                      {slide.type === 'banner' && <IconSymbol name="exclamationmark.circle.fill" size={isLargeScreen ? 14 : 12} color="#FFF" />}
-                      <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 12 : 11, fontWeight: '800' }}>
+                    <View style={{ backgroundColor: slide.type === 'listing' ? '#10B981' : '#3B82F6', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                      {slide.type === 'banner' && <IconSymbol name="exclamationmark.circle.fill" size={isLargeScreen ? 12 : 10} color="#FFF" />}
+                      <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 11 : 11, fontWeight: '700' }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'FEATURED LISTING' : 'ÖNE ÇIKAN İLAN') 
                           : (slide.type === 'banner' 
@@ -543,22 +500,22 @@ export default function MainMenuScreen() {
                               : (i18n.language.startsWith('en') ? 'FEATURED EVENT' : 'ÖNE ÇIKAN ETKİNLİK'))}
                       </Text>
                     </View>
-                    <TouchableOpacity 
-                      style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}
+                    <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+                      style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}
                       onPress={() => router.push(slide.type === 'listing' ? '/(tabs)/explore/island/ilanlar' : '/(tabs)/explore/island/events')}
                     >
-                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 13 : 12, fontWeight: '700', marginRight: 4 }}>
+                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 11 : 11, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'All Listings' : 'Tüm İlanlar') 
                           : (i18n.language.startsWith('en') ? 'All Events' : 'Tüm Etkinlikler')}
                       </Text>
-                      <IconSymbol name="arrow.right" size={12} color="#0F172A" />
-                    </TouchableOpacity>
+                      <IconSymbol name="arrow.right" size={10} color="#0F172A" />
+                    </Pressable>
                   </View>
 
                   {/* Bottom Content */}
                   <View style={{ zIndex: 10, paddingBottom: 10 }}>
-                    <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 24 : 22, fontWeight: '900', marginBottom: 12, lineHeight: isLargeScreen ? 32 : 28, width: '90%' }} numberOfLines={2}>
+                    <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 18 : 16, fontWeight: '700', marginBottom: 12, lineHeight: isLargeScreen ? 26 : 22, width: '90%' }} numberOfLines={2}>
                       {slide.title}
                     </Text>
 
@@ -566,21 +523,21 @@ export default function MainMenuScreen() {
                     {slide.type !== 'banner' && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 16 : 14} color="#E2E8F0" />
-                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 13 : 12, marginLeft: 4 }}>{slide.island || 'Büyükada'}</Text>
+                          <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 14 : 12} color="#E2E8F0" />
+                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 12 : 12, marginLeft: 4 }}>{slide.island || 'Büyükada'}</Text>
                         </View>
                         {slide.type === 'event' && slide.date && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <IconSymbol name="calendar" size={isLargeScreen ? 16 : 14} color="#E2E8F0" />
-                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 13 : 12, marginLeft: 4 }}>
+                            <IconSymbol name="calendar" size={isLargeScreen ? 14 : 12} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 12 : 12, marginLeft: 4 }}>
                               {new Date(slide.date).toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', {day: 'numeric', month: 'long'})}
                             </Text>
                           </View>
                         )}
                         {slide.type === 'listing' && slide.price > 0 && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <IconSymbol name="tag.fill" size={isLargeScreen ? 16 : 14} color="#E2E8F0" />
-                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 13 : 12, marginLeft: 4 }}>
+                            <IconSymbol name="tag.fill" size={isLargeScreen ? 14 : 12} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 12 : 12, marginLeft: 4 }}>
                               {slide.price.toLocaleString('tr-TR')} ₺
                             </Text>
                           </View>
@@ -589,18 +546,18 @@ export default function MainMenuScreen() {
                     )}
 
                     {/* Button */}
-                    <View style={{ backgroundColor: '#FFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 15 : 13, fontWeight: '800', marginRight: 4 }}>
+                    <View style={{ backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'View' : 'İncele') 
                           : (i18n.language.startsWith('en') ? 'Register' : 'Kayıt Ol')}
                       </Text>
-                      <IconSymbol name="arrow.right" size={isLargeScreen ? 16 : 14} color="#0F172A" />
+                      <IconSymbol name="arrow.right" size={isLargeScreen ? 14 : 12} color="#0F172A" />
                     </View>
                   </View>
                 </ImageBackground>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -634,7 +591,7 @@ export default function MainMenuScreen() {
       >
         {/* Etkinlikler */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 104 : 98, height: isLargeScreen ? 144 : 124, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 10, paddingTop: 16, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 110 : 90, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => {
             AsyncStorage.setItem('seenEventIds', JSON.stringify(allEventIds));
             setUnseenEventsCount(0);
@@ -645,37 +602,37 @@ export default function MainMenuScreen() {
           }}
         >
           <View>
-            <View style={{ width: isLargeScreen ? 52 : 44, height: isLargeScreen ? 52 : 44, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-              <IconSymbol name="calendar" size={isLargeScreen ? 28 : 24} color="#3B82F6" />
+            <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <IconSymbol name="calendar" size={isLargeScreen ? 24 : 20} color="#3B82F6" />
             </View>
             {unseenEventsCount > 0 && (
-              <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
-                <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '800' }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
+              <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
+                <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
               </View>
             )}
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
-          <Text style={{ fontSize: isLargeScreen ? 12 : 11, color: '#64748B' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
         </Pressable>
 
         {/* Ada AI */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 104 : 98, height: isLargeScreen ? 144 : 124, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 10, paddingTop: 16, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 110 : 90, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => navigateWithDebounce('/guide')}
           onPressIn={() => { 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <View style={{ width: isLargeScreen ? 52 : 44, height: isLargeScreen ? 52 : 44, borderRadius: 12, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-            <IconSymbol name="pawprint.fill" size={isLargeScreen ? 28 : 24} color="#EC4899" />
+          <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <IconSymbol name="pawprint.fill" size={isLargeScreen ? 24 : 20} color="#EC4899" />
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
-          <Text style={{ fontSize: isLargeScreen ? 12 : 11, color: '#64748B' }}>{t('explore.yourGuide')}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B' }}>{t('explore.yourGuide')}</Text>
         </Pressable>
 
         {/* İlanlar */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 104 : 98, height: isLargeScreen ? 144 : 124, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#FEF08A', padding: 10, paddingTop: 16, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 110 : 90, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => {
             AsyncStorage.setItem('lastViewedListings', Date.now().toString());
             setUnseenListingsCount(0);
@@ -686,28 +643,24 @@ export default function MainMenuScreen() {
           }}
         >
           <View>
-            <View style={{ width: isLargeScreen ? 52 : 44, height: isLargeScreen ? 52 : 44, borderRadius: 12, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-              <IconSymbol name="megaphone.fill" size={isLargeScreen ? 28 : 24} color="#EAB308" />
+            <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <IconSymbol name="megaphone.fill" size={isLargeScreen ? 24 : 20} color="#EAB308" />
             </View>
             {unseenListingsCount > 0 && (
-              <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
-                <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '800' }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
+              <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
+                <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
               </View>
             )}
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
-          <Text style={{ fontSize: isLargeScreen ? 12 : 11, color: '#64748B' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
         </Pressable>
 
         {/* Paket Servis */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 104 : 98, height: isLargeScreen ? 144 : 124, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 10, paddingTop: 16, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 94 : 86, height: isLargeScreen ? 104 : 84, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => {
-            if (!isLoggedIn) {
-              router.push('/login');
-              return;
-            }
-            setSurveySubmitted(surveyAlreadyVoted);
+            setSurveySubmitted(false);
             setSurveyOptions([]);
             setSurveyOtherText('');
             setShowSurvey(true);
@@ -716,18 +669,18 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <View style={{ width: isLargeScreen ? 52 : 44, height: isLargeScreen ? 52 : 44, borderRadius: 12, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-            <IconSymbol name="bag.fill" size={isLargeScreen ? 28 : 24} color="#8B5CF6" />
+          <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <IconSymbol name="bag.fill" size={isLargeScreen ? 24 : 20} color="#8B5CF6" />
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#8B5CF6', marginBottom: 4, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#8B5CF6', marginBottom: 4, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
           <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
-            <Text style={{ fontSize: isLargeScreen ? 11 : 9, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+            <Text style={{ fontSize: 11, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
           </View>
         </Pressable>
       </ScrollView>
 
       {/* Topluluk Banner (At the bottom) */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isIphone11 ? 4 : (isLargeScreen ? -4 : (isIphone16 ? -16 : -8)), paddingBottom: 60, backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: -4, paddingBottom: 20, backgroundColor: 'transparent' }}>
         <SwipeButton isLoggedIn={isLoggedIn} onSwipeComplete={() => navigateWithDebounce('/(tabs)/explore/island/forum')} />
       </View>
 
@@ -743,8 +696,8 @@ export default function MainMenuScreen() {
         statusBarTranslucent
         onRequestClose={() => setShowNotificationModal(false)}
       >
-        <TouchableOpacity 
-          activeOpacity={1} 
+        <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+           
           onPress={() => setShowNotificationModal(false)} 
           style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.15)', justifyContent: 'flex-start', alignItems: 'center' }}
         >
@@ -752,24 +705,20 @@ export default function MainMenuScreen() {
             onStartShouldSetResponder={() => true}
             style={{ 
               backgroundColor: '#fff', 
-              borderRadius: 24, 
+              borderRadius: 16, 
               width: '95%', 
               minHeight: 300,
               maxHeight: '60%', 
               marginTop: insets.top + 90, 
               padding: 24, 
-              shadowColor: '#000', 
-              shadowOffset: { width: 0, height: 10 }, 
-              shadowOpacity: 0.2, 
-              shadowRadius: 20, 
-              elevation: 10 
+              elevation: 10, 
             }}
           >
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Bildirimler</Text>
-              <TouchableOpacity onPress={() => setShowNotificationModal(false)} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Bildirimler</Text>
+              <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowNotificationModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                 <IconSymbol name="xmark" size={14} color="#64748B" />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             
             {loadingNotifications ? (
@@ -779,14 +728,14 @@ export default function MainMenuScreen() {
             ) : notifications.length === 0 ? (
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <IconSymbol name="bell.fill" size={48} color="#CBD5E1" />
-                <Text style={{ marginTop: 16, fontSize: 16, fontWeight: '600', color: '#64748B' }}>Henüz bildiriminiz yok.</Text>
+                <Text style={{ marginTop: 16, fontSize: 14, fontWeight: '600', color: '#64748B' }}>Henüz bildiriminiz yok.</Text>
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
                 {notifications.map(notif => (
-                  <TouchableOpacity 
+                  <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                     key={notif.id} 
-                    style={{ backgroundColor: notif.read ? '#F8FAFC' : '#EFF6FF', borderRadius: 16, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: notif.read ? '#F1F5F9' : '#BFDBFE' }}
+                    style={{ backgroundColor: notif.read ? '#F8FAFC' : '#EFF6FF', borderRadius: 12, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: notif.read ? '#F1F5F9' : '#BFDBFE' }}
                     onPress={async () => {
                       if (!notif.read) {
                         await markNotificationRead(notif.id);
@@ -795,16 +744,16 @@ export default function MainMenuScreen() {
                     }}
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
                       <Text style={{ fontSize: 14, color: '#94A3B8' }}>{new Date(notif.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</Text>
                     </View>
-                    <Text style={{ fontSize: 16, color: '#475569', lineHeight: 24 }}>{notif.body}</Text>
-                  </TouchableOpacity>
+                    <Text style={{ fontSize: 14, color: '#475569', lineHeight: 24 }}>{notif.body}</Text>
+                  </Pressable>
                 ))}
               </ScrollView>
             )}
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </Modal>
 
       {/* Survey Modal */}
@@ -816,36 +765,36 @@ export default function MainMenuScreen() {
         onRequestClose={() => setShowSurvey(false)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.5)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <View style={{ width: '100%', backgroundColor: '#fff', borderRadius: 28, padding: 28, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 10 }}>
+          <View style={{ width: '100%', backgroundColor: '#fff', borderRadius: 28, padding: 28, alignItems: 'center', elevation: 10, }}>
             {surveySubmitted ? (
               <>
-                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <IconSymbol name="checkmark" size={28} color="#10B981" />
                 </View>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
                   {i18n.language.startsWith('en') ? 'Thank You!' : 'Teşekkürler!'}
                 </Text>
-                <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
                   {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring electric vehicle services to the islands.' : 'Görüşleriniz alındı. Adalara elektrikli taşıt hizmetini getirmek için var gücümüzle çalışıyoruz.'}
                 </Text>
-                <TouchableOpacity 
-                  style={{ width: '100%', backgroundColor: '#10B981', borderRadius: 16, paddingVertical: 16, alignItems: 'center' }} 
+                <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+                  style={{ width: '100%', backgroundColor: '#10B981', borderRadius: 12, paddingVertical: 16, alignItems: 'center' }} 
                   onPress={() => setShowSurvey(false)}
                 >
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>
                     {i18n.language.startsWith('en') ? 'Close' : 'Kapat'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </>
             ) : (
               <>
-                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <IconSymbol name="bag.fill" size={28} color="#8B5CF6" />
                 </View>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
                   {i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}
                 </Text>
-                <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
                   {i18n.language.startsWith('en') ? 'What kind of delivery service would you use most on the island?' : 'Adada en çok hangi paket servis hizmetine ihtiyaç duyuyorsunuz?'}
                 </Text>
                 
@@ -856,27 +805,27 @@ export default function MainMenuScreen() {
                     i18n.language.startsWith('en') ? 'Water / Gas Cylinder' : 'Su / Tüp', 
                     i18n.language.startsWith('en') ? 'Other' : 'Diğer'
                   ].map((option) => (
-                    <TouchableOpacity 
+                    <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                       key={option}
                       style={{ 
-                        width: '100%', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, marginBottom: 10,
+                        width: '100%', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, marginBottom: 10,
                         backgroundColor: surveyOptions.includes(option) ? '#F3E8FF' : '#F8FAFC',
                         borderWidth: 1, borderColor: surveyOptions.includes(option) ? '#8B5CF6' : '#E2E8F0',
                         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
                       }}
                       onPress={() => setSurveyOptions(prev => prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option])}
                     >
-                      <Text style={{ fontSize: 15, fontWeight: surveyOptions.includes(option) ? '700' : '500', color: surveyOptions.includes(option) ? '#6D28D9' : '#334155' }}>
+                      <Text style={{ fontSize: 14, fontWeight: surveyOptions.includes(option) ? '700' : '500', color: surveyOptions.includes(option) ? '#6D28D9' : '#334155' }}>
                         {option}
                       </Text>
                       {surveyOptions.includes(option) && <IconSymbol name="checkmark.circle.fill" size={20} color="#8B5CF6" />}
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                   {(surveyOptions.includes('Diğer') || surveyOptions.includes('Other')) && (
                     <TextInput
                       style={{
-                        width: '100%', backgroundColor: '#F8FAFC', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 16,
-                        borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, color: '#0F172A', marginTop: 4, marginBottom: 10,
+                        width: '100%', backgroundColor: '#F8FAFC', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16,
+                        borderWidth: 1, borderColor: '#E2E8F0', fontSize: 14, color: '#0F172A', marginTop: 4, marginBottom: 10,
                       }}
                       placeholder={i18n.language.startsWith('en') ? 'Please specify...' : 'Lütfen belirtin...'}
                       placeholderTextColor="#94A3B8"
@@ -886,23 +835,20 @@ export default function MainMenuScreen() {
                   )}
                 </ScrollView>
 
-                <TouchableOpacity 
-                  style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : '#CBD5E1', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
-                  onPress={handleSurveySubmit}
-                  disabled={surveyOptions.length === 0 || surveySubmitting}
+                <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+                  style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : '#CBD5E1', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
+                  onPress={() => setSurveySubmitted(true)}
+                  disabled={surveyOptions.length === 0}
                 >
-                  {surveySubmitting
-                    ? <ActivityIndicator color="#fff" />
-                    : <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
-                        {i18n.language.startsWith('en') ? 'Submit' : 'Gönder'}
-                      </Text>
-                  }
-                </TouchableOpacity>
-                <TouchableOpacity style={{ width: '100%', paddingVertical: 14, alignItems: 'center', marginTop: 4 }} onPress={() => setShowSurvey(false)}>
-                  <Text style={{ color: '#94A3B8', fontSize: 15, fontWeight: '600' }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>
+                    {i18n.language.startsWith('en') ? 'Submit' : 'Gönder'}
+                  </Text>
+                </Pressable>
+                <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} style={{ width: '100%', paddingVertical: 14, alignItems: 'center', marginTop: 4 }} onPress={() => setShowSurvey(false)}>
+                  <Text style={{ color: '#94A3B8', fontSize: 14, fontWeight: '600' }}>
                     {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </>
             )}
           </View>
@@ -925,25 +871,25 @@ function MenuCard({ icon, title, subtitle, onPress, style, colors, large }: any)
         <IconSymbol name={icon as any} size={iconSize} color="#fff" />
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, large && { fontSize: 15 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.cardSubtitle, large && { fontSize: 12, lineHeight: 16 }, { color: '#64748B' }]}>{subtitle}</Text>
+        <Text style={[styles.cardTitle, large && { fontSize: 14 }, { color: primaryColor }]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.cardSubtitle, large && { fontSize: 14, lineHeight: 16 }, { color: '#64748B' }]}>{subtitle}</Text>
       </View>
       <IconSymbol name={"chevron.right" as any} size={20} color={primaryColor} />
     </>
   );
 
   return (
-    <TouchableOpacity 
+    <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
       style={[
         styles.card, 
         { padding: cardPadding, backgroundColor: '#ffffff' },
         style
       ]} 
       onPress={onPress} 
-      activeOpacity={0.7}
+      
     >
       {content}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -954,14 +900,14 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large, iconIm
     <View style={{ flex: 1, padding: 8, width: '100%' }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', height: 48 }}>
         {iconImage ? (
-          <Image source={iconImage} style={{ width: 44, height: 44, borderRadius: 12, marginRight: 8 }} resizeMode="contain" />
+          <Image source={iconImage} style={{ width: 44, height: 44, borderRadius: 8, marginRight: 8 }} resizeMode="contain" />
         ) : (
           <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
             <IconSymbol name={icon as any} size={16} color={primaryColor} />
           </View>
         )}
         <View style={{ flex: 1, paddingRight: 16, justifyContent: 'center' }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: primaryColor }}>{title}</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: primaryColor }}>{title}</Text>
         </View>
       </View>
       <View style={{ position: 'absolute', bottom: 8, right: 8, width: 20, height: 20, borderRadius: 10, backgroundColor: `${primaryColor}15`, alignItems: 'center', justifyContent: 'center' }}>
@@ -971,7 +917,7 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large, iconIm
   );
 
   return (
-    <TouchableOpacity 
+    <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
       style={[
         styles.gridCard, 
         { backgroundColor: '#FFFFFF', padding: 0, borderWidth: 1, borderColor: '#F1F5F9' },
@@ -979,10 +925,10 @@ function GridCard({ icon, title, subtitle, onPress, style, colors, large, iconIm
       ]} 
 
       onPress={onPress} 
-      activeOpacity={0.7}
+      
     >
       {content}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -1049,7 +995,7 @@ const styles = StyleSheet.create({
   headerButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1067,8 +1013,8 @@ const styles = StyleSheet.create({
   },
   langBadgeText: {
     color: '#fff',
-    fontSize: 8,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
   },
   heroOverlay: {
     flex: 1,
@@ -1098,13 +1044,13 @@ const styles = StyleSheet.create({
   },
   expandedInfoTitle: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     marginBottom: 4,
   },
   expandedInfoSubtitle: {
     color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 18,
   },
   heroActionButton: {
@@ -1113,12 +1059,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 8,
     gap: 4,
   },
   heroActionButtonText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
   body: {
@@ -1136,14 +1082,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   welcomeGreeting: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#0D1B2A',
     marginBottom: 2,
     letterSpacing: -0.5,
   },
   welcomeSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#778DA9',
     fontWeight: '500',
   },
@@ -1161,14 +1107,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 14,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#F1F5F9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    elevation: 2,
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -1176,7 +1118,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#0D1B2A',
   },
@@ -1186,7 +1128,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
@@ -1195,18 +1137,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 12,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 8,
   },
   iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -1216,12 +1154,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#0D1B2A',
     marginBottom: 2,
   },
   cardSubtitle: {
-    fontSize: 11,
+    fontSize: 14,
     color: '#778DA9',
     lineHeight: 14,
   },
@@ -1233,7 +1171,7 @@ const styles = StyleSheet.create({
   gridCard: {
     flex: 1,
     minHeight: 64,
-    borderRadius: 20,
+    borderRadius: 12,
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1256,13 +1194,13 @@ const styles = StyleSheet.create({
   },
   gridCardTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#0D1B2A',
     marginBottom: 2,
     textAlign: 'center',
   },
   gridCardSubtitle: {
-    fontSize: 10,
+    fontSize: 14,
     color: '#778DA9',
     textAlign: 'center',
     lineHeight: 12,
@@ -1275,15 +1213,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    elevation: 2,
   },
   langValue: {
-    fontSize: 11,
-    fontWeight: '900',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#0D1B2A',
     marginLeft: 6,
   },
@@ -1297,17 +1231,13 @@ const styles = StyleSheet.create({
   islandSheet: {
     width: '80%',
     backgroundColor: '#fff',
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
     elevation: 10,
   },
   sheetTitle: {
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#0D1B2A',
     marginBottom: 20,
     textAlign: 'center',
@@ -1321,7 +1251,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
   },
   islandItemText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#475569',
     fontWeight: '600',
   },
@@ -1330,13 +1260,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   quickInfoLabel: {
-    fontSize: 10,
+    fontSize: 14,
     color: '#999',
     marginTop: 4,
     fontWeight: '500',
   },
   quickInfoValue: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0D1B2A',
     marginTop: 1,
@@ -1346,13 +1276,9 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   inlineSlideCard: {
-    height: 200,
+    height: 140,
     marginRight: 12,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
+    borderRadius: 12,
     elevation: 6,
     backgroundColor: '#1B1B2F',
   },
@@ -1368,12 +1294,12 @@ const styles = StyleSheet.create({
   },
   inlineSlideTitle: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     marginBottom: 4,
   },
   inlineSlideSubtitle: {
     color: 'rgba(255,255,255,0.8)',
-    fontSize: 13,
+    fontSize: 14,
   },
 });

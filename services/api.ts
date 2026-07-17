@@ -12,6 +12,10 @@ export interface DepartureDto {
   minutesUntil: number;
 }
 
+import { ListingDto, SaveListingRequest } from "./listingApi";
+export type AppListingDto = ListingDto;
+export type CreateListingRequest = SaveListingRequest;
+
 const API_BASE_URL = `${BASE}/api/v1/travel/ferries`;
 
 export const fetchDepartures = async (

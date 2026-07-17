@@ -142,7 +142,7 @@ export default function VerifyScreen() {
                     style={[styles.backButton, { top: insets.top + 10 }]}
                     onPress={() => {
                         if (router.canGoBack()) router.back();
-                        else router.replace('/login');
+                        else router.back();
                     }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     headerBackground: { height: SCREEN_HEIGHT * 0.40, paddingHorizontal: 30 },
     backButton: {
         position: 'absolute', left: 20, zIndex: 10, width: 40, height: 40,
-        borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)',
         alignItems: 'center', justifyContent: 'center',
     },
     branding: { alignItems: 'center' },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     },
     codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 12 },
     codeInput: {
-        width: 48, height: 58, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0',
+        width: 48, height: 58, borderRadius: 10, borderWidth: 2, borderColor: '#E2E8F0',
         backgroundColor: '#F8FAFC', textAlign: 'center', fontSize: 22, fontWeight: '800',
         color: '#0D1B2A',
     },
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     codeInputError: { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
     errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginBottom: 16, textAlign: 'center' },
     primaryButton: {
-        flexDirection: 'row', backgroundColor: '#3B82F6', borderRadius: 16,
+        flexDirection: 'row', backgroundColor: '#3B82F6', borderRadius: 12,
         paddingVertical: 18, alignItems: 'center', justifyContent: 'center',
         marginTop: 16, width: '100%',
         shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 8 },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     resendTimer: { fontSize: 14, fontWeight: '600', color: '#64748B' },
     infoBox: {
         flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#EFF6FF',
-        borderRadius: 16, padding: 16, marginTop: 28, width: '100%',
+        borderRadius: 12, padding: 16, marginTop: 28, width: '100%',
     },
     infoText: { flex: 1, marginLeft: 12, fontSize: 13, color: '#1E40AF', lineHeight: 18 },
 });

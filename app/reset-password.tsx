@@ -83,9 +83,10 @@ export default function ResetPasswordScreen() {
     };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={styles.container}>
+        <React.Fragment>
             <Stack.Screen options={{ headerShown: false }} />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View style={styles.container}>
             
             <View style={styles.headerBackground}>
                 <Image 
@@ -101,7 +102,7 @@ export default function ResetPasswordScreen() {
                     style={[styles.backButton, { top: insets.top + 10 }]} 
                     onPress={() => {
                         if (router.canGoBack()) router.back();
-                        else router.replace('/login');
+                        else router.back();
                     }}
                 >
                     <IconSymbol name="chevron.left" size={24} color="#fff" />
@@ -192,6 +193,7 @@ export default function ResetPasswordScreen() {
             </View>
         </View>
         </TouchableWithoutFeedback>
+        </React.Fragment>
     );
 }
 
@@ -211,7 +213,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
         width: 44,
         height: 44,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: 'rgba(255,255,255,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
@@ -222,7 +224,7 @@ const styles = StyleSheet.create({
     logoCircle: {
         width: 64,
         height: 64,
-        borderRadius: 32,
+        borderRadius: 20,
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
@@ -272,7 +274,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#F8FAFC',
-        borderRadius: 16,
+        borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         borderWidth: 1,
@@ -291,7 +293,7 @@ const styles = StyleSheet.create({
     primaryButton: {
         flexDirection: 'row',
         backgroundColor: '#3B82F6',
-        borderRadius: 16,
+        borderRadius: 12,
         paddingVertical: 18,
         alignItems: 'center',
         justifyContent: 'center',

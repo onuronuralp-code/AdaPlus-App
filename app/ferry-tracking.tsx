@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 14,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: "white",
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 18,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   ferryMarker: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 14,
     backgroundColor: "#EA580C",
     alignItems: "center",
     justifyContent: "center",

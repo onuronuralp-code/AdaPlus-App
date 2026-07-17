@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
         width: 44,
         height: 44,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: 'rgba(255,255,255,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#F8FAFC',
-        borderRadius: 16,
+        borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderWidth: 1,
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     },
     dateCell: {
         backgroundColor: '#F8FAFC',
-        borderRadius: 16,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: '#E2E8F0',
         paddingVertical: 10,
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     dropdownList: {
         marginTop: 4,
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: '#E2E8F0',
         overflow: 'hidden',
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
     // Buttons
     primaryButton: {
         backgroundColor: '#3B82F6',
-        borderRadius: 16,
+        borderRadius: 12,
         paddingVertical: 14,
         flexDirection: 'row',
         alignItems: 'center',
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderWidth: 1.5,
         borderColor: '#E2E8F0',
-        borderRadius: 16,
+        borderRadius: 12,
         paddingVertical: 14,
     },
     socialButtonDisabled: {

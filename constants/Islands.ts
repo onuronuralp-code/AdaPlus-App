@@ -6,7 +6,7 @@ export const ISLANDS = [
         description: 'The closest island to Istanbul, known for its reddish soil, extensive beaches, and lack of horse carriages.',
         sunset: '19:42',
         activities: [
-            { id: '1-1', icon: 'sun.max.fill', color: '#3B82F6', title: 'Beaches', subtitle: 'Relax on the extensive reddish beaches' },
+            { id: '1-1', icon: 'beach.umbrella.fill', color: '#3B82F6', title: 'Beaches', subtitle: 'Relax on the extensive reddish beaches' },
             { id: '1-2', icon: 'figure.walk', color: '#10B981', title: 'Hiking', subtitle: 'Walk up to the view points' },
             { id: '1-3', icon: 'house.fill', color: '#8B5CF6', title: 'Rentals', subtitle: 'Find local summer houses' },
             { id: '1-4', icon: 'fork.knife', color: '#F97316', title: 'Seafood', subtitle: 'Enjoy fresh catch by the pier' },
