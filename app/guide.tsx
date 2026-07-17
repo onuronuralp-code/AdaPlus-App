@@ -162,8 +162,8 @@ export default function GuideScreen() {
         }
     };
 
-    const showIslandChips = messages.length === 1;
-    const showQuickSuggestions = !showIslandChips && messages.length > 1;
+    const showIslandChips = !selectedIsland;
+    const showQuickSuggestions = !!selectedIsland && messages.length > 2;
 
 
 
