@@ -81,12 +81,14 @@ export default function RootLayout() {
 
     const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
     fetchAppVersion()
-      .then(({ minimumVersion }) => {
+      .then(({ minimumVersion, latestVersion }) => {
+        console.log(`[Version] current=${currentVersion} minimum=${minimumVersion} latest=${latestVersion} requiresUpdate=${requiresUpdate(currentVersion, minimumVersion)}`);
         if (requiresUpdate(currentVersion, minimumVersion)) {
           showUpdateAlert();
         }
       })
-      .catch(() => {
+      .catch((e) => {
+        console.warn('[Version] fetchAppVersion failed:', e);
         // Network error — don't block the app
       });
 
