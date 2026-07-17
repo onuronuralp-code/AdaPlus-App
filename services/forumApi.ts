@@ -75,20 +75,6 @@ export interface CreatePostRequest {
 
 const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;
 
-const MOCK_POSTS: PostDto[] = Array.from({ length: 20 }).map((_, index) => ({
-  id: `mock_post_${index + 1}`,
-  authorId: "test_user_1",
-  authorName: "Test Kullanıcı",
-  authorUserType: UserType.RESIDENT,
-  content: `Bu ${index + 1}. forum başlığı/mesajı. Scroll testini kontrol etmek için otomatik oluşturuldu.`,
-  postType: index % 2 === 0 ? PostType.DISCUSSION : PostType.INFO,
-  island: Island.BUYUKADA,
-  replyCount: 20,
-  likeCount: index * 2,
-  createdAt: new Date(Date.now() - 1000 * 60 * 5 * index).toISOString(),
-  isLiked: index % 3 === 0,
-}));
-
 // Helper for fetch with auth if needed
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
@@ -118,17 +104,15 @@ export const fetchPosts = async (topicId?: string): Promise<PostDto[]> => {
     const response = await fetchWithAuth(url);
     const data = await response.json();
 
-    // Handle Spring Data Page structure if present
     if (data && data.content && Array.isArray(data.content)) {
-      if (data.content.length > 0) return data.content;
-      return MOCK_POSTS;
+      return data.content;
     }
 
-    // Return mock data if empty or error
-    return data && data.length > 0 ? data : MOCK_POSTS;
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.log("Using mock data for forum posts due to error:", error);
-    return MOCK_POSTS;
+    console.error("Failed to fetch forum posts:", error);
+    triggerNetworkError();
+    return [];
   }
 };
 
@@ -260,20 +244,7 @@ export const fetchReplies = async (postId: string): Promise<PostDto[]> => {
   } catch (error) {
     console.error("Failed to fetch replies:", error);
     triggerNetworkError();
-    // Return 20 mock replies from the same person for scroll testing
-    return Array.from({ length: 20 }).map((_, index) => ({
-      id: `mock_reply_${index + 1}`,
-      authorId: "test_user_1",
-      authorName: "Test Kullanıcı",
-      authorUserType: UserType.RESIDENT,
-      content: `Bu ${index + 1}. yanıt. Yanıt ekranındaki scroll testini kontrol etmek için otomatik oluşturuldu.`,
-      postType: PostType.DISCUSSION,
-      island: Island.BUYUKADA,
-      replyCount: 0,
-      likeCount: index,
-      createdAt: new Date(Date.now() - 1000 * 60 * index).toISOString(),
-      isLiked: false,
-    }));
+    return [];
   }
 };
 

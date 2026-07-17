@@ -120,28 +120,7 @@ export interface RsvpResponse {
 
 const ACTIVITIES_API_BASE_URL = `${BASE}/api/v1/activities`;
 
-const MOCK_ACTIVITIES: AppActivityDto[] = [
-  {
-    id: "act1",
-    name: "Adalar Arası Yüzme Yarışı",
-    description: "Büyükada'dan Heybeliada'ya geleneksel yüzme yarışı. Kayıtlar devam ediyor.",
-    startDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString(),
-    organizerName: "Ada Spor Kulübü",
-    eventPlace: "Büyükada Su Sporları Kulübü",
-    rsvpCount: 45,
-    userHasRsvp: true
-  },
-  {
-    id: "act2",
-    name: "Aya Yorgi Tepesi Doğa Yürüyüşü",
-    description: "Güneşin batışını izlemek için Aya Yorgi'ye toplu yürüyüş etkinliği.",
-    startDate: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
-    organizerName: "Doğa Severler",
-    eventPlace: "Büyükada Saat Meydanı",
-    rsvpCount: 120,
-    userHasRsvp: false
-  }
-];
+
 const LISTINGS_API_BASE_URL = `${BASE}/api/v1/listings`;
 
 export const fetchListings = async (): Promise<AppListingDto[]> => {
@@ -176,10 +155,13 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     const response = await fetch(ACTIVITIES_API_BASE_URL);
     if (!response.ok) throw new Error("Activities fetch error");
     const data = await response.json();
-    return data && data.length > 0 ? data : MOCK_ACTIVITIES;
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.log("Using mock data for activities due to error:", error);
-    return MOCK_ACTIVITIES;
+    console.error("Failed to fetch activities:", error);
+    if (!(error instanceof Error && error.message.startsWith("Activities fetch error"))) {
+      triggerNetworkError();
+    }
+    return [];
   }
 };
 
@@ -188,10 +170,13 @@ export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppAct
     const response = await fetch(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
     if (!response.ok) throw new Error("Upcoming activities fetch error");
     const data = await response.json();
-    return data && data.length > 0 ? data : MOCK_ACTIVITIES.slice(0, limit);
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.log("Using mock data for upcoming activities due to error:", error);
-    return MOCK_ACTIVITIES.slice(0, limit);
+    console.error("Failed to fetch upcoming activities:", error);
+    if (!(error instanceof Error && error.message.startsWith("Upcoming"))) {
+      triggerNetworkError();
+    }
+    return [];
   }
 };
 
@@ -222,9 +207,10 @@ export const getActivity = async (id: string): Promise<AppActivityDto | null> =>
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.log('Failed to fetch activity, looking in mock data:', error);
-    const mockActivity = MOCK_ACTIVITIES.find(a => a.id === id);
-    if (mockActivity) return mockActivity;
+    console.error('Failed to fetch activity:', error);
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return null;
   }
 };
