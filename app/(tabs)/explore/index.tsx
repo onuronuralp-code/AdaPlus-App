@@ -31,6 +31,7 @@ import { EventDto, getEventsList } from '@/services/eventApi';
 import { fetchNotifications, markNotificationRead, NotificationDto } from '@/services/notificationApi';
 import { ListingDto } from '@/services/listingApi';
 import { useAuth } from '@/context/AuthContext';
+import { getToken } from '@/utils/tokenStorage';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useWeather } from '@/hooks/useWeather';
@@ -183,6 +184,7 @@ export default function MainMenuScreen() {
   const [allEventIds, setAllEventIds] = useState<string[]>([]);
 
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteEmailError, setInviteEmailError] = useState('');
   const [isInviting, setIsInviting] = useState(false);
   const [isInviteFocused, setIsInviteFocused] = useState(false);
 
@@ -190,22 +192,27 @@ export default function MainMenuScreen() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const handleSendInvite = async () => {
     const email = inviteEmail.trim();
     if (!email) return;
-    
-    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!EMAIL_REGEX.test(email)) {
-      Alert.alert(t('common.error'), t('profile.inviteEmailError'));
+      setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
       return;
     }
 
+    setInviteEmailError('');
     Keyboard.dismiss();
     setIsInviting(true);
 
     try {
-      const { getToken } = require('@/utils/tokenStorage');
-      const token = await getToken();
+      const token = getToken();
+      if (!token) {
+        Alert.alert(t('common.error'), i18n.language.startsWith('en') ? 'You must be logged in to send invites.' : 'Davet göndermek için giriş yapmalısın.');
+        return;
+      }
       const response = await fetch(`${API_BASE_URL}/api/v1/users/invites`, {
           method: 'POST',
           headers: {
@@ -214,11 +221,16 @@ export default function MainMenuScreen() {
           },
           body: JSON.stringify({ email })
       });
+      if (response.status === 409) {
+        setInviteEmailError(i18n.language.startsWith('en') ? 'An invite has already been sent to this address.' : 'Bu adrese zaten bir davet gönderildi.');
+        return;
+      }
       if (!response.ok) {
-          throw new Error(t('profile.inviteSendFailed'));
+        throw new Error(`HTTP ${response.status}`);
       }
       Alert.alert(t('common.success'), t('profile.inviteSendSuccess'));
       setInviteEmail('');
+      setInviteEmailError('');
     } catch (error) {
       console.error('Failed to send invite:', error);
       Alert.alert(t('common.error'), t('profile.inviteSendFailed'));
@@ -424,12 +436,18 @@ export default function MainMenuScreen() {
             <IconSymbol name="envelope.fill" size={20} color="#059669" />
             <TextInput
               style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
-              onFocus={() => setIsInviteFocused(true)}
-              onBlur={() => setIsInviteFocused(false)}
+              onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
+              onBlur={() => {
+                setIsInviteFocused(false);
+                const email = inviteEmail.trim();
+                if (email && !EMAIL_REGEX.test(email)) {
+                  setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
+                }
+              }}
               placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' }))}
               placeholderTextColor="#059669"
               value={inviteEmail}
-              onChangeText={setInviteEmail}
+              onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
               onSubmitEditing={handleSendInvite}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -444,6 +462,9 @@ export default function MainMenuScreen() {
             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
           </Pressable>
         </View>
+        {!!inviteEmailError && (
+          <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 6, marginLeft: 4 }}>{inviteEmailError}</Text>
+        )}
         <TodayOnIsland />
       </View>
 
