@@ -423,23 +423,23 @@ export default function MainMenuScreen() {
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, }}>
             <IconSymbol name="envelope.fill" size={20} color="#059669" />
             <TextInput
-              style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
+              style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
               onFocus={() => setIsInviteFocused(true)}
               onBlur={() => setIsInviteFocused(false)}
-              placeholder={isInviteFocused ? '' : ((user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' }))}
+              placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' }))}
               placeholderTextColor="#059669"
               value={inviteEmail}
               onChangeText={setInviteEmail}
               onSubmitEditing={handleSendInvite}
               keyboardType="email-address"
               autoCapitalize="none"
-              editable={user?.role === 'ISLANDER' || user?.role === 'ADMIN'}
+              editable={user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN'}
             />
           </View>
-          <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.role === 'ISLANDER' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+          <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
+             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
              onPress={handleSendInvite}
-             disabled={!(user?.role === 'ISLANDER' || user?.role === 'ADMIN') || !inviteEmail.trim() || isInviting}
+             disabled={!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') || !inviteEmail.trim() || isInviting}
           >
             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
           </Pressable>
