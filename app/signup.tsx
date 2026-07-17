@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
-import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -20,6 +20,7 @@ export default function SignUpScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { inviteToken } = useLocalSearchParams<{ inviteToken?: string }>();
 
     const [name, setName] = useState('');
     const [contact, setContact] = useState('');
@@ -136,6 +137,7 @@ export default function SignUpScreen() {
                 true,
                 birthDate,
                 selectedIsland ?? undefined,
+                inviteToken ?? undefined,
             );
             const contactType = isPhonePattern(contact.trim()) ? 'phone' : 'email';
             router.push({ pathname: '/verify', params: { contact: contact.trim(), type: contactType } });
@@ -183,6 +185,14 @@ export default function SignUpScreen() {
                     </View>
 
                     <View style={styles.cardContainer}>
+                        {!!inviteToken && (
+                            <View style={{ backgroundColor: '#ECFDF5', borderRadius: 12, marginHorizontal: 20, marginTop: 16, marginBottom: -8, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: '#6EE7B7' }}>
+                                <IconSymbol name="checkmark.seal.fill" size={18} color="#059669" />
+                                <Text style={{ color: '#065F46', fontSize: 13, fontWeight: '600', flex: 1 }}>
+                                    Ada sakini olarak davet edildiniz! Hesabınız adalı statüsüyle oluşturulacak.
+                                </Text>
+                            </View>
+                        )}
                         <ScrollView
                             style={styles.formScroll}
                             contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + 12 }]}

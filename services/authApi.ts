@@ -41,6 +41,7 @@ export const authApi = {
     termsAccepted: boolean = true,
     birthDate?: string,
     island?: string,
+    inviteToken?: string,
   ): Promise<{ message: string }> => {
     try {
       const sanitized = sanitizeContact(contact);
@@ -56,6 +57,7 @@ export const authApi = {
           termsAccepted,
           ...(birthDate ? { birthDate } : {}),
           ...(island ? { island } : {}),
+          ...(inviteToken ? { inviteToken } : {}),
         }),
       });
       const data = await response.json();
