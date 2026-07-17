@@ -172,6 +172,7 @@ export default function MainMenuScreen() {
   const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
   const [surveyOtherText, setSurveyOtherText] = useState('');
   const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [surveySubmitting, setSurveySubmitting] = useState(false);
   const [totalEventsCount, setTotalEventsCount] = useState(0);
   const [totalListingsCount, setTotalListingsCount] = useState(0);
   const [unseenEventsCount, setUnseenEventsCount] = useState(0);
@@ -184,6 +185,47 @@ export default function MainMenuScreen() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+  const OPTION_CODES: Record<string, string> = {
+    'Cargo / Parcel': 'CARGO', 'Kargo': 'CARGO',
+    'Supermarket / Restaurant': 'SUPERMARKET', 'Market / Restorant': 'SUPERMARKET',
+    'Water / Gas Cylinder': 'WATER_GAS', 'Su / Tüp': 'WATER_GAS',
+    'Other': 'OTHER', 'Diğer': 'OTHER',
+  };
+
+  const handleSurveySubmit = async () => {
+    if (!isLoggedIn) {
+      Alert.alert(
+        i18n.language.startsWith('en') ? 'Login Required' : 'Giriş Gerekli',
+        i18n.language.startsWith('en') ? 'Please log in to vote.' : 'Oy kullanmak için giriş yapmalısınız.'
+      );
+      return;
+    }
+    const codes = surveyOptions.map(o => OPTION_CODES[o]).filter(Boolean);
+    if (codes.length === 0) return;
+    setSurveySubmitting(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/api/v1/demand/delivery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ options: codes, otherText: surveyOtherText || null, island: null }),
+      });
+      if (res.status === 409) {
+        setSurveySubmitted(true);
+        return;
+      }
+      if (!res.ok) throw new Error('failed');
+      setSurveySubmitted(true);
+    } catch {
+      Alert.alert(
+        i18n.language.startsWith('en') ? 'Error' : 'Hata',
+        i18n.language.startsWith('en') ? 'Could not submit. Please try again.' : 'Gönderilemedi, tekrar deneyin.'
+      );
+    } finally {
+      setSurveySubmitting(false);
+    }
+  };
 
   const handleSendInvite = async () => {
     const email = inviteEmail.trim();
@@ -830,12 +872,15 @@ export default function MainMenuScreen() {
 
                 <TouchableOpacity 
                   style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : '#CBD5E1', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
-                  onPress={() => setSurveySubmitted(true)}
-                  disabled={surveyOptions.length === 0}
+                  onPress={handleSurveySubmit}
+                  disabled={surveyOptions.length === 0 || surveySubmitting}
                 >
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
-                    {i18n.language.startsWith('en') ? 'Submit' : 'Gönder'}
-                  </Text>
+                  {surveySubmitting
+                    ? <ActivityIndicator color="#fff" />
+                    : <Text style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>
+                        {i18n.language.startsWith('en') ? 'Submit' : 'Gönder'}
+                      </Text>
+                  }
                 </TouchableOpacity>
                 <TouchableOpacity style={{ width: '100%', paddingVertical: 14, alignItems: 'center', marginTop: 4 }} onPress={() => setShowSurvey(false)}>
                   <Text style={{ color: '#94A3B8', fontSize: 15, fontWeight: '600' }}>
