@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     },
     islandBadgeText: { fontSize: 12, fontWeight: '700', color: '#EC4899' },
     content: { flex: 1, backgroundColor: '#F8FAFC' },
-    messageRow: { flexDirection: 'row', marginBottom: 20, alignItems: 'flex-end' },
+    messageRow: { flexDirection: 'row', marginBottom: 20, alignItems: 'flex-end', width: '100%' },
     botRow: { justifyContent: 'flex-start' },
     userRow: { justifyContent: 'flex-end' },
     botAvatar: {
