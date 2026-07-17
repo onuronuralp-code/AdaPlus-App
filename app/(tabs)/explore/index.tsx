@@ -35,6 +35,7 @@ import { unregisterPushNotifications } from '@/services/notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
+import { getToken } from '@/utils/tokenStorage';
 
 const getRouteTimeValue = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
@@ -205,7 +206,7 @@ export default function MainMenuScreen() {
     if (codes.length === 0) return;
     setSurveySubmitting(true);
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/demand/delivery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -691,6 +692,10 @@ export default function MainMenuScreen() {
         <Pressable 
           style={({ pressed }) => [{ width: isLargeScreen ? 104 : 98, height: isLargeScreen ? 144 : 124, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 10, paddingTop: 16, alignItems: 'center', justifyContent: 'flex-start', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}
           onPress={() => {
+            if (!isLoggedIn) {
+              router.push('/login');
+              return;
+            }
             setSurveySubmitted(false);
             setSurveyOptions([]);
             setSurveyOtherText('');
