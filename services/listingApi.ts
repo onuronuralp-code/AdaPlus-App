@@ -45,19 +45,6 @@ export interface SaveListingRequest {
 
 const LISTING_API_BASE = `${API_BASE_URL}/api/v1/listings`;
 
-const MOCK_LISTINGS: ListingDto[] = Array.from({ length: 20 }).map((_, index) => ({
-  id: `list${index + 1}`,
-  title: `Test İlanı ${index + 1}`,
-  description: `Bu ${index + 1}. ilan açıklaması. Scroll (kaydırma) testini kontrol etmek için otomatik oluşturuldu. Adalar genelindeki genel ilanlar listesi.`,
-  category: index % 3 === 0 ? ListingCategory.KIRALIK : index % 3 === 1 ? ListingCategory.SATILIK : ListingCategory.KAYIP,
-  island: Island.BUYUKADA,
-  price: index * 50,
-  priceLabel: "TL",
-  active: true,
-  createdAt: new Date(Date.now() - 1000 * 60 * 60 * index).toISOString(),
-  updatedAt: new Date().toISOString()
-}));
-
 export const fetchListings = async (
   category?: ListingCategory,
 ): Promise<ListingDto[]> => {
@@ -70,17 +57,17 @@ export const fetchListings = async (
 
     const data = await response.json();
 
-    // Handle Spring Data Page structure if present
     if (data && data.content && Array.isArray(data.content)) {
-      if (data.content.length > 0) return data.content;
-      return MOCK_LISTINGS.filter(item => !category || item.category === category);
+      return data.content;
     }
 
-    // Return mock data if empty or error
-    return data && data.length > 0 ? data : MOCK_LISTINGS.filter(item => !category || item.category === category);
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.log("Using mock data for listings due to error:", error);
-    return MOCK_LISTINGS.filter(item => !category || item.category === category);
+    console.error("Failed to fetch listings:", error);
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
+    return [];
   }
 };
 
@@ -93,28 +80,23 @@ export const createListing = async (
       console.warn("No JWT token found. Aborting listing creation.");
       return null;
     }
-    
-    // MOCK BEHAVIOR: Instead of calling the backend, we dynamically create a mock listing
-    // and unshift it to the top of our MOCK_LISTINGS array for testing purposes.
-    const newMockListing: ListingDto = {
-      id: `list_new_${Date.now()}`,
-      title: request.title,
-      description: request.description,
-      category: request.category as ListingCategory,
-      island: request.island as Island,
-      price: request.price,
-      priceLabel: "TL",
-      active: request.active ?? true,
-      imageUrl: request.imageUrl,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    MOCK_LISTINGS.unshift(newMockListing);
-    return newMockListing;
 
+    const response = await fetchWithTimeout(LISTING_API_BASE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
   } catch (error) {
     console.error("Failed to create listing:", error);
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return null;
   }
 };
@@ -125,9 +107,7 @@ export const getListing = async (id: string): Promise<ListingDto | null> => {
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.log("Failed to fetch listing detail, trying mock data:", error);
-    const mockListing = MOCK_LISTINGS.find(l => l.id === id);
-    if (mockListing) return mockListing;
+    console.error("Failed to fetch listing detail:", error);
     return null;
   }
 };
