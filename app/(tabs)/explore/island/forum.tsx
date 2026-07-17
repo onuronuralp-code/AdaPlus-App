@@ -419,7 +419,7 @@ export default function ForumScreen() {
                 setPollQuestion('');
                 setPollOptions(['', '']);
                 setPollDurationHours(24);
-                setSelectedImage(null);
+                setSelectedImages([]);
                 setIsAnonymous(false);
                 setIsWriteModalVisible(false);
             }
