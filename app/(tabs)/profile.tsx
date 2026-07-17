@@ -18,7 +18,7 @@ import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
-import { SettingsModal } from '@/components/SettingsModal';
+import SettingsModal from '@/components/SettingsModal';
 
 type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
 
