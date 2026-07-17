@@ -174,6 +174,13 @@ export default function MainMenuScreen() {
   const [surveyOtherText, setSurveyOtherText] = useState('');
   const [surveySubmitted, setSurveySubmitted] = useState(false);
   const [surveySubmitting, setSurveySubmitting] = useState(false);
+  const [surveyAlreadyVoted, setSurveyAlreadyVoted] = useState(false);
+
+  React.useEffect(() => {
+    AsyncStorage.getItem('survey_delivery_voted').then(val => {
+      if (val === 'true') setSurveyAlreadyVoted(true);
+    });
+  }, []);
   const [totalEventsCount, setTotalEventsCount] = useState(0);
   const [totalListingsCount, setTotalListingsCount] = useState(0);
   const [unseenEventsCount, setUnseenEventsCount] = useState(0);
@@ -214,10 +221,14 @@ export default function MainMenuScreen() {
       });
       if (res.status === 409) {
         setSurveySubmitted(true);
+        setSurveyAlreadyVoted(true);
+        AsyncStorage.setItem('survey_delivery_voted', 'true');
         return;
       }
       if (!res.ok) throw new Error('failed');
       setSurveySubmitted(true);
+      setSurveyAlreadyVoted(true);
+      AsyncStorage.setItem('survey_delivery_voted', 'true');
     } catch {
       Alert.alert(
         i18n.language.startsWith('en') ? 'Error' : 'Hata',
@@ -696,7 +707,7 @@ export default function MainMenuScreen() {
               router.push('/login');
               return;
             }
-            setSurveySubmitted(false);
+            setSurveySubmitted(surveyAlreadyVoted);
             setSurveyOptions([]);
             setSurveyOtherText('');
             setShowSurvey(true);
