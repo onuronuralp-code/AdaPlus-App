@@ -44,6 +44,8 @@ export default function IlanDetailScreen() {
   const [listing, setListing] = React.useState<ListingDto | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState(false);
+  const [loadingContact, setLoadingContact] = React.useState(false);
+  const [activeSlide, setActiveSlide] = React.useState(0);
 
   React.useEffect(() => {
     if (id) {
@@ -133,11 +135,30 @@ export default function IlanDetailScreen() {
           style={StyleSheet.absoluteFill}
         />
         {listing.imageUrls && listing.imageUrls.length > 0 ? (
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={StyleSheet.absoluteFill}>
-            {listing.imageUrls.map((url, idx) => (
-              <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%' }} resizeMode="cover" />
-            ))}
-          </ScrollView>
+          <>
+            <ScrollView 
+              horizontal 
+              pagingEnabled 
+              showsHorizontalScrollIndicator={false} 
+              style={StyleSheet.absoluteFill}
+              onMomentumScrollEnd={(e) => {
+                const page = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+                setActiveSlide(page);
+              }}
+            >
+              {listing.imageUrls.map((url, idx) => (
+                <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%' }} resizeMode="cover" />
+              ))}
+            </ScrollView>
+            
+            {listing.imageUrls.length > 1 && (
+              <View style={styles.paginationContainer}>
+                {listing.imageUrls.map((_, idx) => (
+                  <View key={idx} style={[styles.dot, activeSlide === idx && styles.activeDot]} />
+                ))}
+              </View>
+            )}
+          </>
         ) : listing.imageUrl ? (
           <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
@@ -358,7 +379,28 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: '#92400E',
-    lineHeight: 20,
+    lineHeight: 18,
     fontWeight: '500',
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 16,
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  activeDot: {
+    backgroundColor: '#fff',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });

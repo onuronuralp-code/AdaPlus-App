@@ -176,7 +176,7 @@ export default function EventDetailScreen() {
                 bounces={true}
                 contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
             >
-                <View style={styles.content}>
+                <View style={[styles.content, { marginTop: 0 }]}>
                     {/* Badge + date */}
                     <View style={styles.metaRow}>
                         <View style={styles.badge}>
@@ -326,15 +326,8 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 24,
-        marginTop: -32,
+        marginTop: 0,
         backgroundColor: '#fff',
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 10,
     },
     metaRow: {
         flexDirection: 'row',

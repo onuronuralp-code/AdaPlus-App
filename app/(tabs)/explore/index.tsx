@@ -399,6 +399,23 @@ export default function MainMenuScreen() {
   };
   const heroHeight = isLargeScreen ? 300 : 260;
 
+  const heroScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (slidesToRender.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setActiveIndex((current) => {
+        const nextIndex = (current + 1) % slidesToRender.length;
+        heroScrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
+        return nextIndex;
+      });
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [slidesToRender.length, width]);
+
+
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView 
@@ -527,6 +544,7 @@ export default function MainMenuScreen() {
       {/* Hero Header Slider Wrapper */}
       <View style={[styles.heroWrapper, { height: heroHeight, marginBottom: 0 }]}>
         <ScrollView 
+          ref={heroScrollRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
           snapToInterval={width}
@@ -809,7 +827,7 @@ export default function MainMenuScreen() {
       </ScrollView>
 
       {/* Topluluk Banner (At the bottom) */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isLargeScreen ? 12 : 0, paddingBottom: isLargeScreen ? 130 : 90, backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isLargeScreen ? 0 : 0, paddingBottom: isLargeScreen ? 170 : 100, backgroundColor: 'transparent' }}>
         <SwipeButton 
           isLoggedIn={isLoggedIn} 
           onSwipeComplete={() => {

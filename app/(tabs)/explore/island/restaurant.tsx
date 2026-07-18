@@ -5,48 +5,11 @@ import React, { useState } from 'react';
 import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Mock reviews for restaurants
-const MOCK_REVIEWS = [
-    { id: 'r1', user: 'Selim T.', rating: 5, comment: 'The best mezes on the island. Atmosphere is amazing!', date: '1 day ago' },
-    { id: 'r2', user: 'Elif G.', rating: 4, comment: 'Very fresh seafood and friendly service.', date: '4 days ago' },
-    { id: 'r3', user: 'Mark D.', rating: 5, comment: 'A classic island experience. Highly recommended.', date: '1 week ago' },
-];
+// Real data will be fetched from the backend in the future
+const MOCK_REVIEWS: any[] = [];
 
-// Mock data for Restaurants and Cafes in Kınalıada
-const DINING_PLACES = [
-    {
-        id: '1',
-        title: 'Jash Istanbul',
-        description: 'A famous and atmospheric island tavern (meyhane) known for its excellent mezes and traditional dishes.',
-        icon: 'fork.knife',
-        coordinate: { latitude: 40.9109, longitude: 29.0548 },
-        reviews: MOCK_REVIEWS
-    },
-    {
-        id: '2',
-        title: 'Mimoza Restaurant',
-        description: 'Stunning seafood restaurant located right on the water. Perfect for a sunset dinner accompanied by fresh fish.',
-        icon: 'fork.knife',
-        coordinate: { latitude: 40.9091, longitude: 29.0552 },
-        reviews: MOCK_REVIEWS
-    },
-    {
-        id: '3',
-        title: 'Kınalıada Pastanesi',
-        description: 'The classic island bakery. A must-visit stop for fresh morning pastries, savory borek, and traditional Turkish tea.',
-        icon: 'cup.and.saucer.fill',
-        coordinate: { latitude: 40.9108, longitude: 29.0544 },
-        reviews: MOCK_REVIEWS
-    },
-    {
-        id: '4',
-        title: 'Teos Beach Restaurant',
-        description: 'A relaxed dining experience right on the beach club, offering great Mediterranean cuisine and refreshing cocktails.',
-        icon: 'fork.knife',
-        coordinate: { latitude: 40.9028, longitude: 29.0493 },
-        reviews: MOCK_REVIEWS
-    }
-];
+// Real dining places will be fetched from the backend
+const DINING_PLACES: any[] = [];
 
 export default function RestaurantScreen() {
     const router = useRouter();

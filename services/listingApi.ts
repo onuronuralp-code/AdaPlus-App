@@ -49,7 +49,7 @@ export const fetchListings = async (
   category?: ListingCategory,
 ): Promise<ListingDto[]> => {
   // MOCK DATA: Sadece ekrandaki görünümü test etmek için
-  return [
+  const mockData: ListingDto[] = [
     {
       id: "mock-listing-1",
       title: "Satılık Ada İçi Elektrikli Bisiklet",
@@ -58,6 +58,11 @@ export const fetchListings = async (
       island: Island.BUYUKADA,
       price: 15000,
       imageUrl: "https://images.unsplash.com/photo-1528543606781-2f6e6857f318?w=800&auto=format&fit=crop&q=80",
+      imageUrls: [
+        "https://images.unsplash.com/photo-1528543606781-2f6e6857f318?w=800&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1571188654261-2946bd7c1f83?w=800&auto=format&fit=crop&q=80"
+      ],
       active: true,
       createdAt: new Date(Date.now() - 86400000).toISOString(),
       updatedAt: new Date(Date.now() - 86400000).toISOString(),
@@ -87,6 +92,11 @@ export const fetchListings = async (
       updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
     }
   ];
+
+  if (category) {
+    return mockData.filter(listing => listing.category === category);
+  }
+  return mockData;
   /*
   try {
     const url = new URL(LISTING_API_BASE);

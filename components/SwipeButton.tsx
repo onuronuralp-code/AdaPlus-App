@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions, Dimensions } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions, Dimensions, Image } from 'react-native';
 import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { useRef } from 'react';
 import { AbstractPattern } from './AbstractPattern';
 import { API_BASE_URL } from '../services/config';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
@@ -22,8 +22,6 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const [userCount, setUserCount] = useState<number | null>(null);
 
   useEffect(() => {
-    setUserCount(50000); // MOCK: Sadece ekrandaki görünüşü test etmek için eklendi.
-    /*
     fetch(`${API_BASE_URL}/api/v1/users/count`)
       .then(res => res.json())
       .then(data => {
@@ -32,7 +30,6 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
         }
       })
       .catch(e => console.log('Failed to fetch user count', e));
-    */
   }, []);
 
   const handlePress = () => {
@@ -56,10 +53,16 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
       style={({ pressed }) => [
         styles.container,
         isLargeScreen && { height: 88, borderRadius: 20 },
-        pressed && { backgroundColor: '#F0FDF4', borderColor: '#34D399' }
+        pressed && { borderColor: '#10B981', opacity: 0.9 }
       ]}
       onPress={handlePress}
     >
+      <LinearGradient 
+        colors={['#D1FAE5', '#ffffff', '#D1FAE5']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFillObject}
+      />
       <View style={styles.content}>
         <View style={[styles.iconContainer, isLargeScreen && { width: 60, height: 60, borderRadius: 16 }]}>
           <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 30 : 24} color="#059669" />

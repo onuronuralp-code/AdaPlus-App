@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, BackHandler } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,10 +21,16 @@ export default function SignUpScreen() {
     const insets = useSafeAreaInsets();
     const searchParams = useLocalSearchParams<{ inviteToken?: string }>();
     const inviteToken = searchParams.inviteToken;
+    useEffect(() => {
+        if (inviteToken) {
+            const onBackPress = () => true; // Prevent default behavior (going back)
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }
+    }, [inviteToken]);
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
 
     useEffect(() => {
         if (!inviteToken) return;
@@ -32,8 +38,7 @@ export default function SignUpScreen() {
             if (em) {
                 if (isEmailPattern(em) || em.includes('@')) {
                     setEmail(em);
-                } else {
-                    setPhoneNumber(em.replace(/^\+90/, '').trim());
+
                 }
             }
         });
@@ -80,12 +85,6 @@ export default function SignUpScreen() {
         return 'Geçerli bir e-posta adresi girin';
     };
 
-    const validatePhone = (val: string): string | undefined => {
-        if (!val.trim()) return undefined;
-        if (isPhonePattern(val)) return undefined;
-        return 'Geçerli bir telefon numarası girin';
-    };
-
     const validatePassword = (val: string): string | undefined => {
         if (!val) return t('auth.errors.passwordRequired');
         if (val.length < 8) return t('auth.errors.passwordMin');
@@ -102,11 +101,6 @@ export default function SignUpScreen() {
     const handleEmailChange = (val: string) => {
         setEmail(val);
         if (touched.email) setErrors(prev => ({ ...prev, email: validateEmail(val) }));
-    };
-
-    const handlePhoneChange = (val: string) => {
-        setPhoneNumber(val);
-        if (touched.phoneNumber) setErrors(prev => ({ ...prev, phoneNumber: validatePhone(val) }));
     };
 
     const handlePasswordChange = (val: string) => {
@@ -126,11 +120,6 @@ export default function SignUpScreen() {
         setErrors(prev => ({ ...prev, email: validateEmail(email) }));
     };
 
-    const handlePhoneBlur = () => {
-        setTouched(prev => ({ ...prev, phoneNumber: true }));
-        setErrors(prev => ({ ...prev, phoneNumber: validatePhone(phoneNumber) }));
-    };
-
     const handlePasswordBlur = () => {
         setTouched(prev => ({ ...prev, password: true }));
         setErrors(prev => ({ ...prev, password: validatePassword(password) }));
@@ -141,18 +130,16 @@ export default function SignUpScreen() {
     const handleSubmit = async () => {
         if (loading) return;
         const nameError = validateName(name);
-        const emailError = validateEmail(email);
-        const phoneError = validatePhone(phoneNumber);
         
-        let combinedError = undefined;
-        if (!email.trim() && !phoneNumber.trim()) {
-            combinedError = 'E-posta veya telefon numarası zorunludur';
+        let emailError = validateEmail(email);
+        if (!email.trim()) {
+            emailError = 'E-posta zorunludur';
         }
         
         const passwordError = validatePassword(password);
-        setTouched({ name: true, email: true, phoneNumber: true, password: true });
-        setErrors({ name: nameError, email: emailError || combinedError, phoneNumber: phoneError || combinedError, password: passwordError });
-        if (nameError || emailError || phoneError || combinedError || passwordError) return;
+        setTouched({ name: true, email: true, password: true });
+        setErrors({ name: nameError, email: emailError, password: passwordError });
+        if (nameError || emailError || passwordError) return;
         setKvkkVisible(true);
     };
 
@@ -165,10 +152,7 @@ export default function SignUpScreen() {
                 birthDay && birthMonth && birthYear
                     ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
                     : undefined;
-            const emailVal = email.trim();
-            const phoneVal = phoneNumber.trim();
-            const actualContact = emailVal || phoneVal;
-            const additionalPhone = emailVal && phoneVal ? phoneVal : undefined;
+            const actualContact = email.trim();
             await authApi.signup(
                 name.trim(),
                 actualContact,
@@ -178,10 +162,9 @@ export default function SignUpScreen() {
                 birthDate,
                 selectedIsland ?? undefined,
                 inviteToken ?? undefined,
-                additionalPhone,
+                undefined,
             );
-            const contactType = isPhonePattern(actualContact) ? 'phone' : 'email';
-            router.push({ pathname: '/verify', params: { contact: actualContact, type: contactType } });
+            router.push({ pathname: '/verify', params: { contact: actualContact, type: 'email' } });
         } catch (error: any) {
             const msg: string = error.message || 'Bir hata oluştu.';
             if (msg.includes('Telefon numaranızla giriş yapın')) {
@@ -219,15 +202,17 @@ export default function SignUpScreen() {
                             colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
                             style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
                         />
-                        <TouchableOpacity
-                            style={[styles.backButton, { top: insets.top + vs(10) }]}
-                            onPress={() => {
-                                if (router.canGoBack()) router.back();
-                                else router.replace('/login');
-                            }}
-                        >
-                            <IconSymbol name="chevron.left" size={ms(24)} color="#fff" />
-                        </TouchableOpacity>
+                        {!inviteToken && (
+                            <TouchableOpacity
+                                style={[styles.backButton, { top: insets.top + vs(10) }]}
+                                onPress={() => {
+                                    if (router.canGoBack()) router.back();
+                                    else router.replace('/login');
+                                }}
+                            >
+                                <IconSymbol name="chevron.left" size={ms(24)} color="#fff" />
+                            </TouchableOpacity>
+                        )}
 
                         <View style={[styles.branding, { paddingTop: insets.top - vs(10), paddingBottom: vs(20) }]}>
                             <View style={styles.logoCircle}>
@@ -296,33 +281,7 @@ export default function SignUpScreen() {
                                 </View>
                             </View>
 
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(10), marginTop: vs(2) }}>
-                                <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
-                                <Text style={{ marginHorizontal: s(12), color: '#94A3B8', fontSize: ms(12), fontWeight: '700' }}>{t('auth.or', { defaultValue: 'veya' })}</Text>
-                                <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
-                            </View>
 
-                            {/* Telefon */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>{t('auth.phoneLabel', { defaultValue: 'TELEFON NUMARASI' })}</Text>
-                                <View style={[styles.inputWrapper, errors.phoneNumber ? styles.inputWrapperError : null]}>
-                                    <IconSymbol name="phone.fill" size={ms(18)} color={errors.phoneNumber ? '#EF4444' : '#94A3B8'} />
-                                    <Text style={{ color: '#0F172A', fontSize: ms(15), marginLeft: s(12), marginRight: s(4), fontWeight: '600' }}>+90</Text>
-                                    <TextInput
-                                        style={[styles.input, { paddingLeft: 0, marginLeft: 0 }]}
-                                        placeholder={(errors.phoneNumber && focusedField !== 'phoneNumber') ? errors.phoneNumber : t('auth.phonePlaceholder', { defaultValue: '5XX XXX XX XX' })}
-                                        placeholderTextColor={(errors.phoneNumber && focusedField !== 'phoneNumber') ? "#EF4444" : "#94A3B8"}
-                                        keyboardType="phone-pad"
-                                        value={(errors.phoneNumber && focusedField !== 'phoneNumber') ? '' : phoneNumber}
-                                        onChangeText={handlePhoneChange}
-                                        onFocus={() => setFocusedField('phoneNumber')}
-                                        onBlur={() => {
-                                            setFocusedField('');
-                                            handlePhoneBlur();
-                                        }}
-                                    />
-                                </View>
-                            </View>
 
                             {/* Şifre */}
                             <View style={styles.inputGroup}>
