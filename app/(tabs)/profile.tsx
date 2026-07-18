@@ -585,7 +585,7 @@ export default function ProfileScreen() {
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
                                 <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
                                 <Text style={{ fontSize: 13, color: '#475569', marginLeft: 8, fontWeight: '500' }}>
-                                    Davet Ettiğin Adalılar: <Text style={{ fontWeight: '800', color: '#0F172A', fontSize: 14 }}>{(user as any)?.invitedUsersCount || 5}</Text>
+                                    Davet Ettiğin Adalılar: <Text style={{ fontWeight: '800', color: '#0F172A', fontSize: 14 }}>{(user as any)?.invitedUsersCount ?? 0}</Text>
                                 </Text>
                             </View>
                         )}
