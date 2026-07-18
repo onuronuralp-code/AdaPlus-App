@@ -151,6 +151,29 @@ export const getListing = async (id: string): Promise<AppListingDto | null> => {
 };
 
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
+  // MOCK DATA: Sadece ekrandaki görünümü test etmek için
+  return [
+    {
+      id: "mock1",
+      name: "Maceraya Hazır mısın?",
+      description: "Adanın muhteşem manzarası eşliğinde unutulmaz bir canlı müzik ve kamp deneyimi.",
+      startDate: new Date(Date.now() + 86400000 * 2).toISOString(),
+      endDate: new Date(Date.now() + 86400000 * 2 + 7200000).toISOString(),
+      organizerName: "Ada Kamp Kulübü",
+      eventPlace: "Büyükada Yörük Ali Plajı",
+      imageUrl: "https://images.unsplash.com/photo-1540039155732-68473678c4ea?w=800&auto=format&fit=crop&q=80",
+    },
+    {
+      id: "mock2",
+      name: "Doğa Yürüyüşü ve Bisiklet Turu",
+      description: "Hafta sonu temiz hava almak ve adanın gizli köşelerini keşfetmek için harika bir fırsat.",
+      startDate: new Date(Date.now() + 86400000 * 5).toISOString(),
+      organizerName: "Ada Spor ve Doğa Severler",
+      eventPlace: "Aya Yorgi Tepesi",
+      imageUrl: "https://images.unsplash.com/photo-1471506480208-91b3a4cc78be?w=800&auto=format&fit=crop&q=80",
+    }
+  ];
+  /*
   try {
     const response = await fetch(ACTIVITIES_API_BASE_URL);
     if (!response.ok) throw new Error("Activities fetch error");
@@ -158,11 +181,10 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Failed to fetch activities:", error);
-    if (!(error instanceof Error && error.message.startsWith("Activities fetch error"))) {
-      triggerNetworkError();
-    }
+    triggerNetworkError();
     return [];
   }
+  */
 };
 
 export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppActivityDto[]> => {
@@ -199,6 +221,11 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
 export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status">;
 
 export const getActivity = async (id: string): Promise<AppActivityDto | null> => {
+  if (id.startsWith('mock')) {
+    const mocks = await fetchActivities();
+    return mocks.find(m => m.id === id) || null;
+  }
+  
   try {
     const token = getToken();
     const headers: Record<string, string> = {};
@@ -216,6 +243,11 @@ export const getActivity = async (id: string): Promise<AppActivityDto | null> =>
 };
 
 export const toggleActivityRsvp = async (id: string): Promise<RsvpResponse | null> => {
+  if (id.startsWith('mock')) {
+    // Return a fake successful RSVP response for mock activities
+    return { going: true, rsvpCount: 42 };
+  }
+
   try {
     const token = getToken();
     if (!token) return null;

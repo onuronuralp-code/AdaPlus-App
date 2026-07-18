@@ -24,6 +24,7 @@ export default function EventsScreen() {
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isGridView, setIsGridView] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -269,17 +270,26 @@ export default function EventsScreen() {
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <TouchableOpacity style={styles.backButton} onPress={() => {
-                    if (router.canGoBack()) {
-                        router.back();
-                    } else {
-                        router.back();
-                    }
-                }}>
-                    <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+            <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => {
+                        if (router.canGoBack()) {
+                            router.back();
+                        } else {
+                            router.back();
+                        }
+                    }}>
+                        <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
+                </View>
+                <TouchableOpacity
+                    style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => setIsGridView(!isGridView)}
+                    activeOpacity={0.7}
+                >
+                    <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color="#1E293B" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
             </View>
 
             <ScrollView
@@ -307,47 +317,51 @@ export default function EventsScreen() {
                         />
                     </View>
                 ) : (
-                    events.map((event) => {
-                        const resolvedUrl = resolveImageUrl(event.imageUrl);
-                        const hasUserImage = event.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
-                        
-                        return (
-                        <TouchableOpacity
-                            key={event.id}
-                            style={styles.eventCard}
-                            activeOpacity={0.8}
-                            onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
-                        >
-                            {hasUserImage ? (
-                                <View style={{ width: '100%', height: 200, backgroundColor: '#F1F5F9' }}>
+                    <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'space-between' } : {}}>
+                        {events.map((event) => {
+                            const resolvedUrl = resolveImageUrl(event.imageUrl);
+                            const hasUserImage = event.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
+                            
+                            return (
+                            <TouchableOpacity
+                                key={event.id}
+                                style={[styles.eventCard, isGridView && { width: '48%', marginHorizontal: 0 }]}
+                                activeOpacity={0.8}
+                                onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
+                            >
+                                {hasUserImage ? (
+                                    <View style={{ width: '100%', height: isGridView ? 120 : 200, backgroundColor: '#F1F5F9' }}>
+                                        <Image
+                                            source={{ uri: resolvedUrl }}
+                                            style={{ width: '100%', height: '100%' }}
+                                            resizeMode="cover"
+                                        />
+                                    </View>
+                                ) : (
                                     <Image
-                                        source={{ uri: resolvedUrl }}
-                                        style={{ width: '100%', height: '100%' }}
-                                        resizeMode="cover"
+                                        source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
+                                        style={[styles.eventImage, isGridView && { height: 120 }]}
                                     />
+                                )}
+                                <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
+                                    <View style={styles.titleRow}>
+                                        <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={2}>{event.name}</Text>
+                                    </View>
+                                    <View style={[styles.eventDetailsRow, isGridView && { marginTop: 4, marginBottom: 2 }]}>
+                                        <IconSymbol name="calendar" size={12} color="#3B82F6" />
+                                        <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                    </View>
+                                    {!isGridView && (
+                                        <View style={styles.eventDetailsRow}>
+                                            <IconSymbol name="person.fill" size={12} color="#778DA9" />
+                                            <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                        </View>
+                                    )}
                                 </View>
-                            ) : (
-                                <Image
-                                    source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                    style={styles.eventImage}
-                                />
-                            )}
-                            <View style={styles.eventInfo}>
-                                <View style={styles.titleRow}>
-                                    <Text style={styles.eventTitle} numberOfLines={1}>{event.name}</Text>
-                                </View>
-                                <View style={styles.eventDetailsRow}>
-                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
-                                    <Text style={[styles.eventDate, { color: '#3B82F6' }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
-                                </View>
-                                <View style={styles.eventDetailsRow}>
-                                    <IconSymbol name="person.fill" size={14} color="#778DA9" />
-                                    <Text style={styles.eventLocation} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                        );
-                    })
+                            </TouchableOpacity>
+                            );
+                        })}
+                    </View>
                 )}
             </ScrollView>
 

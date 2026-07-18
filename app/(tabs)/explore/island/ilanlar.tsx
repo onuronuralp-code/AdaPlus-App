@@ -71,6 +71,7 @@ export default function IlanlarScreen() {
   const [listings, setListings] = useState<ListingDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isGridView, setIsGridView] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<IlanCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdModalVisible, setIsAdModalVisible] = useState(false);
@@ -356,15 +357,24 @@ export default function IlanlarScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{t('common.classifieds', { defaultValue: 'İlanlar' })}</Text>
+        </View>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.8}
+          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => setIsGridView(!isGridView)}
+          activeOpacity={0.7}
         >
-          <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+          <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('common.classifieds', { defaultValue: 'İlanlar' })}</Text>
       </View>
 
       <View style={styles.tabsWrapper}>
@@ -416,9 +426,11 @@ export default function IlanlarScreen() {
             color="#EAB308"
           />
         ) : (
-          filteredListings.map(l => (
-            <ListingCard key={l.id} listing={l} router={router} />
-          ))
+          <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' } : {}}>
+            {filteredListings.map(l => (
+              <ListingCard key={l.id} listing={l} router={router} isGridView={isGridView} />
+            ))}
+          </View>
         )}
       </ScrollView>
 
@@ -617,7 +629,7 @@ export default function IlanlarScreen() {
   );
 }
 
-function ListingCard({ listing, router }: { listing: ListingDto, router: any }) {
+function ListingCard({ listing, router, isGridView }: { listing: ListingDto, router: any, isGridView?: boolean }) {
   const { isLoggedIn } = useAuth();
   const backendToFrontend: Record<ListingCategory, IlanCategory> = {
     [ListingCategory.SATILIK]: 'emlak',
@@ -643,7 +655,8 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
     <TouchableOpacity
       style={[
         styles.card,
-        { borderColor: `${cfg.color}33` }
+        { borderColor: `${cfg.color}33` },
+        isGridView && { width: '48%', marginHorizontal: 0 }
       ]}
       activeOpacity={0.7}
       onPress={() => {
@@ -654,7 +667,7 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
       }}
     >
       {hasUserImage && (
-        <View style={{ width: '100%', height: 200, backgroundColor: '#F1F5F9' }}>
+        <View style={{ width: '100%', height: isGridView ? 120 : 200, backgroundColor: '#F1F5F9' }}>
           <Image 
              source={{ uri: resolvedUrl }} 
              style={{ width: '100%', height: '100%' }} 
@@ -662,25 +675,25 @@ function ListingCard({ listing, router }: { listing: ListingDto, router: any }) 
           />
         </View>
       )}
-      <View style={{ padding: 18 }}>
-        <View style={styles.cardHeader}>
+      <View style={{ padding: isGridView ? 12 : 18 }}>
+        <View style={[styles.cardHeader, isGridView && { marginBottom: 6 }]}>
           <View style={styles.headerLeft}>
             <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
               <IconSymbol name={cfg.icon as any} size={12} color={cfg.color} />
               <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
             </View>
           </View>
-          <Text style={styles.timeAgo}>{timeAgo}</Text>
+          <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }]}>{timeAgo}</Text>
         </View>
 
-        <Text style={styles.cardTitle}>{listing.title}</Text>
-        <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>
+        <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }]} numberOfLines={isGridView ? 2 : 1}>{listing.title}</Text>
+        {!isGridView && <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>}
 
-        <View style={styles.cardFooter}>
-          <View style={styles.cardMeta}>
+        <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'column', alignItems: 'flex-start', gap: 6 }]}>
+          <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4 }]}>
             <View style={styles.metaItem}>
-              <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
-              <Text style={styles.metaText}>{listing.island}</Text>
+              <IconSymbol name="mappin.circle.fill" size={12} color="#94A3B8" />
+              <Text style={[styles.metaText, isGridView && { fontSize: 11 }]}>{listing.island}</Text>
             </View>
             {listing.contactInfo && (
               <View style={styles.metaItem}>

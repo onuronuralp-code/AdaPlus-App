@@ -70,15 +70,30 @@ export default function LoginScreen() {
 
     const handleSubmit = async () => {
         if (loading) return;
-        const emailError = validateEmail(email);
+        
+        let identifier = '';
+        if (email.trim()) {
+            const emailError = validateEmail(email);
+            setTouched(prev => ({ ...prev, email: true }));
+            setErrors(prev => ({ ...prev, email: emailError }));
+            if (emailError) return;
+            identifier = email.trim();
+        } else if (phoneNumber.trim()) {
+            identifier = phoneNumber.trim();
+        } else {
+            setTouched(prev => ({ ...prev, email: true }));
+            setErrors(prev => ({ ...prev, email: 'E-posta veya telefon numarası gereklidir' }));
+            return;
+        }
+
         const passwordError = validatePassword(password);
-        setTouched({ email: true, password: true });
-        setErrors({ email: emailError, password: passwordError });
-        if (emailError || passwordError) return;
+        setTouched(prev => ({ ...prev, password: true }));
+        setErrors(prev => ({ ...prev, password: passwordError }));
+        if (passwordError) return;
 
         setLoading(true);
         try {
-            const response = await authApi.login(email.trim(), password);
+            const response = await authApi.login(identifier, password);
             await setAuthLogin(response.user, response.token);
             router.replace('/(tabs)/explore');
         } catch (error: any) {
@@ -86,7 +101,7 @@ export default function LoginScreen() {
             if (msg.toLowerCase().includes('verified') || msg.toLowerCase().includes('doğrulan')) {
                 Alert.alert('Doğrulama Gerekli', 'E-postanız henüz doğrulanmamış.', [
                     { text: 'İptal', style: 'cancel' },
-                    { text: 'Doğrula', onPress: () => router.push({ pathname: '/verify', params: { email: email.trim() } }) },
+                    { text: 'Doğrula', onPress: () => router.push({ pathname: '/verify', params: { email: identifier } }) },
                 ]);
             } else {
                 setErrorModalMsg(msg);
@@ -179,7 +194,7 @@ export default function LoginScreen() {
                     </View>
 
                     {!isForgotPassword && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(20), marginTop: vs(8) }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(10), marginTop: vs(2) }}>
                             <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
                             <Text style={{ marginHorizontal: s(12), color: '#94A3B8', fontSize: ms(12), fontWeight: '700' }}>{t('auth.or', { defaultValue: 'veya' })}</Text>
                             <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
@@ -191,9 +206,10 @@ export default function LoginScreen() {
                             <Text style={styles.inputLabel}>{t('auth.phoneLabel', { defaultValue: 'TELEFON NUMARASI' })}</Text>
                             <View style={styles.inputWrapper}>
                                 <IconSymbol name="phone.fill" size={ms(18)} color="#94A3B8" />
+                                <Text style={{ color: '#0F172A', fontSize: ms(15), marginLeft: s(12), marginRight: s(4), fontWeight: '600' }}>+90</Text>
                                 <TextInput 
-                                    style={styles.input} 
-                                    placeholder={t('auth.phonePlaceholder', { defaultValue: 'Telefon numaranızı girin' })}
+                                    style={[styles.input, { paddingLeft: 0, marginLeft: 0 }]} 
+                                    placeholder={t('auth.phonePlaceholder', { defaultValue: '5XX XXX XX XX' })}
                                     placeholderTextColor="#94A3B8"
                                     keyboardType="phone-pad"
                                     value={phoneNumber}

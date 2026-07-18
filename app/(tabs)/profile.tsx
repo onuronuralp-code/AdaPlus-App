@@ -491,18 +491,18 @@ export default function ProfileScreen() {
                 <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                     {!isLoggedIn ? (
-                        <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 8, padding: 2 }}>
+                        <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 10, padding: 4 }}>
                             <TouchableOpacity
-                                style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
                                 onPress={() => i18n.changeLanguage('tr')}
                             >
-                                <Text style={{ fontSize: 13, fontWeight: '700', color: i18n.language.startsWith('tr') ? '#0F172A' : '#64748B' }}>TR</Text>
+                                <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('tr') ? '#0F172A' : '#64748B' }}>TR</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
                                 onPress={() => i18n.changeLanguage('en')}
                             >
-                                <Text style={{ fontSize: 13, fontWeight: '700', color: i18n.language.startsWith('en') ? '#0F172A' : '#64748B' }}>EN</Text>
+                                <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('en') ? '#0F172A' : '#64748B' }}>EN</Text>
                             </TouchableOpacity>
                         </View>
                     ) : (
@@ -566,9 +566,29 @@ export default function ProfileScreen() {
                         </View>
                         <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
                         <Text style={styles.userBio}>{user?.email || ''}</Text>
-                        <View style={styles.roleBadge}>
-                            <Text style={styles.roleText}>{user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}</Text>
+                        <View style={[styles.roleBadge, 
+                            user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF08A' } : 
+                            user?.userType === 'ADMIN' ? { backgroundColor: '#BFDBFE' } : 
+                            { backgroundColor: '#E2E8F0' }
+                        ]}>
+                            <Text style={[styles.roleText, 
+                                user?.userType === 'ISLAND_RESIDENT' ? { color: '#854D0E' } : 
+                                user?.userType === 'ADMIN' ? { color: '#1E40AF' } : 
+                                { color: '#475569' }
+                            ]}>
+                                {user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}
+                            </Text>
                         </View>
+
+                        {/* Sadece Adalı ve Adminlerde Görünen Davet Sayısı Barı */}
+                        {(user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN') && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                                <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
+                                <Text style={{ fontSize: 13, color: '#475569', marginLeft: 8, fontWeight: '500' }}>
+                                    Davet Ettiğin Adalılar: <Text style={{ fontWeight: '800', color: '#0F172A', fontSize: 14 }}>{(user as any)?.invitedUsersCount || 5}</Text>
+                                </Text>
+                            </View>
+                        )}
 
                         {(user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN') && (
                             <TouchableOpacity

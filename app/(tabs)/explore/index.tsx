@@ -24,6 +24,7 @@ const playNote = async (noteModule: any) => {
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { AbstractPattern } from '@/components/AbstractPattern';
 import { SwipeButton } from '@/components/SwipeButton';
+import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 import { fetchActivities, fetchDepartures } from '@/services/api';
 import { fetchListings } from '@/services/listingApi';
@@ -179,6 +180,8 @@ export default function MainMenuScreen() {
   const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
   const [surveyOtherText, setSurveyOtherText] = useState('');
   const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [totalEventsCount, setTotalEventsCount] = useState(0);
   const [totalListingsCount, setTotalListingsCount] = useState(0);
   const [unseenEventsCount, setUnseenEventsCount] = useState(0);
@@ -198,6 +201,14 @@ export default function MainMenuScreen() {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  useEffect(() => {
+    AsyncStorage.getItem('has_completed_delivery_survey').then(val => {
+      if (val === 'true') {
+        setHasCompletedSurvey(true);
+      }
+    });
+  }, []);
 
   const handleSendInvite = async () => {
     const email = inviteEmail.trim();
@@ -394,12 +405,12 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false} scrollEnabled={true}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'flex-start', 
-        paddingTop: insets.top + (isIphone11 ? 44 : 12), 
+        paddingTop: insets.top + (isIphone11 ? 16 : 12), 
         paddingHorizontal: 20 
       }, isSmallScreen && { marginBottom: 12 }, isLargeScreen && { marginBottom: 20 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
@@ -489,16 +500,22 @@ export default function MainMenuScreen() {
             {!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && (
               <Pressable 
                 style={StyleSheet.absoluteFillObject} 
-                onPress={() => setShowNotificationModal(true)} 
+                onPress={() => setShowIslanderStepsModal(true)} 
               />
             )}
           </View>
           <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
              style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
-             onPress={handleSendInvite}
-             disabled={!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') || !inviteEmail.trim() || isInviting}
+             onPress={() => {
+               if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
+                 setShowIslanderStepsModal(true);
+               } else {
+                 handleSendInvite();
+               }
+             }}
+             disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
           >
-            {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
+             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
           </Pressable>
         </View>
         {!!inviteEmailError && (
@@ -529,6 +546,10 @@ export default function MainMenuScreen() {
                 if (slide?.id && !slide.id.startsWith('default')) {
                   if (slide.type === 'listing') {
                     navigateWithDebounce({ pathname: '/explore/island/ilan/[id]', params: { id: slide.id } });
+                  } else if (slide.type === 'banner') {
+                    if (slide.actionUrl) {
+                      navigateWithDebounce(slide.actionUrl);
+                    }
                   } else {
                     navigateWithDebounce({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
                   }
@@ -575,29 +596,29 @@ export default function MainMenuScreen() {
 
                   {/* Bottom Content */}
                   <View style={{ zIndex: 10, paddingBottom: 10 }}>
-                    <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 18 : 16, fontWeight: '700', marginBottom: 12, lineHeight: isLargeScreen ? 26 : 22, width: '90%' }} numberOfLines={2}>
+                    <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 26 : 22, fontWeight: '800', marginBottom: 12, lineHeight: isLargeScreen ? 34 : 30, width: '90%' }} numberOfLines={2}>
                       {slide.title}
                     </Text>
 
                     {/* Details Row */}
                     {slide.type !== 'banner' && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 14 : 12} color="#E2E8F0" />
-                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 12 : 12, marginLeft: 4 }}>{slide.island || 'Büyükada'}</Text>
+                          <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
+                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>{slide.island || 'Büyükada'}</Text>
                         </View>
                         {slide.type === 'event' && slide.date && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <IconSymbol name="calendar" size={isLargeScreen ? 14 : 12} color="#E2E8F0" />
-                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 12 : 12, marginLeft: 4 }}>
+                            <IconSymbol name="calendar" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>
                               {new Date(slide.date).toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', {day: 'numeric', month: 'long'})}
                             </Text>
                           </View>
                         )}
                         {slide.type === 'listing' && slide.price > 0 && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <IconSymbol name="tag.fill" size={isLargeScreen ? 14 : 12} color="#E2E8F0" />
-                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 12 : 12, marginLeft: 4 }}>
+                            <IconSymbol name="tag.fill" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>
                               {slide.price.toLocaleString('tr-TR')} ₺
                             </Text>
                           </View>
@@ -651,7 +672,7 @@ export default function MainMenuScreen() {
       >
         {/* Etkinlikler */}
         <Pressable 
-          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 118, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => {
             AsyncStorage.setItem('seenEventIds', JSON.stringify(allEventIds));
             setUnseenEventsCount(0);
@@ -661,50 +682,60 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <LinearGradient 
-            style={StyleSheet.absoluteFillObject} 
-            colors={['#DBEAFE', '#FFFFFF']} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 0, y: 1 }} 
-          />
-          <View>
-            <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-              <IconSymbol name="calendar" size={isLargeScreen ? 24 : 20} color="#3B82F6" />
-            </View>
-            {unseenEventsCount > 0 && (
-              <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
-                <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
+          {({ pressed }) => (
+            <>
+              <LinearGradient 
+                style={[StyleSheet.absoluteFillObject, pressed && { opacity: 0 }]} 
+                colors={['#DBEAFE', '#FFFFFF']} 
+                start={{ x: 0, y: 0 }} 
+                end={{ x: 0, y: 1 }} 
+                locations={[0, 0.8]}
+              />
+              <View>
+                <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: pressed ? '#DBEAFE' : '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                  <IconSymbol name="calendar" size={isLargeScreen ? 24 : 20} color="#3B82F6" />
+                </View>
+                {unseenEventsCount > 0 && (
+                  <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
+                    <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+              <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
+              <Text style={{ fontSize: 11, color: pressed ? '#3B82F6' : '#64748B', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+            </>
+          )}
         </Pressable>
 
         {/* Ada AI */}
         <Pressable 
-          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 118, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => navigateWithDebounce('/guide')}
           onPressIn={() => { 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <LinearGradient 
-            style={StyleSheet.absoluteFillObject} 
-            colors={['#FCE7F3', '#FFFFFF']} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 0, y: 1 }} 
-          />
-          <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-            <IconSymbol name="pawprint.fill" size={isLargeScreen ? 24 : 20} color="#EC4899" />
-          </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+          {({ pressed }) => (
+            <>
+              <LinearGradient 
+                style={[StyleSheet.absoluteFillObject, pressed && { opacity: 0 }]} 
+                colors={['#FCE7F3', '#FFFFFF']} 
+                start={{ x: 0, y: 0 }} 
+                end={{ x: 0, y: 1 }} 
+                locations={[0, 0.8]}
+              />
+              <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: pressed ? '#FCE7F3' : '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 24 : 20} color="#EC4899" />
+              </View>
+              <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
+              <Text style={{ fontSize: 11, color: pressed ? '#EC4899' : '#64748B', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+            </>
+          )}
         </Pressable>
 
         {/* İlanlar */}
         <Pressable 
-          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 118, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => {
             AsyncStorage.setItem('lastViewedListings', Date.now().toString());
             setUnseenListingsCount(0);
@@ -714,57 +745,71 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <LinearGradient 
-            style={StyleSheet.absoluteFillObject} 
-            colors={['#FEF08A', '#FFFFFF']} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 0, y: 1 }} 
-          />
-          <View>
-            <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-              <IconSymbol name="tag.fill" size={isLargeScreen ? 24 : 20} color="#EAB308" />
-            </View>
-            {unseenListingsCount > 0 && (
-              <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
-                <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
+          {({ pressed }) => (
+            <>
+              <LinearGradient 
+                style={[StyleSheet.absoluteFillObject, pressed && { opacity: 0 }]} 
+                colors={['#FEF08A', '#FFFFFF']} 
+                start={{ x: 0, y: 0 }} 
+                end={{ x: 0, y: 1 }} 
+                locations={[0, 0.8]}
+              />
+              <View>
+                <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: pressed ? '#FEF9C3' : '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                  <IconSymbol name="tag.fill" size={isLargeScreen ? 24 : 20} color="#EAB308" />
+                </View>
+                {unseenListingsCount > 0 && (
+                  <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
+                    <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+              <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
+              <Text style={{ fontSize: 11, color: pressed ? '#EAB308' : '#64748B', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+            </>
+          )}
         </Pressable>
 
         {/* Paket Servis */}
         <Pressable 
-          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 118, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => {
-            setSurveySubmitted(false);
-            setSurveyOptions([]);
-            setSurveyOtherText('');
-            setShowSurvey(true);
+            if (!isLoggedIn) {
+              setShowLoginPrompt(true);
+            } else {
+              setSurveySubmitted(hasCompletedSurvey);
+              setSurveyOptions([]);
+              setSurveyOtherText('');
+              setShowSurvey(true);
+            }
           }}
           onPressIn={() => { 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <LinearGradient 
-            style={StyleSheet.absoluteFillObject} 
-            colors={['#EDE9FE', '#FFFFFF']} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 0, y: 1 }} 
-          />
-          <View style={{ width: isLargeScreen ? 40 : 36, height: isLargeScreen ? 40 : 36, borderRadius: 8, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
-            <IconSymbol name="bag.fill" size={isLargeScreen ? 20 : 18} color="#8B5CF6" />
-          </View>
-          <Text style={{ fontSize: isLargeScreen ? 14 : 13, lineHeight: 18, fontWeight: '800', color: '#8B5CF6', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : (isLargeScreen ? 'Paket\nServis' : 'Paket Servis')}</Text>
-          <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
-            <Text style={{ fontSize: 10, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
-          </View>
+          {({ pressed }) => (
+            <>
+              <LinearGradient 
+                style={[StyleSheet.absoluteFillObject, pressed && { opacity: 0 }]} 
+                colors={['#EDE9FE', '#FFFFFF']} 
+                start={{ x: 0, y: 0 }} 
+                end={{ x: 0, y: 1 }} 
+                locations={[0, 0.8]}
+              />
+              <View style={{ width: isLargeScreen ? 40 : 36, height: isLargeScreen ? 40 : 36, borderRadius: 8, backgroundColor: pressed ? '#EDE9FE' : '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+                <IconSymbol name="bag.fill" size={isLargeScreen ? 20 : 18} color="#8B5CF6" />
+              </View>
+              <Text style={{ fontSize: isLargeScreen ? 14 : 13, lineHeight: 18, fontWeight: '800', color: '#8B5CF6', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
+              <View style={{ backgroundColor: pressed ? '#DDD6FE' : '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
+                <Text style={{ fontSize: 10, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+              </View>
+            </>
+          )}
         </Pressable>
       </ScrollView>
 
       {/* Topluluk Banner (At the bottom) */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: -4, paddingBottom: 20, backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isLargeScreen ? 12 : 0, paddingBottom: isLargeScreen ? 130 : 90, backgroundColor: 'transparent' }}>
         <SwipeButton 
           isLoggedIn={isLoggedIn} 
           onSwipeComplete={() => {
@@ -977,7 +1022,11 @@ export default function MainMenuScreen() {
 
                 <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                   style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : '#CBD5E1', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
-                  onPress={() => setSurveySubmitted(true)}
+                  onPress={() => {
+                    setSurveySubmitted(true);
+                    setHasCompletedSurvey(true);
+                    AsyncStorage.setItem('has_completed_delivery_survey', 'true');
+                  }}
                   disabled={surveyOptions.length === 0}
                 >
                   <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>
@@ -994,6 +1043,11 @@ export default function MainMenuScreen() {
           </View>
         </View>
       </Modal>
+
+      <LoginPromptModal 
+        visible={showLoginPrompt} 
+        onClose={() => setShowLoginPrompt(false)} 
+      />
 
     </View>
   );

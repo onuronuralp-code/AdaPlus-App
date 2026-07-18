@@ -48,6 +48,46 @@ const LISTING_API_BASE = `${API_BASE_URL}/api/v1/listings`;
 export const fetchListings = async (
   category?: ListingCategory,
 ): Promise<ListingDto[]> => {
+  // MOCK DATA: Sadece ekrandaki görünümü test etmek için
+  return [
+    {
+      id: "mock-listing-1",
+      title: "Satılık Ada İçi Elektrikli Bisiklet",
+      description: "Çok temiz kullanılmış, bataryası yeni değişmiş elektrikli bisiklet. Adada ulaşım için birebir.",
+      category: ListingCategory.TASIT,
+      island: Island.BUYUKADA,
+      price: 15000,
+      imageUrl: "https://images.unsplash.com/photo-1528543606781-2f6e6857f318?w=800&auto=format&fit=crop&q=80",
+      active: true,
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      id: "mock-listing-2",
+      title: "Kayıp Golden Cinsi Köpek",
+      description: "Nizam mahallesinde kaybolmuştur. Boynunda kırmızı tasması var, adı Tarçın.",
+      category: ListingCategory.KAYIP,
+      island: Island.BUYUKADA,
+      price: 0,
+      imageUrl: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80",
+      active: true,
+      createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    },
+    {
+      id: "mock-listing-3",
+      title: "Antika Ahşap Sandalye Seti",
+      description: "Dedemden kalma 4 adet el oyması antika ahşap sandalye. Ev dekorasyonu için mükemmel.",
+      category: ListingCategory.ESYA,
+      island: Island.HEYBELIADA,
+      price: 4500,
+      imageUrl: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800&auto=format&fit=crop&q=80",
+      active: true,
+      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+    }
+  ];
+  /*
   try {
     const url = new URL(LISTING_API_BASE);
     if (category) url.searchParams.append("category", category);
@@ -59,16 +99,16 @@ export const fetchListings = async (
 
     if (data && data.content && Array.isArray(data.content)) {
       return data.content;
-    }
-
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Failed to fetch listings:", error);
-    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
-      triggerNetworkError();
+    } else if (Array.isArray(data)) {
+      return data;
     }
     return [];
+  } catch (error) {
+    console.error("Failed to fetch listings:", error);
+    triggerNetworkError();
+    return [];
   }
+  */
 };
 
 export const createListing = async (
@@ -102,6 +142,11 @@ export const createListing = async (
 };
 
 export const getListing = async (id: string): Promise<ListingDto | null> => {
+  if (id.startsWith('mock')) {
+    const mocks = await fetchListings();
+    return mocks.find(m => m.id === id) || null;
+  }
+
   try {
     const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`);
     if (!response.ok) throw new Error(`API Error: ${response.status}`);

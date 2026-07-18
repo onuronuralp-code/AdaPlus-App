@@ -17,11 +17,13 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { height } = useWindowDimensions();
-  const isLargeScreen = height > 900;
+  const isLargeScreen = height >= 890; // iPhone 11 (896) ve daha büyük ekranlar için büyük buton
   const isNavigating = useRef(false);
   const [userCount, setUserCount] = useState<number | null>(null);
 
   useEffect(() => {
+    setUserCount(50000); // MOCK: Sadece ekrandaki görünüşü test etmek için eklendi.
+    /*
     fetch(`${API_BASE_URL}/api/v1/users/count`)
       .then(res => res.json())
       .then(data => {
@@ -30,6 +32,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
         }
       })
       .catch(e => console.log('Failed to fetch user count', e));
+    */
   }, []);
 
   const handlePress = () => {
@@ -52,25 +55,25 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
     <Pressable 
       style={({ pressed }) => [
         styles.container,
-        isLargeScreen && { height: 80 },
+        isLargeScreen && { height: 88, borderRadius: 20 },
         pressed && { backgroundColor: '#F0FDF4', borderColor: '#34D399' }
       ]}
       onPress={handlePress}
     >
       <View style={styles.content}>
-        <View style={[styles.iconContainer, isLargeScreen && { width: 56, height: 56, borderRadius: 14 }]}>
-          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 28 : 24} color="#059669" />
+        <View style={[styles.iconContainer, isLargeScreen && { width: 60, height: 60, borderRadius: 16 }]}>
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 30 : 24} color="#059669" />
         </View>
-        <Text style={[styles.text, isLargeScreen && { fontSize: 17 }]}>
+        <Text style={[styles.text, isLargeScreen && { fontSize: 18 }]}>
           {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
         </Text>
         
         {userCount !== null ? (
           <View style={{ backgroundColor: '#D1FAE5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-            <IconSymbol name="person.3.fill" size={12} color="#059669" />
-            <Text style={{ color: '#059669', fontSize: 12, fontWeight: '800', marginLeft: 4 }}>
-              {userCount}+ {i18n.language.startsWith('en') ? 'Islanders' : 'Adalı'}
+            <Text style={{ color: '#059669', fontSize: 13, fontWeight: '800', marginRight: 4 }}>
+              {userCount}+
             </Text>
+            <IconSymbol name="person.fill" size={12} color="#059669" />
           </View>
         ) : (
           <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : 20} color="#059669" />
@@ -85,12 +88,12 @@ const styles = StyleSheet.create({
     height: 72,
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: 'hidden', // iOS'te köşelerin temiz durması için geri eklendi
     borderWidth: 1.5,
-    borderColor: '#A7F3D0',
+    borderColor: '#34D399',
     padding: 12,
     justifyContent: 'center',
-    shadowColor: "#000",
+    shadowColor: "#000", // Standart siyah hafif gölge geri getirildi
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,

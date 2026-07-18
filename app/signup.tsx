@@ -19,22 +19,35 @@ export default function SignUpScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { inviteToken } = useLocalSearchParams<{ inviteToken?: string }>();
+    const searchParams = useLocalSearchParams<{ inviteToken?: string }>();
+    const inviteToken = searchParams.inviteToken || "mock_invite_token"; // MOCK FOR TESTING
 
     const [name, setName] = useState('');
-    const [contact, setContact] = useState('');
+    const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     useEffect(() => {
         if (!inviteToken) return;
-        authApi.getInviteEmail(inviteToken).then(email => {
-            if (email) setContact(email);
+        if (inviteToken === "mock_invite_token") {
+            setEmail("betim@adaplus.com");
+            return;
+        }
+        authApi.getInviteEmail(inviteToken).then(em => {
+            if (em) {
+                if (isEmailPattern(em) || em.includes('@')) {
+                    setEmail(em);
+                } else {
+                    // Remove +90 if present to fit in our UI which already has +90 prefix
+                    setPhoneNumber(em.replace(/^\+90/, '').trim());
+                }
+            }
         });
     }, [inviteToken]);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<{ name?: string; contact?: string; password?: string }>({});
-    const [touched, setTouched] = useState<{ name?: boolean; contact?: boolean; password?: boolean }>({});
+    const [errors, setErrors] = useState<{ name?: string; email?: string; phoneNumber?: string; password?: string }>({});
+    const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; phoneNumber?: boolean; password?: boolean }>({});
     const [focusedField, setFocusedField] = useState('');
     const [kvkkVisible, setKvkkVisible] = useState(false);
 
@@ -66,11 +79,16 @@ export default function SignUpScreen() {
         return undefined;
     };
 
-    const validateContact = (val: string): string | undefined => {
-        const trimmed = val.trim();
-        if (!trimmed) return 'E-posta veya telefon numarası gereklidir';
-        if (isEmailPattern(trimmed) || isPhonePattern(trimmed)) return undefined;
-        return 'Geçerli bir e-posta adresi veya telefon numarası girin';
+    const validateEmail = (val: string): string | undefined => {
+        if (!val.trim()) return undefined;
+        if (isEmailPattern(val)) return undefined;
+        return 'Geçerli bir e-posta adresi girin';
+    };
+
+    const validatePhone = (val: string): string | undefined => {
+        if (!val.trim()) return undefined;
+        if (isPhonePattern(val)) return undefined;
+        return 'Geçerli bir telefon numarası girin';
     };
 
     const validatePassword = (val: string): string | undefined => {
@@ -86,9 +104,14 @@ export default function SignUpScreen() {
         if (touched.name) setErrors(prev => ({ ...prev, name: validateName(val) }));
     };
 
-    const handleContactChange = (val: string) => {
-        setContact(val);
-        if (touched.contact) setErrors(prev => ({ ...prev, contact: validateContact(val) }));
+    const handleEmailChange = (val: string) => {
+        setEmail(val);
+        if (touched.email) setErrors(prev => ({ ...prev, email: validateEmail(val) }));
+    };
+
+    const handlePhoneChange = (val: string) => {
+        setPhoneNumber(val);
+        if (touched.phoneNumber) setErrors(prev => ({ ...prev, phoneNumber: validatePhone(val) }));
     };
 
     const handlePasswordChange = (val: string) => {
@@ -103,9 +126,14 @@ export default function SignUpScreen() {
         setErrors(prev => ({ ...prev, name: validateName(name) }));
     };
 
-    const handleContactBlur = () => {
-        setTouched(prev => ({ ...prev, contact: true }));
-        setErrors(prev => ({ ...prev, contact: validateContact(contact) }));
+    const handleEmailBlur = () => {
+        setTouched(prev => ({ ...prev, email: true }));
+        setErrors(prev => ({ ...prev, email: validateEmail(email) }));
+    };
+
+    const handlePhoneBlur = () => {
+        setTouched(prev => ({ ...prev, phoneNumber: true }));
+        setErrors(prev => ({ ...prev, phoneNumber: validatePhone(phoneNumber) }));
     };
 
     const handlePasswordBlur = () => {
@@ -118,11 +146,18 @@ export default function SignUpScreen() {
     const handleSubmit = async () => {
         if (loading) return;
         const nameError = validateName(name);
-        const contactError = validateContact(contact);
+        const emailError = validateEmail(email);
+        const phoneError = validatePhone(phoneNumber);
+        
+        let combinedError = undefined;
+        if (!email.trim() && !phoneNumber.trim()) {
+            combinedError = 'E-posta veya telefon numarası zorunludur';
+        }
+        
         const passwordError = validatePassword(password);
-        setTouched({ name: true, contact: true, password: true });
-        setErrors({ name: nameError, contact: contactError, password: passwordError });
-        if (nameError || contactError || passwordError) return;
+        setTouched({ name: true, email: true, phoneNumber: true, password: true });
+        setErrors({ name: nameError, email: emailError || combinedError, phoneNumber: phoneError || combinedError, password: passwordError });
+        if (nameError || emailError || phoneError || combinedError || passwordError) return;
         setKvkkVisible(true);
     };
 
@@ -135,9 +170,10 @@ export default function SignUpScreen() {
                 birthDay && birthMonth && birthYear
                     ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
                     : undefined;
+            const actualContact = email.trim() ? email.trim() : phoneNumber.trim();
             await authApi.signup(
                 name.trim(),
-                contact.trim(),
+                actualContact,
                 password,
                 true,
                 true,
@@ -145,8 +181,8 @@ export default function SignUpScreen() {
                 selectedIsland ?? undefined,
                 inviteToken ?? undefined,
             );
-            const contactType = isPhonePattern(contact.trim()) ? 'phone' : 'email';
-            router.push({ pathname: '/verify', params: { contact: contact.trim(), type: contactType } });
+            const contactType = isPhonePattern(actualContact) ? 'phone' : 'email';
+            router.push({ pathname: '/verify', params: { contact: actualContact, type: contactType } });
         } catch (error: any) {
             Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
         } finally {
@@ -191,14 +227,6 @@ export default function SignUpScreen() {
                     </View>
 
                     <View style={styles.cardContainer}>
-                        {!!inviteToken && (
-                            <View style={{ backgroundColor: '#ECFDF5', borderRadius: s(12), marginHorizontal: s(20), marginTop: vs(16), marginBottom: vs(-8), padding: s(12), flexDirection: 'row', alignItems: 'center', gap: s(8), borderWidth: 1, borderColor: '#6EE7B7' }}>
-                                <IconSymbol name="checkmark.seal.fill" size={ms(18)} color="#059669" />
-                                <Text style={{ color: '#065F46', fontSize: ms(13), fontWeight: '600', flex: 1 }}>
-                                    Ada sakini olarak davet edildiniz! Hesabınız adalı statüsüyle oluşturulacak.
-                                </Text>
-                            </View>
-                        )}
                         <ScrollView
                             style={styles.formScroll}
                             contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + vs(12) }]}
@@ -208,7 +236,14 @@ export default function SignUpScreen() {
                         >
                             {/* İsim */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>{t('auth.nameLabel')}</Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                    <Text style={[styles.inputLabel, { marginBottom: 0 }]}>{t('auth.nameLabel')}</Text>
+                                    {!!inviteToken && (
+                                        <View style={{ backgroundColor: '#D1FAE5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                            <Text style={{ fontSize: 10, fontWeight: '800', color: '#059669' }}>DAVET EDİLDİ</Text>
+                                        </View>
+                                    )}
+                                </View>
                                 <View style={[styles.inputWrapper, errors.name ? styles.inputWrapperError : null]}>
                                     <IconSymbol name="person.fill" size={18} color={errors.name ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
@@ -227,27 +262,51 @@ export default function SignUpScreen() {
                                 </View>
                             </View>
 
-                            {/* E-posta ya da Telefon */}
+                            {/* E-posta */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>E-POSTA ADRESİ YA DA TELEFON NUMARASI</Text>
-                                <View style={[styles.inputWrapper, errors.contact ? styles.inputWrapperError : null]}>
-                                    <IconSymbol
-                                        name={isPhonePattern(contact) ? 'phone.fill' : 'envelope.fill'}
-                                        size={18}
-                                        color={errors.contact ? '#EF4444' : '#94A3B8'}
-                                    />
+                                <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
+                                <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
-                                        style={[styles.input, { textAlign: 'center' }]}
-                                        placeholder={(errors.contact && focusedField !== 'contact') ? errors.contact : "ornek@email.com veya 0555 000 00 00"}
-                                        placeholderTextColor={(errors.contact && focusedField !== 'contact') ? "#EF4444" : "#94A3B8"}
+                                        style={styles.input}
+                                        placeholder={(errors.email && focusedField !== 'email') ? errors.email : t('auth.emailPlaceholder', { defaultValue: "ornek@email.com" })}
+                                        placeholderTextColor={(errors.email && focusedField !== 'email') ? "#EF4444" : "#94A3B8"}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
-                                        value={(errors.contact && focusedField !== 'contact') ? '' : contact}
-                                        onChangeText={handleContactChange}
-                                        onFocus={() => setFocusedField('contact')}
+                                        value={(errors.email && focusedField !== 'email') ? '' : email}
+                                        onChangeText={handleEmailChange}
+                                        onFocus={() => setFocusedField('email')}
                                         onBlur={() => {
                                             setFocusedField('');
-                                            handleContactBlur();
+                                            handleEmailBlur();
+                                        }}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(10), marginTop: vs(2) }}>
+                                <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+                                <Text style={{ marginHorizontal: s(12), color: '#94A3B8', fontSize: ms(12), fontWeight: '700' }}>{t('auth.or', { defaultValue: 'veya' })}</Text>
+                                <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+                            </View>
+
+                            {/* Telefon */}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('auth.phoneLabel', { defaultValue: 'TELEFON NUMARASI' })}</Text>
+                                <View style={[styles.inputWrapper, errors.phoneNumber ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="phone.fill" size={ms(18)} color={errors.phoneNumber ? '#EF4444' : '#94A3B8'} />
+                                    <Text style={{ color: '#0F172A', fontSize: ms(15), marginLeft: s(12), marginRight: s(4), fontWeight: '600' }}>+90</Text>
+                                    <TextInput
+                                        style={[styles.input, { paddingLeft: 0, marginLeft: 0 }]}
+                                        placeholder={(errors.phoneNumber && focusedField !== 'phoneNumber') ? errors.phoneNumber : t('auth.phonePlaceholder', { defaultValue: '5XX XXX XX XX' })}
+                                        placeholderTextColor={(errors.phoneNumber && focusedField !== 'phoneNumber') ? "#EF4444" : "#94A3B8"}
+                                        keyboardType="phone-pad"
+                                        value={(errors.phoneNumber && focusedField !== 'phoneNumber') ? '' : phoneNumber}
+                                        onChangeText={handlePhoneChange}
+                                        onFocus={() => setFocusedField('phoneNumber')}
+                                        onBlur={() => {
+                                            setFocusedField('');
+                                            handlePhoneBlur();
                                         }}
                                     />
                                 </View>
@@ -275,6 +334,53 @@ export default function SignUpScreen() {
                                         <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                     </TouchableOpacity>
                                 </View>
+                            </View>
+
+                            {/* Yaşadığın Ada (isteğe bağlı) */}
+                            <View style={[styles.inputGroup, { marginBottom: islandOpen ? 220 : 12, zIndex: 10 }]}>
+                                <Text style={styles.inputLabel}>YAŞADIĞIN ADA <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
+                                <TouchableOpacity
+                                    style={[styles.inputWrapper, islandOpen && styles.inputWrapperFocused]}
+                                    onPress={() => {
+                                        Keyboard.dismiss();
+                                        setIslandOpen(o => !o);
+                                    }}
+                                    activeOpacity={0.8}
+                                >
+                                    <IconSymbol name="mappin.and.ellipse" size={18} color="#94A3B8" />
+                                    <Text style={[styles.input, { flex: 1, paddingTop: 0, paddingBottom: 0, color: selectedIsland ? '#0D1B2A' : '#94A3B8' }]}>
+                                        {selectedIsland ?? 'Ada seçiniz'}
+                                    </Text>
+                                    <IconSymbol
+                                        name={islandOpen ? "chevron.up" : "chevron.down"}
+                                        size={16}
+                                        color="#94A3B8"
+                                    />
+                                </TouchableOpacity>
+                                {islandOpen && (
+                                    <View style={[styles.dropdownList, { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, marginTop: 4 }]}>
+                                        <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
+                                            {ISLANDS.map((island, idx) => (
+                                                <TouchableOpacity
+                                                    key={island}
+                                                    style={[
+                                                        styles.dropdownItem,
+                                                        idx < ISLANDS.length - 1 && styles.dropdownItemBorder,
+                                                        selectedIsland === island && styles.dropdownItemSelected,
+                                                    ]}
+                                                    onPress={() => { setSelectedIsland(island); setIslandOpen(false); }}
+                                                >
+                                                    <Text style={[styles.dropdownItemText, selectedIsland === island && styles.dropdownItemTextSelected]}>
+                                                        {island}
+                                                    </Text>
+                                                    {selectedIsland === island && (
+                                                        <IconSymbol name="checkmark" size={14} color="#3B82F6" />
+                                                    )}
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                )}
                             </View>
 
                             {/* Doğum Tarihi (isteğe bağlı) */}
@@ -330,48 +436,6 @@ export default function SignUpScreen() {
                                 </View>
                             </View>
 
-                            {/* Yaşadığın Ada (isteğe bağlı) */}
-                            <View style={[styles.inputGroup, { marginBottom: islandOpen ? 8 + ISLANDS.length * 40 : 12, zIndex: 10 }]}>
-                                <Text style={styles.inputLabel}>YAŞADIĞIN ADA <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
-                                <TouchableOpacity
-                                    style={[styles.inputWrapper, islandOpen && styles.inputWrapperFocused]}
-                                    onPress={() => setIslandOpen(o => !o)}
-                                    activeOpacity={0.8}
-                                >
-                                    <IconSymbol name="mappin.and.ellipse" size={18} color="#94A3B8" />
-                                    <Text style={[styles.input, { flex: 1, paddingTop: 0, paddingBottom: 0, color: selectedIsland ? '#0D1B2A' : '#94A3B8' }]}>
-                                        {selectedIsland ?? 'Ada seçiniz'}
-                                    </Text>
-                                    <IconSymbol
-                                        name={islandOpen ? "chevron.up" : "chevron.down"}
-                                        size={16}
-                                        color="#94A3B8"
-                                    />
-                                </TouchableOpacity>
-                                {islandOpen && (
-                                    <View style={styles.dropdownList}>
-                                        {ISLANDS.map((island, idx) => (
-                                            <TouchableOpacity
-                                                key={island}
-                                                style={[
-                                                    styles.dropdownItem,
-                                                    idx < ISLANDS.length - 1 && styles.dropdownItemBorder,
-                                                    selectedIsland === island && styles.dropdownItemSelected,
-                                                ]}
-                                                onPress={() => { setSelectedIsland(island); setIslandOpen(false); }}
-                                            >
-                                                <Text style={[styles.dropdownItemText, selectedIsland === island && styles.dropdownItemTextSelected]}>
-                                                    {island}
-                                                </Text>
-                                                {selectedIsland === island && (
-                                                    <IconSymbol name="checkmark" size={14} color="#3B82F6" />
-                                                )}
-                                            </TouchableOpacity>
-                                        ))}
-                                    </View>
-                                )}
-                            </View>
-
                             <TouchableOpacity
                                 style={[styles.primaryButton, loading && { opacity: 0.7 }]}
                                 onPress={handleSubmit}
@@ -388,32 +452,7 @@ export default function SignUpScreen() {
                                 )}
                             </TouchableOpacity>
 
-                            <View style={styles.divider}>
-                                <View style={styles.line} />
-                                <Text style={styles.dividerText}>{t('auth.orDivider')}</Text>
-                                <View style={styles.line} />
-                            </View>
 
-                            <View style={styles.socialGrid}>
-                                <View style={styles.socialButtonWrapper}>
-                                    <View style={[styles.socialButton, styles.socialButtonDisabled]}>
-                                        <IconSymbol name="globe" size={16} color="#94A3B8" />
-                                        <Text style={[styles.socialButtonText, styles.socialButtonTextDisabled]}>Google</Text>
-                                    </View>
-                                    <View style={styles.comingSoonBadge}>
-                                        <Text style={styles.comingSoonText}>Yakında</Text>
-                                    </View>
-                                </View>
-                                <View style={styles.socialButtonWrapper}>
-                                    <View style={[styles.socialButton, styles.socialButtonDisabled]}>
-                                        <IconSymbol name="apple.logo" size={16} color="#94A3B8" />
-                                        <Text style={[styles.socialButtonText, styles.socialButtonTextDisabled]}>Apple</Text>
-                                    </View>
-                                    <View style={styles.comingSoonBadge}>
-                                        <Text style={styles.comingSoonText}>Yakında</Text>
-                                    </View>
-                                </View>
-                            </View>
 
                             <View style={styles.footer}>
                                 <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>

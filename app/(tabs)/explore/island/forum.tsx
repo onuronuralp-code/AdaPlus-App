@@ -29,6 +29,22 @@ export default function ForumScreen() {
     const insets = useSafeAreaInsets();
     const { isLoggedIn, user } = useAuth();
 
+    React.useEffect(() => {
+        if (!isLoggedIn || (user && user.userType !== 'ISLAND_RESIDENT' && user.userType !== 'ADMIN' && user.role !== 'ADMIN')) {
+            Alert.alert(
+                t('common.accessDenied', { defaultValue: 'Erişim Engellendi' }),
+                t('forum.islanderOnlyDesc', { defaultValue: 'Topluluğa sadece Adalılar girebilir.' }),
+                [{ text: t('common.ok', { defaultValue: 'Tamam' }), onPress: () => {
+                    if (router.canGoBack()) {
+                        router.back();
+                    } else {
+                        router.replace('/(tabs)/explore');
+                    }
+                }}]
+            );
+        }
+    }, [user, isLoggedIn]);
+
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);

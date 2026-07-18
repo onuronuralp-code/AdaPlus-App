@@ -132,6 +132,10 @@ export default function SettingsModal({ visible, onClose, onDeleteAccount, isLog
                     {/* Account Section */}
                     {isLoggedIn && (
                         <View style={[styles.section, { borderBottomWidth: 0 }]}>
+                            <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => {}} activeOpacity={0.8}>
+                                <IconSymbol name="pencil" size={18} color="#475569" />
+                                <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: 'Hesabı Düzenle' })}</Text>
+                            </TouchableOpacity>
                             <TouchableOpacity style={styles.deleteButton} onPress={onDeleteAccount} activeOpacity={0.8}>
                                 <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
                                 <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' })}</Text>
@@ -236,6 +240,23 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '700',
         color: '#334155',
+    },
+    editButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        width: '100%',
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    editButtonText: {
+        color: '#475569',
+        fontSize: 14,
+        fontWeight: '700',
     },
     deleteButton: {
         flexDirection: 'row',
