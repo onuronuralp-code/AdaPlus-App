@@ -232,7 +232,7 @@ export default function SignUpScreen() {
                                     />
                                     <TextInput
                                         style={[styles.input, { textAlign: 'center' }]}
-                                        placeholder={(errors.contact && focusedField !== 'contact') ? errors.contact : "ornek@email.com veya +90 555 000 00 00"}
+                                        placeholder={(errors.contact && focusedField !== 'contact') ? errors.contact : "ornek@email.com veya 0555 000 00 00"}
                                         placeholderTextColor={(errors.contact && focusedField !== 'contact') ? "#EF4444" : "#94A3B8"}
                                         keyboardType="email-address"
                                         autoCapitalize="none"

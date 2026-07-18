@@ -6,9 +6,18 @@ const AUTH_BASE_URL = `${API_BASE_URL}/api/v1/auth`;
 const isPhoneContact = (contact: string) =>
   /^\+?[0-9]{7,15}$/.test(contact.trim().replace(/[\s\-()]/g, ''));
 
+const normalizePhone = (phone: string): string => {
+  const digits = phone.trim().replace(/[\s\-()]/g, '');
+  if (digits.startsWith('+')) return digits;
+  if (digits.startsWith('00')) return '+' + digits.slice(2);
+  if (digits.startsWith('0')) return '+90' + digits.slice(1);
+  return '+90' + digits;
+};
+
 const sanitizeContact = (contact: string) => {
   const trimmed = contact.trim();
-  return isPhoneContact(trimmed) ? trimmed : trimmed.toLowerCase();
+  if (isPhoneContact(trimmed)) return normalizePhone(trimmed);
+  return trimmed.toLowerCase();
 };
 
 const wrapNetworkError = (error: unknown): never => {
