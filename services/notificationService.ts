@@ -1,14 +1,18 @@
-let Notifications: any = null;
-// Push notifications are temporarily disabled in Expo Go Android to prevent a hard crash
-// try {
-//   Notifications = require('expo-notifications');
-// } catch (e) {
-//   console.warn('[Notifications] expo-notifications is not supported in Expo Go on Android SDK 53+');
-// }
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { API_BASE_URL } from './config';
 import { getToken } from '@/utils/tokenStorage';
+
+let Notifications: any = null;
+try {
+  // expo-notifications crashes in Expo Go on Android SDK 53+ — skip it there.
+  // iOS (Expo Go and standalone builds) works fine.
+  if (Platform.OS !== 'android') {
+    Notifications = require('expo-notifications');
+  }
+} catch (e) {
+  console.warn('[Notifications] expo-notifications not available:', e);
+}
 
 export async function registerForPushNotifications(): Promise<void> {
   try {
