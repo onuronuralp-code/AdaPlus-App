@@ -1,10 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions, Dimensions } from 'react-native';
 import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useRef } from 'react';
+import { AbstractPattern } from './AbstractPattern';
+import { API_BASE_URL } from '../services/config';
 
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
@@ -16,8 +18,19 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const router = useRouter();
   const { height } = useWindowDimensions();
   const isLargeScreen = height > 900;
-  const isIphone16 = height === 852;
   const isNavigating = useRef(false);
+  const [userCount, setUserCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/v1/users/count`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.count === 'number') {
+          setUserCount(data.count);
+        }
+      })
+      .catch(e => console.log('Failed to fetch user count', e));
+  }, []);
 
   const handlePress = () => {
     if (isNavigating.current) return;
@@ -39,18 +52,29 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
     <Pressable 
       style={({ pressed }) => [
         styles.container,
+        isLargeScreen && { height: 80 },
         pressed && { backgroundColor: '#F0FDF4', borderColor: '#34D399' }
       ]}
       onPress={handlePress}
     >
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <IconSymbol name="bubble.left.and.bubble.right.fill" size={24} color="#059669" />
+        <View style={[styles.iconContainer, isLargeScreen && { width: 56, height: 56, borderRadius: 14 }]}>
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 28 : 24} color="#059669" />
         </View>
-        <Text style={styles.text}>
+        <Text style={[styles.text, isLargeScreen && { fontSize: 17 }]}>
           {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
         </Text>
-        <IconSymbol name="arrow.right" size={20} color="#059669" />
+        
+        {userCount !== null ? (
+          <View style={{ backgroundColor: '#D1FAE5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
+            <IconSymbol name="person.3.fill" size={12} color="#059669" />
+            <Text style={{ color: '#059669', fontSize: 12, fontWeight: '800', marginLeft: 4 }}>
+              {userCount}+ {i18n.language.startsWith('en') ? 'Islanders' : 'Adalı'}
+            </Text>
+          </View>
+        ) : (
+          <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : 20} color="#059669" />
+        )}
       </View>
     </Pressable>
   );
@@ -61,6 +85,7 @@ const styles = StyleSheet.create({
     height: 72,
     backgroundColor: '#ffffff',
     borderRadius: 16,
+    overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: '#A7F3D0',
     padding: 12,

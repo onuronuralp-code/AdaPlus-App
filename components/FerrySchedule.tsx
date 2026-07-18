@@ -1746,7 +1746,7 @@ const styles = StyleSheet.create({
   bodyWrapper: { flex: 1, backgroundColor: "#fff" },
   scrollBody: { padding: 16, paddingBottom: 20 },
   loader: { marginTop: 100 },
-  empty: { alignItems: "center", marginTop: 80 },
+  empty: { alignItems: "center", marginTop: 140 },
   emptyTitle: {
     fontSize: 18,
     fontWeight: "900",

@@ -22,12 +22,13 @@ const playNote = async (noteModule: any) => {
 };
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { AbstractPattern } from '@/components/AbstractPattern';
 import { SwipeButton } from '@/components/SwipeButton';
 import { useTranslation } from 'react-i18next';
 import { fetchActivities, fetchDepartures } from '@/services/api';
 import { fetchListings } from '@/services/listingApi';
 import { API_BASE_URL, resolveImageUrl } from '@/services/config';
-import { EventDto, getEventsList } from '@/services/eventApi';
+
 import { fetchNotifications, markNotificationRead, NotificationDto } from '@/services/notificationApi';
 import { ListingDto } from '@/services/listingApi';
 import { useAuth } from '@/context/AuthContext';
@@ -169,6 +170,7 @@ export default function MainMenuScreen() {
   const isLargeScreen = height > 900;
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
+  const menuButtonWidth = (width - 56) / 3.5;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { user, isLoggedIn } = useAuth();
 
@@ -189,7 +191,9 @@ export default function MainMenuScreen() {
   const [isInviteFocused, setIsInviteFocused] = useState(false);
   const inviteInputRef = useRef<TextInput>(null);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showIslanderStepsModal, setShowIslanderStepsModal] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
@@ -253,9 +257,20 @@ export default function MainMenuScreen() {
           return null;
       };
 
-      Promise.all([fetchActivities(), fetchListings(), fetchActiveBanner()]).then(([eventsData, listingsData, bannerData]) => {
+      const fetchInitialNotifications = async () => {
+          if (!isLoggedIn) return [];
+          try {
+              return await fetchNotifications();
+          } catch (e) { console.log('Notifications error', e); }
+          return [];
+      };
+
+      Promise.all([fetchActivities(), fetchListings(), fetchActiveBanner(), fetchInitialNotifications()]).then(([eventsData, listingsData, bannerData, notificationsData]) => {
         const events = Array.isArray(eventsData) ? eventsData : (eventsData?.content || eventsData?.data || []);
         const listings = Array.isArray(listingsData) ? listingsData : (listingsData?.content || listingsData?.data || []);
+        if (Array.isArray(notificationsData)) {
+            setNotifications(notificationsData);
+        }
         
         const now = new Date();
         const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
@@ -447,28 +462,36 @@ export default function MainMenuScreen() {
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 1, borderColor: '#059669' }}>
-            <IconSymbol name="envelope.fill" size={20} color="#059669" />
-            <TextInput
-              ref={inviteInputRef}
-              style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
-              onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
-              onBlur={() => {
-                setIsInviteFocused(false);
-                const email = inviteEmail.trim();
-                if (email && !EMAIL_REGEX.test(email)) {
-                  setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
-                }
-              }}
-              placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' }))}
-              placeholderTextColor="#059669"
-              value={inviteEmail}
-              onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
-              onSubmitEditing={handleSendInvite}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN'}
-            />
+          <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 1, borderColor: '#059669' }}>
+              <IconSymbol name="envelope.fill" size={20} color="#059669" />
+              <TextInput
+                ref={inviteInputRef}
+                style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
+                onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
+                onBlur={() => {
+                  setIsInviteFocused(false);
+                  const email = inviteEmail.trim();
+                  if (email && !EMAIL_REGEX.test(email)) {
+                    setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
+                  }
+                }}
+                placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' }))}
+                placeholderTextColor="#059669"
+                value={inviteEmail}
+                onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
+                onSubmitEditing={handleSendInvite}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN'}
+              />
+            </View>
+            {!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && (
+              <Pressable 
+                style={StyleSheet.absoluteFillObject} 
+                onPress={() => setShowNotificationModal(true)} 
+              />
+            )}
           </View>
           <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
              style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
@@ -628,7 +651,7 @@ export default function MainMenuScreen() {
       >
         {/* Etkinlikler */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => {
             AsyncStorage.setItem('seenEventIds', JSON.stringify(allEventIds));
             setUnseenEventsCount(0);
@@ -638,6 +661,12 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
+          <LinearGradient 
+            style={StyleSheet.absoluteFillObject} 
+            colors={['#DBEAFE', '#FFFFFF']} 
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 0, y: 1 }} 
+          />
           <View>
             <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
               <IconSymbol name="calendar" size={isLargeScreen ? 24 : 20} color="#3B82F6" />
@@ -654,12 +683,18 @@ export default function MainMenuScreen() {
 
         {/* Ada AI */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => navigateWithDebounce('/guide')}
           onPressIn={() => { 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
+          <LinearGradient 
+            style={StyleSheet.absoluteFillObject} 
+            colors={['#FCE7F3', '#FFFFFF']} 
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 0, y: 1 }} 
+          />
           <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <IconSymbol name="pawprint.fill" size={isLargeScreen ? 24 : 20} color="#EC4899" />
           </View>
@@ -669,7 +704,7 @@ export default function MainMenuScreen() {
 
         {/* İlanlar */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => {
             AsyncStorage.setItem('lastViewedListings', Date.now().toString());
             setUnseenListingsCount(0);
@@ -679,6 +714,12 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
+          <LinearGradient 
+            style={StyleSheet.absoluteFillObject} 
+            colors={['#FEF08A', '#FFFFFF']} 
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 0, y: 1 }} 
+          />
           <View>
             <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
               <IconSymbol name="tag.fill" size={isLargeScreen ? 24 : 20} color="#EAB308" />
@@ -695,7 +736,7 @@ export default function MainMenuScreen() {
 
         {/* Paket Servis */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: menuButtonWidth, height: isLargeScreen ? 124 : 110, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, overflow: 'hidden' }]}
           onPress={() => {
             setSurveySubmitted(false);
             setSurveyOptions([]);
@@ -706,6 +747,12 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
+          <LinearGradient 
+            style={StyleSheet.absoluteFillObject} 
+            colors={['#EDE9FE', '#FFFFFF']} 
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 0, y: 1 }} 
+          />
           <View style={{ width: isLargeScreen ? 40 : 36, height: isLargeScreen ? 40 : 36, borderRadius: 8, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
             <IconSymbol name="bag.fill" size={isLargeScreen ? 20 : 18} color="#8B5CF6" />
           </View>
@@ -718,7 +765,16 @@ export default function MainMenuScreen() {
 
       {/* Topluluk Banner (At the bottom) */}
       <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: -4, paddingBottom: 20, backgroundColor: 'transparent' }}>
-        <SwipeButton isLoggedIn={isLoggedIn} onSwipeComplete={() => navigateWithDebounce('/(tabs)/explore/island/forum')} />
+        <SwipeButton 
+          isLoggedIn={isLoggedIn} 
+          onSwipeComplete={() => {
+            if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
+              setShowIslanderStepsModal(true);
+            } else {
+              navigateWithDebounce('/(tabs)/explore/island/forum');
+            }
+          }} 
+        />
       </View>
 
       </ScrollView>
@@ -745,7 +801,6 @@ export default function MainMenuScreen() {
               backgroundColor: '#fff', 
               borderRadius: 16, 
               width: '95%', 
-              minHeight: 300,
               maxHeight: '60%', 
               marginTop: insets.top + 90, 
               padding: 24, 
@@ -765,26 +820,16 @@ export default function MainMenuScreen() {
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Static Pinned Announcement */}
-                <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-                  style={{ backgroundColor: '#F0FDF4', borderRadius: 12, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: '#BBF7D0' }}
-                >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 12 }}>
-                      <IconSymbol name="pin.fill" size={14} color="#10B981" />
-                      <Text style={{ fontSize: 16, fontWeight: '800', color: '#064E3B' }}>Adalı Olma Adımları</Text>
-                    </View>
+                {/* Static Community Announcement */}
+                <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#FECACA' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                    <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#991B1B' }}>Topluluk Duyurusu</Text>
                   </View>
-                  <Text style={{ fontSize: 13, color: '#065F46', lineHeight: 20, marginBottom: 12 }}>
-                    AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
-                    {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
-                    {"\n"}• İletişim sayfasından doğrulama talebinde bulun.
-                    {"\n\n"}Onaylı Adalılar; vapurlarda, etkinliklerde ve mekanlarda özel indirimlere sahip olur!
+                  <Text style={{ fontSize: 14, color: '#7F1D1D', lineHeight: 22 }}>
+                    Topluluğa lütfen sadece Adada yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.
                   </Text>
-                  <TouchableOpacity onPress={() => { setShowNotificationModal(false); navigateWithDebounce('/(tabs)/contact'); }} style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
-                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>Talep Gönder</Text>
-                  </TouchableOpacity>
-                </Pressable>
+                </View>
 
                 {notifications.map(notif => (
                   <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
@@ -808,6 +853,47 @@ export default function MainMenuScreen() {
             )}
           </View>
         </Pressable>
+      </Modal>
+
+      {/* Islander Steps Modal */}
+      <Modal
+        visible={showIslanderStepsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowIslanderStepsModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableWithoutFeedback onPress={() => setShowIslanderStepsModal(false)}>
+            <View style={{ ...StyleSheet.absoluteFillObject }} />
+          </TouchableWithoutFeedback>
+          <View style={{ width: '85%', backgroundColor: '#ffffff', borderRadius: 20, padding: 24, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <IconSymbol name="pin.fill" size={16} color="#10B981" />
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#064E3B' }}>Adalı Olma Adımları</Text>
+              </View>
+              <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowIslanderStepsModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                <IconSymbol name="xmark" size={14} color="#64748B" />
+              </Pressable>
+            </View>
+            
+            <View style={{ backgroundColor: '#F0FDF4', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#BBF7D0' }}>
+              <Text style={{ fontSize: 14, color: '#065F46', lineHeight: 22 }}>
+                AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
+                {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
+                {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
+                {"\n\n"}"Adalılar" toplulukta fikirlerini özgürce paylaşabilir, diğer adalılarla iletişime geçebilir.
+              </Text>
+            </View>
+            
+            <TouchableOpacity 
+              onPress={() => { setShowIslanderStepsModal(false); navigateWithDebounce('/(tabs)/contact'); }} 
+              style={{ backgroundColor: '#10B981', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Talep Gönder</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       {/* Survey Modal */}

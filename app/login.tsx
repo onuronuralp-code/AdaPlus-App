@@ -16,6 +16,7 @@ export default function LoginScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -176,6 +177,33 @@ export default function LoginScreen() {
                             />
                         </View>
                     </View>
+
+                    {!isForgotPassword && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(20), marginTop: vs(8) }}>
+                            <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+                            <Text style={{ marginHorizontal: s(12), color: '#94A3B8', fontSize: ms(12), fontWeight: '700' }}>{t('auth.or', { defaultValue: 'veya' })}</Text>
+                            <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+                        </View>
+                    )}
+
+                    {!isForgotPassword && (
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>{t('auth.phoneLabel', { defaultValue: 'TELEFON NUMARASI' })}</Text>
+                            <View style={styles.inputWrapper}>
+                                <IconSymbol name="phone.fill" size={ms(18)} color="#94A3B8" />
+                                <TextInput 
+                                    style={styles.input} 
+                                    placeholder={t('auth.phonePlaceholder', { defaultValue: 'Telefon numaranızı girin' })}
+                                    placeholderTextColor="#94A3B8"
+                                    keyboardType="phone-pad"
+                                    value={phoneNumber}
+                                    onChangeText={setPhoneNumber}
+                                    onFocus={() => setFocusedField('phone')}
+                                    onBlur={() => setFocusedField('')}
+                                />
+                            </View>
+                        </View>
+                    )}
 
                     {!isForgotPassword && (
                         <View style={styles.inputGroup}>

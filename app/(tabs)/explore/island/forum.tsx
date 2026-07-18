@@ -420,35 +420,52 @@ export default function ForumScreen() {
     };
 
     const handleDeletePost = (postId: string) => {
-        setTimeout(() => {
-            Alert.alert(
-                t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
-            t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' }),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                { 
-                    text: t('common.delete', { defaultValue: 'Sil' }), 
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await forumApi.deletePost(postId);
-                            setPosts(posts.filter(p => p.id !== postId));
-                            if (selectedPost && selectedPost.id === postId) {
-                                setIsDetailModalVisible(false);
-                            } else {
-                                setReplies(replies.filter(r => r.id !== postId));
-                                if (selectedPost) {
-                                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: Math.max(0, p.replyCount - 1) } : p));
-                                }
-                            }
-                        } catch (error: any) {
-                            Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
-                        }
+        if (!postId) return;
+
+        const performDelete = async () => {
+            try {
+                await forumApi.deletePost(postId);
+                setPosts(posts.filter(p => p.id !== postId));
+                if (selectedPost && selectedPost.id === postId) {
+                    setIsDetailModalVisible(false);
+                } else {
+                    setReplies(replies.filter(r => r.id !== postId));
+                    if (selectedPost) {
+                        setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: Math.max(0, p.replyCount - 1) } : p));
                     }
                 }
-            ]
-        );
-        }, 100);
+            } catch (error: any) {
+                setTimeout(() => {
+                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
+                }, 300);
+            }
+        };
+
+        if (Platform.OS === 'ios') {
+            ActionSheetIOS.showActionSheetWithOptions(
+                {
+                    options: [t('common.cancel', { defaultValue: 'İptal' }), t('common.delete', { defaultValue: 'Sil' })],
+                    destructiveButtonIndex: 1,
+                    cancelButtonIndex: 0,
+                    title: t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
+                    message: t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' })
+                },
+                (buttonIndex) => {
+                    if (buttonIndex === 1) {
+                        performDelete();
+                    }
+                }
+            );
+        } else {
+            Alert.alert(
+                t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
+                t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' }),
+                [
+                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                    { text: t('common.delete', { defaultValue: 'Sil' }), style: 'destructive', onPress: performDelete }
+                ]
+            );
+        }
     };
 
     const handleEditPost = (post: PostDto) => {
@@ -502,19 +519,44 @@ export default function ForumScreen() {
     };
 
     const handleReport = (id: string) => {
-        Alert.alert(
-            t('forum.reportTitle', { defaultValue: 'Gönderiyi Bildir' }),
-            t('forum.reportDesc', { defaultValue: 'Bu gönderiyi şikayet etmek istediğinize emin misiniz?' }),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                { text: t('common.report', { defaultValue: 'Bildir' }), style: 'destructive', onPress: async () => {
-                    const success = await forumApi.reportPost(id, "User reported via mobile app");
-                    if (success) {
-                        Alert.alert(t('common.success', { defaultValue: 'Başarılı' }), t('forum.reportSuccess', { defaultValue: 'Şikayetiniz alındı. Teşekkürler.' }));
+        const performReport = async () => {
+            try {
+                await forumApi.reportPost(id, "User reported via mobile app");
+                setTimeout(() => {
+                    Alert.alert(t('common.success', { defaultValue: 'Başarılı' }), t('forum.reportSuccess', { defaultValue: 'Şikayetiniz alındı. Teşekkürler.' }));
+                }, 300);
+            } catch (error: any) {
+                setTimeout(() => {
+                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Şikayet edilirken bir sorun oluştu.');
+                }, 300);
+            }
+        };
+
+        if (Platform.OS === 'ios') {
+            ActionSheetIOS.showActionSheetWithOptions(
+                {
+                    options: [t('common.cancel', { defaultValue: 'İptal' }), t('common.report', { defaultValue: 'Bildir' })],
+                    destructiveButtonIndex: 1,
+                    cancelButtonIndex: 0,
+                    title: t('forum.reportTitle', { defaultValue: 'Gönderiyi Bildir' }),
+                    message: t('forum.reportDesc', { defaultValue: 'Bu gönderiyi şikayet etmek istediğinize emin misiniz?' })
+                },
+                (buttonIndex) => {
+                    if (buttonIndex === 1) {
+                        performReport();
                     }
-                }}
-            ]
-        );
+                }
+            );
+        } else {
+            Alert.alert(
+                t('forum.reportTitle', { defaultValue: 'Gönderiyi Bildir' }),
+                t('forum.reportDesc', { defaultValue: 'Bu gönderiyi şikayet etmek istediğinize emin misiniz?' }),
+                [
+                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                    { text: t('common.report', { defaultValue: 'Bildir' }), style: 'destructive', onPress: performReport }
+                ]
+            );
+        }
     };
 
     const isPollEnded = (pollEndsAt?: string): boolean => {
@@ -1168,6 +1210,7 @@ export default function ForumScreen() {
                                     subtitle={t('forum.firstComment')}
                                     color="#64748B"
                                     compact={true}
+                                    style={{ marginTop: 40 }}
                                 />
                                 )}
                             </ScrollView>

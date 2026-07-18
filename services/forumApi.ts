@@ -198,20 +198,18 @@ export const likePost = async (postId: string): Promise<LikeResponse | null> => 
 export const reportPost = async (
   postId: string,
   reason: string,
-): Promise<boolean> => {
-  try {
-    const response = await fetchWithAuth(
-      `${FORUM_API_BASE}/posts/${postId}/report`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason }),
-      },
-    );
-    return response.ok;
-  } catch (error) {
-    console.error("Failed to report post:", error);
-    return false;
+): Promise<void> => {
+  const response = await fetchWithAuth(
+    `${FORUM_API_BASE}/posts/${postId}/report`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    },
+  );
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || 'Report failed');
   }
 };
 
@@ -313,18 +311,12 @@ export const fetchUserLikes = async (userId: string): Promise<PostDto[]> => {
     return [];
   }
 };
-export const deletePost = async (id: string): Promise<boolean> => {
-  try {
-    const token = await getToken();
-    const response = await fetchWithTimeout(`${FORUM_API_BASE}/posts/${id}`, {
-      method: "DELETE",
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    return response.ok;
-  } catch (error) {
-    console.error("Failed to delete post:", error);
-    return false;
+export const deletePost = async (id: string): Promise<void> => {
+  const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || 'Delete failed');
   }
 };

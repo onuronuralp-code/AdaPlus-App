@@ -236,6 +236,7 @@ export default function ProfileScreen() {
             subtitle={subtitle}
             color={color}
             compact={true}
+            style={{ marginTop: 100 }}
         />
     );
 

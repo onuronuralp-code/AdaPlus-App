@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
     },
     compactTitle: {
-        fontSize: 15,
+        fontSize: 17,
         marginBottom: 4,
     },
     subtitle: {
@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
         lineHeight: 22,
     },
     compactSubtitle: {
-        fontSize: 12,
-        lineHeight: 16,
+        fontSize: 13,
+        lineHeight: 18,
         paddingHorizontal: 20,
     }
 });
