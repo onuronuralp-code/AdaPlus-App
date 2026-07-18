@@ -19,10 +19,10 @@ export default function SignUpScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { inviteToken } = useLocalSearchParams<{ inviteToken?: string }>();
+    const { inviteToken, email: inviteEmail } = useLocalSearchParams<{ inviteToken?: string; email?: string }>();
 
     const [name, setName] = useState('');
-    const [contact, setContact] = useState('');
+    const [contact, setContact] = useState(inviteEmail ?? '');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
