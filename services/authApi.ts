@@ -103,12 +103,14 @@ export const authApi = {
     }
   },
 
-  login: async (email: string, password: string): Promise<LoginResponse> => {
+  login: async (identifier: string, password: string): Promise<LoginResponse> => {
     try {
+      const sanitized = sanitizeContact(identifier);
+      const contactField = isPhoneContact(sanitized) ? { phone: sanitized } : { email: sanitized };
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sanitizeContact(email), password }),
+        body: JSON.stringify({ ...contactField, password }),
       });
       const data = await response.json();
       if (!response.ok)

@@ -20,7 +20,7 @@ export default function SignUpScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const searchParams = useLocalSearchParams<{ inviteToken?: string }>();
-    const inviteToken = searchParams.inviteToken || "mock_invite_token"; // MOCK FOR TESTING
+    const inviteToken = searchParams.inviteToken;
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -28,16 +28,11 @@ export default function SignUpScreen() {
 
     useEffect(() => {
         if (!inviteToken) return;
-        if (inviteToken === "mock_invite_token") {
-            setEmail("betim@adaplus.com");
-            return;
-        }
         authApi.getInviteEmail(inviteToken).then(em => {
             if (em) {
                 if (isEmailPattern(em) || em.includes('@')) {
                     setEmail(em);
                 } else {
-                    // Remove +90 if present to fit in our UI which already has +90 prefix
                     setPhoneNumber(em.replace(/^\+90/, '').trim());
                 }
             }
