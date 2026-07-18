@@ -22,11 +22,9 @@ export default function SignUpScreen() {
     const searchParams = useLocalSearchParams<{ inviteToken?: string }>();
     const inviteToken = searchParams.inviteToken;
     useEffect(() => {
-        if (inviteToken) {
-            const onBackPress = () => true; // Prevent default behavior (going back)
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-        }
+        if (!inviteToken) return;
+        const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+        return () => subscription.remove();
     }, [inviteToken]);
 
     const [name, setName] = useState('');
