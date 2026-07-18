@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
-
 import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -14,22 +13,21 @@ export default function ResetPasswordScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { token: initialToken } = useLocalSearchParams<{ token: string }>();
-    
-    const [token, setToken] = useState(initialToken || '');
+    const { token: tokenParam } = useLocalSearchParams<{ token?: string }>();
+
+    const [token, setToken] = useState(tokenParam || '');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<{ token?: string; password?: string; confirmPassword?: string }>({});
-    const [touched, setTouched] = useState<{ token?: boolean; password?: boolean; confirmPassword?: boolean }>({});
+    const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+    const [touched, setTouched] = useState<{ password?: boolean; confirmPassword?: boolean }>({});
 
-    const validateToken = (val: string): string | undefined => {
-        if (!val.trim()) return t('auth.errors.tokenRequired');
-        if (val.trim().length > 512 || !/^[a-zA-Z0-9_\-.]{6,512}$/.test(val.trim())) return t('auth.errors.tokenRequired');
-        return undefined;
-    };
+    // Token arrives via deep link after user taps the reset email — update state reactively
+    useEffect(() => {
+        if (tokenParam) setToken(tokenParam);
+    }, [tokenParam]);
 
     const validatePassword = (val: string): string | undefined => {
         if (!val) return t('auth.errors.passwordRequired');
@@ -41,11 +39,6 @@ export default function ResetPasswordScreen() {
         if (!val) return t('auth.confirmPasswordPlaceholder');
         if (val !== password) return t('auth.errors.passwordMismatch');
         return undefined;
-    };
-
-    const handleTokenChange = (val: string) => {
-        setToken(val);
-        if (touched.token) setErrors(prev => ({ ...prev, token: validateToken(val) }));
     };
 
     const handlePasswordChange = (val: string) => {
@@ -60,14 +53,16 @@ export default function ResetPasswordScreen() {
     };
 
     const handleSubmit = async () => {
-        const tokenErr = validateToken(token);
         const passErr = validatePassword(password);
         const confErr = validateConfirmPassword(confirmPassword);
-        
-        setTouched({ token: true, password: true, confirmPassword: true });
-        setErrors({ token: tokenErr, password: passErr, confirmPassword: confErr });
+        setTouched({ password: true, confirmPassword: true });
+        setErrors({ password: passErr, confirmPassword: confErr });
+        if (passErr || confErr) return;
 
-        if (tokenErr || passErr || confErr) return;
+        if (!token) {
+            Alert.alert('Bağlantı Bekleniyor', 'Lütfen e-postanızdaki şifre sıfırlama bağlantısına tıklayın.');
+            return;
+        }
 
         setLoading(true);
         try {
@@ -87,112 +82,110 @@ export default function ResetPasswordScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.container}>
-            
-            <View style={styles.headerBackground}>
-                <Image 
-                    source={require('@/assets/images/begonvil.jpeg')}
-                    style={StyleSheet.absoluteFillObject}
-                    resizeMode="cover"
-                />
-                <LinearGradient 
-                    colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                    style={StyleSheet.absoluteFillObject}
-                />
-                <TouchableOpacity 
-                    style={[styles.backButton, { top: insets.top + 10 }]} 
-                    onPress={() => {
-                        if (router.canGoBack()) router.back();
-                        else router.back();
-                    }}
-                >
-                    <IconSymbol name="chevron.left" size={24} color="#fff" />
-                </TouchableOpacity>
 
-                <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
-                    <View style={styles.logoCircle}>
-                        <IconSymbol name="lock.fill" size={30} color="#F59E0B" />
+                    <View style={styles.headerBackground}>
+                        <Image
+                            source={require('@/assets/images/begonvil.jpeg')}
+                            style={StyleSheet.absoluteFillObject}
+                            resizeMode="cover"
+                        />
+                        <LinearGradient
+                            colors={['rgba(0, 0, 0, 0.1)', '#0f172a']}
+                            style={StyleSheet.absoluteFillObject}
+                        />
+                        <TouchableOpacity
+                            style={[styles.backButton, { top: insets.top + 10 }]}
+                            onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/login'); }}
+                        >
+                            <IconSymbol name="chevron.left" size={24} color="#fff" />
+                        </TouchableOpacity>
+
+                        <View style={[styles.branding, { paddingTop: insets.top + 20 }]}>
+                            <View style={styles.logoCircle}>
+                                <IconSymbol name="lock.fill" size={30} color="#F59E0B" />
+                            </View>
+                            <Text style={styles.welcomeTitle}>{t('auth.resetTitle')}</Text>
+                            <Text style={styles.welcomeSubtitle}>{t('auth.resetSubtitle')}</Text>
+                        </View>
                     </View>
-                    <Text style={styles.welcomeTitle}>{t('auth.resetTitle')}</Text>
-                    <Text style={styles.welcomeSubtitle}>{t('auth.resetSubtitle')}</Text>
+
+                    <View style={styles.cardContainer}>
+                        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formContainer}>
+
+                            {/* Email link status banner */}
+                            <View style={[styles.infoBanner, token ? styles.infoBannerReady : styles.infoBannerWaiting]}>
+                                <IconSymbol
+                                    name={token ? 'checkmark.circle.fill' : 'envelope.fill'}
+                                    size={16}
+                                    color={token ? '#059669' : '#D97706'}
+                                />
+                                <Text style={[styles.infoBannerText, token ? styles.infoBannerTextReady : styles.infoBannerTextWaiting]}>
+                                    {token
+                                        ? 'Bağlantı doğrulandı. Yeni şifrenizi girin.'
+                                        : 'E-postanızdaki sıfırlama bağlantısına tıklayın.'}
+                                </Text>
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
+                                <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
+                                    <TextInput
+                                        style={[styles.input, { flex: 1 }]}
+                                        placeholder={t('auth.passwordPlaceholder')}
+                                        placeholderTextColor="#94A3B8"
+                                        secureTextEntry={!showPassword}
+                                        value={password}
+                                        onChangeText={handlePasswordChange}
+                                        onBlur={() => { setTouched(p => ({ ...p, password: true })); setErrors(p => ({ ...p, password: validatePassword(password) })); }}
+                                    />
+                                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                                        <IconSymbol name={showPassword ? 'eye.slash.fill' : 'eye.fill'} size={18} color="#94A3B8" />
+                                    </TouchableOpacity>
+                                </View>
+                                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('auth.confirmPasswordLabel')}</Text>
+                                <View style={[styles.inputWrapper, errors.confirmPassword ? styles.inputWrapperError : null]}>
+                                    <IconSymbol name="lock.fill" size={18} color={errors.confirmPassword ? '#EF4444' : '#94A3B8'} />
+                                    <TextInput
+                                        style={[styles.input, { flex: 1 }]}
+                                        placeholder={t('auth.confirmPasswordPlaceholder')}
+                                        placeholderTextColor="#94A3B8"
+                                        secureTextEntry={!showConfirmPassword}
+                                        value={confirmPassword}
+                                        onChangeText={handleConfirmPasswordChange}
+                                        onBlur={() => { setTouched(p => ({ ...p, confirmPassword: true })); setErrors(p => ({ ...p, confirmPassword: validateConfirmPassword(confirmPassword) })); }}
+                                    />
+                                    <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={{ padding: 4 }}>
+                                        <IconSymbol name={showConfirmPassword ? 'eye.slash.fill' : 'eye.fill'} size={18} color="#94A3B8" />
+                                    </TouchableOpacity>
+                                </View>
+                                {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+                            </View>
+
+                            <TouchableOpacity
+                                style={[styles.primaryButton, (loading || !token) && { opacity: 0.5 }]}
+                                onPress={handleSubmit}
+                                activeOpacity={0.8}
+                                disabled={loading || !token}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <>
+                                        <Text style={styles.primaryButtonText}>{t('auth.updateButton')}</Text>
+                                        <IconSymbol name="checkmark.circle.fill" size={18} color="#fff" />
+                                    </>
+                                )}
+                            </TouchableOpacity>
+
+                        </ScrollView>
+                    </View>
                 </View>
-            </View>
-
-            <View style={styles.cardContainer}>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formContainer}>
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>{t('auth.tokenLabel')}</Text>
-                        <View style={[styles.inputWrapper, errors.token ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="key.fill" size={18} color={errors.token ? '#EF4444' : '#94A3B8'} />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder={t('auth.tokenPlaceholder')}
-                                placeholderTextColor="#94A3B8"
-                                value={token}
-                                onChangeText={handleTokenChange}
-                                autoCapitalize="none"
-                            />
-                        </View>
-                        {errors.token && <Text style={styles.errorText}>{errors.token}</Text>}
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
-                        <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
-                            <TextInput 
-                                style={[styles.input, { flex: 1 }]} 
-                                placeholder={t('auth.passwordPlaceholder')}
-                                placeholderTextColor="#94A3B8"
-                                secureTextEntry={!showPassword}
-                                value={password}
-                                onChangeText={handlePasswordChange}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-                                <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
-                            </TouchableOpacity>
-                        </View>
-                        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>{t('auth.confirmPasswordLabel')}</Text>
-                        <View style={[styles.inputWrapper, errors.confirmPassword ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="lock.fill" size={18} color={errors.confirmPassword ? '#EF4444' : '#94A3B8'} />
-                            <TextInput 
-                                style={[styles.input, { flex: 1 }]} 
-                                placeholder={t('auth.confirmPasswordPlaceholder')}
-                                placeholderTextColor="#94A3B8"
-                                secureTextEntry={!showConfirmPassword}
-                                value={confirmPassword}
-                                onChangeText={handleConfirmPasswordChange}
-                            />
-                            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={{ padding: 4 }}>
-                                <IconSymbol name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
-                            </TouchableOpacity>
-                        </View>
-                        {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
-                    </View>
-
-                    <TouchableOpacity 
-                        style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
-                        onPress={handleSubmit}
-                        activeOpacity={0.8}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" size="small" />
-                        ) : (
-                            <>
-                                <Text style={styles.primaryButtonText}>{t('auth.updateButton')}</Text>
-                                <IconSymbol name="checkmark.circle.fill" size={18} color="#fff" />
-                            </>
-                        )}
-                    </TouchableOpacity>
-
-                </ScrollView>
-            </View>
-        </View>
-        </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
         </React.Fragment>
     );
 }
@@ -259,6 +252,34 @@ const styles = StyleSheet.create({
     },
     formContainer: {
         paddingBottom: 40,
+    },
+    infoBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 20,
+        borderWidth: 1,
+    },
+    infoBannerWaiting: {
+        backgroundColor: '#FFFBEB',
+        borderColor: '#FCD34D',
+    },
+    infoBannerReady: {
+        backgroundColor: '#ECFDF5',
+        borderColor: '#6EE7B7',
+    },
+    infoBannerText: {
+        flex: 1,
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    infoBannerTextWaiting: {
+        color: '#92400E',
+    },
+    infoBannerTextReady: {
+        color: '#065F46',
     },
     inputGroup: {
         marginBottom: 10,

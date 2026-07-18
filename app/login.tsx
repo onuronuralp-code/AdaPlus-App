@@ -106,10 +106,7 @@ export default function LoginScreen() {
         setLoading(true);
         try {
             await authApi.forgotPassword(email.trim());
-            Alert.alert('E-posta Gönderildi', 'Şifre sıfırlama kodun e-posta adresine gönderildi. Kodu kullanarak şifreni yenileyebilirsin.', [
-                { text: 'Şimdi Yenile', onPress: () => router.push({ pathname: '/reset-password', params: { token: '' } }) },
-                { text: 'Kapat', onPress: () => setIsForgotPassword(false), style: 'cancel' }
-            ]);
+            router.push({ pathname: '/reset-password', params: { email: email.trim() } });
         } catch (error: any) {
             setErrorModalMsg(error.message || 'Bağlantı gönderilemedi.');
             setErrorModalVisible(true);
