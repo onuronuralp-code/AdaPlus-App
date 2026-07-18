@@ -183,7 +183,20 @@ export default function SignUpScreen() {
             const contactType = isPhonePattern(actualContact) ? 'phone' : 'email';
             router.push({ pathname: '/verify', params: { contact: actualContact, type: contactType } });
         } catch (error: any) {
-            Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
+            const msg: string = error.message || 'Bir hata oluştu.';
+            if (msg.includes('Telefon numaranızla giriş yapın')) {
+                Alert.alert('Hesap Mevcut', msg, [
+                    { text: 'Giriş Yap', onPress: () => router.replace('/login') },
+                    { text: 'Tamam', style: 'cancel' },
+                ]);
+            } else if (msg.includes('Giriş yapın')) {
+                Alert.alert('Hesap Mevcut', msg, [
+                    { text: 'Giriş Yap', onPress: () => router.replace('/login') },
+                    { text: 'Tamam', style: 'cancel' },
+                ]);
+            } else {
+                Alert.alert('Kayıt Hatası', msg);
+            }
         } finally {
             setLoading(false);
         }
