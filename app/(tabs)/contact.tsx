@@ -90,11 +90,7 @@ export default function ContactScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent} 
-          showsVerticalScrollIndicator={false}
-          bounces={true}
-        >
+        <View style={[styles.scrollContent, { paddingBottom: 16 }]}>
           {/* Separate Info Banner Component */}
           <View style={styles.infoBanner}>
             <View style={styles.infoIconContainer}>
@@ -173,13 +169,9 @@ export default function ContactScreen() {
                 </View>
               )}
             </View>
-
           </View>
 
-        </ScrollView>
-
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={styles.submitButtonWrapper} disabled={isSubmitting}>
+          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={[styles.submitButtonWrapper, { marginTop: 0, marginBottom: 12 }]} disabled={isSubmitting}>
             <LinearGradient
               colors={['#10B981', '#059669']} 
               start={{ x: 0, y: 0 }}
@@ -196,6 +188,7 @@ export default function ContactScreen() {
               )}
             </LinearGradient>
           </TouchableOpacity>
+
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -248,10 +241,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   scrollContent: {
-    flexGrow: 1,
+    flex: 1,
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 0,
+    paddingBottom: 24,
   },
   formCard: {
     flex: 1,
@@ -263,7 +256,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 8,
-    marginBottom: 24,
+    marginBottom: 12,
   },
   formHeader: {
     marginBottom: 24,
@@ -317,7 +310,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   textArea: {
-    minHeight: 180,
+    flex: 1,
     paddingTop: 14,
   },
   errorRow: {

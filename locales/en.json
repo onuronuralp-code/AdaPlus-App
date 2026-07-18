@@ -335,7 +335,7 @@
         "errorRetry": "Something went wrong, please try again.",
         "errorGeneric": "Something went wrong.",
         "dailyLimitReached": "You've reached your 10 message daily limit. See you tomorrow! 🌊",
-        "welcomeMessage": "Hello! 👋 I'm your Ada Plus assistant. To give you the most accurate information, may I first know which island you are currently on?",
+        "welcomeMessage": "Hello! 👋 I'm your Ada Plus assistant. To give you the most accurate information, which island would you like to get information about?",
         "placeholder": "Ask Ada AI...",
         "chip": {
             "sightseeing": "📍 Sightseeing",

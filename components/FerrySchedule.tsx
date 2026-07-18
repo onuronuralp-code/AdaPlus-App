@@ -499,7 +499,7 @@ export function FerrySchedule() {
                 departure === "Unselected" || destination === "Unselected"
               }
             >
-              <IconSymbol name="arrow.left.and.right" size={18} color="#fff" />
+              <IconSymbol name="arrow.right.arrow.left" size={18} color="#fff" />
             </TouchableOpacity>
 
             <View style={styles.routeCol}>

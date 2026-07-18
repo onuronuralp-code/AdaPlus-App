@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     inputGroup: {
-        marginBottom: 24,
+        marginBottom: 10,
     },
     inputLabel: {
         fontSize: 11,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
         borderRadius: 12,
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: 6,
         borderWidth: 1,
         borderColor: '#E2E8F0',
     },

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Switch } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +14,29 @@ interface SettingsModalProps {
 export default function SettingsModal({ visible, onClose, onDeleteAccount, isLoggedIn = false }: SettingsModalProps) {
     const { t, i18n } = useTranslation();
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [defaultIsland, setDefaultIsland] = useState('Büyükada');
+    const ISLANDS = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
+
+    useEffect(() => {
+        if (visible) {
+            AsyncStorage.getItem('defaultIsland').then(island => {
+                if (island) setDefaultIsland(island);
+            });
+            AsyncStorage.getItem('notificationsEnabled').then(enabled => {
+                if (enabled !== null) setNotificationsEnabled(enabled === 'true');
+            });
+        }
+    }, [visible]);
+
+    const handleIslandSelect = (island: string) => {
+        setDefaultIsland(island);
+        AsyncStorage.setItem('defaultIsland', island);
+    };
+
+    const handleNotificationsToggle = (val: boolean) => {
+        setNotificationsEnabled(val);
+        AsyncStorage.setItem('notificationsEnabled', val.toString());
+    };
 
     return (
         <Modal
@@ -24,6 +48,13 @@ export default function SettingsModal({ visible, onClose, onDeleteAccount, isLog
         >
             <View style={styles.overlay}>
                 <View style={styles.card}>
+                    <TouchableOpacity 
+                        style={{ position: 'absolute', top: 20, right: 20, zIndex: 10, padding: 8 }} 
+                        onPress={onClose} 
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <IconSymbol name="xmark" size={20} color="#94A3B8" />
+                    </TouchableOpacity>
                     <View style={styles.iconCircle}>
                         <IconSymbol name="gearshape.fill" size={28} color="#64748B" />
                     </View>
@@ -60,34 +91,54 @@ export default function SettingsModal({ visible, onClose, onDeleteAccount, isLog
                         </View>
                     </View>
 
-                    {/* Notifications Section */}
-                    {isLoggedIn && (
-                        <View style={styles.section}>
-                            <View style={styles.row}>
-                                <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: 'Bildirimler' })}</Text>
-                                <Switch
-                                    value={notificationsEnabled}
-                                    onValueChange={setNotificationsEnabled}
-                                    trackColor={{ false: '#CBD5E1', true: '#D1FAE5' }}
-                                    thumbColor={notificationsEnabled ? '#10B981' : '#94A3B8'}
-                                />
-                            </View>
+
+
+                    {/* Default Island Section */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('common.defaultIsland', { defaultValue: 'Varsayılan Ada' })}</Text>
+                        <View style={[styles.buttonRow, { flexWrap: 'wrap' }]}>
+                            {ISLANDS.map(island => (
+                                <TouchableOpacity 
+                                    key={island}
+                                    style={[
+                                        styles.langButton, 
+                                        defaultIsland === island && styles.activeIslandButton,
+                                        { minWidth: '45%', marginBottom: 12 }
+                                    ]} 
+                                    onPress={() => handleIslandSelect(island)}
+                                >
+                                    <Text style={[
+                                        styles.langButtonText,
+                                        defaultIsland === island && styles.activeIslandButtonText
+                                    ]}>{island}</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
-                    )}
+                    </View>
+
+                    {/* Notifications Section */}
+                    <View style={styles.section}>
+                        <View style={styles.row}>
+                            <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: 'Bildirimler' })}</Text>
+                            <Switch
+                                value={notificationsEnabled}
+                                onValueChange={handleNotificationsToggle}
+                                trackColor={{ false: '#CBD5E1', true: '#D1FAE5' }}
+                                thumbColor={notificationsEnabled ? '#10B981' : '#94A3B8'}
+                            />
+                        </View>
+                    </View>
 
                     {/* Account Section */}
                     {isLoggedIn && (
-                        <View style={styles.section}>
+                        <View style={[styles.section, { borderBottomWidth: 0 }]}>
                             <TouchableOpacity style={styles.deleteButton} onPress={onDeleteAccount} activeOpacity={0.8}>
-                                <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#EF4444" />
+                                <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
                                 <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' })}</Text>
                             </TouchableOpacity>
                         </View>
                     )}
 
-                    <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>
-                        <Text style={styles.closeButtonText}>{t('common.close', { defaultValue: 'Kapat' })}</Text>
-                    </TouchableOpacity>
                 </View>
             </View>
         </Modal>
@@ -155,8 +206,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
     },
     activeLangButton: {
-        borderColor: '#10B981',
-        backgroundColor: '#ECFDF5',
+        borderColor: '#3B82F6', // Blue border
+        backgroundColor: '#EFF6FF', // Light blue bg
     },
     langButtonText: {
         fontSize: 14,
@@ -164,7 +215,15 @@ const styles = StyleSheet.create({
         color: '#475569',
     },
     activeLangButtonText: {
-        color: '#059669',
+        color: '#2563EB', // Blue text
+        fontWeight: '700',
+    },
+    activeIslandButton: {
+        borderColor: '#3B82F6', // Blue border
+        backgroundColor: '#EFF6FF', // Light blue bg
+    },
+    activeIslandButtonText: {
+        color: '#2563EB', // Blue text
         fontWeight: '700',
     },
     row: {
@@ -186,12 +245,12 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingVertical: 12,
         borderRadius: 12,
-        backgroundColor: '#FEF2F2',
+        backgroundColor: '#EF4444',
         borderWidth: 1,
-        borderColor: '#FEE2E2',
+        borderColor: '#DC2626',
     },
     deleteButtonText: {
-        color: '#EF4444',
+        color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '700',
     },

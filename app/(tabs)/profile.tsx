@@ -20,15 +20,14 @@ import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import SettingsModal from '@/components/SettingsModal';
 
-type ProfileTab = 'posts' | 'replies' | 'listings' | 'events' | 'likes' | 'notifications';
+type ProfileTab = 'posts' | 'listings' | 'events' | 'likes' | 'notifications';
 
 const TABS: { key: ProfileTab; label: string; icon: string; color: string }[] = [
     { key: 'posts', label: 'Paylaşımlar', icon: 'bubble.left.and.bubble.right.fill', color: '#6366F1' },
-    { key: 'replies', label: 'Yanıtlar', icon: 'arrow.uturn.left.circle.fill', color: '#8B5CF6' },
+    { key: 'likes', label: 'Beğeniler', icon: 'heart.fill', color: '#EC4899' },
     { key: 'notifications', label: 'Bildirimler', icon: 'bell.fill', color: '#F43F5E' },
     { key: 'listings', label: 'İlanlar', icon: 'tag.fill', color: '#10B981' },
     { key: 'events', label: 'Etkinlikler', icon: 'calendar', color: '#F59E0B' },
-    { key: 'likes', label: 'Beğeniler', icon: 'heart.fill', color: '#EC4899' },
 ];
 
 export default function ProfileScreen() {
@@ -265,20 +264,20 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.postContent, { marginBottom: 6 }]}>{post.content}</Text>
-                                    <View style={styles.postFooter}>
-                                        <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                            <View>
+                                <Text style={[styles.postContent, { marginBottom: 12 }]}>{post.content}</Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={[styles.inlineActionBtn, { backgroundColor: 'transparent' }]}>
+                                            <IconSymbol name="pencil" size={22} color="#6366F1" />
+                                            <Text style={[styles.inlineActionText, { color: '#6366F1' }]}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => handleDeletePost(post.id, false)} style={[styles.inlineActionBtn, { backgroundColor: '#FEF2F2' }]}>
+                                            <IconSymbol name="trash.fill" size={22} color="#EF4444" />
+                                            <Text style={[styles.inlineActionText, { color: '#EF4444' }]}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                        </TouchableOpacity>
                                     </View>
-                                </View>
-                                <View style={{ flexDirection: 'row', marginLeft: 12, marginTop: -4 }}>
-                                    <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={styles.actionBtn}>
-                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeletePost(post.id, false)} style={[styles.actionBtn, { marginLeft: 4 }]}>
-                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
                         )}
@@ -317,20 +316,20 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.postContent}>{reply.content}</Text>
-                                    <View style={styles.postFooter}>
-                                        <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
+                            <View>
+                                <Text style={[styles.postContent, { marginBottom: 12 }]}>{reply.content}</Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
+                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        <TouchableOpacity onPress={() => { setEditingPostId(reply.id); setEditingContent(reply.content); }} style={[styles.inlineActionBtn, { backgroundColor: 'transparent' }]}>
+                                            <IconSymbol name="pencil" size={22} color="#6366F1" />
+                                            <Text style={[styles.inlineActionText, { color: '#6366F1' }]}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => handleDeletePost(reply.id, true)} style={[styles.inlineActionBtn, { backgroundColor: '#FEF2F2' }]}>
+                                            <IconSymbol name="trash.fill" size={22} color="#EF4444" />
+                                            <Text style={[styles.inlineActionText, { color: '#EF4444' }]}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                        </TouchableOpacity>
                                     </View>
-                                </View>
-                                <View style={{ flexDirection: 'row', marginLeft: 12, marginTop: -4 }}>
-                                    <TouchableOpacity onPress={() => { setEditingPostId(reply.id); setEditingContent(reply.content); }} style={styles.actionBtn}>
-                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id, true)} style={[styles.actionBtn, { marginLeft: 4 }]}>
-                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
                         )}
@@ -455,10 +454,9 @@ export default function ProfileScreen() {
         return (
             <View style={styles.contentList}>
                 {likedPosts.map(post => (
-                    <TouchableOpacity 
+                    <View 
                         key={post.id} 
                         style={styles.postCard}
-                        onPress={() => router.push(`/(tabs)/explore/island/forum/${post.id}`)}
                     >
                         <Text style={styles.postContent}>{post.content}</Text>
                         <View style={styles.postFooter}>
@@ -470,7 +468,7 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         </View>
-                    </TouchableOpacity>
+                    </View>
                 ))}
             </View>
         );
@@ -479,7 +477,6 @@ export default function ProfileScreen() {
     const renderContent = () => {
         switch (activeTab) {
             case 'posts': return renderPosts();
-            case 'replies': return renderReplies();
             case 'notifications': return renderNotifications();
             case 'listings': return renderListings();
             case 'events': return renderEvents();
@@ -492,12 +489,29 @@ export default function ProfileScreen() {
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                    <TouchableOpacity 
-                        onPress={() => setShowSettingsModal(true)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                        <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
-                    </TouchableOpacity>
+                    {!isLoggedIn ? (
+                        <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 8, padding: 2 }}>
+                            <TouchableOpacity
+                                style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                onPress={() => i18n.changeLanguage('tr')}
+                            >
+                                <Text style={{ fontSize: 13, fontWeight: '700', color: i18n.language.startsWith('tr') ? '#0F172A' : '#64748B' }}>TR</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                onPress={() => i18n.changeLanguage('en')}
+                            >
+                                <Text style={{ fontSize: 13, fontWeight: '700', color: i18n.language.startsWith('en') ? '#0F172A' : '#64748B' }}>EN</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <TouchableOpacity 
+                            onPress={() => setShowSettingsModal(true)}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
+                        </TouchableOpacity>
+                    )}
 
                     {isLoggedIn && (
                         <TouchableOpacity
@@ -650,7 +664,35 @@ export default function ProfileScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-            <SettingsModal visible={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
+            <SettingsModal 
+                visible={showSettingsModal} 
+                onClose={() => setShowSettingsModal(false)} 
+                isLoggedIn={isLoggedIn}
+                onDeleteAccount={() => {
+                    Alert.alert(
+                        t('profile.deleteAccountTitle', { defaultValue: 'Hesabını Sil' }),
+                        t('profile.deleteAccountConfirm', { defaultValue: 'Hesabınızı silmek istediğinize emin misiniz? Tüm verileriniz kalıcı olarak silinecektir.' }),
+                        [
+                            { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                            { 
+                                text: t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' }), 
+                                style: 'destructive', 
+                                onPress: async () => {
+                                    try {
+                                        const token = getToken();
+                                        if (token) {
+                                            await authApi.deleteAccount(token);
+                                        }
+                                        logout();
+                                    } catch (e) {
+                                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.errorOccurred', { defaultValue: 'Bir hata oluştu.' }));
+                                    }
+                                } 
+                            },
+                        ]
+                    );
+                }}
+            />
         </View>
     );
 }
@@ -682,7 +724,7 @@ const styles = StyleSheet.create({
     emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 100, paddingHorizontal: 20 },
     emptyTitle: { fontSize: 16, fontWeight: '600', color: '#94A3B8', marginTop: 12, textAlign: 'center' },
     emptySubtitle: { fontSize: 13, color: '#CBD5E1', marginTop: 4, textAlign: 'center' },
-    contentList: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+    contentList: { backgroundColor: '#fff' },
 
     // Post Cards
     postCard: { paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
@@ -790,6 +832,22 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    inlineActionBtn: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 14,
+        backgroundColor: '#F1F5F9',
+        gap: 6,
+        minWidth: 70,
+    },
+    inlineActionText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#64748B',
     },
     inviteButton: {
         flexDirection: 'row',

@@ -108,6 +108,7 @@ const MAPPING = {
   'beach.umbrella.fill': 'beach-access',
   'building.2.fill': 'location-city',
   'arrow.left.and.right': 'swap-horiz',
+  'arrow.right.arrow.left': 'compare-arrows',
   'clock.fill': 'access-time',
   'briefcase.fill': 'work',
   'gearshape.fill': 'settings',

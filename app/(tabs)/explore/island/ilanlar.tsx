@@ -413,7 +413,7 @@ export default function IlanlarScreen() {
             icon="doc.text.magnifyingglass" 
             title={t('ilanlar.emptyTitle')}
             subtitle={t('ilanlar.emptySubtitle')}
-            color="#3B82F6"
+            color="#EAB308"
           />
         ) : (
           filteredListings.map(l => (

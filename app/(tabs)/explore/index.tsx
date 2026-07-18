@@ -122,7 +122,7 @@ const TodayOnIsland = () => {
         
       >
         <IconSymbol name="ferry.fill" size={isLargeScreen ? 18 : 14} color="#3B82F6" />
-        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
+        <Text style={{ fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', color: '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
           {ferryLoading ? (i18n.language.startsWith('en') ? 'Loading...' : 'Yükleniyor...') : (nextFerry ? `${nextFerry.time} ${nextFerry.from}-${nextFerry.to}${nextFerry.provider ? ' (' + nextFerry.provider + ')' : ''}` : (i18n.language.startsWith('en') ? 'No schedule found' : 'Sefer Bulunamadı'))}
         </Text>
       </Pressable>
@@ -187,6 +187,7 @@ export default function MainMenuScreen() {
   const [inviteEmailError, setInviteEmailError] = useState('');
   const [isInviting, setIsInviting] = useState(false);
   const [isInviteFocused, setIsInviteFocused] = useState(false);
+  const inviteInputRef = useRef<TextInput>(null);
 
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
@@ -331,6 +332,16 @@ export default function MainMenuScreen() {
       }
     }, [isLoggedIn])
   );
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        inviteInputRef.current?.blur();
+        Keyboard.dismiss();
+        setIsInviteFocused(false);
+      };
+    }, [])
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(0)).current;
@@ -364,7 +375,11 @@ export default function MainMenuScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false} scrollEnabled={false}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false} scrollEnabled={true}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -373,7 +388,7 @@ export default function MainMenuScreen() {
         paddingHorizontal: 20 
       }, isSmallScreen && { marginBottom: 12 }, isLargeScreen && { marginBottom: 20 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 26 }, { marginBottom: 8 }]}>
+          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, { marginBottom: 8 }]}>
             {isLoggedIn && user
               ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}! 🌸`
               : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! 🌸`}
@@ -416,7 +431,7 @@ export default function MainMenuScreen() {
             }}
             
           >
-            <IconSymbol name="bell.fill" size={20} color="#0F172A" />
+            <IconSymbol name="megaphone.fill" size={20} color="#0F172A" />
             {notifications.filter(n => !n.read).length > 0 && (
               <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
                 <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>
@@ -432,9 +447,10 @@ export default function MainMenuScreen() {
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 1, borderColor: '#059669' }}>
             <IconSymbol name="envelope.fill" size={20} color="#059669" />
             <TextInput
+              ref={inviteInputRef}
               style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
               onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
               onBlur={() => {
@@ -444,7 +460,7 @@ export default function MainMenuScreen() {
                   setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
                 }
               }}
-              placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can invite' : 'Sadece Adalılar davet edebilir' }))}
+              placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' }))}
               placeholderTextColor="#059669"
               value={inviteEmail}
               onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
@@ -489,12 +505,12 @@ export default function MainMenuScreen() {
               onPress={() => {
                 if (slide?.id && !slide.id.startsWith('default')) {
                   if (slide.type === 'listing') {
-                    router.push({ pathname: '/explore/island/ilan/[id]', params: { id: slide.id } });
+                    navigateWithDebounce({ pathname: '/explore/island/ilan/[id]', params: { id: slide.id } });
                   } else {
-                    router.push({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
+                    navigateWithDebounce({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
                   }
                 } else {
-                  router.push('/(tabs)/explore/island/events');
+                  navigateWithDebounce('/(tabs)/explore/island/events');
                 }
               }}
             >
@@ -523,7 +539,7 @@ export default function MainMenuScreen() {
                     </View>
                     <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                       style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}
-                      onPress={() => router.push(slide.type === 'listing' ? '/(tabs)/explore/island/ilanlar' : '/(tabs)/explore/island/events')}
+                      onPress={() => navigateWithDebounce(slide.type === 'listing' ? '/(tabs)/explore/island/ilanlar' : '/(tabs)/explore/island/events')}
                     >
                       <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 11 : 11, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
@@ -612,7 +628,7 @@ export default function MainMenuScreen() {
       >
         {/* Etkinlikler */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 110 : 90, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#BFDBFE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#BFDBFE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => {
             AsyncStorage.setItem('seenEventIds', JSON.stringify(allEventIds));
             setUnseenEventsCount(0);
@@ -638,7 +654,7 @@ export default function MainMenuScreen() {
 
         {/* Ada AI */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 110 : 90, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#FBCFE8' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FBCFE8', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => navigateWithDebounce('/guide')}
           onPressIn={() => { 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
@@ -653,7 +669,7 @@ export default function MainMenuScreen() {
 
         {/* İlanlar */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 110 : 90, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#FEF08A' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#FEF08A', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => {
             AsyncStorage.setItem('lastViewedListings', Date.now().toString());
             setUnseenListingsCount(0);
@@ -665,7 +681,7 @@ export default function MainMenuScreen() {
         >
           <View>
             <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FEF9C3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-              <IconSymbol name="megaphone.fill" size={isLargeScreen ? 24 : 20} color="#EAB308" />
+              <IconSymbol name="tag.fill" size={isLargeScreen ? 24 : 20} color="#EAB308" />
             </View>
             {unseenListingsCount > 0 && (
               <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 2 }}>
@@ -679,7 +695,7 @@ export default function MainMenuScreen() {
 
         {/* Paket Servis */}
         <Pressable 
-          style={({ pressed }) => [{ width: isLargeScreen ? 94 : 86, height: isLargeScreen ? 104 : 84, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 8, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
+          style={({ pressed }) => [{ width: isLargeScreen ? 100 : 94, height: isLargeScreen ? 130 : 110, backgroundColor: pressed ? '#DDD6FE' : '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#DDD6FE', padding: 6, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', elevation: 2, }]}
           onPress={() => {
             setSurveySubmitted(false);
             setSurveyOptions([]);
@@ -690,12 +706,12 @@ export default function MainMenuScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
           }}
         >
-          <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-            <IconSymbol name="bag.fill" size={isLargeScreen ? 24 : 20} color="#8B5CF6" />
+          <View style={{ width: isLargeScreen ? 40 : 36, height: isLargeScreen ? 40 : 36, borderRadius: 8, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+            <IconSymbol name="bag.fill" size={isLargeScreen ? 20 : 18} color="#8B5CF6" />
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#8B5CF6', marginBottom: 4, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 13 : 13, lineHeight: 16, fontWeight: '700', color: '#8B5CF6', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
           <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
-            <Text style={{ fontSize: 11, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+            <Text style={{ fontSize: 10, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
           </View>
         </Pressable>
       </ScrollView>
@@ -706,6 +722,7 @@ export default function MainMenuScreen() {
       </View>
 
       </ScrollView>
+      </KeyboardAvoidingView>
 
 
 
@@ -736,7 +753,7 @@ export default function MainMenuScreen() {
             }}
           >
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Bildirimler</Text>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Duyurular</Text>
               <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowNotificationModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                 <IconSymbol name="xmark" size={14} color="#64748B" />
               </Pressable>
@@ -747,9 +764,9 @@ export default function MainMenuScreen() {
                 <ActivityIndicator size="large" color="#3B82F6" />
               </View>
             ) : notifications.length === 0 ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <IconSymbol name="bell.fill" size={48} color="#CBD5E1" />
-                <Text style={{ marginTop: 16, fontSize: 14, fontWeight: '600', color: '#64748B' }}>Henüz bildiriminiz yok.</Text>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 }}>
+                <IconSymbol name="megaphone.fill" size={48} color="#CBD5E1" />
+                <Text style={{ marginTop: 16, fontSize: 14, fontWeight: '600', color: '#64748B' }}>Henüz duyuru yok.</Text>
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
@@ -1103,8 +1120,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   welcomeGreeting: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     color: '#0D1B2A',
     marginBottom: 2,
     letterSpacing: -0.5,

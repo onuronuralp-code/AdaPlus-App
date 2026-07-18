@@ -35,6 +35,7 @@ export default function ForumScreen() {
     const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
     const [isRulesModalVisible, setIsRulesModalVisible] = useState(false);
     const writeModalSlideAnim = React.useRef(new Animated.Value(Dimensions.get('window').height)).current;
+    const replyInputRef = React.useRef<TextInput>(null);
 
     React.useEffect(() => {
         if (isWriteModalVisible) {
@@ -59,20 +60,6 @@ export default function ForumScreen() {
     const [isAdModalVisible, setIsAdModalVisible] = useState(false);
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-    React.useEffect(() => {
-        const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
-            setKeyboardHeight(e.endCoordinates.height);
-        });
-        const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
-            setKeyboardHeight(0);
-        });
-        return () => {
-            showSub.remove();
-            hideSub.remove();
-        };
-    }, []);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [newReplyContent, setNewReplyContent] = useState('');
     const [pollDurationHours, setPollDurationHours] = useState(24);
@@ -183,6 +170,8 @@ export default function ForumScreen() {
         { id: 'all', icon: 'square.grid.2x2.fill', label: t('forum.tabs.all') },
         { id: 'polls', icon: 'chart.bar.fill', label: t('forum.tabs.polls') },
         { id: 'hot', icon: 'flame.fill', label: t('forum.tabs.hot') },
+        { id: 'complaints', icon: 'exclamationmark.triangle.fill', label: t('forum.type.complaint', { defaultValue: 'Şikayet' }) },
+        { id: 'info', icon: 'info.circle.fill', label: t('forum.type.info', { defaultValue: 'Bilgi' }) },
     ] as const;
 
     const loadPosts = async (showLoading = true) => {
@@ -430,8 +419,9 @@ export default function ForumScreen() {
     };
 
     const handleDeletePost = (postId: string) => {
-        Alert.alert(
-            t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
+        setTimeout(() => {
+            Alert.alert(
+                t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
             t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' }),
             [
                 { text: t('common.cancel'), style: 'cancel' },
@@ -457,6 +447,7 @@ export default function ForumScreen() {
                 }
             ]
         );
+        }, 100);
     };
 
     const handleEditPost = (post: PostDto) => {
@@ -474,6 +465,9 @@ export default function ForumScreen() {
     const handleEditReply = (reply: PostDto) => {
         setEditingReplyId(reply.id);
         setNewReplyContent(reply.content);
+        setTimeout(() => {
+            replyInputRef.current?.focus();
+        }, 100);
     };
 
     const toggleLike = async (id: string) => {
@@ -679,7 +673,7 @@ export default function ForumScreen() {
                     <Text style={styles.headerTitle}>{t('common.community')}</Text>
                 </View>
                 <TouchableOpacity onPress={() => setIsRulesModalVisible(true)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-                    <IconSymbol name="doc.text.fill" size={22} color="#1E293B" />
+                    <IconSymbol name="info.circle.fill" size={22} color="#1E293B" />
                 </TouchableOpacity>
             </View>
             {!isLoggedIn ? (
@@ -736,6 +730,8 @@ export default function ForumScreen() {
                     <FlatList
                         data={posts.filter(post => {
                             if (activeTab === 'polls') return post.postType === PostType.POLL;
+                            if (activeTab === 'complaints') return post.postType === PostType.COMPLAINT;
+                            if (activeTab === 'info') return post.postType === PostType.INFO;
                             return true;
                         })}
                         renderItem={renderPost}
@@ -746,6 +742,8 @@ export default function ForumScreen() {
                             styles.listContent, 
                             posts.filter(post => {
                                 if (activeTab === 'polls') return post.postType === PostType.POLL;
+                                if (activeTab === 'complaints') return post.postType === PostType.COMPLAINT;
+                                if (activeTab === 'info') return post.postType === PostType.INFO;
                                 return true;
                             }).length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }
                         ]}
@@ -761,14 +759,17 @@ export default function ForumScreen() {
                             />
                         ) : null}
                     />
-                    {(user?.role === 'ISLANDER' || user?.role === 'ADMIN') && (
-                        <TouchableOpacity 
-                            style={[styles.fab, { bottom: 20 }]} 
-                            onPress={() => {
-                                setIsWriteModalVisible(true);
-                            }}
-                            activeOpacity={0.85}
-                        >
+                    <TouchableOpacity 
+                        style={[styles.fab, { bottom: 20 }]} 
+                        onPress={() => {
+                            if (!isLoggedIn) {
+                                setShowLoginPrompt(true);
+                                return;
+                            }
+                            setIsWriteModalVisible(true);
+                        }}
+                        activeOpacity={0.85}
+                    >
                             <LinearGradient
                                 colors={['#ffffff', '#ffffff']}
                                 start={{ x: 0, y: 0 }}
@@ -778,7 +779,6 @@ export default function ForumScreen() {
                                 <IconSymbol name="plus" size={32} color="#3B82F6" />
                             </LinearGradient>
                         </TouchableOpacity>
-                    )}
                 </>
             )}
             <Modal
@@ -799,7 +799,7 @@ export default function ForumScreen() {
                             activeOpacity={1} 
                             onPress={handleCloseWriteModal} 
                         />
-                        <Animated.View style={[styles.modalContainer, { flex: 0, height: '75%', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
+                        <Animated.View style={[styles.modalContainer, { flex: 0, height: '85%', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
                             <View style={[styles.modalHeader, { paddingTop: 24 }]}>
                                 <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
@@ -866,10 +866,15 @@ export default function ForumScreen() {
                                     En az {MIN_POST_LENGTH} karakter gerekli ({trimmedPostContent.length}/{MIN_POST_LENGTH})
                                 </Text>
                             )}
-                            {newPostType !== 'poll' && trimmedPostContent.length >= MIN_POST_LENGTH && (
-                                <Text style={{ color: newPostContent.length >= MAX_POST_LENGTH ? '#EF4444' : '#94A3B8', fontSize: 11, marginTop: 4, textAlign: 'right' }}>
-                                    {newPostContent.length}/{MAX_POST_LENGTH} karakter
-                                </Text>
+                            {newPostType !== 'poll' && (
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                                    <Text style={{ color: '#94A3B8', fontSize: 11, fontWeight: '500' }}>
+                                        {newPostContent.trim() ? newPostContent.trim().split(/\s+/).length : 0} kelime
+                                    </Text>
+                                    <Text style={{ color: newPostContent.length >= MAX_POST_LENGTH ? '#EF4444' : '#94A3B8', fontSize: 11, fontWeight: '500' }}>
+                                        {newPostContent.length}/{MAX_POST_LENGTH}
+                                    </Text>
+                                </View>
                             )}
                         </View>
                         {newPostType !== 'poll' && ENABLE_PHOTO_UPLOAD && (
@@ -1011,7 +1016,7 @@ export default function ForumScreen() {
                         </View>
                         <View style={{ flex: 1 }} />
                     </View>
-                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                    <View style={styles.modalBody}>
                         {selectedPost && (
                             <View style={styles.detailPostContainer}>
                                 <View style={styles.postCardHeader}>
@@ -1038,15 +1043,13 @@ export default function ForumScreen() {
                                             </View>
                                             <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
                                         </View>
-                                        {selectedPost.authorId === user?.id && (
-                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <TouchableOpacity onPress={() => handleEditPost(selectedPost)} style={{ padding: 12 }}>
-                                                    <IconSymbol name="pencil" size={22} color="#6366F1" />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ padding: 12 }}>
-                                                    <IconSymbol name="trash.fill" size={22} color="#EF4444" />
-                                                </TouchableOpacity>
-                                            </View>
+                                        {selectedPost.authorId !== user?.id && (
+                                            <TouchableOpacity 
+                                                style={[styles.reportIconButton, { alignSelf: 'center', marginLeft: 10 }]}
+                                                onPress={() => handleReport(selectedPost.id)}
+                                            >
+                                                <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
+                                            </TouchableOpacity>
                                         )}
                                     </View>
                                 </View>
@@ -1110,20 +1113,25 @@ export default function ForumScreen() {
                                             </Text>
                                         </TouchableOpacity>
                                     </View>
-                                    {selectedPost.authorId !== user?.id && (
-                                        <TouchableOpacity 
-                                            style={styles.reportIconButton}
-                                            onPress={() => handleReport(selectedPost.id)}
-                                        >
-                                            <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#EF4444" />
-                                        </TouchableOpacity>
+                                    {selectedPost.authorId === user?.id && (
+                                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                                            <TouchableOpacity onPress={() => handleEditPost(selectedPost)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
+                                                <IconSymbol name="pencil" size={14} color="#64748B" />
+                                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B' }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
+                                                <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#EF4444' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     )}
                                 </View>
                             </View>
                         )}
-                        <View style={styles.commentsSection}>
+                        <View style={[styles.commentsSection, { flex: 1, paddingBottom: 0 }]}>
                             <Text style={styles.commentsTitle}>{t('forum.comments')}</Text>
-                            {replies.length > 0 ? (
+                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                                {replies.length > 0 ? (
                                 replies.map(reply => (
                                     <View key={reply.id} style={styles.replyItem}>
                                         <View style={styles.replyHeader}>
@@ -1136,18 +1144,20 @@ export default function ForumScreen() {
                                                 <Text style={styles.replyAuthor}>{reply.authorName || 'Anonim'}</Text>
                                                 <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
                                             </View>
-                                            {reply.authorId === user?.id && (
-                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                    <TouchableOpacity onPress={() => handleEditReply(reply)} style={{ padding: 10, marginLeft: 4 }}>
-                                                        <IconSymbol name="pencil" size={18} color="#6366F1" />
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity onPress={() => handleDeletePost(reply.id)} style={{ padding: 10, marginLeft: 4 }}>
-                                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            )}
                                         </View>
                                         <Text style={styles.replyContent}>{reply.content}</Text>
+                                        {reply.authorId === user?.id && (
+                                            <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+                                                <TouchableOpacity onPress={() => handleEditReply(reply)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
+                                                    <IconSymbol name="pencil" size={14} color="#64748B" />
+                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B' }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => handleDeletePost(reply.id)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
+                                                    <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#EF4444' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        )}
                                     </View>
                                 ))
                             ) : (
@@ -1158,35 +1168,29 @@ export default function ForumScreen() {
                                     color="#64748B"
                                     compact={true}
                                 />
-                            )}
+                                )}
+                            </ScrollView>
                         </View>
-                    </ScrollView>
-                    {(user?.role === 'ISLANDER' || user?.role === 'ADMIN') ? (
-                        <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-                            <TextInput
-                                style={[styles.commentInput, { maxHeight: 120 }]}
-                                placeholder={t('forum.addComment', { defaultValue: i18n.language.startsWith('en') ? 'Add a comment...' : 'Bir yorum ekle...' })}
-                                placeholderTextColor="#94A3B8"
-                                multiline
-                                scrollEnabled={true}
-                                value={newReplyContent}
-                                onChangeText={setNewReplyContent}
-                            />
-                            <TouchableOpacity
-                                style={[styles.sendCommentBtn, !newReplyContent.trim() && { opacity: 0.5 }]}
-                                onPress={handleSendReply}
-                                disabled={!newReplyContent.trim()}
-                            >
-                                <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
-                            </TouchableOpacity>
-                        </View>
-                    ) : (
-                        <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16), justifyContent: 'center' }]}>
-                            <Text style={{ textAlign: 'center', color: '#94A3B8', padding: 12, fontWeight: '500' }}>
-                                {t('common.islanderOnlyWrite', { defaultValue: i18n.language.startsWith('en') ? 'Only Islanders can write' : 'Sadece Adalılar yazabilir' })}
-                            </Text>
-                        </View>
-                    )}
+                    </View>
+                    <View style={[styles.commentInputArea, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                        <TextInput
+                            ref={replyInputRef}
+                            style={[styles.commentInput, { maxHeight: 120 }]}
+                            placeholder={t('forum.addComment', { defaultValue: i18n.language.startsWith('en') ? 'Add a comment...' : 'Bir yorum ekle...' })}
+                            placeholderTextColor="#94A3B8"
+                            multiline
+                            scrollEnabled={true}
+                            value={newReplyContent}
+                            onChangeText={setNewReplyContent}
+                        />
+                        <TouchableOpacity
+                            style={[styles.sendCommentBtn, !newReplyContent.trim() && { opacity: 0.5 }]}
+                            onPress={handleSendReply}
+                            disabled={!newReplyContent.trim()}
+                        >
+                            <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
+                        </TouchableOpacity>
+                    </View>
                 </KeyboardAvoidingView>
             </Modal>
             <Modal
@@ -1199,7 +1203,7 @@ export default function ForumScreen() {
                     style={styles.modalContainer} 
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <View style={styles.modalHeader}>
+                    <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
                         <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity onPress={() => setIsAdModalVisible(false)} style={styles.modalHeaderButton}>
                                 <Text style={styles.cancelText}>{t('common.cancel')}</Text>
@@ -1304,7 +1308,7 @@ export default function ForumScreen() {
             {/* Rules Modal */}
             <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-                    <View style={styles.modalHeader}>
+                    <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
                         <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
@@ -1378,6 +1382,7 @@ const styles = StyleSheet.create({
     },
     tabsContainer: {
         paddingHorizontal: 20,
+        paddingRight: 40,
         gap: 12,
     },
     tabItem: {

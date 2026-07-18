@@ -231,7 +231,7 @@ export default function SignUpScreen() {
                                         color={errors.contact ? '#EF4444' : '#94A3B8'}
                                     />
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.input, { textAlign: 'center' }]}
                                         placeholder={(errors.contact && focusedField !== 'contact') ? errors.contact : "ornek@email.com veya +90 555 000 00 00"}
                                         placeholderTextColor={(errors.contact && focusedField !== 'contact') ? "#EF4444" : "#94A3B8"}
                                         keyboardType="email-address"
@@ -265,7 +265,7 @@ export default function SignUpScreen() {
                                             handlePasswordBlur();
                                         }}
                                     />
-                                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                                         <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                     </TouchableOpacity>
                                 </View>
@@ -391,7 +391,7 @@ export default function SignUpScreen() {
                             <View style={styles.socialGrid}>
                                 <View style={styles.socialButtonWrapper}>
                                     <View style={[styles.socialButton, styles.socialButtonDisabled]}>
-                                        <IconSymbol name="globe" size={20} color="#94A3B8" />
+                                        <IconSymbol name="globe" size={16} color="#94A3B8" />
                                         <Text style={[styles.socialButtonText, styles.socialButtonTextDisabled]}>Google</Text>
                                     </View>
                                     <View style={styles.comingSoonBadge}>
@@ -400,7 +400,7 @@ export default function SignUpScreen() {
                                 </View>
                                 <View style={styles.socialButtonWrapper}>
                                     <View style={[styles.socialButton, styles.socialButtonDisabled]}>
-                                        <IconSymbol name="apple.logo" size={20} color="#94A3B8" />
+                                        <IconSymbol name="apple.logo" size={16} color="#94A3B8" />
                                         <Text style={[styles.socialButtonText, styles.socialButtonTextDisabled]}>Apple</Text>
                                     </View>
                                     <View style={styles.comingSoonBadge}>
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     inputGroup: {
-        marginBottom: 12,
+        marginBottom: 8,
     },
     inputLabel: {
         fontSize: 9,
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        paddingVertical: 10,
+        paddingVertical: 6,
         paddingHorizontal: 12,
     },
     dateCellShort: {
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: '#E2E8F0',
         borderRadius: 12,
-        paddingVertical: 14,
+        paddingVertical: 10,
     },
     socialButtonDisabled: {
         backgroundColor: '#F8FAFC',
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     },
     socialButtonText: {
         marginLeft: 8,
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '700',
         color: '#1E293B',
     },
