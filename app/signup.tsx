@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
@@ -19,10 +19,17 @@ export default function SignUpScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { inviteToken, email: inviteEmail } = useLocalSearchParams<{ inviteToken?: string; email?: string }>();
+    const { inviteToken } = useLocalSearchParams<{ inviteToken?: string }>();
 
     const [name, setName] = useState('');
-    const [contact, setContact] = useState(inviteEmail ?? '');
+    const [contact, setContact] = useState('');
+
+    useEffect(() => {
+        if (!inviteToken) return;
+        authApi.getInviteEmail(inviteToken).then(email => {
+            if (email) setContact(email);
+        });
+    }, [inviteToken]);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);

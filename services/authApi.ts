@@ -195,6 +195,17 @@ export const authApi = {
     }
   },
 
+  getInviteEmail: async (inviteToken: string): Promise<string | null> => {
+    try {
+      const response = await fetch(`${AUTH_BASE_URL}/invite?token=${encodeURIComponent(inviteToken)}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.email ?? null;
+    } catch {
+      return null;
+    }
+  },
+
   deleteAccount: async (token: string): Promise<boolean> => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
