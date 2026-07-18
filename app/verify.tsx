@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
+import { useAuth } from '@/context/AuthContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CODE_LENGTH = 6;
@@ -21,6 +22,7 @@ const maskPhone = (phone: string) => {
 export default function VerifyScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { login } = useAuth();
 
     // Support legacy `email` param for any existing deep-links/back-compat
     const { contact: contactParam, email: emailParam, type } = useLocalSearchParams<{
@@ -90,7 +92,7 @@ export default function VerifyScreen() {
         setLoading(true);
         try {
             const response = await authApi.verifyOtp(contact, fullCode);
-            await setAuthLogin(response.user, response.token);
+            await login(response.user, response.token);
             router.replace('/(tabs)/explore');
         } catch (err: any) {
             const msg = (err.message || '').toLowerCase();
