@@ -33,6 +33,7 @@ export const sendChatMessageStream = async (
     });
 
     if (!response.ok) {
+      if (response.status === 429) throw new Error('daily_limit_reached');
       const body = await response.json().catch(() => ({}));
       throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
     }
@@ -95,6 +96,7 @@ export const sendChatMessage = async (message: string, island?: string): Promise
       signal: controller.signal,
     });
     if (!response.ok) {
+      if (response.status === 429) throw new Error('daily_limit_reached');
       const body = await response.json().catch(() => ({}));
       throw new Error(body.message || `İstek başarısız oldu (${response.status})`);
     }
