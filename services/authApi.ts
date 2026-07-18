@@ -51,16 +51,19 @@ export const authApi = {
     birthDate?: string,
     island?: string,
     inviteToken?: string,
+    additionalPhone?: string,
   ): Promise<{ message: string }> => {
     try {
       const sanitized = sanitizeContact(contact);
       const contactField = isPhoneContact(sanitized) ? { phone: sanitized } : { email: sanitized };
+      const normalizedAdditionalPhone = additionalPhone ? normalizePhone(additionalPhone) : undefined;
       const response = await fetchWithTimeout(`${AUTH_BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: fullName.trim(),
           ...contactField,
+          ...(!contactField.phone && normalizedAdditionalPhone ? { phone: normalizedAdditionalPhone } : {}),
           password,
           kvkkAccepted,
           termsAccepted,

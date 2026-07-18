@@ -165,7 +165,10 @@ export default function SignUpScreen() {
                 birthDay && birthMonth && birthYear
                     ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
                     : undefined;
-            const actualContact = email.trim() ? email.trim() : phoneNumber.trim();
+            const emailVal = email.trim();
+            const phoneVal = phoneNumber.trim();
+            const actualContact = emailVal || phoneVal;
+            const additionalPhone = emailVal && phoneVal ? phoneVal : undefined;
             await authApi.signup(
                 name.trim(),
                 actualContact,
@@ -175,6 +178,7 @@ export default function SignUpScreen() {
                 birthDate,
                 selectedIsland ?? undefined,
                 inviteToken ?? undefined,
+                additionalPhone,
             );
             const contactType = isPhonePattern(actualContact) ? 'phone' : 'email';
             router.push({ pathname: '/verify', params: { contact: actualContact, type: contactType } });
