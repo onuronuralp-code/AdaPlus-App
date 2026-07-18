@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/context/AuthContext';
 import { contactApi } from '@/services/contactApi';
+import { s, vs, ms } from '@/utils/scale';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -82,7 +83,7 @@ export default function ContactScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + vs(10) }]}>
         <Text style={styles.headerTitle}>{t('common.tabRequests')}</Text>
       </View>
 
@@ -90,11 +91,11 @@ export default function ContactScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.scrollContent, { paddingBottom: 16 }]}>
+        <View style={[styles.scrollContent, { paddingBottom: vs(16) }]}>
           {/* Separate Info Banner Component */}
           <View style={styles.infoBanner}>
             <View style={styles.infoIconContainer}>
-              <IconSymbol name="info.circle.fill" size={18} color="#10B981" />
+              <IconSymbol name="info.circle.fill" size={ms(18)} color="#10B981" />
             </View>
             <Text style={styles.infoBannerText}>
               {t('common.contactSubtitle')}
@@ -108,7 +109,7 @@ export default function ContactScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('common.fullName')}</Text>
               <View style={[styles.inputWrapper, errors.fullName ? styles.inputWrapperError : null]}>
-                <IconSymbol name="person.fill" size={18} color={errors.fullName ? '#EF4444' : '#94A3B8'} />
+                <IconSymbol name="person.fill" size={ms(18)} color={errors.fullName ? '#EF4444' : '#94A3B8'} />
                 <TextInput
                   style={styles.input}
                   placeholder={t('common.fullNamePlaceholder')}
@@ -120,7 +121,7 @@ export default function ContactScreen() {
               </View>
               {errors.fullName && (
                 <View style={styles.errorRow}>
-                  <IconSymbol name="exclamationmark.circle.fill" size={12} color="#EF4444" />
+                  <IconSymbol name="exclamationmark.circle.fill" size={ms(12)} color="#EF4444" />
                   <Text style={styles.errorText}>{errors.fullName}</Text>
                 </View>
               )}
@@ -129,7 +130,7 @@ export default function ContactScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('common.email')}</Text>
               <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
-                <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
+                <IconSymbol name="envelope.fill" size={ms(18)} color={errors.email ? '#EF4444' : '#94A3B8'} />
                 <TextInput
                   style={styles.input}
                   placeholder={t('common.emailPlaceholder')}
@@ -171,7 +172,7 @@ export default function ContactScreen() {
             </View>
           </View>
 
-          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={[styles.submitButtonWrapper, { marginTop: 0, marginBottom: 12 }]} disabled={isSubmitting}>
+          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.9} style={[styles.submitButtonWrapper, { marginTop: 0, marginBottom: vs(12) }]} disabled={isSubmitting}>
             <LinearGradient
               colors={['#10B981', '#059669']} 
               start={{ x: 0, y: 0 }}
@@ -182,7 +183,7 @@ export default function ContactScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <IconSymbol name="paperplane.fill" size={20} color="#fff" />
+                  <IconSymbol name="paperplane.fill" size={ms(20)} color="#fff" />
                   <Text style={styles.submitButtonText}>{t('contact.send')}</Text>
                 </>
               )}
@@ -201,15 +202,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', 
   },
   header: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: s(20),
+    paddingBottom: vs(16),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: ms(26),
     fontWeight: '800',
     color: '#0F172A',
     letterSpacing: -0.5,
@@ -218,79 +219,79 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC', 
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 24,
+    borderRadius: s(16),
+    padding: s(18),
+    marginBottom: vs(24),
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   infoIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: s(40),
+    height: s(40),
+    borderRadius: s(10),
     backgroundColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: s(14),
   },
   infoBannerText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: ms(14),
     color: '#475569', 
     fontWeight: '700',
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   scrollContent: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 24,
+    paddingHorizontal: s(20),
+    paddingTop: vs(24),
+    paddingBottom: vs(24),
   },
   formCard: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: s(20),
+    padding: s(24),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: vs(8) },
     shadowOpacity: 0.08,
-    shadowRadius: 24,
+    shadowRadius: s(24),
     elevation: 8,
-    marginBottom: 12,
+    marginBottom: vs(12),
   },
   formHeader: {
-    marginBottom: 24,
+    marginBottom: vs(24),
   },
   formTitle: {
-    fontSize: 22,
+    fontSize: ms(22),
     fontWeight: '800',
     color: '#0F172A',
-    marginBottom: 6,
+    marginBottom: vs(6),
     letterSpacing: -0.4,
   },
   formSubtitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: '#64748B',
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: vs(20),
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '800',
-    color: '#64748B', // Slate 500
-    marginBottom: 10,
+    color: '#64748B',
+    marginBottom: vs(10),
     letterSpacing: 0.8,
-    marginLeft: 4,
+    marginLeft: s(4),
     textTransform: 'uppercase',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC', 
-    borderRadius: 14,
-    paddingHorizontal: 18,
+    borderRadius: s(14),
+    paddingHorizontal: s(18),
     borderWidth: 1.5,
     borderColor: '#F1F5F9',
   },
@@ -300,9 +301,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    fontSize: 16,
+    paddingVertical: vs(16),
+    paddingHorizontal: s(12),
+    fontSize: ms(16),
     color: '#0F172A',
     fontWeight: '600',
   },
@@ -311,24 +312,24 @@ const styles = StyleSheet.create({
   },
   textArea: {
     flex: 1,
-    paddingTop: 14,
+    paddingTop: vs(14),
   },
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 8,
-    marginLeft: 6,
+    gap: s(6),
+    marginTop: vs(8),
+    marginLeft: s(6),
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '600',
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(20),
+    paddingTop: vs(12),
+    paddingBottom: vs(24),
     backgroundColor: '#F8FAFC',
   },
   submitButtonWrapper: {
@@ -336,20 +337,20 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flexDirection: 'row',
-    borderRadius: 14,
-    paddingVertical: 17,
+    borderRadius: s(14),
+    paddingVertical: vs(17),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: s(12),
     shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: vs(8) },
     shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowRadius: s(20),
     elevation: 8,
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: ms(17),
     fontWeight: '800',
     letterSpacing: 0.5,
   },

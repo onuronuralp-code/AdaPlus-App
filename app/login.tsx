@@ -9,8 +9,7 @@ import { authApi } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ErrorModal from '@/components/ErrorModal';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
 
 export default function LoginScreen() {
     const { t } = useTranslation();
@@ -128,26 +127,26 @@ export default function LoginScreen() {
             <View style={styles.headerBackground}>
                 <Image
                     source={require('@/assets/images/begonvil_alt.png')}
-                    style={{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }}
+                    style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
                     resizeMode="cover"
                 />
                 <LinearGradient 
                     colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                    style={[{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }]}
+                    style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
                 />
                 <TouchableOpacity 
-                    style={[styles.backButton, { top: insets.top + 10 }]} 
+                    style={[styles.backButton, { top: insets.top + vs(10) }]} 
                     onPress={() => {
                         if (router.canGoBack()) router.back();
                         else router.back();
                     }}
                 >
-                    <IconSymbol name="chevron.left" size={24} color="#fff" />
+                    <IconSymbol name="chevron.left" size={ms(24)} color="#fff" />
                 </TouchableOpacity>
 
-                <View style={[styles.branding, { paddingTop: insets.top - 10, paddingBottom: 20 }]}>
+                <View style={[styles.branding, { paddingTop: insets.top - vs(10), paddingBottom: vs(20) }]}>
                     <View style={styles.logoCircle}>
-                        <IconSymbol name="person.fill" size={36} color="#fff" />
+                        <IconSymbol name="person.fill" size={ms(36)} color="#fff" />
                     </View>
                     <Text style={styles.welcomeTitle}>{isForgotPassword ? t('auth.resetTitle') : t('auth.loginTitle')}</Text>
                     <Text style={styles.welcomeSubtitle}>
@@ -163,7 +162,7 @@ export default function LoginScreen() {
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>{t('auth.emailLabel')}</Text>
                         <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
-                            <IconSymbol name="envelope.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
+                            <IconSymbol name="envelope.fill" size={ms(18)} color={errors.email ? '#EF4444' : '#94A3B8'} />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder={(errors.email && focusedField !== 'email') ? errors.email : t('auth.emailPlaceholder')}
@@ -190,7 +189,7 @@ export default function LoginScreen() {
                                 </TouchableOpacity>
                             </View>
                             <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
-                                <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
+                                <IconSymbol name="lock.fill" size={ms(18)} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
                                     style={[styles.input, { flex: 1 }]} 
                                     placeholder={(errors.password && focusedField !== 'password') ? errors.password : t('auth.passwordPlaceholder')}
@@ -204,8 +203,8 @@ export default function LoginScreen() {
                                         handlePasswordBlur();
                                     }}
                                 />
-                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-                                    <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: s(4) }}>
+                                    <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={ms(18)} color="#94A3B8" />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -225,7 +224,7 @@ export default function LoginScreen() {
                     </TouchableOpacity>
 
                     {isForgotPassword ? (
-                        <TouchableOpacity style={{ marginTop: 24, alignItems: 'center' }} onPress={() => setIsForgotPassword(false)}>
+                        <TouchableOpacity style={{ marginTop: vs(24), alignItems: 'center' }} onPress={() => setIsForgotPassword(false)}>
                             <Text style={{ color: '#64748B', fontWeight: 'bold' }}>{t('auth.backToLogin')}</Text>
                         </TouchableOpacity>
                     ) : (
@@ -256,34 +255,34 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    headerBackground: { height: SCREEN_HEIGHT * 0.35, paddingHorizontal: 30, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+    headerBackground: { height: SCREEN_HEIGHT * 0.35, paddingHorizontal: s(30), overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
     backButton: { 
         position: 'absolute', 
-        left: 20, 
+        left: s(20), 
         zIndex: 10, 
-        width: 44, 
-        height: 44, 
-        borderRadius: 12, 
+        width: s(44), 
+        height: s(44), 
+        borderRadius: s(12), 
         backgroundColor: 'rgba(255,255,255,0.15)', 
         alignItems: 'center', 
         justifyContent: 'center'
     },
     branding: { alignItems: 'center' },
-    logoCircle: { width: 72, height: 72, borderRadius: 36, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
-    welcomeTitle: { fontSize: 20, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },
-    welcomeSubtitle: { fontSize: 11, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 16, paddingHorizontal: 20 },
-    cardContainer: { flex: 1, backgroundColor: '#fff', marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 16 },
-    formContainer: { flex: 1, paddingBottom: 20 },
-    inputGroup: { marginBottom: 10 },
-    inputLabel: { fontSize: 11, fontWeight: '800', color: '#415A77', marginBottom: 8, letterSpacing: 1 },
-    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#E2E8F0' },
-    input: { flex: 1, marginLeft: 12, fontSize: 16, color: '#0D1B2A', fontWeight: '500' },
-    forgotText: { fontSize: 11, fontWeight: '800', color: '#10B981', marginBottom: 8 },
-    primaryButton: { backgroundColor: '#10B981', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 8 },
-    primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
-    signupButtonOutline: { marginTop: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 14, borderRadius: 12, borderWidth: 1.5, borderColor: '#10B981', backgroundColor: '#FFFFFF' },
-    footerText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
-    signupText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
+    logoCircle: { width: s(72), height: s(72), borderRadius: s(36), marginBottom: vs(16), backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: vs(10) }, shadowOpacity: 0.3, shadowRadius: s(20) },
+    welcomeTitle: { fontSize: ms(20), fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: vs(8) },
+    welcomeSubtitle: { fontSize: ms(11), color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: ms(16), paddingHorizontal: s(20) },
+    cardContainer: { flex: 1, backgroundColor: '#fff', marginTop: vs(-20), borderTopLeftRadius: s(24), borderTopRightRadius: s(24), paddingHorizontal: s(20), paddingTop: vs(16) },
+    formContainer: { flex: 1, paddingBottom: vs(20) },
+    inputGroup: { marginBottom: vs(10) },
+    inputLabel: { fontSize: ms(11), fontWeight: '800', color: '#415A77', marginBottom: vs(8), letterSpacing: 1 },
+    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: s(12), paddingHorizontal: s(16), paddingVertical: vs(14), borderWidth: 1, borderColor: '#E2E8F0' },
+    input: { flex: 1, marginLeft: s(12), fontSize: ms(16), color: '#0D1B2A', fontWeight: '500' },
+    forgotText: { fontSize: ms(11), fontWeight: '800', color: '#10B981', marginBottom: vs(8) },
+    primaryButton: { backgroundColor: '#10B981', borderRadius: s(12), paddingVertical: vs(14), alignItems: 'center', justifyContent: 'center', marginTop: vs(10), shadowColor: '#10B981', shadowOffset: { width: 0, height: vs(8) }, shadowOpacity: 0.25, shadowRadius: s(15), elevation: 8 },
+    primaryButtonText: { color: '#fff', fontSize: ms(17), fontWeight: 'bold' },
+    signupButtonOutline: { marginTop: vs(16), flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: vs(14), borderRadius: s(12), borderWidth: 1.5, borderColor: '#10B981', backgroundColor: '#FFFFFF' },
+    footerText: { fontSize: ms(14), color: '#64748B', fontWeight: '600' },
+    signupText: { fontSize: ms(14), fontWeight: '800', color: '#10B981' },
     inputWrapperError: { borderColor: '#EF4444', borderWidth: 1.5 },
-    errorText: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginTop: 4, marginLeft: 4 },
+    errorText: { color: '#EF4444', fontSize: ms(12), fontWeight: '600', marginTop: vs(4), marginLeft: s(4) },
 });

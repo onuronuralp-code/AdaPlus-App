@@ -384,11 +384,11 @@ export default function MainMenuScreen() {
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'flex-start', 
-        paddingTop: insets.top + (isIphone11 ? 24 : 12), 
+        paddingTop: insets.top + (isIphone11 ? 44 : 12), 
         paddingHorizontal: 20 
       }, isSmallScreen && { marginBottom: 12 }, isLargeScreen && { marginBottom: 20 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, { marginBottom: 8 }]}>
+          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 8 }]}>
             {isLoggedIn && user
               ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}! 🌸`
               : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! 🌸`}
@@ -527,9 +527,9 @@ export default function MainMenuScreen() {
                   
                   {/* Top Row */}
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
-                    <View style={{ backgroundColor: slide.type === 'listing' ? '#10B981' : '#3B82F6', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                      {slide.type === 'banner' && <IconSymbol name="exclamationmark.circle.fill" size={isLargeScreen ? 12 : 10} color="#FFF" />}
-                      <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 11 : 11, fontWeight: '700' }}>
+                    <View style={{ backgroundColor: slide.type === 'listing' ? '#10B981' : '#3B82F6', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                      {slide.type === 'banner' && <IconSymbol name="exclamationmark.circle.fill" size={isLargeScreen ? 14 : 12} color="#FFF" />}
+                      <Text style={{ color: '#FFF', fontSize: isLargeScreen ? 12 : 12, fontWeight: '700' }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'FEATURED LISTING' : 'ÖNE ÇIKAN İLAN') 
                           : (slide.type === 'banner' 
@@ -538,15 +538,15 @@ export default function MainMenuScreen() {
                       </Text>
                     </View>
                     <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-                      style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}
+                      style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}
                       onPress={() => navigateWithDebounce(slide.type === 'listing' ? '/(tabs)/explore/island/ilanlar' : '/(tabs)/explore/island/events')}
                     >
-                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 11 : 11, fontWeight: '700', marginRight: 4 }}>
+                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'All Listings' : 'Tüm İlanlar') 
                           : (i18n.language.startsWith('en') ? 'All Events' : 'Tüm Etkinlikler')}
                       </Text>
-                      <IconSymbol name="arrow.right" size={10} color="#0F172A" />
+                      <IconSymbol name="arrow.right" size={12} color="#0F172A" />
                     </Pressable>
                   </View>
 
@@ -583,13 +583,13 @@ export default function MainMenuScreen() {
                     )}
 
                     {/* Button */}
-                    <View style={{ backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', marginRight: 4 }}>
+                    <View style={{ backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 14 : 13, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'View' : 'İncele') 
                           : (i18n.language.startsWith('en') ? 'Register' : 'Kayıt Ol')}
                       </Text>
-                      <IconSymbol name="arrow.right" size={isLargeScreen ? 14 : 12} color="#0F172A" />
+                      <IconSymbol name="arrow.right" size={isLargeScreen ? 16 : 14} color="#0F172A" />
                     </View>
                   </View>
                 </ImageBackground>
@@ -648,8 +648,8 @@ export default function MainMenuScreen() {
               </View>
             )}
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#3B82F6', marginBottom: 2 }}>{t('explore.events')}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
         </Pressable>
 
         {/* Ada AI */}
@@ -663,8 +663,8 @@ export default function MainMenuScreen() {
           <View style={{ width: isLargeScreen ? 44 : 38, height: isLargeScreen ? 44 : 38, borderRadius: 8, backgroundColor: '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <IconSymbol name="pawprint.fill" size={isLargeScreen ? 24 : 20} color="#EC4899" />
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B' }}>{t('explore.yourGuide')}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EC4899', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
         </Pressable>
 
         {/* İlanlar */}
@@ -689,8 +689,8 @@ export default function MainMenuScreen() {
               </View>
             )}
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
-          <Text style={{ fontSize: 11, color: '#64748B' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 15 : 14, fontWeight: '800', color: '#EAB308', marginBottom: 2 }}>{t('explore.listings')}</Text>
+          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
         </Pressable>
 
         {/* Paket Servis */}
@@ -709,7 +709,7 @@ export default function MainMenuScreen() {
           <View style={{ width: isLargeScreen ? 40 : 36, height: isLargeScreen ? 40 : 36, borderRadius: 8, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
             <IconSymbol name="bag.fill" size={isLargeScreen ? 20 : 18} color="#8B5CF6" />
           </View>
-          <Text style={{ fontSize: isLargeScreen ? 13 : 13, lineHeight: 16, fontWeight: '700', color: '#8B5CF6', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
+          <Text style={{ fontSize: isLargeScreen ? 14 : 13, lineHeight: 18, fontWeight: '800', color: '#8B5CF6', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : (isLargeScreen ? 'Paket\nServis' : 'Paket Servis')}</Text>
           <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}>
             <Text style={{ fontSize: 10, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
           </View>
@@ -763,13 +763,29 @@ export default function MainMenuScreen() {
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#3B82F6" />
               </View>
-            ) : notifications.length === 0 ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 }}>
-                <IconSymbol name="megaphone.fill" size={48} color="#CBD5E1" />
-                <Text style={{ marginTop: 16, fontSize: 14, fontWeight: '600', color: '#64748B' }}>Henüz duyuru yok.</Text>
-              </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Static Pinned Announcement */}
+                <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
+                  style={{ backgroundColor: '#F0FDF4', borderRadius: 12, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: '#BBF7D0' }}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 12 }}>
+                      <IconSymbol name="pin.fill" size={14} color="#10B981" />
+                      <Text style={{ fontSize: 16, fontWeight: '800', color: '#064E3B' }}>Adalı Olma Adımları</Text>
+                    </View>
+                  </View>
+                  <Text style={{ fontSize: 13, color: '#065F46', lineHeight: 20, marginBottom: 12 }}>
+                    AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
+                    {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
+                    {"\n"}• İletişim sayfasından doğrulama talebinde bulun.
+                    {"\n\n"}Onaylı Adalılar; vapurlarda, etkinliklerde ve mekanlarda özel indirimlere sahip olur!
+                  </Text>
+                  <TouchableOpacity onPress={() => { setShowNotificationModal(false); navigateWithDebounce('/(tabs)/contact'); }} style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>Talep Gönder</Text>
+                  </TouchableOpacity>
+                </Pressable>
+
                 {notifications.map(notif => (
                   <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                     key={notif.id} 

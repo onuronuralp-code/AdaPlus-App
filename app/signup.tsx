@@ -8,8 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 import { useTranslation } from 'react-i18next';
 import { KVKKModal } from '@/components/KVKKModal';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
 
 const ISLANDS = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Adalı değilim'];
 
@@ -158,26 +157,26 @@ export default function SignUpScreen() {
                     <View style={styles.headerBackground}>
                         <Image
                             source={require('@/assets/images/sunset.jpg')}
-                            style={{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }}
+                            style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
                             resizeMode="cover"
                         />
                         <LinearGradient 
                             colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                            style={[{ position: 'absolute', width: Dimensions.get('window').width, height: '100%' }]}
+                            style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
                         />
                         <TouchableOpacity
-                            style={[styles.backButton, { top: insets.top + 10 }]}
+                            style={[styles.backButton, { top: insets.top + vs(10) }]}
                             onPress={() => {
                                 if (router.canGoBack()) router.back();
                                 else router.replace('/login');
                             }}
                         >
-                            <IconSymbol name="chevron.left" size={24} color="#fff" />
+                            <IconSymbol name="chevron.left" size={ms(24)} color="#fff" />
                         </TouchableOpacity>
 
-                        <View style={[styles.branding, { paddingTop: insets.top - 10, paddingBottom: 20 }]}>
+                        <View style={[styles.branding, { paddingTop: insets.top - vs(10), paddingBottom: vs(20) }]}>
                             <View style={styles.logoCircle}>
-                                <IconSymbol name="person.fill" size={36} color="#fff" />
+                                <IconSymbol name="person.fill" size={ms(36)} color="#fff" />
                             </View>
                             <Text style={styles.welcomeTitle}>{t('auth.signupTitle')}</Text>
                             <Text style={styles.welcomeSubtitle}>{t('auth.signupSubtitle')}</Text>
@@ -186,16 +185,16 @@ export default function SignUpScreen() {
 
                     <View style={styles.cardContainer}>
                         {!!inviteToken && (
-                            <View style={{ backgroundColor: '#ECFDF5', borderRadius: 12, marginHorizontal: 20, marginTop: 16, marginBottom: -8, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: '#6EE7B7' }}>
-                                <IconSymbol name="checkmark.seal.fill" size={18} color="#059669" />
-                                <Text style={{ color: '#065F46', fontSize: 13, fontWeight: '600', flex: 1 }}>
+                            <View style={{ backgroundColor: '#ECFDF5', borderRadius: s(12), marginHorizontal: s(20), marginTop: vs(16), marginBottom: vs(-8), padding: s(12), flexDirection: 'row', alignItems: 'center', gap: s(8), borderWidth: 1, borderColor: '#6EE7B7' }}>
+                                <IconSymbol name="checkmark.seal.fill" size={ms(18)} color="#059669" />
+                                <Text style={{ color: '#065F46', fontSize: ms(13), fontWeight: '600', flex: 1 }}>
                                     Ada sakini olarak davet edildiniz! Hesabınız adalı statüsüyle oluşturulacak.
                                 </Text>
                             </View>
                         )}
                         <ScrollView
                             style={styles.formScroll}
-                            contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + 12 }]}
+                            contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + vs(12) }]}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
                             scrollEnabled={false}
@@ -436,18 +435,18 @@ const styles = StyleSheet.create({
     },
     headerBackground: {
         height: SCREEN_HEIGHT * 0.36,
-        paddingHorizontal: 30,
+        paddingHorizontal: s(30),
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
     },
     backButton: {
         position: 'absolute',
-        left: 20,
+        left: s(20),
         zIndex: 10,
-        width: 44,
-        height: 44,
-        borderRadius: 12,
+        width: s(44),
+        height: s(44),
+        borderRadius: s(12),
         backgroundColor: 'rgba(255,255,255,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
@@ -456,56 +455,56 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logoCircle: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        marginBottom: 16,
+        width: s(72),
+        height: s(72),
+        borderRadius: s(36),
+        marginBottom: vs(16),
         backgroundColor: 'rgba(255,255,255,0.2)',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
+        shadowOffset: { width: 0, height: vs(10) },
         shadowOpacity: 0.3,
-        shadowRadius: 20,
+        shadowRadius: s(20),
     },
     welcomeTitle: {
-        fontSize: 20,
+        fontSize: ms(20),
         fontWeight: '900',
         color: '#fff',
         textAlign: 'center',
-        marginBottom: 8,
+        marginBottom: vs(8),
     },
     welcomeSubtitle: {
-        fontSize: 11,
+        fontSize: ms(11),
         color: 'rgba(255,255,255,0.7)',
         textAlign: 'center',
-        lineHeight: 16,
-        paddingHorizontal: 20,
+        lineHeight: ms(16),
+        paddingHorizontal: s(20),
     },
     cardContainer: {
         flex: 1,
         backgroundColor: '#fff',
-        marginTop: -20,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        marginTop: vs(-20),
+        borderTopLeftRadius: s(24),
+        borderTopRightRadius: s(24),
         overflow: 'hidden',
     },
     formScroll: {
         flex: 1,
-        paddingHorizontal: 20,
-        paddingTop: 16,
+        paddingHorizontal: s(20),
+        paddingTop: vs(16),
     },
     formContainer: {
         flexGrow: 1,
     },
     inputGroup: {
-        marginBottom: 8,
+        marginBottom: vs(8),
     },
     inputLabel: {
-        fontSize: 9,
+        fontSize: ms(9),
         fontWeight: '800',
         color: '#415A77',
-        marginBottom: 8,
+        marginBottom: vs(8),
         letterSpacing: 0.5,
     },
     optionalTag: {
@@ -517,9 +516,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#F8FAFC',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        borderRadius: s(12),
+        paddingHorizontal: s(16),
+        paddingVertical: vs(10),
         borderWidth: 1,
         borderColor: '#E2E8F0',
     },
@@ -529,8 +528,8 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        marginLeft: 12,
-        fontSize: 13,
+        marginLeft: s(12),
+        fontSize: ms(13),
         color: '#0D1B2A',
         fontWeight: '500',
     },
@@ -538,50 +537,50 @@ const styles = StyleSheet.create({
     dateRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
+        gap: s(6),
     },
     dateCell: {
         backgroundColor: '#F8FAFC',
-        borderRadius: 12,
+        borderRadius: s(12),
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
+        paddingVertical: vs(6),
+        paddingHorizontal: s(12),
     },
     dateCellShort: {
-        width: 64,
+        width: s(64),
     },
     dateCellInput: {
-        fontSize: 13,
+        fontSize: ms(13),
         color: '#0D1B2A',
         fontWeight: '500',
         textAlign: 'center',
     },
     dateSep: {
-        fontSize: 18,
+        fontSize: ms(18),
         color: '#94A3B8',
         fontWeight: '600',
     },
     // Island dropdown
     dropdownList: {
-        marginTop: 4,
+        marginTop: vs(4),
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderRadius: s(12),
         borderWidth: 1,
         borderColor: '#E2E8F0',
         overflow: 'hidden',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: vs(4) },
         shadowOpacity: 0.08,
-        shadowRadius: 12,
+        shadowRadius: s(12),
         elevation: 4,
     },
     dropdownItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: s(16),
+        paddingVertical: vs(10),
     },
     dropdownItemBorder: {
         borderBottomWidth: 1,
@@ -591,7 +590,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#EFF6FF',
     },
     dropdownItemText: {
-        fontSize: 13,
+        fontSize: ms(13),
         color: '#1E293B',
         fontWeight: '500',
     },
@@ -602,27 +601,27 @@ const styles = StyleSheet.create({
     // Buttons
     primaryButton: {
         backgroundColor: '#3B82F6',
-        borderRadius: 12,
-        paddingVertical: 14,
+        borderRadius: s(12),
+        paddingVertical: vs(14),
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 10,
+        marginTop: vs(10),
         shadowColor: '#3B82F6',
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: vs(8) },
         shadowOpacity: 0.25,
-        shadowRadius: 15,
+        shadowRadius: s(15),
         elevation: 8,
     },
     primaryButtonText: {
         color: '#fff',
-        fontSize: 15,
+        fontSize: ms(15),
         fontWeight: 'bold',
     },
     divider: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 12,
+        marginVertical: vs(12),
     },
     line: {
         flex: 1,
@@ -630,15 +629,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#E2E8F0',
     },
     dividerText: {
-        marginHorizontal: 16,
-        fontSize: 12,
+        marginHorizontal: s(16),
+        fontSize: ms(12),
         fontWeight: '700',
         color: '#94A3B8',
     },
     socialGrid: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 16,
+        gap: s(16),
     },
     socialButtonWrapper: {
         flex: 1,
@@ -651,8 +650,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderWidth: 1.5,
         borderColor: '#E2E8F0',
-        borderRadius: 12,
-        paddingVertical: 10,
+        borderRadius: s(12),
+        paddingVertical: vs(10),
     },
     socialButtonDisabled: {
         backgroundColor: '#F8FAFC',
@@ -660,8 +659,8 @@ const styles = StyleSheet.create({
         opacity: 0.6,
     },
     socialButtonText: {
-        marginLeft: 8,
-        fontSize: 14,
+        marginLeft: s(8),
+        fontSize: ms(14),
         fontWeight: '700',
         color: '#1E293B',
     },
@@ -670,15 +669,15 @@ const styles = StyleSheet.create({
     },
     comingSoonBadge: {
         position: 'absolute',
-        top: -8,
-        right: -4,
+        top: vs(-8),
+        right: s(-4),
         backgroundColor: '#F59E0B',
-        borderRadius: 8,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
+        borderRadius: s(8),
+        paddingHorizontal: s(6),
+        paddingVertical: vs(2),
     },
     comingSoonText: {
-        fontSize: 9,
+        fontSize: ms(9),
         fontWeight: '800',
         color: '#fff',
         letterSpacing: 0.3,
@@ -686,14 +685,14 @@ const styles = StyleSheet.create({
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 20,
+        marginTop: vs(20),
     },
     footerText: {
-        fontSize: 14,
+        fontSize: ms(14),
         color: '#94A3B8',
     },
     loginText: {
-        fontSize: 14,
+        fontSize: ms(14),
         fontWeight: 'bold',
         color: '#3B82F6',
     },
@@ -703,9 +702,9 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: '#EF4444',
-        fontSize: 12,
+        fontSize: ms(12),
         fontWeight: '600',
-        marginTop: 4,
-        marginLeft: 4,
+        marginTop: vs(4),
+        marginLeft: s(4),
     },
 });
