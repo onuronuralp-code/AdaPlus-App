@@ -10,6 +10,7 @@ import {
     ActivityIndicator,
     Linking,
     Share,
+    Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -194,7 +195,7 @@ export default function EventDetailScreen() {
                     onPress={async () => {
                         try {
                             await Share.share({
-                                message: `${activity.name}\n\n${activity.description}\n\nAda Plus'ta incele!`,
+                                message: `${activity.name}\n\n${activity.description}\n\nAdaPlus'ta incele!`,
                             });
                         } catch (error) {
                             console.log('Share error:', error);
@@ -206,7 +207,7 @@ export default function EventDetailScreen() {
             </View>
 
             {/* Hero image (Fixed) */}
-            <Image source={{ uri: heroUri }} style={styles.heroImage} resizeMode="cover" />
+            <Image source={{ uri: heroUri }} style={[styles.heroImage, { backgroundColor: '#F1F5F9' }]} resizeMode="cover" />
 
             <ScrollView
                 style={{ flex: 1, marginTop: 0 }}
@@ -268,7 +269,28 @@ export default function EventDetailScreen() {
                             <Text style={styles.infoLabel}>{t('events.organizerLabel')}</Text>
                             <Text style={styles.infoValue}>{activity.organizerName}</Text>
                             {activity.organizerContact && (
-                                <Text style={styles.contactText}>{activity.organizerContact}</Text>
+                                <TouchableOpacity 
+                                    activeOpacity={0.6}
+                                    onPress={() => {
+                                        const contact = activity.organizerContact!.trim();
+                                        const isEmail = contact.includes('@');
+                                        const isPhone = /^\+?[0-9\s\-().]{7,20}$/.test(contact);
+
+                                        if (isEmail) {
+                                            Linking.openURL(`mailto:${contact}`).catch(() => {
+                                                Alert.alert('Hata', 'E-posta uygulaması açılamadı.');
+                                            });
+                                        } else if (isPhone) {
+                                            Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
+                                                Alert.alert('Hata', 'Arama ekranı açılamadı.');
+                                            });
+                                        } else {
+                                            Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {});
+                                        }
+                                    }}
+                                >
+                                    <Text style={[styles.contactText, { color: '#3B82F6', textDecorationLine: 'underline', marginTop: 4 }]}>{activity.organizerContact}</Text>
+                                </TouchableOpacity>
                             )}
                         </View>
                     </View>
@@ -341,19 +363,19 @@ const styles = StyleSheet.create({
     iconButton: {
         width: 44,
         height: 44,
-        borderRadius: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.55)',
+        borderRadius: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.45)',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
         elevation: 3,
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH,
+        height: SCREEN_WIDTH * 0.65,
         backgroundColor: '#F1F5F9',
     },
     content: {

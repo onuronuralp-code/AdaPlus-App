@@ -94,7 +94,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
       >
         {/* Base gradient */}
         <LinearGradient
-          colors={['#064E3B', '#059669', '#047857']}
+          colors={['#059669', '#10B981', '#059669']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFillObject}
@@ -154,10 +154,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: '#047857',
+    borderColor: '#10B981',
     paddingHorizontal: 12,
     justifyContent: 'center',
-    shadowColor: '#059669',
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -204,9 +204,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   subtext: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '600',
     marginTop: 2,
   },
   arrows: {

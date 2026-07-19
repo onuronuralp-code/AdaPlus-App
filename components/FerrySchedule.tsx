@@ -443,7 +443,7 @@ export function FerrySchedule() {
     setShowDatePicker(false);
   };
 
-  const bothMainland = departure !== "Unselected" && destination !== "Unselected" && MAINLAND.includes(departure) && MAINLAND.includes(destination);
+  const bothMainland = departure !== "Unselected" && destination !== "Unselected" && MAINLAND.includes(departure) && MAINLAND.includes(destination) && filteredData.length === 0;
 
   return (
     <View style={styles.container}>

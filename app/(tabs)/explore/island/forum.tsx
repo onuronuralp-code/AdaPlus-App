@@ -1947,7 +1947,7 @@ const styles = StyleSheet.create({
         borderRadius: s(12),
     },
     activePremiumPublishBtn: {
-        backgroundColor: '#3B82F6',
+        backgroundColor: '#10B981',
     },
     premiumPublishText: {
         color: '#FFFFFF',

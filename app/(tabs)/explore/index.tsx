@@ -199,6 +199,9 @@ export default function MainMenuScreen() {
   const [showIslanderStepsModal, setShowIslanderStepsModal] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const celebrationScale = useRef(new Animated.Value(0)).current;
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -209,6 +212,35 @@ export default function MainMenuScreen() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    const checkCelebration = async () => {
+      if (user && (user as any).invitedUsersCount >= 5) {
+        const hasSeen = await AsyncStorage.getItem('has_seen_invite_celebration_5');
+        if (hasSeen !== 'true') {
+          setShowCelebrationModal(true);
+          await AsyncStorage.setItem('has_seen_invite_celebration_5', 'true');
+          Animated.spring(celebrationScale, {
+            toValue: 1,
+            friction: 5,
+            tension: 40,
+            useNativeDriver: true,
+          }).start();
+        }
+      }
+    };
+    checkCelebration();
+  }, [user]);
+
+  const closeCelebrationModal = () => {
+    Animated.timing(celebrationScale, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowCelebrationModal(false);
+    });
+  };
 
   const handleSendInvite = async () => {
     const email = inviteEmail.trim();
@@ -444,14 +476,14 @@ export default function MainMenuScreen() {
               </Text>
               <View style={{ width: 80, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 
-                    width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 20) * 100, 100)}%`, 
+                    width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
                     height: '100%', 
                     backgroundColor: '#6366F1', 
                     borderRadius: 3 
                 }} />
               </View>
               <Text style={{ fontSize: 11, color: '#6366F1', fontWeight: '800' }}>
-                {(user as any)?.invitedUsersCount || 0}/20
+                {(user as any)?.invitedUsersCount || 0}/5
               </Text>
             </View>
           ) : (

@@ -595,14 +595,14 @@ export default function ProfileScreen() {
                                 </View>
                                 <View style={{ width: '100%', height: 10, backgroundColor: '#E0E7FF', borderRadius: 5, overflow: 'hidden' }}>
                                     <View style={{ 
-                                        width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 20) * 100, 100)}%`, 
+                                        width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
                                         height: '100%', 
                                         backgroundColor: '#6366F1', 
                                         borderRadius: 5 
                                     }} />
                                 </View>
                                 <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 8, textAlign: 'right' }}>
-                                    Hedef: 20
+                                    Hedef: 5
                                 </Text>
                             </View>
                         )}

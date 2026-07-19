@@ -145,20 +145,7 @@ export default function IlanlarScreen() {
 
   const handleCloseModal = () => {
     Keyboard.dismiss();
-    if (isFormDirty) {
-      setTimeout(() => {
-        Alert.alert(
-          t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
-          t('common.unsavedChangesMsg', { defaultValue: 'İlan eklemekten vazgeçmek istediğinize emin misiniz? Girdiğiniz tüm bilgiler silinecek.' }),
-          [
-            { text: t('common.keepEditing', { defaultValue: 'Düzenlemeye Devam Et' }), style: 'cancel' },
-            { text: t('common.closeAnyway', { defaultValue: 'Evet, İlanı Sil ve Çık' }), style: 'destructive', onPress: resetAndCloseModal },
-          ]
-        );
-      }, 150);
-    } else {
-      resetAndCloseModal();
-    }
+    resetAndCloseModal();
   };
 
   const isPublishDisabled =
@@ -487,13 +474,13 @@ export default function IlanlarScreen() {
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.publishText} numberOfLines={1}>{editingListingId ? t('common.save') : t('common.publish')}</Text>
+                  <Text style={[styles.publishText, isPublishDisabled && { color: '#94A3B8' }]} numberOfLines={1}>{editingListingId ? t('common.save') : t('common.publish')}</Text>
                 )}
               </TouchableOpacity>
             </View>
           </View>
 
-          <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={120} keyboardShouldPersistTaps="handled">
+          <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
               <View style={styles.adCategoryRow}>
@@ -512,7 +499,7 @@ export default function IlanlarScreen() {
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.adTitle')}</Text>
               <TextInput
-                style={styles.adTitleInput}
+                style={[styles.adTitleInput, { textAlign: 'center' }]}
                 placeholder={t('ilanlar.titlePlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={adTitle}
@@ -570,6 +557,7 @@ export default function IlanlarScreen() {
                 placeholder={t('ilanlar.descPlaceholder')}
                 placeholderTextColor="#94A3B8"
                 multiline
+                scrollEnabled={false}
                 value={adDesc}
                 onChangeText={setAdDesc}
                 maxLength={500}
@@ -683,7 +671,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
           <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }]}>{timeAgo}</Text>
         </View>
 
-        <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }]} numberOfLines={isGridView ? 2 : 1}>{listing.title}</Text>
+        <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }]} numberOfLines={1}>{listing.title}</Text>
         {!isGridView && <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>}
 
         <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }]}>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS } from 'react-native';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { fetchActivities, createActivity, updateActivity, getActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
@@ -82,11 +82,13 @@ export default function EventsScreen() {
         endDate < startDate || 
         isUploading;
 
-    useEffect(() => {
-        loadEvents();
-        const id = setInterval(() => loadEvents(false), 60_000);
-        return () => clearInterval(id);
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadEvents();
+            const id = setInterval(() => loadEvents(false), 60_000);
+            return () => clearInterval(id);
+        }, [])
+    );
 
     const loadEvents = async (showLoading = true) => {
         if (showLoading) setLoading(true);
@@ -347,7 +349,7 @@ export default function EventsScreen() {
                                 )}
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
                                     <View style={styles.titleRow}>
-                                        <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={2}>{event.name}</Text>
+                                        <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={1}>{event.name}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <View style={{ flex: 1, paddingRight: 8 }}>
@@ -438,12 +440,12 @@ export default function EventsScreen() {
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={styles.publishText}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
+                                    <Text style={[styles.publishText, isPublishDisabled && { color: '#475569' }]}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={120} keyboardShouldPersistTaps="handled">
+                    <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
                         <View style={{ padding: 20 }}>
                         {endDate < startDate && (
                             <View style={styles.dateErrorBanner}>
@@ -550,6 +552,7 @@ export default function EventsScreen() {
                             value={newEventDetails}
                             onChangeText={setNewEventDetails}
                             multiline
+                            scrollEnabled={false}
                             numberOfLines={4}
                             textAlignVertical="top"
                             maxLength={500}

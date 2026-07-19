@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Share,
   Linking,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -118,7 +119,7 @@ export default function IlanDetailScreen() {
         <TouchableOpacity style={styles.iconButton} onPress={async () => {
           try {
             await Share.share({
-              message: `${listing.title}\n\n${listing.description}\n\nAda Plus'ta incele!`,
+              message: `${listing.title}\n\n${listing.description}\n\nAdaPlus'ta incele!`,
             });
           } catch (error) {
             console.log('Share error:', error);
@@ -147,7 +148,7 @@ export default function IlanDetailScreen() {
               }}
             >
               {listing.imageUrls.map((url, idx) => (
-                <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%' }} resizeMode="cover" />
+                <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%', backgroundColor: '#F8FAFC' }} resizeMode="cover" />
               ))}
             </ScrollView>
             
@@ -160,7 +161,7 @@ export default function IlanDetailScreen() {
             )}
           </>
         ) : listing.imageUrl ? (
-          <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={[StyleSheet.absoluteFill, { backgroundColor: '#F8FAFC' }]} resizeMode="cover" />
         ) : (
           <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />
         )}
@@ -204,14 +205,32 @@ export default function IlanDetailScreen() {
               style={styles.infoItem}
               activeOpacity={listing.contactInfo ? 0.6 : 1}
               onPress={() => {
-                const isValidPhone = (s: string) => /^\+?[0-9\s\-().]{7,20}$/.test(s);
-                if (listing.contactInfo && isValidPhone(listing.contactInfo)) {
-                  Linking.openURL(`tel:${listing.contactInfo.replace(/[^\d+]/g, '')}`).catch(() => {});
+                if (!listing.contactInfo) return;
+                
+                const contact = listing.contactInfo.trim();
+                const isEmail = contact.includes('@');
+                const isPhone = /^\+?[0-9\s\-().]{7,20}$/.test(contact);
+
+                if (isEmail) {
+                  Linking.openURL(`mailto:${contact}`).catch(() => {
+                    Alert.alert('Hata', 'E-posta uygulaması açılamadı.');
+                  });
+                } else if (isPhone) {
+                  Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
+                    Alert.alert('Hata', 'Arama ekranı açılamadı.');
+                  });
+                } else {
+                  // Fallback: try tel anyway
+                  Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {});
                 }
               }}
             >
               <View style={[styles.infoIcon, listing.contactInfo && { backgroundColor: '#ECFDF5' }]}>
-                <IconSymbol name="phone.fill" size={20} color={listing.contactInfo ? '#10B981' : '#64748B'} />
+                <IconSymbol 
+                  name={listing.contactInfo?.includes('@') ? "envelope.fill" : "phone.fill"} 
+                  size={20} 
+                  color={listing.contactInfo ? '#10B981' : '#64748B'} 
+                />
               </View>
               <View>
                 <Text style={styles.infoLabel}>{t('ilanlar.contactLabel', { defaultValue: 'İLETİŞİM' })}</Text>
@@ -226,7 +245,7 @@ export default function IlanDetailScreen() {
           <View style={styles.warningCard}>
             <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#F59E0B" />
             <Text style={styles.warningText}>
-              {t('ilanlar.safetyWarning', { defaultValue: 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz.' })}
+              {t('ilanlar.safetyWarning', { defaultValue: 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz. Oluşabilecek mağduriyetler AdaPlus sorumluluk alanının dışındadır.' })}
             </Text>
           </View>
         </View>
@@ -252,19 +271,19 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
     elevation: 3,
   },
   imagePlaceholder: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
+    height: SCREEN_WIDTH * 0.65,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8FAFC',
