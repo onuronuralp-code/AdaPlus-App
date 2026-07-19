@@ -80,7 +80,7 @@ export default function ResetPasswordScreen() {
     return (
         <React.Fragment>
             <Stack.Screen options={{ headerShown: false }} />
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
                 <View style={styles.container}>
 
                     <View style={styles.headerBackground}>
@@ -185,7 +185,7 @@ export default function ResetPasswordScreen() {
                         </ScrollView>
                     </View>
                 </View>
-            </TouchableWithoutFeedback>
+            </ScrollView>
         </React.Fragment>
     );
 }

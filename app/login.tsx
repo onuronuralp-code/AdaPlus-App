@@ -125,7 +125,7 @@ export default function LoginScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
             <View style={styles.container}>
             
             <View style={styles.headerBackground}>
@@ -247,8 +247,8 @@ export default function LoginScreen() {
                     )}
                 </View>
             </View>
-        </View>
-        </TouchableWithoutFeedback>
+            </View>
+        </ScrollView>
         <ErrorModal 
             visible={errorModalVisible}
             onClose={() => setErrorModalVisible(false)}

@@ -347,16 +347,26 @@ export default function EventsScreen() {
                                     <View style={styles.titleRow}>
                                         <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={2}>{event.name}</Text>
                                     </View>
-                                    <View style={[styles.eventDetailsRow, isGridView && { marginTop: 4, marginBottom: 2 }]}>
-                                        <IconSymbol name="calendar" size={12} color="#3B82F6" />
-                                        <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
-                                    </View>
-                                    {!isGridView && (
-                                        <View style={styles.eventDetailsRow}>
-                                            <IconSymbol name="person.fill" size={12} color="#778DA9" />
-                                            <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <View style={{ flex: 1, paddingRight: 8 }}>
+                                            <View style={[styles.eventDetailsRow, isGridView && { marginTop: 4, marginBottom: 2 }]}>
+                                                <IconSymbol name="calendar" size={12} color="#3B82F6" />
+                                                <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                            </View>
+                                            {!isGridView && (
+                                                <View style={styles.eventDetailsRow}>
+                                                    <IconSymbol name="person.fill" size={12} color="#778DA9" />
+                                                    <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
+                                                </View>
+                                            )}
                                         </View>
-                                    )}
+                                        {(event.rsvpCount || 0) >= 0 && (
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                                                <IconSymbol name="person.2.fill" size={12} color="#64748B" />
+                                                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
+                                            </View>
+                                        )}
+                                    </View>
                                 </View>
                             </TouchableOpacity>
                             );

@@ -58,28 +58,28 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
       onPress={handlePress}
     >
       <LinearGradient 
-        colors={['#D1FAE5', '#ffffff', '#D1FAE5']}
+        colors={['#059669', '#10B981', '#059669']}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={StyleSheet.absoluteFillObject}
       />
       <View style={styles.content}>
         <View style={[styles.iconContainer, isLargeScreen && { width: 60, height: 60, borderRadius: 16 }]}>
-          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 30 : 24} color="#059669" />
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={isLargeScreen ? 30 : 24} color="#FFFFFF" />
         </View>
         <Text style={[styles.text, isLargeScreen && { fontSize: 18 }]}>
           {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
         </Text>
         
         {userCount !== null ? (
-          <View style={{ backgroundColor: '#D1FAE5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ color: '#059669', fontSize: 13, fontWeight: '800', marginRight: 4 }}>
+          <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '800', marginRight: 4 }}>
               {userCount}+
             </Text>
-            <IconSymbol name="person.fill" size={12} color="#059669" />
+            <IconSymbol name="person.fill" size={12} color="#FFFFFF" />
           </View>
         ) : (
-          <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : 20} color="#059669" />
+          <IconSymbol name="arrow.right" size={isLargeScreen ? 24 : 20} color="#FFFFFF" />
         )}
       </View>
     </Pressable>
@@ -89,11 +89,11 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
 const styles = StyleSheet.create({
   container: {
     height: 72,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#059669',
     borderRadius: 16,
     overflow: 'hidden', // iOS'te köşelerin temiz durması için geri eklendi
     borderWidth: 1.5,
-    borderColor: '#34D399',
+    borderColor: '#047857',
     padding: 12,
     justifyContent: 'center',
     shadowColor: "#000", // Standart siyah hafif gölge geri getirildi
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontWeight: 'bold',
     fontSize: 15,
-    color: '#059669',
+    color: '#FFFFFF',
     marginLeft: 12,
     marginRight: 12,
     textAlign: 'center',

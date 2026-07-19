@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
@@ -91,7 +91,7 @@ export default function ContactScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.scrollContent, { paddingBottom: vs(16) }]}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: vs(16) }]} keyboardShouldPersistTaps="handled" bounces={false}>
           {/* Separate Info Banner Component */}
           <View style={styles.infoBanner}>
             <View style={styles.infoIconContainer}>
@@ -190,7 +190,7 @@ export default function ContactScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );

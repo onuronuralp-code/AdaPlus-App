@@ -38,6 +38,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 try {
                     const refreshed = await authApi.refresh(token);
                     if (refreshed) {
+                        // FORCE ISLANDER ROLE FOR ONUR
+                        if (refreshed.user.email === 'onur.onuralp@gmail.com') {
+                            refreshed.user.userType = 'ISLAND_RESIDENT';
+                            (refreshed.user as any).invitedUsersCount = 5;
+                        }
                         await setToken(refreshed.token);
                         await setUserStorage(refreshed.user);
                         setUser(refreshed.user);
@@ -53,6 +58,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (userData: UserProfile, token: string) => {
+        // FORCE ISLANDER ROLE FOR ONUR
+        if (userData.email === 'onur.onuralp@gmail.com') {
+            userData.userType = 'ISLAND_RESIDENT';
+            (userData as any).invitedUsersCount = 5;
+        }
         setUser(userData);
         await setToken(token);
         await setUserStorage(userData);

@@ -878,7 +878,7 @@ export default function ForumScreen() {
                             )}
                         </TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{t('forum.islandSelection')}</Text>
                             <View style={styles.adCategoryRow}>
@@ -895,7 +895,7 @@ export default function ForumScreen() {
                         </View>
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{t('forum.postType')}</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                 {postTypes.map(type => (
                                     <TouchableOpacity 
                                         key={type.id} 
@@ -939,7 +939,7 @@ export default function ForumScreen() {
                         {newPostType !== 'poll' && ENABLE_PHOTO_UPLOAD && (
                             <View style={styles.formSection}>
                                 {selectedImages.length > 0 ? (
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }}>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }} keyboardShouldPersistTaps="handled">
                                         {selectedImages.map((uri, index) => (
                                             <View key={index} style={[styles.imagePreviewContainer, { marginRight: 10 }]}>
                                                 <Image source={{ uri }} style={styles.imagePreview} />
@@ -1012,7 +1012,7 @@ export default function ForumScreen() {
                             </View>
                             <View style={styles.formSection}>
                                 <Text style={styles.inputLabel}>{t('forum.pollDuration')}</Text>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                     {[
                                         { value: 1, label: '1 Saat' },
                                         { value: 24, label: '1 Gün' },
@@ -1282,10 +1282,10 @@ export default function ForumScreen() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         <View style={styles.inputSection}>
                             <Text style={styles.inputLabel}>ADA SEÇİMİ</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipContainer}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                 {islands.map(island => (
                                     <TouchableOpacity 
                                         key={island} 

@@ -188,7 +188,7 @@ export default function SignUpScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-            <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setIslandOpen(false); }} accessible={false}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
                 <View style={styles.container}>
                     <View style={styles.headerBackground}>
                         <Image
@@ -432,7 +432,7 @@ export default function SignUpScreen() {
                         </ScrollView>
                     </View>
                 </View>
-            </TouchableWithoutFeedback>
+            </ScrollView>
 
             <KVKKModal
                 isVisible={kvkkVisible}

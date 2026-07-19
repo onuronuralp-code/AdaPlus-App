@@ -18,7 +18,7 @@ import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
-import SettingsModal from '@/components/SettingsModal';
+
 
 type ProfileTab = 'posts' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -52,7 +52,7 @@ export default function ProfileScreen() {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
-    const [showSettingsModal, setShowSettingsModal] = useState(false);
+
     const [inviteEmailError, setInviteEmailError] = useState('');
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
@@ -236,7 +236,7 @@ export default function ProfileScreen() {
             subtitle={subtitle}
             color={color}
             compact={true}
-            style={{ marginTop: 100 }}
+            style={{ marginTop: 40 }}
         />
     );
 
@@ -507,7 +507,7 @@ export default function ProfileScreen() {
                         </View>
                     ) : (
                         <TouchableOpacity 
-                            onPress={() => setShowSettingsModal(true)}
+                            onPress={() => router.push('/settings')}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
                             <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
@@ -565,14 +565,13 @@ export default function ProfileScreen() {
                             <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
                         </View>
                         <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
-                        <Text style={styles.userBio}>{user?.email || ''}</Text>
                         <View style={[styles.roleBadge, 
-                            user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF08A' } : 
+                            user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF9C3', borderWidth: 1.5, borderColor: '#F59E0B', paddingVertical: 6, paddingHorizontal: 16, borderRadius: 12 } : 
                             user?.userType === 'ADMIN' ? { backgroundColor: '#BFDBFE' } : 
                             { backgroundColor: '#E2E8F0' }
                         ]}>
                             <Text style={[styles.roleText, 
-                                user?.userType === 'ISLAND_RESIDENT' ? { color: '#854D0E' } : 
+                                user?.userType === 'ISLAND_RESIDENT' ? { color: '#B45309', fontWeight: '800', letterSpacing: 0.5 } : 
                                 user?.userType === 'ADMIN' ? { color: '#1E40AF' } : 
                                 { color: '#475569' }
                             ]}>
@@ -580,26 +579,35 @@ export default function ProfileScreen() {
                             </Text>
                         </View>
 
-                        {/* Sadece Adalı ve Adminlerde Görünen Davet Sayısı Barı */}
-                        {(user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN') && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
-                                <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
-                                <Text style={{ fontSize: 13, color: '#475569', marginLeft: 8, fontWeight: '500' }}>
-                                    Davet Ettiğin Adalılar: <Text style={{ fontWeight: '800', color: '#0F172A', fontSize: 14 }}>{(user as any)?.invitedUsersCount ?? 0}</Text>
+                        {/* Sadece Adalı ve Adminlerde Görünen Davet Sayısı Barı (ÖNİZLEME İÇİN HERKESE AÇIK) */}
+                        {true && (
+                            <View style={{ marginTop: 20, width: '100%' }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
+                                        <Text style={{ fontSize: 13, color: '#475569', marginLeft: 6, fontWeight: '600' }}>
+                                            Davet Ettiğin Adalılar
+                                        </Text>
+                                    </View>
+                                    <Text style={{ fontSize: 15, fontWeight: '800', color: '#6366F1' }}>
+                                        {(user as any)?.invitedUsersCount || 5}
+                                    </Text>
+                                </View>
+                                <View style={{ width: '100%', height: 10, backgroundColor: '#E0E7FF', borderRadius: 5, overflow: 'hidden' }}>
+                                    <View style={{ 
+                                        width: `${Math.min((((user as any)?.invitedUsersCount || 5) / 20) * 100, 100)}%`, 
+                                        height: '100%', 
+                                        backgroundColor: '#6366F1', 
+                                        borderRadius: 5 
+                                    }} />
+                                </View>
+                                <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 8, textAlign: 'right' }}>
+                                    Hedef: 20
                                 </Text>
                             </View>
                         )}
 
-                        {(user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN') && (
-                            <TouchableOpacity
-                                style={styles.inviteButton}
-                                activeOpacity={0.7}
-                                onPress={() => setShowInviteModal(true)}
-                            >
-                                <IconSymbol name="person.badge.plus" size={18} color="#6366F1" />
-                                <Text style={styles.inviteButtonText}>{t('profile.inviteFriend')}</Text>
-                            </TouchableOpacity>
-                        )}
+
                     </View>
 
                 {fetchError && (
@@ -685,35 +693,6 @@ export default function ProfileScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-            <SettingsModal 
-                visible={showSettingsModal} 
-                onClose={() => setShowSettingsModal(false)} 
-                isLoggedIn={isLoggedIn}
-                onDeleteAccount={() => {
-                    Alert.alert(
-                        t('profile.deleteAccountTitle', { defaultValue: 'Hesabını Sil' }),
-                        t('profile.deleteAccountConfirm', { defaultValue: 'Hesabınızı silmek istediğinize emin misiniz? Tüm verileriniz kalıcı olarak silinecektir.' }),
-                        [
-                            { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
-                            { 
-                                text: t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' }), 
-                                style: 'destructive', 
-                                onPress: async () => {
-                                    try {
-                                        const token = getToken();
-                                        if (token) {
-                                            await authApi.deleteAccount(token);
-                                        }
-                                        logout();
-                                    } catch (e) {
-                                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.errorOccurred', { defaultValue: 'Bir hata oluştu.' }));
-                                    }
-                                } 
-                            },
-                        ]
-                    );
-                }}
-            />
         </View>
     );
 }

@@ -689,7 +689,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
         <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }]} numberOfLines={isGridView ? 2 : 1}>{listing.title}</Text>
         {!isGridView && <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>}
 
-        <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'column', alignItems: 'flex-start', gap: 6 }]}>
+        <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }]}>
           <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4 }]}>
             <View style={styles.metaItem}>
               <IconSymbol name="mappin.circle.fill" size={12} color="#94A3B8" />

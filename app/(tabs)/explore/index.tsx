@@ -410,7 +410,7 @@ export default function MainMenuScreen() {
         heroScrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
         return nextIndex;
       });
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [slidesToRender.length, width]);
@@ -436,15 +436,31 @@ export default function MainMenuScreen() {
               ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}! 🌸`
               : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! 🌸`}
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text 
-              style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {t('explore.todayEventsWaiting', { count: totalEventsCount })}
-            </Text>
-          </View>
+          {isLoggedIn ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
+              <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '600' }}>
+                Davet Ettiğin Adalılar
+              </Text>
+              <View style={{ width: 80, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
+                <View style={{ 
+                    width: `${Math.min((((user as any)?.invitedUsersCount || 5) / 20) * 100, 100)}%`, 
+                    height: '100%', 
+                    backgroundColor: '#6366F1', 
+                    borderRadius: 3 
+                }} />
+              </View>
+              <Text style={{ fontSize: 11, color: '#6366F1', fontWeight: '800' }}>
+                {(user as any)?.invitedUsersCount || 5}/20
+              </Text>
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]} numberOfLines={1} adjustsFontSizeToFit>
+                {t('explore.todayEventsWaiting', { count: totalEventsCount })}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
@@ -532,7 +548,7 @@ export default function MainMenuScreen() {
              }}
              disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
           >
-             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="paperplane.fill" size={20} color="#FFF" />}
+             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={20} color="#FFF" />}
           </Pressable>
         </View>
         {!!inviteEmailError && (
