@@ -50,8 +50,13 @@ export default function SettingsScreen() {
     const [showStreetPicker, setShowStreetPicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    const ISLAND_KEY_MAP: Record<string, string> = {
+        'Büyükada': 'BUYUKADA', 'Heybeliada': 'HEYBELIADA',
+        'Burgazada': 'BURGAZADA', 'Kınalıada': 'KINALIADA',
+    };
     const userIsland = (user as any)?.island as string | undefined;
-    const streets = userIsland ? (ISLAND_STREETS[userIsland] ?? []) : [];
+    const activeIslandKey = userIsland ?? ISLAND_KEY_MAP[defaultIsland] ?? '';
+    const streets = ISLAND_STREETS[activeIslandKey] ?? [];
 
     const openEditForm = () => {
         setEditName(user?.fullName ?? '');
