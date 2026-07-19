@@ -60,8 +60,12 @@ export default function SettingsScreen() {
                     style: 'destructive', 
                     onPress: async () => {
                         try {
-                            await authApi.deleteAccount();
-                            logout();
+                            const success = await authApi.deleteAccount();
+                            if (!success) {
+                                Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.deleteFailed', { defaultValue: 'Silme işlemi başarısız.' }));
+                                return;
+                            }
+                            await logout();
                             router.replace('/');
                         } catch (e) {
                             Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.deleteFailed', { defaultValue: 'Silme işlemi başarısız.' }));

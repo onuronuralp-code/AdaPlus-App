@@ -5,10 +5,7 @@ import React, { useState } from 'react';
 import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Real data will be fetched from the backend in the future
-const MOCK_REVIEWS: any[] = [];
-
-// Real dining places will be fetched from the backend
+const REVIEWS: any[] = [];
 const DINING_PLACES: any[] = [];
 
 export default function RestaurantScreen() {

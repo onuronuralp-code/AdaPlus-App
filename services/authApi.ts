@@ -1,5 +1,6 @@
 import { API_BASE_URL, fetchWithTimeout } from "./config";
 import i18n from "../utils/i18n";
+import { getToken } from "../utils/tokenStorage";
 
 const AUTH_BASE_URL = `${API_BASE_URL}/api/v1/auth`;
 
@@ -189,7 +190,7 @@ export const authApi = {
   // Called silently on every app launch — zero UX impact.
   refresh: async (currentToken: string): Promise<LoginResponse | null> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/refresh`, {
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/refresh`, {
         method: "POST",
         headers: { Authorization: `Bearer ${currentToken}` },
       });
@@ -211,8 +212,9 @@ export const authApi = {
     }
   },
 
-  deleteAccount: async (token: string): Promise<boolean> => {
+  deleteAccount: async (): Promise<boolean> => {
     try {
+      const token = getToken();
       const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
