@@ -32,9 +32,11 @@ export interface UserProfile {
   id: string;
   fullName: string;
   email: string;
+  phone?: string;
   role: string;
   userType: string;
   emailVerified: boolean;
+  address?: string;
 }
 
 export interface LoginResponse {
@@ -207,6 +209,21 @@ export const authApi = {
       if (!response.ok) return null;
       const data = await response.json();
       return data.email ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  updateProfile: async (fullName: string, address: string): Promise<UserProfile | null> => {
+    try {
+      const token = getToken();
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ fullName, address }),
+      });
+      if (!response.ok) return null;
+      return response.json();
     } catch {
       return null;
     }

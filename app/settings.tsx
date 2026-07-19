@@ -6,13 +6,13 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { authApi } from '@/services/authApi';
+import { authApi, UserProfile } from '@/services/authApi';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/services/notificationService';
 
 export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
     const router = useRouter();
-    const { isLoggedIn, logout } = useAuth();
+    const { isLoggedIn, logout, user, updateProfile } = useAuth();
     
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [defaultIsland, setDefaultIsland] = useState('Büyükada');
@@ -24,6 +24,8 @@ export default function SettingsScreen() {
     const [editEmail, setEditEmail] = useState('');
     const [editPhone, setEditPhone] = useState('');
     const [editPassword, setEditPassword] = useState('');
+    const [editAddress, setEditAddress] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         AsyncStorage.getItem('defaultIsland').then(island => {
@@ -163,13 +165,40 @@ export default function SettingsScreen() {
                                 <TextInput style={styles.input} placeholder={t('profile.name', { defaultValue: 'Ad Soyad' })} placeholderTextColor="#94A3B8" value={editName} onChangeText={setEditName} />
                                 <TextInput style={styles.input} placeholder={t('profile.email', { defaultValue: 'E-mail' })} placeholderTextColor="#94A3B8" value={editEmail} onChangeText={setEditEmail} keyboardType="email-address" autoCapitalize="none" />
                                 <TextInput style={styles.input} placeholder={t('profile.phone', { defaultValue: 'Telefon No' })} placeholderTextColor="#94A3B8" value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" />
+                                <TextInput style={styles.input} placeholder={t('profile.address', { defaultValue: 'Adres' })} placeholderTextColor="#94A3B8" value={editAddress} onChangeText={setEditAddress} multiline numberOfLines={2} />
                                 <TextInput style={styles.input} placeholder={t('profile.newPassword', { defaultValue: 'Yeni Şifre' })} placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
-                                <TouchableOpacity style={styles.saveButton} onPress={() => setIsEditingAccount(false)}>
-                                    <Text style={styles.saveButtonText}>{t('common.save', { defaultValue: 'Kaydet' })}</Text>
+                                <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={async () => {
+                                    if (!editName.trim()) {
+                                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('profile.nameRequired', { defaultValue: 'Ad Soyad zorunludur.' }));
+                                        return;
+                                    }
+                                    setIsSaving(true);
+                                    try {
+                                        const updated = await authApi.updateProfile(editName.trim(), editAddress.trim());
+                                        if (!updated) {
+                                            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.saveFailed', { defaultValue: 'Kaydedilemedi.' }));
+                                            return;
+                                        }
+                                        await updateProfile(updated as any);
+                                        setIsEditingAccount(false);
+                                    } finally {
+                                        setIsSaving(false);
+                                    }
+                                }}>
+                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : t('common.save', { defaultValue: 'Kaydet' })}</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
-                        <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => setIsEditingAccount(!isEditingAccount)} activeOpacity={0.8}>
+                        <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => {
+                            if (!isEditingAccount) {
+                                setEditName(user?.fullName ?? '');
+                                setEditEmail(user?.email ?? '');
+                                setEditPhone((user as any)?.phone ?? '');
+                                setEditAddress((user as any)?.address ?? '');
+                                setEditPassword('');
+                            }
+                            setIsEditingAccount(!isEditingAccount);
+                        }} activeOpacity={0.8}>
                             <IconSymbol name="pencil" size={18} color="#475569" />
                             <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: 'Hesabı Düzenle' })}</Text>
                         </TouchableOpacity>
