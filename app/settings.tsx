@@ -9,6 +9,28 @@ import { useAuth } from '@/context/AuthContext';
 import { authApi, UserProfile } from '@/services/authApi';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/services/notificationService';
 
+const ISLAND_STREETS: Record<string, string[]> = {
+    BUYUKADA: [
+        'Çankaya Caddesi', 'Maden Caddesi', '23 Nisan Caddesi', 'Yüzbaşı Şükrü Caddesi',
+        'Hamidiye Caddesi', 'Nizam Caddesi', 'Atatürk Caddesi', 'Recaizade Caddesi',
+        'Çınar Caddesi', 'Naliye Caddesi', 'Kadı Caddesi', 'Köybaşı Caddesi',
+        'Adnan Menderes Caddesi', 'İskele Meydanı',
+    ],
+    HEYBELIADA: [
+        'Refah Şehitleri Caddesi', 'İstasyon Caddesi', 'Ayyıldız Caddesi',
+        'Baruthane Caddesi', 'Köyiçi Caddesi', 'Çam Limanı Yolu',
+        'Değirmen Yolu', 'Meşelik Sokak', 'Çiçek Sokak', 'Atatürk Caddesi',
+    ],
+    BURGAZADA: [
+        'İstasyon Caddesi', 'Cihannüma Caddesi', 'Çınar Yolu', 'Atatürk Caddesi',
+        'Kumsal Yolu', 'Çiçek Sokak', 'Manastır Yolu', 'Dere Sokak',
+    ],
+    KINALIADA: [
+        'İstasyon Caddesi', 'Çamlık Caddesi', 'Güzelyalı Caddesi', 'Plaj Yolu',
+        'Adnan Menderes Caddesi', 'Manastır Yolu', 'Köyiçi Caddesi',
+    ],
+};
+
 export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
     const router = useRouter();
@@ -22,10 +44,32 @@ export default function SettingsScreen() {
     const [isEditingAccount, setIsEditingAccount] = useState(false);
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
-    const [editPhone, setEditPhone] = useState('');
     const [editPassword, setEditPassword] = useState('');
-    const [editAddress, setEditAddress] = useState('');
+    const [selectedStreet, setSelectedStreet] = useState('');
+    const [buildingNo, setBuildingNo] = useState('');
+    const [showStreetPicker, setShowStreetPicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    const userIsland = (user as any)?.island as string | undefined;
+    const streets = userIsland ? (ISLAND_STREETS[userIsland] ?? []) : [];
+
+    const openEditForm = () => {
+        setEditName(user?.fullName ?? '');
+        setEditEmail(user?.email ?? '');
+        const existingAddress = (user as any)?.address ?? '';
+        // Try to split "Street, No" from the stored address
+        const islandStreets = userIsland ? (ISLAND_STREETS[userIsland] ?? []) : Object.values(ISLAND_STREETS).flat();
+        const matchedStreet = islandStreets.find(s => existingAddress.startsWith(s));
+        if (matchedStreet) {
+            setSelectedStreet(matchedStreet);
+            setBuildingNo(existingAddress.slice(matchedStreet.length).replace(/^[\s,]+/, ''));
+        } else {
+            setSelectedStreet('');
+            setBuildingNo(existingAddress);
+        }
+        setEditPassword('');
+        setShowStreetPicker(false);
+    };
 
     useEffect(() => {
         AsyncStorage.getItem('defaultIsland').then(island => {
@@ -162,21 +206,77 @@ export default function SettingsScreen() {
                     <View style={[styles.section, { borderBottomWidth: 0, marginTop: 'auto' }]}>
                         {isEditingAccount && (
                             <View style={styles.editForm}>
-                                <TextInput style={styles.input} placeholder={t('profile.name', { defaultValue: 'Ad Soyad' })} placeholderTextColor="#94A3B8" value={editName} onChangeText={setEditName} />
-                                <TextInput style={styles.input} placeholder={t('profile.email', { defaultValue: 'E-mail' })} placeholderTextColor="#94A3B8" value={editEmail} onChangeText={setEditEmail} keyboardType="email-address" autoCapitalize="none" />
-                                <TextInput style={styles.input} placeholder={t('profile.phone', { defaultValue: 'Telefon No' })} placeholderTextColor="#94A3B8" value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" />
-                                <TextInput style={styles.input} placeholder={t('profile.address', { defaultValue: 'Adres' })} placeholderTextColor="#94A3B8" value={editAddress} onChangeText={setEditAddress} multiline numberOfLines={2} />
-                                <TextInput style={styles.input} placeholder={t('profile.newPassword', { defaultValue: 'Yeni Şifre' })} placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
+                                {/* Ad Soyad */}
+                                <TextInput style={styles.input} placeholder="Ad Soyad" placeholderTextColor="#94A3B8" value={editName} onChangeText={setEditName} />
+
+                                {/* E-mail — read-only */}
+                                <TextInput style={[styles.input, styles.inputReadOnly]} placeholder="E-mail" placeholderTextColor="#CBD5E1" value={editEmail} editable={false} />
+
+                                {/* Telefon — read-only if present */}
+                                {(user as any)?.phone ? (
+                                    <TextInput style={[styles.input, styles.inputReadOnly]} placeholderTextColor="#CBD5E1" value={(user as any).phone} editable={false} />
+                                ) : null}
+
+                                {/* Street picker */}
+                                {streets.length > 0 ? (
+                                    <View style={{ marginBottom: 12 }}>
+                                        <TouchableOpacity
+                                            style={[styles.input, styles.pickerButton]}
+                                            onPress={() => setShowStreetPicker(v => !v)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={selectedStreet ? styles.pickerValueText : styles.pickerPlaceholderText}>
+                                                {selectedStreet || 'Cadde / Sokak Seç'}
+                                            </Text>
+                                            <IconSymbol name={showStreetPicker ? 'chevron.up' : 'chevron.down'} size={16} color="#94A3B8" />
+                                        </TouchableOpacity>
+                                        {showStreetPicker && (
+                                            <View style={styles.streetList}>
+                                                {streets.map(street => (
+                                                    <TouchableOpacity
+                                                        key={street}
+                                                        style={[styles.streetItem, selectedStreet === street && styles.streetItemActive]}
+                                                        onPress={() => { setSelectedStreet(street); setShowStreetPicker(false); }}
+                                                    >
+                                                        <Text style={[styles.streetItemText, selectedStreet === street && styles.streetItemTextActive]}>
+                                                            {street}
+                                                        </Text>
+                                                        {selectedStreet === street && <IconSymbol name="checkmark" size={14} color="#059669" />}
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        )}
+                                        {selectedStreet ? (
+                                            <TextInput
+                                                style={[styles.input, { marginTop: 8, marginBottom: 0 }]}
+                                                placeholder="Bina No / Daire"
+                                                placeholderTextColor="#94A3B8"
+                                                value={buildingNo}
+                                                onChangeText={setBuildingNo}
+                                                keyboardType="default"
+                                            />
+                                        ) : null}
+                                    </View>
+                                ) : (
+                                    <TextInput style={styles.input} placeholder="Adres" placeholderTextColor="#94A3B8" value={buildingNo} onChangeText={setBuildingNo} multiline />
+                                )}
+
+                                {/* Yeni Şifre */}
+                                <TextInput style={styles.input} placeholder="Yeni Şifre" placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
+
                                 <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={async () => {
                                     if (!editName.trim()) {
-                                        Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('profile.nameRequired', { defaultValue: 'Ad Soyad zorunludur.' }));
+                                        Alert.alert('Hata', 'Ad Soyad zorunludur.');
                                         return;
                                     }
+                                    const address = selectedStreet
+                                        ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
+                                        : buildingNo.trim();
                                     setIsSaving(true);
                                     try {
-                                        const updated = await authApi.updateProfile(editName.trim(), editAddress.trim());
+                                        const updated = await authApi.updateProfile(editName.trim(), address);
                                         if (!updated) {
-                                            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.saveFailed', { defaultValue: 'Kaydedilemedi.' }));
+                                            Alert.alert('Hata', 'Kaydedilemedi.');
                                             return;
                                         }
                                         await updateProfile(updated as any);
@@ -185,18 +285,12 @@ export default function SettingsScreen() {
                                         setIsSaving(false);
                                     }
                                 }}>
-                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : t('common.save', { defaultValue: 'Kaydet' })}</Text>
+                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : 'Kaydet'}</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
                         <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => {
-                            if (!isEditingAccount) {
-                                setEditName(user?.fullName ?? '');
-                                setEditEmail(user?.email ?? '');
-                                setEditPhone((user as any)?.phone ?? '');
-                                setEditAddress((user as any)?.address ?? '');
-                                setEditPassword('');
-                            }
+                            if (!isEditingAccount) openEditForm();
                             setIsEditingAccount(!isEditingAccount);
                         }} activeOpacity={0.8}>
                             <IconSymbol name="pencil" size={18} color="#475569" />
@@ -366,5 +460,52 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
+    },
+    inputReadOnly: {
+        backgroundColor: '#F1F5F9',
+        color: '#94A3B8',
+    },
+    pickerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 0,
+    },
+    pickerPlaceholderText: {
+        fontSize: 15,
+        color: '#94A3B8',
+    },
+    pickerValueText: {
+        fontSize: 15,
+        color: '#0F172A',
+        fontWeight: '500',
+    },
+    streetList: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 12,
+        marginTop: 4,
+        overflow: 'hidden',
+    },
+    streetItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 13,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    streetItemActive: {
+        backgroundColor: '#F0FDF4',
+    },
+    streetItemText: {
+        fontSize: 14,
+        color: '#334155',
+    },
+    streetItemTextActive: {
+        color: '#059669',
+        fontWeight: '600',
     },
 });
