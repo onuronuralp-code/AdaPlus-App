@@ -206,8 +206,8 @@ export default function SettingsScreen() {
                     <View style={[styles.section, { borderBottomWidth: 0, marginTop: 'auto' }]}>
                         {isEditingAccount && (
                             <View style={styles.editForm}>
-                                {/* Ad Soyad */}
-                                <TextInput style={styles.input} placeholder="Ad Soyad" placeholderTextColor="#94A3B8" value={editName} onChangeText={setEditName} />
+                                {/* Ad Soyad — read-only */}
+                                <TextInput style={[styles.input, styles.inputReadOnly]} value={editName} editable={false} />
 
                                 {/* E-mail — read-only */}
                                 <TextInput style={[styles.input, styles.inputReadOnly]} placeholder="E-mail" placeholderTextColor="#CBD5E1" value={editEmail} editable={false} />
