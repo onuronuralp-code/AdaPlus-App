@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PalmiyeIcon } from '@/components/PalmiyeIcon';
 
@@ -30,6 +31,7 @@ export function triggerNetworkError() {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export function NetworkProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
@@ -98,11 +100,11 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
             </View>
 
             {/* Title */}
-            <Text style={styles.title}>Bağlantı Hatası</Text>
+            <Text style={styles.title}>{t('network.errorTitle', { defaultValue: 'Bağlantı Hatası' })}</Text>
 
             {/* Message */}
             <Text style={styles.message}>
-              Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.
+              {t('network.errorMessage', { defaultValue: 'Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.' })}
             </Text>
 
             {/* Divider */}
@@ -110,7 +112,7 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
 
             {/* Dismiss button */}
             <TouchableOpacity style={styles.button} onPress={dismiss} activeOpacity={0.8}>
-              <Text style={styles.buttonText}>Tamam</Text>
+              <Text style={styles.buttonText}>{t('common.ok', { defaultValue: 'Tamam' })}</Text>
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>

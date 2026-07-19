@@ -15,10 +15,15 @@ export const sendChatMessageStream = async (
   message: string,
   island: string | undefined,
   onChunk: (chunk: string) => void,
+  externalSignal?: AbortSignal,
 ): Promise<void> => {
   const token = getToken();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), GUIDE_TIMEOUT_MS);
+
+  // Forward external abort (e.g. component unmount or new message) to our controller
+  const forwardAbort = () => controller.abort();
+  externalSignal?.addEventListener('abort', forwardAbort, { once: true });
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/guide/chat/stream`, {
@@ -71,11 +76,15 @@ export const sendChatMessageStream = async (
     if (remaining) onChunk(remaining);
   } catch (e: any) {
     if (e?.name === 'AbortError') {
+      // Externally cancelled (unmount or new request) — caller decides what to do
+      if (externalSignal?.aborted) throw e;
+      // Internal 60 s timeout
       throw new Error('Yanıt çok uzun sürdü, lütfen tekrar dene.');
     }
     throw e;
   } finally {
     clearTimeout(timeoutId);
+    externalSignal?.removeEventListener('abort', forwardAbort);
   }
 };
 

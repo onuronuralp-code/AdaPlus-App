@@ -809,15 +809,17 @@ export default function ForumScreen() {
                         ]}
                         refreshing={isRefreshing}
                         onRefresh={onRefresh}
-                        ListEmptyComponent={!isLoading ? (
-                            <EmptyState 
-                                icon="bubble.left.and.bubble.right" 
+                        ListEmptyComponent={isLoading ? (
+                            <ActivityIndicator size="large" color="#3B82F6" />
+                        ) : (
+                            <EmptyState
+                                icon="bubble.left.and.bubble.right"
                                 title={t('forum.emptyTitle', { defaultValue: i18n.language.startsWith('en') ? 'No Posts Yet' : 'Henüz Gönderi Yok' })}
                                 subtitle={t('forum.emptySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Would you like to send the first message to the community? Share something now!' : 'Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!' })}
                                 color="#3B82F6"
                                 style={{ marginTop: -140 }}
                             />
-                        ) : null}
+                        )}
                     />
                     <TouchableOpacity 
                         style={[styles.fab, { bottom: 20 }]} 

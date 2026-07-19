@@ -4,6 +4,7 @@ import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 
@@ -33,6 +34,7 @@ export default function VerifyScreen() {
     const contact = (contactParam || emailParam || '').slice(0, 320);
     const isPhone = type === 'phone';
 
+    const { t } = useTranslation();
     const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -85,7 +87,7 @@ export default function VerifyScreen() {
     const handleVerify = async () => {
         const fullCode = code.join('');
         if (fullCode.length < CODE_LENGTH) {
-            setError('Lütfen 6 haneli doğrulama kodunu eksiksiz giriniz.');
+            setError(t('verify.incompleteCode', { defaultValue: 'Lütfen 6 haneli doğrulama kodunu eksiksiz giriniz.' }));
             return;
         }
 
@@ -97,9 +99,9 @@ export default function VerifyScreen() {
         } catch (err: any) {
             const msg = (err.message || '').toLowerCase();
             if (msg.includes('expired')) {
-                setError('Kodun süresi dolmuş. Lütfen yeni kod isteyin.');
+                setError(t('verify.codeExpired', { defaultValue: 'Kodun süresi dolmuş. Lütfen yeni kod isteyin.' }));
             } else {
-                setError('Girdiğiniz doğrulama kodu hatalı.');
+                setError(t('verify.codeInvalid', { defaultValue: 'Girdiğiniz doğrulama kodu hatalı.' }));
             }
         } finally {
             setLoading(false);
@@ -116,7 +118,7 @@ export default function VerifyScreen() {
             setError('');
             inputs.current[0]?.focus();
         } catch (err: any) {
-            Alert.alert('Hata', err.message || 'Kod gönderilemedi.');
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), err.message || t('verify.resendFailed', { defaultValue: 'Kod gönderilemedi.' }));
         }
     };
 

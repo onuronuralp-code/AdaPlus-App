@@ -205,7 +205,7 @@ export const authApi = {
 
   getInviteEmail: async (inviteToken: string): Promise<string | null> => {
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/invite?token=${encodeURIComponent(inviteToken)}`);
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/invite?token=${encodeURIComponent(inviteToken)}`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.email ?? null;
@@ -232,7 +232,7 @@ export const authApi = {
   deleteAccount: async (): Promise<boolean> => {
     try {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

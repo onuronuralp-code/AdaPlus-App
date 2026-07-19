@@ -35,7 +35,7 @@ export const fetchDepartures = async (
     console.log(
       `Fetching: ${API_BASE_URL}/departures?${queryParams.toString()}`,
     );
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_BASE_URL}/departures?${queryParams.toString()}`,
     );
 
@@ -79,7 +79,7 @@ export const fetchBusDepartures = async (
     console.log(
       `Fetching: ${BUS_API_BASE_URL}/departures?${queryParams.toString()}`,
     );
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${BUS_API_BASE_URL}/departures?${queryParams.toString()}`,
     );
 
@@ -125,7 +125,7 @@ const LISTINGS_API_BASE_URL = `${BASE}/api/v1/listings`;
 
 export const fetchListings = async (): Promise<AppListingDto[]> => {
   try {
-    const response = await fetch(LISTINGS_API_BASE_URL);
+    const response = await fetchWithTimeout(LISTINGS_API_BASE_URL);
     if (!response.ok) throw new Error("Listings fetch error");
     const data = await response.json();
     return Array.isArray(data) ? data : [];
@@ -141,7 +141,7 @@ export const getListing = async (id: string): Promise<AppListingDto | null> => {
     const token = getToken();
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(`${LISTINGS_API_BASE_URL}/${id}`, { headers });
+    const response = await fetchWithTimeout(`${LISTINGS_API_BASE_URL}/${id}`, { headers });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
@@ -153,7 +153,7 @@ export const getListing = async (id: string): Promise<AppListingDto | null> => {
 
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
-    const response = await fetch(ACTIVITIES_API_BASE_URL);
+    const response = await fetchWithTimeout(ACTIVITIES_API_BASE_URL);
     if (!response.ok) throw new Error("Activities fetch error");
     const data = await response.json();
     return Array.isArray(data) ? data : [];
@@ -166,7 +166,7 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
 
 export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppActivityDto[]> => {
   try {
-    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
+    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
     if (!response.ok) throw new Error("Upcoming activities fetch error");
     const data = await response.json();
     return Array.isArray(data) ? data : [];
@@ -183,7 +183,7 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
   try {
     const token = getToken();
     if (!token) return [];
-    const response = await fetch(`${BASE}/api/v1/users/me/activities`, {
+    const response = await fetchWithTimeout(`${BASE}/api/v1/users/me/activities`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
@@ -203,7 +203,7 @@ export const getActivity = async (id: string): Promise<AppActivityDto | null> =>
     const token = getToken();
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, { headers });
+    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/${id}`, { headers });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
@@ -219,7 +219,7 @@ export const toggleActivityRsvp = async (id: string): Promise<RsvpResponse | nul
   try {
     const token = getToken();
     if (!token) return null;
-    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}/rsvp`, {
+    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/${id}/rsvp`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -235,7 +235,7 @@ export const fetchMyListings = async (): Promise<AppListingDto[]> => {
   try {
     const token = getToken();
     if (!token) return [];
-    const response = await fetch(`${LISTINGS_API_BASE_URL}/my`, {
+    const response = await fetchWithTimeout(`${LISTINGS_API_BASE_URL}/my`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error("My listings fetch error");
@@ -250,7 +250,7 @@ export const updateListing = async (id: string, request: CreateListingRequest): 
   try {
     const token = getToken();
     if (!token) return null;
-    const response = await fetch(`${LISTINGS_API_BASE_URL}/${id}`, {
+    const response = await fetchWithTimeout(`${LISTINGS_API_BASE_URL}/${id}`, {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",
@@ -276,7 +276,7 @@ export const createActivity = async (
       console.warn("No JWT token found. Aborting activity creation.");
       return null;
     }
-    const response = await fetch(ACTIVITIES_API_BASE_URL, {
+    const response = await fetchWithTimeout(ACTIVITIES_API_BASE_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -300,7 +300,7 @@ export const updateActivity = async (
   try {
     const token = getToken();
     if (!token) return null;
-    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, {
+    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/${id}`, {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",
@@ -321,7 +321,7 @@ export const deleteActivity = async (id: string): Promise<boolean> => {
   try {
     const token = getToken();
     if (!token) return false;
-    const response = await fetch(`${ACTIVITIES_API_BASE_URL}/${id}`, {
+    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

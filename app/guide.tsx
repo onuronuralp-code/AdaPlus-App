@@ -42,12 +42,19 @@ export default function GuideScreen() {
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
     const [guestMessageCount, setGuestMessageCount] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
+    const streamControllerRef = useRef<AbortController | null>(null);
+    const isMountedRef = useRef(true);
 
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', text: t('guide.welcomeMessage'), isBot: true },
     ]);
 
-
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+            streamControllerRef.current?.abort();
+        };
+    }, []);
 
     // Auth gate temporarily removed for guest access
 
@@ -61,20 +68,27 @@ export default function GuideScreen() {
         setMessages(prev => [...prev, userMsg, thinkingMsg]);
         scrollRef.current?.scrollToEnd({ animated: true });
 
+        streamControllerRef.current?.abort();
+        const controller = new AbortController();
+        streamControllerRef.current = controller;
+
         setIsLoading(true);
         try {
             await sendChatMessageStream(
                 t('guide.islandContext', { island }),
                 ISLAND_SLUG[island],
                 (chunk) => {
+                    if (!isMountedRef.current) return;
                     setMessages(prev => prev.map(m => {
                         if (m.id !== thinkingId) return m;
                         return { ...m, text: m.text === '...' ? chunk : m.text + chunk };
                     }));
                     scrollRef.current?.scrollToEnd({ animated: false });
                 },
+                controller.signal,
             );
         } catch (e: any) {
+            if (e?.name === 'AbortError' || !isMountedRef.current) return;
             let msg = t('guide.errorRetry', { defaultValue: 'Bir hata oluştu, lütfen tekrar dene.' });
             if (e?.message === 'daily_limit_reached') {
                 msg = t('guide.dailyLimitReached');
@@ -88,11 +102,12 @@ export default function GuideScreen() {
             } else {
                 console.error('[Guide] island stream error:', e);
             }
-            
+
             setMessages(prev => prev.map(m =>
                 m.id === thinkingId ? { ...m, text: msg } : m
             ));
         } finally {
+            if (!isMountedRef.current) return;
             setIsLoading(false);
             scrollRef.current?.scrollToEnd({ animated: true });
         }
@@ -126,21 +141,28 @@ export default function GuideScreen() {
         setMessages(prev => [...prev, userMsg, thinkingMsg]);
         scrollRef.current?.scrollToEnd({ animated: true });
 
+        streamControllerRef.current?.abort();
+        const controller = new AbortController();
+        streamControllerRef.current = controller;
+
         setIsLoading(true);
         try {
             await sendChatMessageStream(
                 text,
                 selectedIsland ? ISLAND_SLUG[selectedIsland] : undefined,
                 (chunk) => {
+                    if (!isMountedRef.current) return;
                     setMessages(prev => prev.map(m => {
                         if (m.id !== thinkingId) return m;
                         return { ...m, text: m.text === '...' ? chunk : m.text + chunk };
                     }));
                     scrollRef.current?.scrollToEnd({ animated: false });
                 },
+                controller.signal,
             );
-            if (!isLoggedIn) setGuestMessageCount(prev => prev + 1);
+            if (!isLoggedIn && isMountedRef.current) setGuestMessageCount(prev => prev + 1);
         } catch (e: any) {
+            if (e?.name === 'AbortError' || !isMountedRef.current) return;
             let msg = e?.message || t('guide.errorGeneric', { defaultValue: 'Bir hata oluştu.' });
             if (e?.message === 'daily_limit_reached') {
                 msg = t('guide.dailyLimitReached');
@@ -159,6 +181,7 @@ export default function GuideScreen() {
                 m.id === thinkingId ? { ...m, text: msg } : m
             ));
         } finally {
+            if (!isMountedRef.current) return;
             setIsLoading(false);
             scrollRef.current?.scrollToEnd({ animated: true });
         }
