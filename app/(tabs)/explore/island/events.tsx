@@ -410,6 +410,7 @@ export default function EventsScreen() {
                 navigationBarTranslucent={true}
                 onRequestClose={() => setIsAddModalVisible(false)}
             >
+                <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <View 
                     style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
                     
@@ -578,8 +579,9 @@ export default function EventsScreen() {
                         )}
                         </View>
                     </KeyboardAwareScrollView>
-          </View>
-      </Modal>
+                </View>
+                </KeyboardAvoidingView>
+            </Modal>
 
             <LoginPromptModal 
                 visible={showLoginPrompt} 

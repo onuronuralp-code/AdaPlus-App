@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,6 +18,7 @@ import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
+import { CelebrationModal } from '@/components/CelebrationModal';
 
 
 type ProfileTab = 'posts' | 'listings' | 'events' | 'likes' | 'notifications';
@@ -49,7 +50,9 @@ export default function ProfileScreen() {
     const [loadingListings, setLoadingListings] = useState(true);
     const [loadingActivities, setLoadingActivities] = useState(true);
     const [fetchError, setFetchError] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
 
@@ -57,6 +60,15 @@ export default function ProfileScreen() {
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
     const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+    // Check for 5 invites milestone
+    useEffect(() => {
+        if (isLoggedIn && user && (user as any)?.invitedUsersCount === 5) {
+            // Ideally we'd check if we already showed it (e.g. from AsyncStorage), 
+            // but for now, we trigger it once when the count is exactly 5.
+            setShowCelebration(true);
+        }
+    }, [isLoggedIn, (user as any)?.invitedUsersCount]);
 
     const loadAll = useCallback(() => {
         if (!user) return;
@@ -604,6 +616,12 @@ export default function ProfileScreen() {
                                 <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 8, textAlign: 'right' }}>
                                     Hedef: 5
                                 </Text>
+                                {/* MOCK CELEBRATION TRIGGER BUTTON */}
+                                <TouchableOpacity 
+                                    onPress={() => setShowCelebration(true)}
+                                    style={{ marginTop: 10, alignSelf: 'flex-end', backgroundColor: '#FEF3C7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
+                                    <Text style={{ fontSize: 12, color: '#D97706', fontWeight: 'bold' }}>Kutlamayı Test Et 🚀</Text>
+                                </TouchableOpacity>
                             </View>
                         )}
 
@@ -647,6 +665,12 @@ export default function ProfileScreen() {
                 {renderContent()}
                 </ScrollView>
             )}
+
+            <CelebrationModal 
+                visible={showCelebration} 
+                onClose={() => setShowCelebration(false)} 
+            />
+
             {/* Invite Modal */}
             <Modal
                 visible={showInviteModal}
@@ -715,8 +739,8 @@ const styles = StyleSheet.create({
 
     // Tab Bar
     tabBar: { paddingVertical: 16 },
-    tabScroll: { paddingHorizontal: 20, gap: 12, paddingVertical: 6 },
-    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+    tabScroll: { paddingHorizontal: 20, gap: 8, paddingVertical: 6 },
+    tabItem: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
     tabLabel: { fontSize: 13, fontWeight: '700', color: '#475569' },
 
     // Content

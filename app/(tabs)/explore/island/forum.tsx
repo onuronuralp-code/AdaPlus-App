@@ -3,6 +3,7 @@ import { s, vs, ms } from '@/utils/scale';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -878,7 +879,7 @@ export default function ForumScreen() {
                             )}
                         </TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={100} keyboardShouldPersistTaps="handled">
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{t('forum.islandSelection')}</Text>
                             <View style={styles.adCategoryRow}>
@@ -1045,7 +1046,7 @@ export default function ForumScreen() {
                                 </View>
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                         </Animated.View>
                     </View>
                 </KeyboardAvoidingView>

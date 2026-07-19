@@ -452,6 +452,7 @@ export default function IlanlarScreen() {
         navigationBarTranslucent={true}
         onRequestClose={handleCloseModal}
       >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View 
           style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
           
@@ -599,7 +600,8 @@ export default function IlanlarScreen() {
               </TouchableOpacity>
             )}
           </KeyboardAwareScrollView>
-          </View>
+        </View>
+        </KeyboardAvoidingView>
       </Modal>
       <LoginPromptModal 
         visible={showLoginPrompt} 
