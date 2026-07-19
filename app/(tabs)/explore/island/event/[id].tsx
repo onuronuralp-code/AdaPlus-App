@@ -89,6 +89,44 @@ export default function EventDetailScreen() {
         }
     };
 
+
+    const formatDateRange = (startStr?: string, endStr?: string) => {
+        if (!startStr) return '';
+        const s = new Date(startStr);
+        const startFormatted = s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+
+        if (!endStr) return startFormatted;
+
+        const e = new Date(endStr);
+        // Check if same day, month, year
+        if (
+            s.getDate() === e.getDate() &&
+            s.getMonth() === e.getMonth() &&
+            s.getFullYear() === e.getFullYear()
+        ) {
+            const endFormattedTime = e.toLocaleTimeString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+            return `${startFormatted} - ${endFormattedTime}`;
+        } else {
+            const endFormatted = e.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+            return `${startFormatted} - ${endFormatted}`;
+        }
+    };
+
     const formatDate = (dateString?: string) => {
         if (!dateString) return '';
         const d = new Date(dateString);
@@ -193,24 +231,7 @@ export default function EventDetailScreen() {
                     <Text style={styles.title}>{activity.name}</Text>
 
                     {/* Description */}
-                    <Text style={[styles.description, { marginTop: 6, marginBottom: 4 }]}>{activity.description}</Text>
-
-                    <TouchableOpacity 
-                        style={[styles.rsvpButton, going && styles.rsvpButtonActive, { marginTop: 16, marginBottom: 8 }]} 
-                        onPress={handleRsvp}
-                        disabled={rsvpLoading}
-                    >
-                        {rsvpLoading ? (
-                            <ActivityIndicator color={going ? '#3B82F6' : '#fff'} />
-                        ) : (
-                            <>
-                                <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? '#3B82F6' : '#fff'} />
-                                <Text style={[styles.rsvpButtonText, going && styles.rsvpButtonTextActive]}>
-                                    {going ? t('events.going', { defaultValue: 'Katılıyorum' }) : t('events.join', { defaultValue: 'Katılacağım' })}
-                                </Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
+                    <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }]}>{activity.description}</Text>
 
                     <View style={styles.divider} />
 
@@ -220,14 +241,8 @@ export default function EventDetailScreen() {
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>{t('events.startLabel')}</Text>
-                            <Text style={styles.infoValue}>{formatDate(activity.startDate)}</Text>
-                            {activity.endDate && (
-                                <>
-                                    <Text style={[styles.infoLabel, { marginTop: 6 }]}>{t('events.endLabel')}</Text>
-                                    <Text style={styles.infoValue}>{formatDate(activity.endDate)}</Text>
-                                </>
-                            )}
+                            <Text style={styles.infoLabel}>{t('events.dateLabel', { defaultValue: 'TARİH VE SAAT' })}</Text>
+                            <Text style={styles.infoValue}>{formatDateRange(activity.startDate, activity.endDate)}</Text>
                         </View>
                     </View>
 
@@ -277,6 +292,23 @@ export default function EventDetailScreen() {
                         </View>
                     )}
 
+                    <TouchableOpacity 
+                        style={[styles.rsvpButton, going && styles.rsvpButtonActive, { marginTop: 32, marginBottom: 8 }]} 
+                        onPress={handleRsvp}
+                        disabled={rsvpLoading}
+                    >
+                        {rsvpLoading ? (
+                            <ActivityIndicator color={going ? '#3B82F6' : '#fff'} />
+                        ) : (
+                            <>
+                                <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? '#3B82F6' : '#fff'} />
+                                <Text style={[styles.rsvpButtonText, going && styles.rsvpButtonTextActive]}>
+                                    {going ? t('events.going', { defaultValue: 'Katılıyorum' }) : t('events.join', { defaultValue: 'Katılacağım' })}
+                                </Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+
                 </View>
             </ScrollView>
 
@@ -321,7 +353,7 @@ const styles = StyleSheet.create({
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH * 0.8,
+        height: SCREEN_WIDTH,
         backgroundColor: '#F1F5F9',
     },
     content: {

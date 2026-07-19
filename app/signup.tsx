@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, BackHandler, Modal } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -50,9 +51,8 @@ export default function SignUpScreen() {
     const [kvkkVisible, setKvkkVisible] = useState(false);
 
     // Optional fields
-    const [birthMonth, setBirthMonth] = useState('');
-    const [birthDay, setBirthDay] = useState('');
-    const [birthYear, setBirthYear] = useState('');
+    const [birthDate, setBirthDate] = useState<Date | null>(null);
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
     const [islandOpen, setIslandOpen] = useState(false);
 
@@ -78,9 +78,9 @@ export default function SignUpScreen() {
     };
 
     const validateEmail = (val: string): string | undefined => {
-        if (!val.trim()) return undefined;
-        if (isEmailPattern(val)) return undefined;
-        return 'Geçerli bir e-posta adresi girin';
+        if (!val.trim()) return t('auth.errors.emailRequired');
+        if (isEmailPattern(val) || isPhonePattern(val)) return undefined;
+        return t('auth.errors.invalidEmail', { defaultValue: 'Geçerli bir e-posta adresi veya telefon numarası girin' });
     };
 
     const validatePassword = (val: string): string | undefined => {
@@ -128,12 +128,7 @@ export default function SignUpScreen() {
     const handleSubmit = async () => {
         if (loading) return;
         const nameError = validateName(name);
-        
-        let emailError = validateEmail(email);
-        if (!email.trim()) {
-            emailError = 'E-posta zorunludur';
-        }
-        
+        const emailError = validateEmail(email);
         const passwordError = validatePassword(password);
         setTouched({ name: true, email: true, password: true });
         setErrors({ name: nameError, email: emailError, password: passwordError });
@@ -146,10 +141,8 @@ export default function SignUpScreen() {
         setKvkkVisible(false);
         setLoading(true);
         try {
-            const birthDate =
-                birthDay && birthMonth && birthYear
-                    ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
-                    : undefined;
+            const formattedBirthDate =
+                birthDate ? birthDate.toISOString().split('T')[0] : undefined;
             const actualContact = email.trim();
             await authApi.signup(
                 name.trim(),
@@ -157,7 +150,7 @@ export default function SignUpScreen() {
                 password,
                 true,
                 true,
-                birthDate,
+                formattedBirthDate,
                 selectedIsland ?? undefined,
                 inviteToken ?? undefined,
                 undefined,
@@ -188,7 +181,7 @@ export default function SignUpScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false} keyboardShouldPersistTaps="handled" bounces={false}>
                 <View style={styles.container}>
                     <View style={styles.headerBackground}>
                         <Image
@@ -276,6 +269,7 @@ export default function SignUpScreen() {
                                             handleEmailBlur();
                                         }}
                                     />
+                                    <IconSymbol name="phone.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                                 </View>
                             </View>
 
@@ -306,7 +300,7 @@ export default function SignUpScreen() {
                             </View>
 
                             {/* Yaşadığın Ada (isteğe bağlı) */}
-                            <View style={[styles.inputGroup, { marginBottom: islandOpen ? 220 : 12, zIndex: 10 }]}>
+                            <View style={[styles.inputGroup, { marginBottom: 12, zIndex: 10 }]}>
                                 <Text style={styles.inputLabel}>YAŞADIĞIN ADA <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
                                 <TouchableOpacity
                                     style={[styles.inputWrapper, islandOpen && styles.inputWrapperFocused]}
@@ -326,83 +320,23 @@ export default function SignUpScreen() {
                                         color="#94A3B8"
                                     />
                                 </TouchableOpacity>
-                                {islandOpen && (
-                                    <View style={[styles.dropdownList, { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, marginTop: 4 }]}>
-                                        <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
-                                            {ISLANDS.map((island, idx) => (
-                                                <TouchableOpacity
-                                                    key={island}
-                                                    style={[
-                                                        styles.dropdownItem,
-                                                        idx < ISLANDS.length - 1 && styles.dropdownItemBorder,
-                                                        selectedIsland === island && styles.dropdownItemSelected,
-                                                    ]}
-                                                    onPress={() => { setSelectedIsland(island); setIslandOpen(false); }}
-                                                >
-                                                    <Text style={[styles.dropdownItemText, selectedIsland === island && styles.dropdownItemTextSelected]}>
-                                                        {island}
-                                                    </Text>
-                                                    {selectedIsland === island && (
-                                                        <IconSymbol name="checkmark" size={14} color="#3B82F6" />
-                                                    )}
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
-                                    </View>
-                                )}
+
                             </View>
 
                             {/* Doğum Tarihi (isteğe bağlı) */}
                             <View style={[styles.inputGroup, { marginBottom: 12 }]}>
                                 <Text style={styles.inputLabel}>DOĞUM TARİHİ <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
-                                <View style={styles.dateRow}>
-                                    <View style={[styles.dateCell, styles.dateCellShort]}>
-                                        <TextInput
-                                            ref={dayRef}
-                                            style={styles.dateCellInput}
-                                            placeholder="GG"
-                                            placeholderTextColor="#94A3B8"
-                                            keyboardType="number-pad"
-                                            maxLength={2}
-                                            value={birthDay}
-                                            onChangeText={val => {
-                                                const digits = val.replace(/\D/g, '');
-                                                setBirthDay(digits);
-                                                if (digits.length === 2) monthRef.current?.focus();
-                                            }}
-                                        />
-                                    </View>
-                                    <Text style={styles.dateSep}>/</Text>
-                                    <View style={[styles.dateCell, styles.dateCellShort]}>
-                                        <TextInput
-                                            ref={monthRef}
-                                            style={styles.dateCellInput}
-                                            placeholder="AA"
-                                            placeholderTextColor="#94A3B8"
-                                            keyboardType="number-pad"
-                                            maxLength={2}
-                                            value={birthMonth}
-                                            onChangeText={val => {
-                                                const digits = val.replace(/\D/g, '');
-                                                setBirthMonth(digits);
-                                                if (digits.length === 2) yearRef.current?.focus();
-                                            }}
-                                        />
-                                    </View>
-                                    <Text style={styles.dateSep}>/</Text>
-                                    <View style={[styles.dateCell, { flex: 1 }]}>
-                                        <TextInput
-                                            ref={yearRef}
-                                            style={styles.dateCellInput}
-                                            placeholder="YYYY"
-                                            placeholderTextColor="#94A3B8"
-                                            keyboardType="number-pad"
-                                            maxLength={4}
-                                            value={birthYear}
-                                            onChangeText={val => setBirthYear(val.replace(/\D/g, ''))}
-                                        />
-                                    </View>
-                                </View>
+                                <TouchableOpacity 
+                                    style={[styles.inputWrapper, { justifyContent: 'center' }]} 
+                                    onPress={() => {
+                                        Keyboard.dismiss();
+                                        setShowDatePicker(true);
+                                    }}
+                                >
+                                    <Text style={{ color: birthDate ? '#1E293B' : '#94A3B8', fontSize: 16 }}>
+                                        {birthDate ? birthDate.toLocaleDateString('tr-TR') : 'GG / AA / YYYY'}
+                                    </Text>
+                                </TouchableOpacity>
                             </View>
 
                             <TouchableOpacity
@@ -421,8 +355,6 @@ export default function SignUpScreen() {
                                 )}
                             </TouchableOpacity>
 
-
-
                             <View style={styles.footer}>
                                 <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>
                                 <TouchableOpacity onPress={() => router.replace('/login')}>
@@ -439,6 +371,79 @@ export default function SignUpScreen() {
                 onClose={() => setKvkkVisible(false)}
                 onAccept={handleSignupAfterKVKK}
             />
+
+            {/* DatePicker Modal for iOS, or inline for Android */}
+            {Platform.OS === 'ios' ? (
+                <Modal visible={showDatePicker} transparent animationType="fade">
+                    <TouchableOpacity style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
+                        <TouchableOpacity style={{ backgroundColor: 'white', padding: 16 }} activeOpacity={1}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 }}>
+                                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                    <Text style={{ color: '#3B82F6', fontWeight: 'bold', fontSize: 16 }}>Tamam</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <DateTimePicker
+                                value={birthDate || new Date()}
+                                mode="date"
+                                display="spinner"
+                                maximumDate={new Date()}
+                                onChange={(event, date) => {
+                                    if (date) setBirthDate(date);
+                                }}
+                            />
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                </Modal>
+            ) : (
+                showDatePicker && (
+                    <DateTimePicker
+                        value={birthDate || new Date()}
+                        mode="date"
+                        display="default"
+                        maximumDate={new Date()}
+                        onChange={(event, date) => {
+                            setShowDatePicker(false);
+                            if (date) setBirthDate(date);
+                        }}
+                    />
+                )
+            )}
+
+            {/* Island Selection Modal */}
+            <Modal visible={islandOpen} transparent animationType="fade">
+                <TouchableOpacity style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setIslandOpen(false)}>
+                    <TouchableOpacity style={{ backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40 }} activeOpacity={1}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#0F172A' }}>Ada Seçiniz</Text>
+                            <TouchableOpacity onPress={() => setIslandOpen(false)}>
+                                <IconSymbol name="xmark" size={24} color="#64748B" />
+                            </TouchableOpacity>
+                        </View>
+                        {['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Adalı değilim'].map((island, idx) => (
+                            <TouchableOpacity
+                                key={island}
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    paddingVertical: 16,
+                                    borderBottomWidth: idx < 4 ? 1 : 0,
+                                    borderBottomColor: '#E2E8F0',
+                                }}
+                                onPress={() => { setSelectedIsland(island); setIslandOpen(false); }}
+                            >
+                                <Text style={{ fontSize: 16, color: selectedIsland === island ? '#3B82F6' : '#1E293B', fontWeight: selectedIsland === island ? '700' : '500' }}>
+                                    {island}
+                                </Text>
+                                {selectedIsland === island && (
+                                    <IconSymbol name="checkmark" size={18} color="#3B82F6" />
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
+
         </KeyboardAvoidingView>
     );
 }

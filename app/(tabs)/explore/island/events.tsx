@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +21,7 @@ export default function EventsScreen() {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, user } = useAuth();
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -49,6 +50,7 @@ export default function EventsScreen() {
                     if (act.organizerContact) setContactNumber(act.organizerContact);
                     if (act.instagramLink) setSocialLink(act.instagramLink);
                     if (act.imageUrl) setSelectedImage(act.imageUrl);
+                    setContactNumber(user?.email || '');
                     setIsAddModalVisible(true);
                 }
             });
@@ -69,14 +71,14 @@ export default function EventsScreen() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     
-    const isValidPhone = contactNumber.replace(/\D/g, '').length >= 10;
+    // removed isValidPhone
     
     const isPublishDisabled = 
         newEventName.trim().length < 3 || 
         newEventDetails.trim().length < 1 || 
         !newEventLocation.trim() ||
         !organizerName.trim() || 
-        !isValidPhone || 
+        contactNumber.trim().length === 0 || 
         endDate < startDate || 
         isUploading;
 
@@ -234,7 +236,7 @@ export default function EventsScreen() {
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
             organizerName: organizerName.trim(),
-            organizerContact: contactNumber.replace(/\D/g, ''),
+            organizerContact: contactNumber.trim(),
             eventPlace: newEventLocation.trim() || undefined,
             instagramLink: formattedSocialLink,
             imageUrl: imageUrl,
@@ -330,7 +332,7 @@ export default function EventsScreen() {
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
                                 {hasUserImage ? (
-                                    <View style={{ width: '100%', height: isGridView ? 120 : 200, backgroundColor: '#F1F5F9' }}>
+                                    <View style={{ width: '100%', height: isGridView ? 180 : 300, backgroundColor: '#F1F5F9' }}>
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
@@ -382,6 +384,7 @@ export default function EventsScreen() {
                     if (!isLoggedIn) {
                         setShowLoginPrompt(true);
                     } else {
+                        setContactNumber(user?.email || '');
                         setIsAddModalVisible(true);
                     }
                 }}
@@ -405,9 +408,9 @@ export default function EventsScreen() {
                 navigationBarTranslucent={true}
                 onRequestClose={() => setIsAddModalVisible(false)}
             >
-                <KeyboardAvoidingView 
+                <View 
                     style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    
                 >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
@@ -440,7 +443,7 @@ export default function EventsScreen() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                    <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={120} keyboardShouldPersistTaps="handled">
                         <View style={{ padding: 20 }}>
                         {endDate < startDate && (
                             <View style={styles.dateErrorBanner}>
@@ -519,18 +522,15 @@ export default function EventsScreen() {
                             onChangeText={setOrganizerName}
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.contactNumber')}</Text>
+                        <Text style={styles.inputLabel}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
                         <TextInput 
-                            style={[styles.input, contactNumber.length > 0 && !isValidPhone && { borderColor: '#EF4444', borderWidth: 1 }]}
-                            placeholder="Örn: 05xx xxx xx xx"
+                            style={[styles.input]}
+                            placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"
                             placeholderTextColor="#94A3B8"
-                            keyboardType="phone-pad"
+                            keyboardType="default"
                             value={contactNumber}
                             onChangeText={setContactNumber}
                         />
-                        {contactNumber.length > 0 && !isValidPhone && (
-                            <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 4, fontWeight: '500' }}>En az 10 haneli bir numara girin</Text>
-                        )}
 
                         <Text style={styles.inputLabel}>{t('events.socialLink')}</Text>
                         <TextInput 
@@ -574,9 +574,9 @@ export default function EventsScreen() {
                             </TouchableOpacity>
                         )}
                         </View>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </Modal>
+                    </KeyboardAwareScrollView>
+          </View>
+      </Modal>
 
             <LoginPromptModal 
                 visible={showLoginPrompt} 
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     },
     eventImage: {
         width: '100%',
-        height: 160,
+        height: 300,
     },
     eventInfo: {
         padding: 16,

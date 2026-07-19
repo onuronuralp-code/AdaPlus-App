@@ -1,3 +1,4 @@
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import React, { useState } from 'react';
 import {
   View,
@@ -65,7 +66,7 @@ export default function IlanlarScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const params = useLocalSearchParams();
   
   const [listings, setListings] = useState<ListingDto[]>([]);
@@ -131,12 +132,12 @@ export default function IlanlarScreen() {
   const rawPrice = adPrice.replace(/\./g, ''); // strip dots for parsing
   const parsedPrice = adPrice.trim() === '' ? 0 : parseFloat(rawPrice);
   const isPriceValid = !isNaN(parsedPrice) && parsedPrice >= 0;
-  const cleanedContact = adContact.replace(/\D/g, '');
+  // removed cleanedContact
   const isFormDirty = adTitle.trim().length > 0 || adDesc.trim().length > 0 || adContact.length > 0 || adPrice.length > 0 || selectedImages.length > 0;
 
   const resetAndCloseModal = () => {
     setIsAdModalVisible(false);
-    setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(''); setSelectedImages([]);
+    setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(user?.email || ''); setSelectedImages([]);
     setAdSubCat('sell');
     setAdIsland('Büyükada');
     setEditingListingId(null);
@@ -163,7 +164,7 @@ export default function IlanlarScreen() {
   const isPublishDisabled =
     adTitle.trim().length < 2 ||
     adDesc.trim().length < 1 ||
-    cleanedContact.length !== 11 ||
+    adContact.trim().length === 0 ||
     isUploading;
 
   const islands = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
@@ -464,9 +465,9 @@ export default function IlanlarScreen() {
         navigationBarTranslucent={true}
         onRequestClose={handleCloseModal}
       >
-        <KeyboardAvoidingView 
+        <View 
           style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          
         >
           <View style={styles.modalHeader}>
             <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
@@ -492,7 +493,7 @@ export default function IlanlarScreen() {
             </View>
           </View>
 
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+          <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={120} keyboardShouldPersistTaps="handled">
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
               <View style={styles.adCategoryRow}>
@@ -577,19 +578,15 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.contactNumber')} <Text style={{ color: '#94A3B8', fontWeight: '400' }}>({t('ilanlar.11digits')})</Text></Text>
+              <Text style={styles.inputLabel}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
               <TextInput
                 style={styles.adTitleInput}
-                placeholder="05XXXXXXXXX"
+                placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"
                 placeholderTextColor="#94A3B8"
-                keyboardType="phone-pad"
+                keyboardType="default"
                 value={adContact}
-                onChangeText={t => setAdContact(t.replace(/\D/g, '').slice(0, 11))}
-                maxLength={11}
+                onChangeText={setAdContact}
               />
-              {adContact.length > 0 && cleanedContact.length < 10 && (
-                <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidNumber')}</Text>
-              )}
             </View>
 
             {selectedImages.length > 0 && (
@@ -613,8 +610,8 @@ export default function IlanlarScreen() {
                 <Text style={styles.addPhotoText}>{t('listings.addPhoto')}</Text>
               </TouchableOpacity>
             )}
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+          </View>
       </Modal>
       <LoginPromptModal 
         visible={showLoginPrompt} 
@@ -667,7 +664,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
       }}
     >
       {hasUserImage && (
-        <View style={{ width: '100%', height: isGridView ? 120 : 200, backgroundColor: '#F1F5F9' }}>
+        <View style={{ width: '100%', height: isGridView ? 180 : 300, backgroundColor: '#F1F5F9' }}>
           <Image 
              source={{ uri: resolvedUrl }} 
              style={{ width: '100%', height: '100%' }} 
@@ -807,7 +804,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: 150,
+    height: 300,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     marginBottom: 4,

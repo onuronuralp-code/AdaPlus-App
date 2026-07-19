@@ -444,14 +444,14 @@ export default function MainMenuScreen() {
               </Text>
               <View style={{ width: 80, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 
-                    width: `${Math.min((((user as any)?.invitedUsersCount || 5) / 20) * 100, 100)}%`, 
+                    width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 20) * 100, 100)}%`, 
                     height: '100%', 
                     backgroundColor: '#6366F1', 
                     borderRadius: 3 
                 }} />
               </View>
               <Text style={{ fontSize: 11, color: '#6366F1', fontWeight: '800' }}>
-                {(user as any)?.invitedUsersCount || 5}/20
+                {(user as any)?.invitedUsersCount || 0}/20
               </Text>
             </View>
           ) : (

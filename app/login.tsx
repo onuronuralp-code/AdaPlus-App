@@ -10,6 +10,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ErrorModal from '@/components/ErrorModal';
 import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
+const isEmailPattern = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+const isPhonePattern = (val: string) => /^\+?[0-9]{7,15}$/.test(val.trim().replace(/[\s\-()]/g, ''));
 
 export default function LoginScreen() {
     const { t } = useTranslation();
@@ -38,8 +40,8 @@ export default function LoginScreen() {
     const validateEmail = (val: string): string | undefined => {
         const trimmed = val.trim();
         if (!trimmed) return t('auth.errors.emailRequired');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return t('auth.errors.invalidEmail');
-        return undefined;
+        if (isEmailPattern(trimmed) || isPhonePattern(trimmed)) return undefined;
+        return t('auth.errors.invalidEmail');
     };
 
     const validatePassword = (val: string): string | undefined => {
@@ -125,7 +127,7 @@ export default function LoginScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false} keyboardShouldPersistTaps="handled" bounces={false}>
             <View style={styles.container}>
             
             <View style={styles.headerBackground}>
@@ -181,6 +183,7 @@ export default function LoginScreen() {
                                     handleEmailBlur();
                                 }}
                             />
+                            <IconSymbol name="phone.fill" size={ms(18)} color={errors.email ? '#EF4444' : '#94A3B8'} />
                         </View>
                     </View>
 

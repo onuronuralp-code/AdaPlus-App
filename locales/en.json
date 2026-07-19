@@ -136,8 +136,8 @@
     "auth": {
         "loginTitle": "Welcome Back",
         "loginSubtitle": "Log in to your account and see what's happening in the community.",
-        "emailLabel": "E-MAIL",
-        "emailPlaceholder": "Enter your email address",
+        "emailLabel": "E-MAIL OR PHONE NUMBER",
+        "emailPlaceholder": "Enter your email address or phone number",
         "passwordLabel": "PASSWORD",
         "passwordPlaceholder": "At least 8 characters",
         "forgotPassword": "Forgot Password?",
@@ -161,7 +161,7 @@
         "updateButton": "Update Password",
         "backToLogin": "Return to Login",
         "errors": {
-            "emailRequired": "Email address cannot be empty.",
+            "emailRequired": "This field cannot be left empty.",
             "invalidEmail": "Please enter a valid email address.",
             "passwordRequired": "Password field cannot be empty.",
             "passwordMin": "Password must be at least 8 characters.",

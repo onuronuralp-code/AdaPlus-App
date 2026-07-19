@@ -323,7 +323,7 @@ export default function ForumScreen() {
     };
 
     const MIN_POST_LENGTH = 10;
-    const MAX_POST_LENGTH = 1000;
+    const MAX_POST_LENGTH = 500;
     const trimmedPostContent = newPostContent.trim();
     const postContentTooShort = newPostType !== 'poll' && trimmedPostContent.length > 0 && trimmedPostContent.length < MIN_POST_LENGTH;
     const isPublishActive = (
@@ -813,7 +813,7 @@ export default function ForumScreen() {
                                 icon="bubble.left.and.bubble.right" 
                                 title={t('forum.emptyTitle', { defaultValue: i18n.language.startsWith('en') ? 'No Posts Yet' : 'Henüz Gönderi Yok' })}
                                 subtitle={t('forum.emptySubtitle', { defaultValue: i18n.language.startsWith('en') ? 'Would you like to send the first message to the community? Share something now!' : 'Topluluğa ilk mesajı sen göndermek ister misin? Hemen bir paylaşım yap!' })}
-                                color="#10B981"
+                                color="#3B82F6"
                                 style={{ marginTop: -140 }}
                             />
                         ) : null}
@@ -1014,7 +1014,6 @@ export default function ForumScreen() {
                                 <Text style={styles.inputLabel}>{t('forum.pollDuration')}</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                     {[
-                                        { value: 1, label: '1 Saat' },
                                         { value: 24, label: '1 Gün' },
                                         { value: 72, label: '3 Gün' },
                                         { value: 168, label: '7 Gün' },

@@ -136,8 +136,8 @@
     "auth": {
         "loginTitle": "Tekrar Merhaba",
         "loginSubtitle": "Hesabına giriş yap ve toplulukta neler olup bittiğini takip et.",
-        "emailLabel": "E-POSTA ADRESİ",
-        "emailPlaceholder": "E-posta adresinizi girin",
+        "emailLabel": "E-POSTA ADRESİ VEYA TELEFON NUMARASI",
+        "emailPlaceholder": "E-posta adresi veya telefon numarası girin",
         "passwordLabel": "ŞİFRE",
         "passwordPlaceholder": "En az 8 karakter",
         "forgotPassword": "Şifremi Unuttum",
@@ -161,7 +161,7 @@
         "updateButton": "Şifreyi Güncelle",
         "backToLogin": "Giriş Ekranına Dön",
         "errors": {
-            "emailRequired": "E-posta adresi boş bırakılamaz.",
+            "emailRequired": "Bu alan boş bırakılamaz.",
             "invalidEmail": "Geçerli bir e-posta adresi giriniz.",
             "passwordRequired": "Şifre alanı boş bırakılamaz.",
             "passwordMin": "Şifre en az 8 karakter olmalıdır.",

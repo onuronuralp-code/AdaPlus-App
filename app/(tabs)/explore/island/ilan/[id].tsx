@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 0.8,
+    height: SCREEN_WIDTH,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8FAFC',
