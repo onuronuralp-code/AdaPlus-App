@@ -151,7 +151,7 @@ export default function SignUpScreen() {
                 true,
                 true,
                 formattedBirthDate,
-                selectedIsland ?? undefined,
+                (selectedIsland && selectedIsland !== 'Adalı değilim') ? selectedIsland : undefined,
                 inviteToken ?? undefined,
                 undefined,
             );
