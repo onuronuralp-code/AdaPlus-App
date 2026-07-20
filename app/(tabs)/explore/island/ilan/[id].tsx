@@ -18,7 +18,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as listingApi from '@/services/listingApi';
 import { ListingDto, ListingCategory } from '@/services/listingApi';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNowStrict } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
@@ -100,7 +100,7 @@ export default function IlanDetailScreen() {
   const frontendCat = backendToFrontend[listing.category] || 'emlak';
   const cfg = CATEGORY_CONFIG[frontendCat];
 
-  const timeAgo = formatDistanceToNow(new Date(listing.createdAt), { 
+  const timeAgo = formatDistanceToNowStrict(new Date(listing.createdAt), { 
     addSuffix: true, 
     locale: i18n.language.startsWith('tr') ? tr : enUS 
   });
@@ -217,7 +217,7 @@ export default function IlanDetailScreen() {
                   });
                 } else if (isPhone) {
                   Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
-                    Alert.alert('Hata', 'Arama ekranı açılamadı.');
+                    Alert.alert('Arama Yapılamadı', `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
                   });
                 } else {
                   // Fallback: try tel anyway

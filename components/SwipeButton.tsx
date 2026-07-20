@@ -89,60 +89,60 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={[styles.container, isLargeScreen && { height: 88, borderRadius: 20 }]}
+        style={({ pressed }) => [
+          styles.container, 
+          isLargeScreen && { height: 88, borderRadius: 20 },
+          { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
+        ]}
         onPress={handlePress}
       >
-        {/* Base gradient */}
-        <LinearGradient
-          colors={['#059669', '#10B981', '#059669']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-        />
-
-        {/* Shimmer sweep */}
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.shimmer, { transform: [{ translateX: shimmerTranslate }] }]}
-        >
-          <LinearGradient
-            colors={['transparent', 'rgba(255,255,255,0.14)', 'rgba(255,255,255,0.08)', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ flex: 1 }}
-          />
-        </Animated.View>
-
-        <View style={styles.content}>
-          {/* Icon + live dot */}
-          <View style={[styles.iconContainer, isLargeScreen && { width: 60, height: 60, borderRadius: 16 }]}>
-            <IconSymbol
-              name="bubble.left.and.bubble.right.fill"
-              size={isLargeScreen ? 30 : 24}
-              color="#FFFFFF"
+        {({ pressed }) => (
+          <>
+            {/* Base gradient matching the Etkinlikler/İlanlar cards */}
+            <LinearGradient
+              colors={['#34D399', '#10B981']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              locations={[0, 0.8]}
+              style={[StyleSheet.absoluteFillObject, pressed && { opacity: 0 }]}
             />
-            <Animated.View style={[styles.liveDot, { transform: [{ scale: dotScale }], opacity: dotOpacity }]} />
-          </View>
 
-          {/* Text block */}
-          <View style={styles.textBlock}>
-            <Text style={[styles.text, isLargeScreen && { fontSize: 18 }]}>
-              {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
-            </Text>
-            {userCount !== null && (
-              <Text style={styles.subtext}>
-                {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
-              </Text>
-            )}
-          </View>
+            <View style={styles.content}>
+              {/* Icon + live dot */}
+              <View style={[
+                  styles.iconContainer, 
+                  isLargeScreen && { width: 60, height: 60, borderRadius: 16 },
+                  { backgroundColor: pressed ? '#047857' : '#059669' }
+              ]}>
+                <IconSymbol
+                  name="bubble.left.and.bubble.right.fill"
+                  size={isLargeScreen ? 30 : 24}
+                  color="#FFFFFF"
+                />
+                <Animated.View style={[styles.liveDot, { transform: [{ scale: dotScale }], opacity: dotOpacity }]} />
+              </View>
 
-          {/* Cascading arrows */}
-          <View style={styles.arrows}>
-            <IconSymbol name="chevron.right" size={12} color="rgba(255,255,255,0.3)" />
-            <IconSymbol name="chevron.right" size={14} color="rgba(255,255,255,0.6)" />
-            <IconSymbol name="chevron.right" size={isLargeScreen ? 20 : 17} color="#FFFFFF" />
-          </View>
-        </View>
+              {/* Text block */}
+              <View style={styles.textBlock}>
+                <Text style={[styles.text, isLargeScreen && { fontSize: 18 }]}>
+                  {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
+                </Text>
+                {userCount !== null && (
+                  <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
+                    {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                  </Text>
+                )}
+              </View>
+
+              {/* Cascading arrows */}
+              <View style={styles.arrows}>
+                <IconSymbol name="chevron.right" size={12} color="rgba(255, 255, 255, 0.4)" />
+                <IconSymbol name="chevron.right" size={14} color="rgba(255, 255, 255, 0.7)" />
+                <IconSymbol name="chevron.right" size={isLargeScreen ? 20 : 17} color="#FFFFFF" />
+              </View>
+            </View>
+          </>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -154,20 +154,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: '#10B981',
     paddingHorizontal: 12,
     justifyContent: 'center',
     shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  shimmer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 90,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   content: {
     flexDirection: 'row',
@@ -177,7 +170,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -185,17 +177,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 7,
     right: 7,
-    width: 9,
-    height: 9,
+    width: 10,
+    height: 10,
     borderRadius: 5,
-    backgroundColor: '#6EE7B7',
+    backgroundColor: '#EF4444',
     borderWidth: 1.5,
-    borderColor: '#064E3B',
+    borderColor: '#ECFDF5',
   },
   textBlock: {
     flex: 1,
     marginLeft: 12,
     marginRight: 8,
+    paddingBottom: 4,
   },
   text: {
     fontWeight: '800',
@@ -205,7 +198,6 @@ const styles = StyleSheet.create({
   },
   subtext: {
     fontSize: 13,
-    color: '#FFFFFF',
     fontWeight: '600',
     marginTop: 2,
   },

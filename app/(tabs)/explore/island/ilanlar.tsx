@@ -1,5 +1,5 @@
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,13 +21,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
-import { Modal, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { Modal, KeyboardAvoidingView, ActivityIndicator, InputAccessoryView, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as listingApi from '@/services/listingApi';
 import { ListingDto, ListingCategory } from '@/services/listingApi';
 import { Island } from '@/services/forumApi';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNowStrict } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import * as ImagePicker from 'expo-image-picker';
@@ -72,14 +72,27 @@ export default function IlanlarScreen() {
   const [listings, setListings] = useState<ListingDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isGridView, setIsGridView] = useState(false);
+  const [isGridView, setIsGridView] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<IlanCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdModalVisible, setIsAdModalVisible] = useState(false);
+  const titleInputRef = React.useRef<TextInput>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [editingListingId, setEditingListingId] = useState<string | null>(null);
+  const modalSlideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+  useEffect(() => {
+    if (isAdModalVisible) {
+      modalSlideAnim.setValue(Dimensions.get('window').height);
+      Animated.spring(modalSlideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        bounciness: 0,
+      }).start();
+    }
+  }, [isAdModalVisible]);
 
   // Ad Fields State
   const [adTitle, setAdTitle] = useState('');
@@ -136,11 +149,17 @@ export default function IlanlarScreen() {
   const isFormDirty = adTitle.trim().length > 0 || adDesc.trim().length > 0 || adContact.length > 0 || adPrice.length > 0 || selectedImages.length > 0;
 
   const resetAndCloseModal = () => {
-    setIsAdModalVisible(false);
-    setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(user?.email || ''); setSelectedImages([]);
-    setAdSubCat('sell');
-    setAdIsland('Büyükada');
-    setEditingListingId(null);
+    Animated.timing(modalSlideAnim, {
+      toValue: Dimensions.get('window').height,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsAdModalVisible(false);
+      setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(user?.email || ''); setSelectedImages([]);
+      setAdSubCat('sell');
+      setAdIsland('Büyükada');
+      setEditingListingId(null);
+    });
   };
 
   const handleCloseModal = () => {
@@ -445,18 +464,18 @@ export default function IlanlarScreen() {
 
       <Modal
         visible={isAdModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
+        animationType="fade"
         transparent={true}
         statusBarTranslucent={true}
         navigationBarTranslucent={true}
         onRequestClose={handleCloseModal}
+        onShow={() => setTimeout(() => titleInputRef.current?.focus(), 150)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View 
-          style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
-          
-        >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={handleCloseModal} activeOpacity={1} />
+          <Animated.View 
+            style={[styles.modalContainer, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
+          >
           <View style={styles.modalHeader}>
             <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
               <TouchableOpacity onPress={handleCloseModal} style={styles.modalHeaderButton}>
@@ -484,14 +503,14 @@ export default function IlanlarScreen() {
           <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
-              <View style={styles.adCategoryRow}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
-                    style={[styles.adCatItem, adIsland === island && styles.activeAdCat]}
+                    style={[styles.adCatItem, { flex: 1, justifyContent: 'center' }, adIsland === island && styles.activeAdCat]}
                     onPress={() => setAdIsland(island)}
                   >
-                    <Text style={[styles.adCatText, adIsland === island && styles.activeAdCatText]}>{island}</Text>
+                    <Text style={[styles.adCatText, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}>{island}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -500,11 +519,15 @@ export default function IlanlarScreen() {
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.adTitle')}</Text>
               <TextInput
-                style={[styles.adTitleInput, { textAlign: 'center' }]}
+                style={styles.adTitleInput}
                 placeholder={t('ilanlar.titlePlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={adTitle}
                 onChangeText={setAdTitle}
+                ref={titleInputRef}
+
+                autoFocus={true}
+
               />
             </View>
 
@@ -539,12 +562,13 @@ export default function IlanlarScreen() {
                 keyboardType="number-pad"
                 value={adPrice}
                 onChangeText={t => {
-                  // Strip everything except digits, then format with dots
                   const digits = t.replace(/\D/g, '');
                   if (digits === '') { setAdPrice(''); return; }
                   const formatted = Number(digits).toLocaleString('tr-TR');
                   setAdPrice(formatted);
                 }}
+
+
               />
               {adPrice.length > 0 && !isPriceValid && (
                 <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidPrice')}</Text>
@@ -562,6 +586,8 @@ export default function IlanlarScreen() {
                 value={adDesc}
                 onChangeText={setAdDesc}
                 maxLength={500}
+
+
               />
               <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
             </View>
@@ -575,6 +601,8 @@ export default function IlanlarScreen() {
                 keyboardType="default"
                 value={adContact}
                 onChangeText={setAdContact}
+
+
               />
             </View>
 
@@ -600,9 +628,10 @@ export default function IlanlarScreen() {
               </TouchableOpacity>
             )}
           </KeyboardAwareScrollView>
+        </Animated.View>
         </View>
-        </KeyboardAvoidingView>
       </Modal>
+
       <LoginPromptModal 
         visible={showLoginPrompt} 
         onClose={() => setShowLoginPrompt(false)} 
@@ -631,7 +660,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
   const frontendCat = backendToFrontend[listing.category] || 'all';
   const cfg = CATEGORY_CONFIG[frontendCat] || CATEGORY_CONFIG.all;
 
-  const timeAgo = formatDistanceToNow(new Date(listing.createdAt), { 
+  const timeAgo = formatDistanceToNowStrict(new Date(listing.createdAt), { 
     addSuffix: true, 
     locale: i18n.language.startsWith('tr') ? tr : enUS 
   });
@@ -665,9 +694,9 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
       <View style={{ padding: isGridView ? 12 : 18 }}>
         <View style={[styles.cardHeader, isGridView && { marginBottom: 6 }]}>
           <View style={styles.headerLeft}>
-            <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
-              <IconSymbol name={cfg.icon as any} size={12} color={cfg.color} />
-              <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+            <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }, isGridView && { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, gap: 2 }]}>
+              <IconSymbol name={cfg.icon as any} size={isGridView ? 10 : 12} color={cfg.color} />
+              <Text style={[styles.categoryBadgeText, { color: cfg.color }, isGridView && { fontSize: 9.5 }]}>{cfg.label}</Text>
             </View>
           </View>
           <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }]}>{timeAgo}</Text>
@@ -677,7 +706,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
         {!isGridView && <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>}
 
         <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }]}>
-          <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4 }]}>
+          <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4, flexShrink: 1, marginRight: 8 }]}>
             <View style={styles.metaItem}>
               <IconSymbol name="mappin.circle.fill" size={12} color="#94A3B8" />
               <Text style={[styles.metaText, isGridView && { fontSize: 11 }]}>{listing.island}</Text>
@@ -685,13 +714,13 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
             {listing.contactInfo && (
               <View style={styles.metaItem}>
                 <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
-                <Text style={styles.metaText}>{listing.contactInfo.substring(0, 15)}...</Text>
+                <Text style={[styles.metaText, { flexShrink: 1 }]} numberOfLines={1}>{listing.contactInfo}</Text>
               </View>
             )}
           </View>
           {listing.price > 0 && (
-            <View style={{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+            <View style={[{ backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }, isGridView && { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 5 }]}>
+              <Text style={[{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }, isGridView && { fontSize: 11 }]}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
             </View>
           )}
         </View>
@@ -1024,6 +1053,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     fontWeight: '600',
+    textAlign: 'left',
   },
   adCategoryRow: {
     flexDirection: 'row',

@@ -33,6 +33,8 @@ export interface PollOptionDto {
   text: string;
   voteCount: number;
   percentage: number;
+  isVoted?: boolean;
+  voted?: boolean;
 }
 
 export interface PostDto {
@@ -79,6 +81,9 @@ const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
   const headers = {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
     ...options.headers,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
@@ -90,7 +95,14 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     throw new Error('Session expired');
   }
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    let errorMsg = `API Error: ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMsg = errorData.message || errorData.error || errorMsg;
+    } catch (e) {
+      // Ignore
+    }
+    throw new Error(errorMsg);
   }
   return response;
 };

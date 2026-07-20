@@ -9,9 +9,11 @@ const { width, height } = Dimensions.get('window');
 interface CelebrationModalProps {
     visible: boolean;
     onClose: () => void;
+    title?: string;
+    description?: string;
 }
 
-export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onClose }) => {
+export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onClose, title = "Tebrikler!", description = "5 kişiyi davet ettin ve Adalı rozetini kazandın! Artık adanın özel alanlarına ve Ada AI'a sınırsız erişimin var." }) => {
     const scaleAnim = useRef(new Animated.Value(0.5)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -49,21 +51,21 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onC
                     <View style={styles.iconContainer}>
                         <IconSymbol name="party.popper.fill" size={48} color="#F59E0B" />
                     </View>
-                    <Text style={styles.title}>Tebrikler!</Text>
+                    <Text style={styles.title}>{title}</Text>
                     <Text style={styles.description}>
-                        5 kişiyi davet ettin ve Adalı rozetini kazandın! Artık adanın özel alanlarına ve Ada AI'a sınırsız erişimin var.
+                        {description}
                     </Text>
                     <TouchableOpacity style={styles.button} onPress={onClose} activeOpacity={0.8}>
                         <Text style={styles.buttonText}>Harika!</Text>
                     </TouchableOpacity>
                 </Animated.View>
                 
-                <View style={{ position: 'absolute', top: height / 3, left: 0, right: 0, bottom: 0, elevation: 11, zIndex: 11 }} pointerEvents="none">
+                <View style={[StyleSheet.absoluteFill, { elevation: 11, zIndex: 11 }]} pointerEvents="none">
                     <ConfettiCannon
                         count={150}
-                        origin={{ x: width / 2, y: 150 }}
-                        explosionSpeed={1000}
-                        fallSpeed={3500}
+                        origin={{ x: width / 2, y: height }}
+                        explosionSpeed={400}
+                        fallSpeed={1800}
                         fadeOut={true}
                         autoStart={true}
                     />

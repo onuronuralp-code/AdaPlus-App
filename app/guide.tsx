@@ -1,5 +1,5 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, handleUnauthorized } from '@/context/AuthContext';
 import { sendChatMessageStream } from '@/services/guideApi';
 import { Stack, useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
@@ -36,7 +36,7 @@ export default function GuideScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, user } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
@@ -44,7 +44,16 @@ export default function GuideScreen() {
     const scrollRef = useRef<ScrollView>(null);
     const streamControllerRef = useRef<AbortController | null>(null);
     const isMountedRef = useRef(true);
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+    useEffect(() => {
+        const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardVisible(true));
+        const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardVisible(false));
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', text: t('guide.welcomeMessage'), isBot: true },
     ]);
@@ -96,6 +105,7 @@ export default function GuideScreen() {
                 console.warn('[Guide] Auth error gracefully caught:', e.message);
                 if (isLoggedIn) {
                     msg = t('guide.authExpiredReply', { defaultValue: 'Merhaba! ✨ Sisteme giriş yapmış görünüyorsun ancak oturum süren dolmuş veya bu özelliğe erişim yetkin (Adalı rolü vs.) bulunmuyor olabilir. Lütfen hesabından çıkıp tekrar giriş yapmayı dener misin?' });
+                    handleUnauthorized();
                 } else {
                     msg = t('guide.authRequiredReply', { defaultValue: 'Merhaba! ✨ Sana yardımcı olmayı çok isterim ama sohbetimize devam edebilmemiz için önce giriş yapman gerekiyor. Profil sekmesinden giriş yapıp tekrar gelir misin?' });
                 }
@@ -170,6 +180,7 @@ export default function GuideScreen() {
                 console.warn('[Guide] Auth error gracefully caught:', e.message);
                 if (isLoggedIn) {
                     msg = t('guide.authExpiredReply', { defaultValue: 'Merhaba! ✨ Sisteme giriş yapmış görünüyorsun ancak oturum süren dolmuş veya bu özelliğe erişim yetkin (Adalı rolü vs.) bulunmuyor olabilir. Lütfen hesabından çıkıp tekrar giriş yapmayı dener misin?' });
+                    handleUnauthorized();
                 } else {
                     msg = t('guide.authRequiredReply', { defaultValue: 'Merhaba! ✨ Sana yardımcı olmayı çok isterim ama sohbetimize devam edebilmemiz için önce giriş yapman gerekiyor. Profil sekmesinden giriş yapıp tekrar gelir misin?' });
                 }
@@ -202,11 +213,13 @@ export default function GuideScreen() {
                     <IconSymbol name="chevron.left" size={24} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('common.adaAI')}</Text>
-                {selectedIsland && (
-                    <View style={styles.islandBadge}>
-                        <Text style={styles.islandBadgeText}>{selectedIsland}</Text>
-                    </View>
-                )}
+                <View style={[styles.islandBadge, { backgroundColor: '#FCE7F3' }]}>
+                    <Text style={[styles.islandBadgeText, { color: '#EC4899', fontWeight: 'bold' }]}>
+                        {user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN' 
+                            ? "Sınırsız Soru" 
+                            : `${Math.max(0, (isLoggedIn ? 10 : 3) - guestMessageCount)} Soru Hakkı`}
+                    </Text>
+                </View>
             </View>
 
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -270,7 +283,7 @@ export default function GuideScreen() {
                     )}
                 </ScrollView>
 
-                <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 8 }]}>
+                <View style={[styles.inputContainer, { paddingBottom: keyboardVisible ? 8 : insets.bottom + 8 }]}>
                     <View style={styles.inputBox}>
                         <TextInput
                             style={styles.textInput}
@@ -279,6 +292,7 @@ export default function GuideScreen() {
                             value={prompt}
                             onChangeText={setPrompt}
                             multiline
+                            maxLength={100}
                             onSubmitEditing={handleSend}
                         />
                         <TouchableOpacity

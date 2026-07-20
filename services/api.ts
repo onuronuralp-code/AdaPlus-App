@@ -111,6 +111,7 @@ export interface AppActivityDto {
   submittedById?: string;
   rsvpCount?: number;
   userHasRsvp?: boolean;
+  island?: string;
 }
 
 export interface RsvpResponse {

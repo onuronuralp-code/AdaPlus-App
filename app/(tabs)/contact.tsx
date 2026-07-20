@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/context/AuthContext';
 import { contactApi } from '@/services/contactApi';
 import { s, vs, ms } from '@/utils/scale';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -82,6 +83,7 @@ export default function ContactScreen() {
   };
 
   return (
+    <SwipeNavigation leftRoute="/(tabs)/home" rightRoute="/(tabs)/profile">
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + vs(10) }]}>
         <Text style={styles.headerTitle}>{t('common.tabRequests')}</Text>
@@ -193,6 +195,7 @@ export default function ContactScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
+    </SwipeNavigation>
   );
 }
 

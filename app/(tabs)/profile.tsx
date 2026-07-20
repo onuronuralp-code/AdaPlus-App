@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -19,6 +20,7 @@ import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import { CelebrationModal } from '@/components/CelebrationModal';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 
 
 type ProfileTab = 'posts' | 'listings' | 'events' | 'likes' | 'notifications';
@@ -252,13 +254,29 @@ export default function ProfileScreen() {
         />
     );
 
+    const renderPostActions = (post: any, isReply: boolean) => {
+        return (
+            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+                <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={{ backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="pencil" size={22} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="trash.fill" size={22} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
     const renderPosts = () => {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
         if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Henüz Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
         return (
             <View style={styles.contentList}>
                 {posts.map(post => (
-                    <View key={post.id} style={styles.postCard}>
+                    <Swipeable key={post.id} renderRightActions={() => renderPostActions(post, false)} overshootRight={false}>
+                    <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
                         {editingPostId === post.id ? (
                             <View style={{ flex: 1 }}>
                                 <TextInput
@@ -281,20 +299,11 @@ export default function ProfileScreen() {
                                 <Text style={[styles.postContent, { marginBottom: 12 }]}>{post.content}</Text>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
-                                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                                        <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={[styles.inlineActionBtn, { backgroundColor: 'transparent' }]}>
-                                            <IconSymbol name="pencil" size={22} color="#6366F1" />
-                                            <Text style={[styles.inlineActionText, { color: '#6366F1' }]}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => handleDeletePost(post.id, false)} style={[styles.inlineActionBtn, { backgroundColor: '#FEF2F2' }]}>
-                                            <IconSymbol name="trash.fill" size={22} color="#EF4444" />
-                                            <Text style={[styles.inlineActionText, { color: '#EF4444' }]}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                        </TouchableOpacity>
-                                    </View>
                                 </View>
                             </View>
                         )}
                     </View>
+                    </Swipeable>
                 ))}
             </View>
         );
@@ -306,7 +315,8 @@ export default function ProfileScreen() {
         return (
             <View style={styles.contentList}>
                 {replies.map(reply => (
-                    <View key={reply.id} style={styles.postCard}>
+                    <Swipeable key={reply.id} renderRightActions={() => renderPostActions(reply, true)} overshootRight={false}>
+                    <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
                         <View style={styles.replyHeader}>
                             <IconSymbol name="arrow.uturn.left" size={12} color="#64748B" />
                             <Text style={styles.replyContext}>Gönderiye yanıt olarak:</Text>
@@ -333,20 +343,11 @@ export default function ProfileScreen() {
                                 <Text style={[styles.postContent, { marginBottom: 12 }]}>{reply.content}</Text>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
-                                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                                        <TouchableOpacity onPress={() => { setEditingPostId(reply.id); setEditingContent(reply.content); }} style={[styles.inlineActionBtn, { backgroundColor: 'transparent' }]}>
-                                            <IconSymbol name="pencil" size={22} color="#6366F1" />
-                                            <Text style={[styles.inlineActionText, { color: '#6366F1' }]}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => handleDeletePost(reply.id, true)} style={[styles.inlineActionBtn, { backgroundColor: '#FEF2F2' }]}>
-                                            <IconSymbol name="trash.fill" size={22} color="#EF4444" />
-                                            <Text style={[styles.inlineActionText, { color: '#EF4444' }]}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                        </TouchableOpacity>
-                                    </View>
                                 </View>
                             </View>
                         )}
                     </View>
+                    </Swipeable>
                 ))}
             </View>
         );
@@ -398,15 +399,30 @@ export default function ProfileScreen() {
         );
     };
 
+    const renderListingActions = (listing: any) => {
+        return (
+            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={{ backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="pencil" size={22} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="trash.fill" size={22} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
     const renderListings = () => {
         if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#10B981" /></View>;
         if (listings.length === 0) return renderEmpty('tag.fill', t('profile.emptyListingsTitle', { defaultValue: 'Henüz İlan Yok' }), t('profile.emptyListingsDesc', { defaultValue: 'İlk ilanınızı oluşturmak için İlanlar sayfasını ziyaret edin.' }), '#10B981');
         return (
             <View style={styles.contentList}>
                 {listings.map(listing => (
+                    <Swipeable key={listing.id} renderRightActions={() => renderListingActions(listing)} overshootRight={false}>
                     <TouchableOpacity 
-                        key={listing.id} 
-                        style={styles.listingCard}
+                        style={[styles.listingCard, { backgroundColor: '#fff' }]}
                         activeOpacity={0.7}
                         onPress={() => router.push(`/(tabs)/explore/island/ilan/${listing.id}`)}
                     >
@@ -417,16 +433,24 @@ export default function ProfileScreen() {
                             <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
                             <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
                         </View>
-                        <View style={{ flexDirection: 'row', gap: 6, marginLeft: 12 }}>
-                            <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={styles.actionBtn}>
-                                <IconSymbol name="pencil" size={18} color="#3B82F6" />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={styles.actionBtn}>
-                                <IconSymbol name="trash.fill" size={18} color="#EF4444" />
-                            </TouchableOpacity>
-                        </View>
                     </TouchableOpacity>
+                    </Swipeable>
                 ))}
+            </View>
+        );
+    };
+
+    const renderEventActions = (activity: any) => {
+        return (
+            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={{ backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="pencil" size={22} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="trash.fill" size={22} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                </TouchableOpacity>
             </View>
         );
     };
@@ -438,23 +462,17 @@ export default function ProfileScreen() {
             <View style={styles.contentList}>
                 {activities.map(activity => {
                     return (
-                        <View key={activity.id} style={styles.postCard}>
+                        <Swipeable key={activity.id} renderRightActions={() => renderEventActions(activity)} overshootRight={false}>
+                        <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <View style={{ flex: 1, marginRight: 8 }}>
                                     <Text style={[styles.listingTitle, { marginBottom: 4 }]} numberOfLines={1}>{activity.name}</Text>
                                     {activity.eventPlace ? <Text style={styles.listingDesc} numberOfLines={1}>{activity.eventPlace}</Text> : null}
                                     <Text style={[styles.postTime, { marginTop: 2 }]}>{timeAgo(activity.startDate)}</Text>
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                    <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={styles.actionBtn}>
-                                        <IconSymbol name="pencil" size={18} color="#3B82F6" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={[styles.actionBtn, { marginLeft: 8 }]}>
-                                        <IconSymbol name="trash.fill" size={18} color="#EF4444" />
-                                    </TouchableOpacity>
-                                </View>
                             </View>
                         </View>
+                        </Swipeable>
                     );
                 })}
             </View>
@@ -498,6 +516,7 @@ export default function ProfileScreen() {
     };
 
     return (
+        <SwipeNavigation leftRoute="/(tabs)/contact">
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
@@ -577,6 +596,9 @@ export default function ProfileScreen() {
                             <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
                         </View>
                         <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
+                        {user?.email && (
+                            <Text style={{ fontSize: 14, color: '#64748B', marginTop: 2, marginBottom: 12 }}>{user.email}</Text>
+                        )}
                         <View style={[styles.roleBadge, 
                             user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF9C3', borderWidth: 1.5, borderColor: '#F59E0B', paddingVertical: 6, paddingHorizontal: 16, borderRadius: 12 } : 
                             user?.userType === 'ADMIN' ? { backgroundColor: '#BFDBFE' } : 
@@ -718,6 +740,7 @@ export default function ProfileScreen() {
                 </KeyboardAvoidingView>
             </Modal>
         </View>
+        </SwipeNavigation>
     );
 }
 

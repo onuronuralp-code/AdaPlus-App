@@ -282,7 +282,7 @@ export default function EventDetailScreen() {
                                             });
                                         } else if (isPhone) {
                                             Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
-                                                Alert.alert('Hata', 'Arama ekranı açılamadı.');
+                                                Alert.alert('Arama Yapılamadı', `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
                                             });
                                         } else {
                                             Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {});

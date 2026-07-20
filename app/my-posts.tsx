@@ -35,7 +35,7 @@ export default function MyPostsScreen() {
             return formatDistanceToNow(new Date(dateStr), {
                 addSuffix: true,
                 locale: i18n.language.startsWith('tr') ? tr : enUS
-            });
+            }).replace('yaklaşık ', '').replace('about ', '');
         } catch {
             return '';
         }

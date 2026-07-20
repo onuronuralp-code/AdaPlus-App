@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import SuccessModal from '@/components/SuccessModal';
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomDateTimePicker from '@/components/CustomDateTimePicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function EventsScreen() {
@@ -29,7 +30,31 @@ export default function EventsScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    const titleInputRef = React.useRef<TextInput>(null);
     const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+    const modalSlideAnim = React.useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+    React.useEffect(() => {
+        if (isAddModalVisible) {
+            modalSlideAnim.setValue(Dimensions.get('window').height);
+            Animated.spring(modalSlideAnim, {
+                toValue: 0,
+                useNativeDriver: true,
+                bounciness: 0,
+            }).start();
+        }
+    }, [isAddModalVisible]);
+
+    const closeModal = () => {
+        Animated.timing(modalSlideAnim, {
+            toValue: Dimensions.get('window').height,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(() => {
+            setIsAddModalVisible(false);
+            if (editingActivityId) setEditingActivityId(null);
+        });
+    };
     const [successModalVisible, setSuccessModalVisible] = useState(false);
     const [successModalMessage, setSuccessModalMessage] = useState('');
 
@@ -51,7 +76,19 @@ export default function EventsScreen() {
                     if (act.instagramLink) setSocialLink(act.instagramLink);
                     if (act.imageUrl) setSelectedImage(act.imageUrl);
                     setContactNumber(user?.email || '');
+                    if (act.island) setSelectedIsland(act.island);
                     setIsAddModalVisible(true);
+                }
+            });
+        } else {
+            AsyncStorage.getItem('defaultIsland').then(island => {
+                if (island) {
+                    let apiValue = null;
+                    if (island === 'Kınalıada') apiValue = 'KINALIADA';
+                    else if (island === 'Burgazada') apiValue = 'BURGAZADA';
+                    else if (island === 'Heybeliada') apiValue = 'HEYBELIADA';
+                    else if (island === 'Büyükada') apiValue = 'BUYUKADA';
+                    if (apiValue) setSelectedIsland(apiValue);
                 }
             });
         }
@@ -70,6 +107,7 @@ export default function EventsScreen() {
     const [socialLink, setSocialLink] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
     
     // removed isValidPhone
     
@@ -77,6 +115,7 @@ export default function EventsScreen() {
         newEventName.trim().length < 3 || 
         newEventDetails.trim().length < 1 || 
         !newEventLocation.trim() ||
+        !selectedIsland ||
         !organizerName.trim() || 
         contactNumber.trim().length === 0 || 
         endDate < startDate || 
@@ -113,6 +152,85 @@ export default function EventsScreen() {
         if (!dateString) return t('common.notSpecified', { defaultValue: 'Belirtilmemiş' });
         const d = new Date(dateString);
         return d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+
+    const formatDateRange = (startStr?: string, endStr?: string) => {
+        if (!startStr) return '';
+        const s = new Date(startStr);
+        const startFormatted = s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+
+        if (!endStr) return startFormatted;
+
+        const e = new Date(endStr);
+        if (
+            s.getDate() === e.getDate() &&
+            s.getMonth() === e.getMonth() &&
+            s.getFullYear() === e.getFullYear()
+        ) {
+            const endFormattedTime = e.toLocaleTimeString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+            return `${startFormatted} - ${endFormattedTime}`;
+        } else {
+            const endFormatted = e.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+            return `${startFormatted} - ${endFormatted}`;
+        }
+    };
+
+    const getIslandName = (event: AppActivityDto) => {
+        if (event.island) {
+            const id = event.island.toUpperCase();
+            return id === 'BUYUKADA' ? 'Büyükada' : id === 'HEYBELIADA' ? 'Heybeliada' : id === 'BURGAZADA' ? 'Burgazada' : id === 'KINALIADA' ? 'Kınalıada' : event.island;
+        }
+        
+        const searchText = `${event.eventPlace || ''} ${event.name || ''}`.toLowerCase();
+        if (searchText.includes('kınalı') || searchText.includes('kinal') || searchText.includes('kınal')) return 'Kınalıada';
+        if (searchText.includes('burgaz')) return 'Burgazada';
+        if (searchText.includes('heybeli')) return 'Heybeliada';
+        if (searchText.includes('büyük') || searchText.includes('buyuk')) return 'Büyükada';
+        
+        return '';
+    };
+
+    const formatCardDate = (startStr?: string, endStr?: string) => {
+        if (!startStr) return '';
+        const s = new Date(startStr);
+        const startFormatted = s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
+
+        if (!endStr) return startFormatted;
+
+        const e = new Date(endStr);
+        if (
+            s.getDate() === e.getDate() &&
+            s.getMonth() === e.getMonth() &&
+            s.getFullYear() === e.getFullYear()
+        ) {
+            return startFormatted;
+        } else {
+            const endFormatted = e.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
+            return `${startFormatted} - ${endFormatted}`;
+        }
     };
 
     const pickImage = () => {
@@ -242,6 +360,7 @@ export default function EventsScreen() {
             eventPlace: newEventLocation.trim() || undefined,
             instagramLink: formattedSocialLink,
             imageUrl: imageUrl,
+            island: selectedIsland || undefined,
         };
 
         const resultActivity = editingActivityId 
@@ -321,7 +440,7 @@ export default function EventsScreen() {
                         />
                     </View>
                 ) : (
-                    <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'space-between' } : {}}>
+                    <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, justifyContent: 'space-between' } : {}}>
                         {events.map((event) => {
                             const resolvedUrl = resolveImageUrl(event.imageUrl);
                             const hasUserImage = event.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
@@ -353,10 +472,30 @@ export default function EventsScreen() {
                                     </View>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <View style={{ flex: 1, paddingRight: 8 }}>
+                                            {(() => {
+                                                const islandName = getIslandName(event);
+                                                if (!islandName) return null;
+                                                return (
+                                                    <View style={[styles.eventDetailsRow, { marginBottom: 2 }]}>
+                                                        <IconSymbol name="mappin.circle.fill" size={12} color="#94A3B8" />
+                                                        <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4, color: '#64748B', fontWeight: '600' }]} numberOfLines={1}>
+                                                            {islandName}
+                                                        </Text>
+                                                    </View>
+                                                );
+                                            })()}
                                             <View style={[styles.eventDetailsRow, isGridView && { marginTop: 4, marginBottom: 2 }]}>
                                                 <IconSymbol name="calendar" size={12} color="#3B82F6" />
-                                                <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{formatDate(event.startDate)}</Text>
+                                                <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 11, marginLeft: 4, flex: 1 }]} numberOfLines={2}>{formatCardDate(event.startDate, event.endDate)}</Text>
                                             </View>
+                                            {!isGridView && event.eventPlace && (
+                                                <View style={styles.eventDetailsRow}>
+                                                    <IconSymbol name="mappin.and.ellipse" size={12} color="#EF4444" />
+                                                    <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>
+                                                        {event.eventPlace}
+                                                    </Text>
+                                                </View>
+                                            )}
                                             {!isGridView && (
                                                 <View style={styles.eventDetailsRow}>
                                                     <IconSymbol name="person.fill" size={12} color="#778DA9" />
@@ -364,7 +503,7 @@ export default function EventsScreen() {
                                                 </View>
                                             )}
                                         </View>
-                                        {(event.rsvpCount || 0) >= 0 && (
+                                        {!isGridView && (event.rsvpCount || 0) >= 0 && (
                                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
                                                 <IconSymbol name="person.2.fill" size={12} color="#64748B" />
                                                 <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
@@ -403,28 +542,23 @@ export default function EventsScreen() {
 
             <Modal
                 visible={isAddModalVisible}
-                animationType="slide"
-                presentationStyle="pageSheet"
+                animationType="fade"
                 transparent={true}
                 statusBarTranslucent={true}
                 navigationBarTranslucent={true}
-                onRequestClose={() => setIsAddModalVisible(false)}
+                onRequestClose={closeModal}
+                onShow={() => setTimeout(() => titleInputRef.current?.focus(), 150)}
             >
-                <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                <View 
-                    style={[styles.modalContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
-                    
-                >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                    <TouchableOpacity style={{ flex: 1 }} onPress={closeModal} activeOpacity={1} />
+                    <Animated.View 
+                        style={[styles.modalContainer, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
+                    >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity 
                                 style={styles.modalHeaderButton} 
-                                onPress={() => {
-                                    setIsAddModalVisible(false);
-                                    if (editingActivityId) {
-                                        setEditingActivityId(null);
-                                    }
-                                }}
+                            onPress={closeModal}
                             >
                                 <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: 'İPTAL' })}</Text>
                             </TouchableOpacity>
@@ -454,6 +588,27 @@ export default function EventsScreen() {
                                 <Text style={styles.dateErrorText}>Bitiş tarihi başlangıçtan önce olamaz!</Text>
                             </View>
                         )}
+                        <Text style={styles.inputLabel}>ADA SEÇİMİ *</Text>
+                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
+                            {['KINALIADA', 'BURGAZADA', 'HEYBELIADA', 'BUYUKADA'].map((islandId) => (
+                                <TouchableOpacity 
+                                    key={islandId}
+                                    style={[
+                                        styles.islandChip, 
+                                        { flex: 1 },
+                                        selectedIsland === islandId && styles.islandChipSelected
+                                    ]}
+                                    onPress={() => setSelectedIsland(islandId)}
+                                >
+                                    <Text style={[
+                                        styles.islandChipText, 
+                                        selectedIsland === islandId && styles.islandChipTextSelected
+                                    ]}>
+                                        {islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                         <Text style={styles.inputLabel}>{t('events.eventName')}</Text>
                         <TextInput 
                             style={styles.input}
@@ -461,32 +616,37 @@ export default function EventsScreen() {
                             placeholderTextColor="#94A3B8"
                             value={newEventName}
                             onChangeText={setNewEventName}
+                            ref={titleInputRef}
+
+                            autoFocus={true}
                         />
 
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={styles.inputLabel}>{t('events.startDate')}</Text>
-                            <TouchableOpacity 
-                                style={styles.dateSelector} 
-                                onPress={() => setShowStartPicker(true)}
-                            >
-                                <Text style={styles.dateSelectorText}>
-                                    {startDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </Text>
-                                <IconSymbol name="calendar" size={16} color="#3B82F6" />
-                            </TouchableOpacity>
-                        </View>
+                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel} numberOfLines={1} adjustsFontSizeToFit>{t('events.startDate')}</Text>
+                                <TouchableOpacity 
+                                    style={[styles.dateSelector, { paddingHorizontal: 12 }]} 
+                                    onPress={() => setShowStartPicker(true)}
+                                >
+                                    <Text style={[styles.dateSelectorText, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
+                                        {startDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </Text>
+                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                </TouchableOpacity>
+                            </View>
 
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={styles.inputLabel}>{t('events.endDate')}</Text>
-                            <TouchableOpacity 
-                                style={styles.dateSelector} 
-                                onPress={() => setShowEndPicker(true)}
-                            >
-                                <Text style={styles.dateSelectorText}>
-                                    {endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </Text>
-                                <IconSymbol name="calendar" size={16} color="#64748B" />
-                            </TouchableOpacity>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.inputLabel} numberOfLines={1} adjustsFontSizeToFit>{t('events.endDate')}</Text>
+                                <TouchableOpacity 
+                                    style={[styles.dateSelector, { paddingHorizontal: 12 }]} 
+                                    onPress={() => setShowEndPicker(true)}
+                                >
+                                    <Text style={[styles.dateSelectorText, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
+                                        {endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </Text>
+                                    <IconSymbol name="calendar" size={14} color="#64748B" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <CustomDateTimePicker
@@ -514,6 +674,8 @@ export default function EventsScreen() {
                             placeholderTextColor="#94A3B8"
                             value={newEventLocation}
                             onChangeText={setNewEventLocation}
+
+
                         />
 
                         <Text style={styles.inputLabel}>{t('events.orgName')}</Text>
@@ -523,6 +685,8 @@ export default function EventsScreen() {
                             placeholderTextColor="#94A3B8"
                             value={organizerName}
                             onChangeText={setOrganizerName}
+
+
                         />
 
                         <Text style={styles.inputLabel}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
@@ -533,6 +697,8 @@ export default function EventsScreen() {
                             keyboardType="default"
                             value={contactNumber}
                             onChangeText={setContactNumber}
+
+
                         />
 
                         <Text style={styles.inputLabel}>{t('events.socialLink')}</Text>
@@ -543,6 +709,8 @@ export default function EventsScreen() {
                             autoCapitalize="none"
                             value={socialLink}
                             onChangeText={setSocialLink}
+
+
                         />
 
                         <Text style={styles.inputLabel}>{t('events.eventDetails')}</Text>
@@ -557,6 +725,8 @@ export default function EventsScreen() {
                             numberOfLines={4}
                             textAlignVertical="top"
                             maxLength={500}
+
+
                         />
                         <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{newEventDetails.length}/500</Text>
 
@@ -579,9 +749,10 @@ export default function EventsScreen() {
                         )}
                         </View>
                     </KeyboardAwareScrollView>
+                </Animated.View>
                 </View>
-                </KeyboardAvoidingView>
             </Modal>
+
 
             <LoginPromptModal 
                 visible={showLoginPrompt} 
@@ -778,6 +949,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#1A1A1A',
         marginBottom: 20,
+        textAlign: 'left',
     },
     textArea: {
         minHeight: 120,
@@ -800,6 +972,27 @@ const styles = StyleSheet.create({
     },
     publishButtonDisabled: {
         backgroundColor: '#94A3B8',
+    },
+    islandChip: {
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: 8,
+        backgroundColor: '#F1F5F9',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        alignItems: 'center',
+    },
+    islandChipSelected: {
+        backgroundColor: '#EFF6FF',
+        borderColor: '#3B82F6',
+    },
+    islandChipText: {
+        fontSize: 13,
+        color: '#64748B',
+        fontWeight: '600',
+    },
+    islandChipTextSelected: {
+        color: '#3B82F6',
     },
     imagePreviewContainer: {
         position: 'relative',
