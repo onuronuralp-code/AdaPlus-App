@@ -138,7 +138,7 @@ export default function SettingsScreen() {
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <View style={styles.content}>
                 {/* Language Selection Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{t('common.chooseLanguage', { defaultValue: 'Dil Seçimi' })}</Text>
@@ -209,8 +209,8 @@ export default function SettingsScreen() {
                 {/* Account Section */}
                 {isLoggedIn && (
                     <View style={[styles.section, { borderBottomWidth: 0, marginTop: 'auto' }]}>
-                        {isEditingAccount && (
-                            <View style={styles.editForm}>
+                        {isEditingAccount ? (
+                            <View style={[styles.editForm, { marginBottom: 0 }]}>
                                 {/* Ad Soyad — read-only */}
                                 <TextInput style={[styles.input, styles.inputReadOnly]} value={editName} editable={false} />
 
@@ -293,21 +293,24 @@ export default function SettingsScreen() {
                                     <Text style={styles.saveButtonText}>{isSaving ? '...' : 'Kaydet'}</Text>
                                 </TouchableOpacity>
                             </View>
+                        ) : (
+                            <>
+                                <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => {
+                                    if (!isEditingAccount) openEditForm();
+                                    setIsEditingAccount(!isEditingAccount);
+                                }} activeOpacity={0.8}>
+                                    <IconSymbol name="pencil" size={18} color="#475569" />
+                                    <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: 'Hesabı Düzenle' })}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} activeOpacity={0.8}>
+                                    <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
+                                    <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' })}</Text>
+                                </TouchableOpacity>
+                            </>
                         )}
-                        <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => {
-                            if (!isEditingAccount) openEditForm();
-                            setIsEditingAccount(!isEditingAccount);
-                        }} activeOpacity={0.8}>
-                            <IconSymbol name="pencil" size={18} color="#475569" />
-                            <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: 'Hesabı Düzenle' })}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} activeOpacity={0.8}>
-                            <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
-                            <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' })}</Text>
-                        </TouchableOpacity>
                     </View>
                 )}
-            </ScrollView>
+            </View>
         </SafeAreaView>
     );
 }
@@ -347,10 +350,10 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
     },
     sectionTitle: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '700',
         color: '#64748B',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     buttonRow: {
         flexDirection: 'row',
@@ -358,8 +361,8 @@ const styles = StyleSheet.create({
     },
     langButton: {
         flex: 1,
-        paddingVertical: 16,
-        borderRadius: 14,
+        paddingVertical: 12,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: '#E2E8F0',
         alignItems: 'center',
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#EFF6FF', // Light blue bg
     },
     langButtonText: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
         color: '#475569',
     },

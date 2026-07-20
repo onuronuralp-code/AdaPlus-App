@@ -8,6 +8,7 @@ import {
     Image,
     Dimensions,
     ActivityIndicator,
+    Linking,
     Share,
     Alert,
     Platform,
