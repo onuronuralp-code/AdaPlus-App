@@ -70,7 +70,7 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
                         <Text style={styles.text}>Kişisel verileriniz aşağıdaki yöntemlerle toplanmaktadır:</Text>
                         <Text style={styles.text}>a) Elektronik form aracılığıyla: Uygulama üzerinden hesap oluşturma sırasında ad-soyad, e-posta adresi ve şifre bilgileriniz tarafınızca doğrudan iletilmektedir.</Text>
                         <Text style={styles.text}>b) Otomatik yollarla: Uygulamayı kullandığınızda forum gönderileri, beğeniler ve yanıtlar gibi içerik etkileşimleri sistem tarafından otomatik olarak kaydedilmektedir.</Text>
-                        <Text style={styles.text}>c) İleride eklenmesi planlanan özellik kapsamında: Bildirim tercihinizi etkinleştirmeniz halinde push notification token'ı cihazınızdan alınacaktır.</Text>
+                        <Text style={styles.text}>c) İleride eklenmesi planlanan özellik kapsamında: Bildirim tercihinizi etkinleştirmeniz halinde push notification token&apos;ı cihazınızdan alınacaktır.</Text>
                         <Text style={styles.text}>Hukuki dayanak: KVKK m.5/2(c) — sözleşmenin kurulması ve ifası; KVKK m.5/2(f) — meşru menfaat.</Text>
 
                         <Text style={styles.sectionTitle}>3. İşlenen Kişisel Veriler ve Amaçları</Text>
@@ -80,7 +80,7 @@ export const KVKKModal: React.FC<KVKKModalProps> = ({ isVisible, onClose, onAcce
 
                         <Text style={styles.sectionTitle}>4. Kişisel Verilerin Aktarımı</Text>
                         <Text style={styles.text}>Kişisel verileriniz yalnızca aşağıdaki üçüncü taraflarla ve belirtilen kapsamda paylaşılmaktadır:</Text>
-                        <Text style={styles.bullet}>• Amazon Web Services (AWS SES) — E-posta altyapı sağlayıcısı. Aktarılan veri: Yalnızca e-posta adresi. Amaç: Doğrulama ve bildirim e-postalarının iletimi. AWS'nin gizlilik politikası GDPR ve KVKK ile uyumludur.</Text>
+                        <Text style={styles.bullet}>• Amazon Web Services (AWS SES) — E-posta altyapı sağlayıcısı. Aktarılan veri: Yalnızca e-posta adresi. Amaç: Doğrulama ve bildirim e-postalarının iletimi. AWS&apos;nin gizlilik politikası GDPR ve KVKK ile uyumludur.</Text>
                         <Text style={styles.bullet}>• Yasal zorunluluk: Yetkili kamu kurum ve kuruluşlarının talepleri doğrultusunda, talep kapsamıyla sınırlı olarak.</Text>
                         <Text style={styles.text}>Bunlar dışında hiçbir üçüncü tarafla veri paylaşımı yapılmamaktadır.</Text>
 

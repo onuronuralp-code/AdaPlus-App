@@ -255,15 +255,15 @@ export default function GuideScreen() {
                     ))}
 
                     {showIslandChips && (
-                        <View style={styles.suggestionsContainer}>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsContainer}>
                             {ISLANDS.map(island => (
                                 <SuggestionChip key={island} text={island} disabled={isLoading} onPress={() => handleIslandSelect(island)} />
                             ))}
-                        </View>
+                        </ScrollView>
                     )}
 
                     {showQuickSuggestions && (
-                        <View style={styles.suggestionsContainer}>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsContainer}>
                             <SuggestionChip
                                 text={t('guide.chip.sightseeing')}
                                 disabled={isLoading}
@@ -279,7 +279,7 @@ export default function GuideScreen() {
                                 disabled={isLoading}
                                 onPress={() => handleSend(t('guide.prompt.beaches'))}
                             />
-                        </View>
+                        </ScrollView>
                     )}
                 </ScrollView>
 
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     messageText: { fontSize: 15, lineHeight: 22 },
     botText: { color: '#334155' },
     userText: { color: '#fff' },
-    suggestionsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10, paddingLeft: 42, paddingRight: 16 },
+    suggestionsContainer: { flexDirection: 'row', gap: 6, marginTop: 10, paddingHorizontal: 16, justifyContent: 'center', flexGrow: 1 },
     suggestionChip: {
         backgroundColor: '#fff',
         paddingVertical: 8,

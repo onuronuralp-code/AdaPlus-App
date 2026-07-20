@@ -11,6 +11,7 @@ import {
   Share,
   Linking,
   Alert,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +25,8 @@ import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/services/config';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const isIphone16 = Platform.OS === 'ios' && SCREEN_HEIGHT >= 852;
 
 type IlanCategory = 'all' | 'emlak' | 'service' | 'lost' | 'job';
 
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 0.65,
+    height: isIphone16 ? SCREEN_WIDTH * 0.85 : SCREEN_WIDTH * 0.65,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8FAFC',

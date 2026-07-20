@@ -8,9 +8,9 @@ import {
     Image,
     Dimensions,
     ActivityIndicator,
-    Linking,
     Share,
     Alert,
+    Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,8 @@ import { useAuth } from '@/context/AuthContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const isIphone16 = Platform.OS === 'ios' && SCREEN_HEIGHT >= 852;
 
 const normalizeInstagramUrl = (url: string): string => {
     const s = url.trim();
@@ -242,8 +243,28 @@ export default function EventDetailScreen() {
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>{t('events.dateLabel', { defaultValue: 'TARİH VE SAAT' })}</Text>
-                            <Text style={styles.infoValue}>{formatDateRange(activity.startDate, activity.endDate)}</Text>
+                            <Text style={styles.infoLabel}>{t('events.dateLabel', { defaultValue: 'BAŞLANGIÇ VE BİTİŞ' })}</Text>
+                            {(() => {
+                                const parseDateAndTime = (ds?: string) => {
+                                    if (!ds) return { date: '', time: '' };
+                                    const d = new Date(ds);
+                                    return {
+                                        date: d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
+                                        time: d.toLocaleTimeString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+                                    };
+                                };
+                                const start = parseDateAndTime(activity.startDate);
+                                const end = activity.endDate ? parseDateAndTime(activity.endDate) : null;
+                                
+                                return (
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2, paddingRight: 8 }}>
+                                        <Text style={styles.infoValue}>{start.date}</Text>
+                                        <View style={{ backgroundColor: '#FFFFFF', borderColor: '#10B981', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                            <Text style={{ color: '#10B981', fontWeight: 'bold', fontSize: 14 }}>{start.time}</Text>
+                                        </View>
+                                    </View>
+                                );
+                            })()}
                         </View>
                     </View>
 
@@ -375,7 +396,7 @@ const styles = StyleSheet.create({
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH * 0.65,
+        height: isIphone16 ? SCREEN_WIDTH * 0.85 : SCREEN_WIDTH * 0.65,
         backgroundColor: '#F1F5F9',
     },
     content: {

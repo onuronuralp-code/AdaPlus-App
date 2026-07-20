@@ -75,7 +75,6 @@ export default function EventsScreen() {
                     if (act.organizerContact) setContactNumber(act.organizerContact);
                     if (act.instagramLink) setSocialLink(act.instagramLink);
                     if (act.imageUrl) setSelectedImage(act.imageUrl);
-                    setContactNumber(user?.email || '');
                     if (act.island) setSelectedIsland(act.island);
                     setIsAddModalVisible(true);
                 }
@@ -118,7 +117,6 @@ export default function EventsScreen() {
         !selectedIsland ||
         !organizerName.trim() || 
         contactNumber.trim().length === 0 || 
-        endDate < startDate || 
         isUploading;
 
     useFocusEffect(
@@ -205,32 +203,23 @@ export default function EventsScreen() {
         return '';
     };
 
-    const formatCardDate = (startStr?: string, endStr?: string) => {
+    const formatCardDate = (startStr?: string, endStr?: string, hideTime?: boolean) => {
         if (!startStr) return '';
         const s = new Date(startStr);
-        const startFormatted = s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        });
-
-        if (!endStr) return startFormatted;
-
-        const e = new Date(endStr);
-        if (
-            s.getDate() === e.getDate() &&
-            s.getMonth() === e.getMonth() &&
-            s.getFullYear() === e.getFullYear()
-        ) {
-            return startFormatted;
-        } else {
-            const endFormatted = e.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+        if (hideTime) {
+            return s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
             });
-            return `${startFormatted} - ${endFormatted}`;
         }
+        return s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
     };
 
     const pickImage = () => {
@@ -301,15 +290,11 @@ export default function EventsScreen() {
     };
 
     const handlePublishEvent = async () => {
-        if (!newEventName.trim()) {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.fillRequiredFields', { defaultValue: 'Lütfen zorunlu alanları doldurun.' }));
+        if (isPublishDisabled) {
+            Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
             return;
         }
 
-        if (endDate < startDate) {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.invalidDateRange', { defaultValue: 'Bitiş tarihi başlangıç tarihinden önce olamaz.' }));
-            return;
-        }
 
         setIsUploading(true);
         try {
@@ -354,7 +339,6 @@ export default function EventsScreen() {
             name: newEventName.trim(),
             description: newEventDetails.trim(),
             startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
             eventPlace: newEventLocation.trim() || undefined,
@@ -453,7 +437,7 @@ export default function EventsScreen() {
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
                                 {hasUserImage ? (
-                                    <View style={{ width: '100%', height: isGridView ? 180 : 300, backgroundColor: '#F1F5F9' }}>
+                                    <View style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: '#F1F5F9' }}>
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
@@ -463,45 +447,53 @@ export default function EventsScreen() {
                                 ) : (
                                     <Image
                                         source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                        style={[styles.eventImage, isGridView && { height: 120 }]}
+                                        style={[styles.eventImage, isGridView && { height: 140 }]}
                                     />
                                 )}
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
-                                    <View style={styles.titleRow}>
+                                    <View style={[styles.titleRow, isGridView && { marginBottom: 4 }]}>
                                         <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={1}>{event.name}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <View style={{ flex: 1, paddingRight: 8 }}>
-                                            {(() => {
-                                                const islandName = getIslandName(event);
-                                                if (!islandName) return null;
-                                                return (
-                                                    <View style={[styles.eventDetailsRow, { marginBottom: 2 }]}>
-                                                        <IconSymbol name="mappin.circle.fill" size={12} color="#94A3B8" />
-                                                        <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4, color: '#64748B', fontWeight: '600' }]} numberOfLines={1}>
-                                                            {islandName}
+                                            {/* 1. Tarih (Date) */}
+                                            <View style={[styles.eventDetailsRow, isGridView && { marginTop: 2, marginBottom: 0 }]}>
+                                                <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                                <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 13, marginLeft: 4, flex: 1 }]} numberOfLines={2}>
+                                                    {formatCardDate(event.startDate, event.endDate, true)}
+                                                </Text>
+                                            </View>
+
+                                            {/* 2. Lokasyon & Organizasyon (Yan Yana) */}
+                                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: isGridView ? 2 : 4 }}>
+                                                {(() => {
+                                                    const islandName = getIslandName(event);
+                                                    if (!islandName && !event.eventPlace) return null;
+                                                    
+                                                    let locationText = islandName || '';
+                                                    if (!isGridView && event.eventPlace) {
+                                                        locationText += locationText ? ` - ${event.eventPlace}` : event.eventPlace;
+                                                    }
+                                                    
+                                                    return (
+                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                            <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
+                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: '#64748B', fontWeight: '600' }]} numberOfLines={1}>
+                                                                {locationText}
+                                                            </Text>
+                                                        </View>
+                                                    );
+                                                })()}
+
+                                                {!isGridView && (
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <IconSymbol name="person.fill" size={14} color="#778DA9" />
+                                                        <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4 }]} numberOfLines={1}>
+                                                            {event.organizerName || 'Ada Plus'}
                                                         </Text>
                                                     </View>
-                                                );
-                                            })()}
-                                            <View style={[styles.eventDetailsRow, isGridView && { marginTop: 4, marginBottom: 2 }]}>
-                                                <IconSymbol name="calendar" size={12} color="#3B82F6" />
-                                                <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 11, marginLeft: 4, flex: 1 }]} numberOfLines={2}>{formatCardDate(event.startDate, event.endDate)}</Text>
+                                                )}
                                             </View>
-                                            {!isGridView && event.eventPlace && (
-                                                <View style={styles.eventDetailsRow}>
-                                                    <IconSymbol name="mappin.and.ellipse" size={12} color="#EF4444" />
-                                                    <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>
-                                                        {event.eventPlace}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                            {!isGridView && (
-                                                <View style={styles.eventDetailsRow}>
-                                                    <IconSymbol name="person.fill" size={12} color="#778DA9" />
-                                                    <Text style={[styles.eventLocation, { fontSize: 11, marginLeft: 4 }]} numberOfLines={1}>{event.organizerName || 'Ada Plus'}</Text>
-                                                </View>
-                                            )}
                                         </View>
                                         {!isGridView && (event.rsvpCount || 0) >= 0 && (
                                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
@@ -525,7 +517,8 @@ export default function EventsScreen() {
                     if (!isLoggedIn) {
                         setShowLoginPrompt(true);
                     } else {
-                        setContactNumber(user?.email || '');
+                        setContactNumber(user?.phone || user?.email || '');
+                        setOrganizerName(user?.fullName || user?.email || '');
                         setIsAddModalVisible(true);
                     }
                 }}
@@ -570,7 +563,6 @@ export default function EventsScreen() {
                             <TouchableOpacity 
                                 style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                                 onPress={handlePublishEvent}
-                                disabled={isPublishDisabled}
                             >
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
@@ -634,19 +626,6 @@ export default function EventsScreen() {
                                     <IconSymbol name="calendar" size={14} color="#3B82F6" />
                                 </TouchableOpacity>
                             </View>
-
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.inputLabel} numberOfLines={1} adjustsFontSizeToFit>{t('events.endDate')}</Text>
-                                <TouchableOpacity 
-                                    style={[styles.dateSelector, { paddingHorizontal: 12 }]} 
-                                    onPress={() => setShowEndPicker(true)}
-                                >
-                                    <Text style={[styles.dateSelectorText, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
-                                        {endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                    </Text>
-                                    <IconSymbol name="calendar" size={14} color="#64748B" />
-                                </TouchableOpacity>
-                            </View>
                         </View>
 
                         <CustomDateTimePicker
@@ -654,18 +633,12 @@ export default function EventsScreen() {
                             value={startDate}
                             title="Başlangıç Tarihi ve Saati"
                             accentColor="#3B82F6"
+                            minimumDate={new Date()}
                             onConfirm={(date) => { setStartDate(date); setShowStartPicker(false); }}
                             onCancel={() => setShowStartPicker(false)}
                         />
 
-                        <CustomDateTimePicker
-                            visible={showEndPicker}
-                            value={endDate}
-                            title="Bitiş Tarihi ve Saati"
-                            accentColor="#3B82F6"
-                            onConfirm={(date) => { setEndDate(date); setShowEndPicker(false); }}
-                            onCancel={() => setShowEndPicker(false)}
-                        />
+
 
                         <Text style={styles.inputLabel}>{t('events.eventLocation')}</Text>
                         <TextInput 

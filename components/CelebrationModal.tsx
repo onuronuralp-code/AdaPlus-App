@@ -49,7 +49,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onC
             <View style={styles.overlay}>
                 <Animated.View style={[styles.card, { opacity: opacityAnim, transform: [{ scale: scaleAnim }] }]}>
                     <View style={styles.iconContainer}>
-                        <IconSymbol name="party.popper.fill" size={48} color="#F59E0B" />
+                        <Text style={{ fontSize: 40 }}>🎉</Text>
                     </View>
                     <Text style={styles.title}>{title}</Text>
                     <Text style={styles.description}>
@@ -104,6 +104,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
+    },
+    roleBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        backgroundColor: '#F59E0B' + '15',
+        borderColor: '#F59E0B' + '30',
+        gap: 5,
+    },
+    roleDot: {
+        width: 5,
+        height: 5,
+        borderRadius: 2.5,
+        backgroundColor: '#F59E0B',
+    },
+    roleText: {
+        fontSize: 13,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        color: '#F59E0B',
     },
     title: {
         fontSize: 24,

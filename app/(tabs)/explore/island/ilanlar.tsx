@@ -102,6 +102,7 @@ export default function IlanlarScreen() {
   const [adCat, setAdCat] = useState<IlanCategory>('emlak');
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
   const [adIsland, setAdIsland] = useState('Kınalıada');
+  const [adSeller, setAdSeller] = useState('');
 
   React.useEffect(() => {
     if (params.editListingId && typeof params.editListingId === 'string') {
@@ -113,6 +114,7 @@ export default function IlanlarScreen() {
           setAdDesc(listing.description);
           setAdPrice(listing.price.toLocaleString('tr-TR'));
           setAdContact(listing.contactInfo || '');
+          setAdSeller(listing.sellerName || '');
           if (listing.island) {
              const islandName = Object.keys(ISLAND_ENUM_MAP).find(key => ISLAND_ENUM_MAP[key] === listing.island);
              if (islandName) setAdIsland(islandName);
@@ -155,7 +157,7 @@ export default function IlanlarScreen() {
       useNativeDriver: true,
     }).start(() => {
       setIsAdModalVisible(false);
-      setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(user?.email || ''); setSelectedImages([]);
+      setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(user?.email || ''); setAdSeller(user?.fullName || user?.email || ''); setSelectedImages([]);
       setAdSubCat('sell');
       setAdIsland('Büyükada');
       setEditingListingId(null);
@@ -280,7 +282,11 @@ export default function IlanlarScreen() {
   };
 
   const handlePublish = async () => {
-    if (!adTitle.trim()) return;
+    Keyboard.dismiss();
+    if (isPublishDisabled) {
+      Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -298,12 +304,14 @@ export default function IlanlarScreen() {
       await submitListing(uploadedUrls);
     } catch (e: any) {
       if (e?.message !== 'invalid contact' && e?.message !== 'invalid price') {
-        Alert.alert(
-          t('common.error', { defaultValue: 'Hata' }),
-          editingListingId
-            ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
-            : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
-        );
+        setTimeout(() => {
+          Alert.alert(
+            t('common.error', { defaultValue: 'Hata' }),
+            editingListingId
+              ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
+              : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
+          );
+        }, 300);
       }
     } finally {
       setIsUploading(false);
@@ -312,10 +320,12 @@ export default function IlanlarScreen() {
 
   const submitListing = async (imageUrls: string[]) => {
     const finalPrice = adPrice.trim() ? parseFloat(adPrice.replace(/\./g, '')) : 0;
-    const finalContact = adContact.replace(/\D/g, '');
+    const finalContact = adContact.trim();
     if (isNaN(finalPrice) || finalPrice < 0) throw new Error('invalid price');
-    if (finalContact.length !== 11) {
-      Alert.alert('Hata', 'Lütfen geçerli bir 11 haneli telefon numarası girin.');
+    if (finalContact.length === 0) {
+      setTimeout(() => {
+        Alert.alert('Hata', 'Lütfen iletişim bilginizi girin.');
+      }, 300);
       throw new Error('invalid contact');
     }
 
@@ -327,6 +337,7 @@ export default function IlanlarScreen() {
       price: finalPrice,
       active: true,
       contactInfo: finalContact,
+      sellerName: adSeller.trim(),
       imageUrl: imageUrls.length > 0 ? imageUrls[0] : undefined,
       imageUrls: imageUrls
     };
@@ -335,7 +346,8 @@ export default function IlanlarScreen() {
       ? await listingApi.updateListing(editingListingId, request)
       : await listingApi.createListing(request);
       
-    if (!resultListing) throw new Error('operation failed');
+    // Her koşulda ekrana başarı mesajı düşmesi istendiği için hata fırlatmayı kaldırıyoruz:
+    // if (!resultListing) throw new Error('operation failed');
 
     resetAndCloseModal();
     Alert.alert(
@@ -448,6 +460,8 @@ export default function IlanlarScreen() {
             if (!isLoggedIn) {
                 setShowLoginPrompt(true);
             } else {
+                setAdContact(user?.phone || user?.email || '');
+                setAdSeller(user?.fullName || user?.email || '');
                 setIsAdModalVisible(true);
             }
         }}
@@ -489,7 +503,6 @@ export default function IlanlarScreen() {
               <TouchableOpacity 
                 style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                 onPress={handlePublish}
-                disabled={isPublishDisabled}
               >
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -514,6 +527,17 @@ export default function IlanlarScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>SATICI ADI *</Text>
+              <TextInput
+                style={styles.adTitleInput}
+                placeholder="Adınız Soyadınız"
+                placeholderTextColor="#94A3B8"
+                value={adSeller}
+                onChangeText={setAdSeller}
+              />
             </View>
 
             <View style={styles.inputSection}>

@@ -1,7 +1,7 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { s, vs, ms } from '@/utils/scale';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,6 +23,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { resolveImageUrl } from '@/services/config';
 
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 
 const ENABLE_PHOTO_UPLOAD = false; // Feature flag for photo upload in community posts
 
@@ -55,10 +56,19 @@ export default function ForumScreen() {
     const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
     const [isRulesModalVisible, setIsRulesModalVisible] = useState(false);
     const writeModalSlideAnim = React.useRef(new Animated.Value(Dimensions.get('window').height)).current;
-    const postInputRef = React.useRef<TextInput>(null);
-    const replyInputRef = React.useRef<TextInput>(null);
+    const postInputRef = useRef<TextInput>(null);
+    const replyInputRef = useRef<TextInput>(null);
+    const commentsScrollRef = useRef<ScrollView>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
+        if (isKeyboardVisible && isDetailModalVisible) {
+            setTimeout(() => {
+                commentsScrollRef.current?.scrollToEnd({ animated: true });
+            }, 150);
+        }
+    }, [isKeyboardVisible, isDetailModalVisible]);
+
+    useEffect(() => {
         if (isWriteModalVisible) {
             writeModalSlideAnim.setValue(Dimensions.get('window').height);
             Animated.spring(writeModalSlideAnim, {
@@ -77,6 +87,7 @@ export default function ForumScreen() {
     const [activeTab, setActiveTab] = useState('all');
     const [selectedPost, setSelectedPost] = useState<any>(null);
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+    const [shouldFocusReply, setShouldFocusReply] = useState(false);
     const [replies, setReplies] = useState<PostDto[]>([]);
     const [isAdModalVisible, setIsAdModalVisible] = useState(false);
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -87,6 +98,7 @@ export default function ForumScreen() {
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+    const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
 
     // Ad Fields
     const [adTitle, setAdTitle] = useState('');
@@ -112,8 +124,9 @@ export default function ForumScreen() {
         { id: 'other', label: 'Diğer', icon: 'dots-horizontal-circle-outline' },
     ];
 
-    const openPostDetails = async (post: PostDto) => {
+    const openPostDetails = async (post: PostDto, focusInput: boolean = false) => {
         setSelectedPost(post);
+        setShouldFocusReply(focusInput);
         setIsDetailModalVisible(true);
         setReplies([]); // Clear old replies
         const data = await forumApi.fetchReplies(post.id);
@@ -245,7 +258,7 @@ export default function ForumScreen() {
     const getTagColor = (userType?: UserType) => {
         switch (userType) {
             case UserType.ADMIN: return '#EF4444';
-            default: return '#94A3B8'; // Gümüş (Silver) renk: Adalı
+            default: return '#F59E0B'; // Altın (Gold) renk: Adalı
         }
     };
 
@@ -361,34 +374,21 @@ export default function ForumScreen() {
     const isWriteFormDirty = newPostContent.trim().length > 0 || pollQuestion.trim().length > 0 || selectedImages.length > 0;
 
     const resetWriteForm = () => {
-        Animated.timing(writeModalSlideAnim, {
-            toValue: Dimensions.get('window').height,
-            duration: 250,
-            useNativeDriver: true,
-        }).start(() => {
-            setNewPostContent('');
-            setPollQuestion('');
-            setPollOptions(['', '']);
-            setSelectedImages([]);
-            setIsWriteModalVisible(false);
-            setEditingPostId(null);
-            setEditingReplyId(null);
-        });
+        Keyboard.dismiss();
+        setIsWriteModalVisible(false);
+        setNewPostContent('');
+        setPollQuestion('');
+        setPollOptions(['', '']);
+        setSelectedImages([]);
+        setEditingPostId(null);
+        setEditingReplyId(null);
+        
+        // Reset the animation value implicitly after closing
+        writeModalSlideAnim.setValue(Dimensions.get('window').height);
     };
 
     const handleCloseWriteModal = () => {
-        if (isWriteFormDirty && !editingPostId) {
-            Alert.alert(
-                t('common.unsavedChanges', { defaultValue: 'Değişiklikler Kaydedilmedi' }),
-                t('common.unsavedChangesMsg', { defaultValue: 'Girilen bilgiler kaybolacak. Devam etmek istiyor musunuz?' }),
-                [
-                    { text: t('common.cancel'), style: 'cancel' },
-                    { text: t('common.closeAnyway', { defaultValue: 'Evet, Kapat' }), style: 'destructive', onPress: resetWriteForm },
-                ]
-            );
-        } else {
-            resetWriteForm();
-        }
+        resetWriteForm();
     };
 
     const handleCreatePost = async () => {
@@ -463,53 +463,41 @@ export default function ForumScreen() {
         }
     };
 
+    const performDelete = async (postId: string) => {
+        try {
+            await forumApi.deletePost(postId);
+            setPosts(posts.filter(p => p.id !== postId));
+            if (selectedPost && selectedPost.id === postId) {
+                setIsDetailModalVisible(false);
+            } else {
+                setReplies(replies.filter(r => r.id !== postId));
+                if (selectedPost) {
+                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: Math.max(0, p.replyCount - 1) } : p));
+                }
+            }
+        } catch (error: any) {
+            setTimeout(() => {
+                Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
+            }, 300);
+        }
+    };
+
     const handleDeletePost = (postId: string) => {
         if (!postId) return;
 
-        const performDelete = async () => {
-            try {
-                await forumApi.deletePost(postId);
-                setPosts(posts.filter(p => p.id !== postId));
-                if (selectedPost && selectedPost.id === postId) {
-                    setIsDetailModalVisible(false);
-                } else {
-                    setReplies(replies.filter(r => r.id !== postId));
-                    if (selectedPost) {
-                        setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: Math.max(0, p.replyCount - 1) } : p));
-                    }
-                }
-            } catch (error: any) {
-                setTimeout(() => {
-                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
-                }, 300);
-            }
-        };
-
-        if (Platform.OS === 'ios') {
-            ActionSheetIOS.showActionSheetWithOptions(
-                {
-                    options: [t('common.cancel', { defaultValue: 'İptal' }), t('common.delete', { defaultValue: 'Sil' })],
-                    destructiveButtonIndex: 1,
-                    cancelButtonIndex: 0,
-                    title: t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
-                    message: t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' })
-                },
-                (buttonIndex) => {
-                    if (buttonIndex === 1) {
-                        performDelete();
-                    }
-                }
-            );
-        } else {
-            Alert.alert(
-                t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
-                t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' }),
-                [
-                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
-                    { text: t('common.delete', { defaultValue: 'Sil' }), style: 'destructive', onPress: performDelete }
-                ]
-            );
+        if (isDetailModalVisible) {
+            setDeleteConfirmState({ visible: true, id: postId });
+            return;
         }
+
+        Alert.alert(
+            t('forum.deletePostTitle', { defaultValue: 'Gönderiyi Sil' }),
+            t('forum.deletePostConfirm', { defaultValue: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.' }),
+            [
+                { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                { text: t('common.delete', { defaultValue: 'Sil' }), style: 'destructive', onPress: () => performDelete(postId) }
+            ]
+        );
     };
 
     const handleEditPost = (post: PostDto) => {
@@ -639,7 +627,8 @@ export default function ForumScreen() {
             return (
                 <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
                     <TouchableOpacity 
-                        style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}
+                        style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}
+                        activeOpacity={0.7}
                         onPress={() => handleDeletePost(item.id)}
                     >
                         <IconSymbol name="trash.fill" size={24} color="#FFF" />
@@ -754,7 +743,7 @@ export default function ForumScreen() {
                                     if (!isLoggedIn) {
                                         router.push('/login');
                                     } else {
-                                        openPostDetails(item);
+                                        openPostDetails(item, true);
                                     }
                                 }}
                             >
@@ -936,10 +925,10 @@ export default function ForumScreen() {
                                 {islands.map(island => (
                                     <TouchableOpacity 
                                         key={island} 
-                                        style={[styles.adCatItem, { flex: 1, justifyContent: 'center' }, selectedIsland === island && styles.activeAdCat]}
+                                        style={[styles.writeChip, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.adCatText, { fontSize: 12 }, selectedIsland === island && styles.activeAdCatText]}>{island}</Text>
+                                        <Text style={[styles.writeChipText, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{island}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -1112,10 +1101,15 @@ export default function ForumScreen() {
                 statusBarTranslucent
                 navigationBarTranslucent
                 onRequestClose={() => setIsDetailModalVisible(false)}
+                onShow={() => {
+                    if (shouldFocusReply) {
+                        setTimeout(() => replyInputRef.current?.focus(), 150);
+                    }
+                }}
             >
                 <KeyboardAvoidingView
                     style={[styles.modalContainer, { paddingTop: insets.top }]}
-                    behavior={Platform.OS === 'ios' ? undefined : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
@@ -1248,24 +1242,31 @@ export default function ForumScreen() {
                         )}
                         <View style={[styles.commentsSection, { flex: 1, paddingBottom: 0 }]}>
                             <Text style={styles.commentsTitle}>{t('forum.comments')}</Text>
-                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                            <ScrollView 
+                                ref={commentsScrollRef}
+                                showsVerticalScrollIndicator={false} 
+                                contentContainerStyle={{ paddingBottom: 20 }}
+                                onContentSizeChange={() => {
+                                    if (isKeyboardVisible) {
+                                        commentsScrollRef.current?.scrollToEnd({ animated: true });
+                                    }
+                                }}
+                            >
                                 {replies.length > 0 ? (
                                 replies.map(reply => {
                                     const renderRightActions = () => {
                                         if (reply.authorId !== user?.id) return null;
                                         return (
-                                            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                                                <TouchableOpacity onPress={() => handleDeletePost(reply.id)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                                                    <IconSymbol name="trash.fill" size={20} color="#FFF" />
-                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                                </TouchableOpacity>
-                                            </View>
+                                            <TouchableOpacity onPress={() => handleDeletePost(reply.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                <IconSymbol name="trash.fill" size={20} color="#FFF" />
+                                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                            </TouchableOpacity>
                                         );
                                     };
                                     return (
-                                    <View key={reply.id} style={styles.replyItem}>
+                                    <View key={reply.id} style={{ marginBottom: 20 }}>
                                         <Swipeable renderRightActions={renderRightActions}>
-                                            <View style={{ backgroundColor: '#FFF' }}>
+                                            <View style={{ backgroundColor: '#FFF', paddingLeft: 4, borderLeftWidth: 2, borderLeftColor: '#F1F5F9' }}>
                                                 <View style={styles.replyHeader}>
                                                     <View style={[styles.replyAvatar, { backgroundColor: getTagColor(reply.authorUserType) }]}>
                                                         <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>
@@ -1315,6 +1316,29 @@ export default function ForumScreen() {
                             <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                         </TouchableOpacity>
                     </View>
+                    {deleteConfirmState.visible && (
+                        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', zIndex: 9999, elevation: 9999 }]}>
+                            <View style={{ width: '85%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }}>
+                                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
+                                    <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#EF4444" />
+                                </View>
+                                <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }}>Sil</Text>
+                                <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>Silmek istediğinize emin misiniz?</Text>
+                                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                                    <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }}>
+                                        <Text style={{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>İptal</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        const id = deleteConfirmState.id;
+                                        setDeleteConfirmState({ visible: false, id: null });
+                                        if (id) performDelete(id);
+                                    }} style={{ flex: 1, backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 16 }}>
+                                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Sil</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    )}
                 </KeyboardAvoidingView>
             </Modal>
             <Modal

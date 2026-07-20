@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -27,10 +28,10 @@ type ProfileTab = 'posts' | 'listings' | 'events' | 'likes' | 'notifications';
 
 const TABS: { key: ProfileTab; label: string; icon: string; color: string }[] = [
     { key: 'posts', label: 'Paylaşımlar', icon: 'bubble.left.and.bubble.right.fill', color: '#6366F1' },
+    { key: 'events', label: 'Etkinlikler', icon: 'calendar', color: '#3B82F6' },
+    { key: 'listings', label: 'İlanlar', icon: 'tag.fill', color: '#F59E0B' },
     { key: 'likes', label: 'Beğeniler', icon: 'heart.fill', color: '#EC4899' },
     { key: 'notifications', label: 'Bildirimler', icon: 'bell.fill', color: '#F43F5E' },
-    { key: 'listings', label: 'İlanlar', icon: 'tag.fill', color: '#10B981' },
-    { key: 'events', label: 'Etkinlikler', icon: 'calendar', color: '#F59E0B' },
 ];
 
 export default function ProfileScreen() {
@@ -257,12 +258,8 @@ export default function ProfileScreen() {
     const renderPostActions = (post: any, isReply: boolean) => {
         return (
             <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                <TouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={{ backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="pencil" size={22} color="#FFFFFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="trash.fill" size={22} color="#FFFFFF" />
+                <TouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                 </TouchableOpacity>
             </View>
@@ -271,7 +268,7 @@ export default function ProfileScreen() {
 
     const renderPosts = () => {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
-        if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Henüz Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
+        if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
         return (
             <View style={styles.contentList}>
                 {posts.map(post => (
@@ -311,7 +308,7 @@ export default function ProfileScreen() {
 
     const renderReplies = () => {
         if (loadingReplies) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B5CF6" /></View>;
-        if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', t('profile.emptyRepliesTitle', { defaultValue: 'Henüz Yanıt Yok' }), t('profile.emptyRepliesDesc', { defaultValue: 'Paylaşımlara yorum yaparak etkileşime geç!' }), '#8B5CF6');
+        if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', t('profile.emptyRepliesTitle', { defaultValue: 'Yanıt Yok' }), t('profile.emptyRepliesDesc', { defaultValue: 'Paylaşımlara yorum yaparak etkileşime geç!' }), '#8B5CF6');
         return (
             <View style={styles.contentList}>
                 {replies.map(reply => (
@@ -399,24 +396,22 @@ export default function ProfileScreen() {
         );
     };
 
-    const renderListingActions = (listing: any) => {
-        return (
-            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} style={{ backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="pencil" size={22} color="#FFFFFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="trash.fill" size={22} color="#FFFFFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    };
+    const renderListingActions = (listing: any) => (
+        <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+            <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <IconSymbol name="pencil" size={24} color="#FFF" />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <IconSymbol name="trash.fill" size={24} color="#FFF" />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+            </TouchableOpacity>
+        </View>
+    );
 
     const renderListings = () => {
-        if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#10B981" /></View>;
-        if (listings.length === 0) return renderEmpty('tag.fill', t('profile.emptyListingsTitle', { defaultValue: 'Henüz İlan Yok' }), t('profile.emptyListingsDesc', { defaultValue: 'İlk ilanınızı oluşturmak için İlanlar sayfasını ziyaret edin.' }), '#10B981');
+        if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F59E0B" /></View>;
+        if (listings.length === 0) return renderEmpty('tag.fill', t('profile.emptyListingsTitle', { defaultValue: 'İlan Yok' }), t('profile.emptyListingsDesc', { defaultValue: 'İlanınızı oluşturmak için İlanlar sayfasını ziyaret edin.' }), '#F59E0B');
         return (
             <View style={styles.contentList}>
                 {listings.map(listing => (
@@ -439,25 +434,21 @@ export default function ProfileScreen() {
             </View>
         );
     };
-
-    const renderEventActions = (activity: any) => {
-        return (
-            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} style={{ backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="pencil" size={22} color="#FFFFFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} style={{ backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="trash.fill" size={22} color="#FFFFFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    };
-
+    const renderEventActions = (activity: any) => (
+        <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+            <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <IconSymbol name="pencil" size={24} color="#FFF" />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <IconSymbol name="trash.fill" size={24} color="#FFF" />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+            </TouchableOpacity>
+        </View>
+    );
     const renderEvents = () => {
-        if (loadingActivities) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F59E0B" /></View>;
-        if (activities.length === 0) return renderEmpty('calendar', t('profile.emptyActivitiesTitle', { defaultValue: 'Henüz Etkinlik Yok' }), t('profile.emptyActivitiesDesc', { defaultValue: 'Oluşturduğunuz etkinlikler burada görünecek.' }), '#F59E0B');
+        if (loadingActivities) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#3B82F6" /></View>;
+        if (activities.length === 0) return renderEmpty('calendar', t('profile.emptyActivitiesTitle', { defaultValue: 'Etkinlik Yok' }), t('profile.emptyActivitiesDesc', { defaultValue: 'Oluşturduğunuz etkinlikler burada görünecek.' }), '#3B82F6');
         return (
             <View style={styles.contentList}>
                 {activities.map(activity => {
@@ -481,7 +472,7 @@ export default function ProfileScreen() {
 
     const renderLikes = () => {
         if (loadingLikes) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#EC4899" /></View>;
-        if (likedPosts.length === 0) return renderEmpty('heart.fill', t('profile.emptyLikesTitle', { defaultValue: 'Henüz Beğeni Yok' }), t('profile.emptyLikesDesc', { defaultValue: 'Beğendiğiniz paylaşımlar burada görünecek.' }), '#EC4899');
+        if (likedPosts.length === 0) return renderEmpty('heart.fill', t('profile.emptyLikesTitle', { defaultValue: 'Beğeni Yok' }), t('profile.emptyLikesDesc', { defaultValue: 'Beğendiğiniz paylaşımlar burada görünecek.' }), '#EC4899');
         return (
             <View style={styles.contentList}>
                 {likedPosts.map(post => (

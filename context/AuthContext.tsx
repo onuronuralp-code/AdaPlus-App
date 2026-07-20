@@ -31,10 +31,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const initializeAuth = async () => {
             const { token, user: storedUser } = await loadAuthData();
             if (token && storedUser) {
-                // Silently refresh the token on every app launch.
-                // If the stored token is still valid, we get back a fresh 30-day token
-                // so the user is never forced to re-login (Instagram pattern).
-                // If the token is already expired the refresh returns null → logout.
+                // Optimistically log the user in so the app opens instantly and works offline
+                setUser(storedUser);
+                
+                // Silently refresh the token in the background.
+                // If the stored token is still valid, we get back a fresh 30-day token.
+                // If it fails (network error or expired), we leave the user logged in.
+                // If it's truly expired, their first API call will trigger a 401 and log them out automatically via handleUnauthorized.
                 try {
                     const refreshed = await authApi.refresh(token);
                     if (refreshed) {
@@ -44,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         registerForPushNotifications();
                     }
                 } catch {
-                    // Network error on refresh — leave user logged out silently
+                    // Network error on refresh — do nothing, keep user logged in
                 }
             }
             setIsInitialized(true);

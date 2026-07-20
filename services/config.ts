@@ -9,7 +9,20 @@ const FETCH_TIMEOUT_MS = 15_000;
 export const fetchWithTimeout = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(id));
+  
+  // Create new init object with no-cache headers to prevent iOS/Android from aggressively caching GET requests
+  const newInit: RequestInit = {
+    ...init,
+    headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        ...(init?.headers || {})
+    },
+    signal: controller.signal 
+  };
+  
+  return fetch(input, newInit).finally(() => clearTimeout(id));
 };
 
 /**
@@ -18,7 +31,18 @@ export const fetchWithTimeout = (input: RequestInfo | URL, init?: RequestInit): 
  */
 export const authFetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
   const { handleUnauthorized } = await import('../context/AuthContext');
-  const response = await fetch(input, init);
+  
+  const newInit: RequestInit = {
+    ...init,
+    headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        ...(init?.headers || {})
+    }
+  };
+
+  const response = await fetch(input, newInit);
   if (response.status === 401) {
     handleUnauthorized();
   }

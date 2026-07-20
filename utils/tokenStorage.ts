@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const TOKEN_KEY = 'ada_auth_token';
@@ -11,15 +11,15 @@ export const setToken = async (token: string | null) => {
   try {
     if (token) {
       if (Platform.OS !== 'web') {
-        await SecureStore.setItemAsync(TOKEN_KEY, token);
+        await AsyncStorage.setItem(TOKEN_KEY, token);
       } else {
         localStorage.setItem(TOKEN_KEY, token);
       }
     } else {
       memoryUser = null;
       if (Platform.OS !== 'web') {
-        await SecureStore.deleteItemAsync(TOKEN_KEY);
-        await SecureStore.deleteItemAsync(USER_KEY);
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        await AsyncStorage.removeItem(USER_KEY);
       } else {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
@@ -36,13 +36,13 @@ export const setUserStorage = async (user: any | null) => {
     if (user) {
       const userStr = JSON.stringify(user);
       if (Platform.OS !== 'web') {
-        await SecureStore.setItemAsync(USER_KEY, userStr);
+        await AsyncStorage.setItem(USER_KEY, userStr);
       } else {
         localStorage.setItem(USER_KEY, userStr);
       }
     } else {
       if (Platform.OS !== 'web') {
-        await SecureStore.deleteItemAsync(USER_KEY);
+        await AsyncStorage.removeItem(USER_KEY);
       } else {
         localStorage.removeItem(USER_KEY);
       }
@@ -55,8 +55,8 @@ export const setUserStorage = async (user: any | null) => {
 export const loadAuthData = async () => {
   try {
     if (Platform.OS !== 'web') {
-      memoryToken = await SecureStore.getItemAsync(TOKEN_KEY);
-      const userStr = await SecureStore.getItemAsync(USER_KEY);
+      memoryToken = await AsyncStorage.getItem(TOKEN_KEY);
+      const userStr = await AsyncStorage.getItem(USER_KEY);
       memoryUser = userStr ? JSON.parse(userStr) : null;
     } else {
       memoryToken = localStorage.getItem(TOKEN_KEY);

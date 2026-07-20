@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, FlatList, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, FlatList, NativeSyntheticEvent, NativeScrollEvent, Alert } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 interface CustomDateTimePickerProps {
@@ -9,6 +9,7 @@ interface CustomDateTimePickerProps {
     onCancel: () => void;
     title?: string;
     accentColor?: string;
+    minimumDate?: Date;
 }
 
 const MONTHS_TR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -95,7 +96,7 @@ const ScrollPicker: React.FC<ScrollPickerProps> = ({ data, value, onValueChange,
     );
 };
 
-export default function CustomDateTimePicker({ visible, value, onConfirm, onCancel, title = 'Tarih ve Saat Seçin', accentColor = '#3B82F6' }: CustomDateTimePickerProps) {
+export default function CustomDateTimePicker({ visible, value, onConfirm, onCancel, title = 'Tarih ve Saat Seçin', accentColor = '#3B82F6', minimumDate }: CustomDateTimePickerProps) {
     const [selectedDate, setSelectedDate] = useState(new Date(value));
     const [viewYear, setViewYear] = useState(value.getFullYear());
     const [viewMonth, setViewMonth] = useState(value.getMonth());
@@ -139,7 +140,22 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
     const handleConfirm = () => {
         const finalDate = new Date(selectedDate);
         finalDate.setHours(hour, minute, 0, 0);
+
+        if (minimumDate && finalDate.getTime() < minimumDate.getTime()) {
+            Alert.alert("Geçersiz Tarih", "Geçmiş bir tarih veya saat seçilemez.");
+            return;
+        }
+
         onConfirm(finalDate);
+    };
+
+    const isBeforeMinimum = (day: number) => {
+        if (!minimumDate) return false;
+        const dateToCheck = new Date(viewYear, viewMonth, day);
+        dateToCheck.setHours(0, 0, 0, 0);
+        const minDate = new Date(minimumDate);
+        minDate.setHours(0, 0, 0, 0);
+        return dateToCheck.getTime() < minDate.getTime();
     };
 
     const incrementHour = () => setHour(h => (h + 1) % 24);
@@ -197,8 +213,12 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
                                             styles.dayButton,
                                             isSelectedDay(day) && [styles.dayButtonSelected, { backgroundColor: accentColor }],
                                             isToday(day) && !isSelectedDay(day) && styles.dayButtonToday,
+                                            isBeforeMinimum(day) && { opacity: 0.3 }
                                         ]}
-                                        onPress={() => handleDayPress(day)}
+                                        onPress={() => {
+                                            if (!isBeforeMinimum(day)) handleDayPress(day);
+                                        }}
+                                        disabled={isBeforeMinimum(day)}
                                     >
                                         <Text style={[
                                             styles.dayText,

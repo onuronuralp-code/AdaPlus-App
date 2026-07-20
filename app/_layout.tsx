@@ -104,7 +104,11 @@ export default function RootLayout() {
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <Stack screenOptions={{ animation: "slide_from_right" }}>
+            <Stack screenOptions={{ 
+              animation: "slide_from_right",
+              gestureEnabled: true,
+              fullScreenGestureEnabled: true
+            }}>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="login" options={{ headerShown: false }} />
               <Stack.Screen name="signup" options={{ headerShown: false }} />

@@ -59,7 +59,8 @@ const TodayOnIsland = () => {
   
 
 
-  useEffect(() => {
+  useFocusEffect(
+    useCallback(() => {
     let cancelled = false;
     
     const fetchFerry = async () => {
@@ -122,7 +123,8 @@ const TodayOnIsland = () => {
     fetchFerry();
     
     return () => { cancelled = true; };
-  }, []);
+  }, [])
+  );
 
   return (
     <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
@@ -538,7 +540,7 @@ export default function MainMenuScreen() {
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]} numberOfLines={1} adjustsFontSizeToFit>
-                {t('explore.todayEventsWaiting', { count: totalEventsCount })}
+                {t('explore.readyToExplore', { defaultValue: 'Adaları keşfetmeye hazır mısın?' })}
               </Text>
             </View>
           )}
@@ -658,11 +660,6 @@ export default function MainMenuScreen() {
               key={index} 
               style={{
                 marginHorizontal: 12,
-                shadowColor: '#000',
-                shadowOffset: { width: 8, height: 10 },
-                shadowOpacity: 0.25,
-                shadowRadius: 8,
-                elevation: 10,
                 backgroundColor: '#fff',
                 borderRadius: 12
               }}
@@ -904,7 +901,7 @@ export default function MainMenuScreen() {
       </View>
 
       {/* Topluluk Banner (At the bottom) */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: isLargeScreen ? 0 : 0, paddingBottom: isLargeScreen ? 170 : 100, backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 0, marginTop: -8, paddingBottom: isLargeScreen ? 170 : 100, backgroundColor: 'transparent' }}>
         <SwipeButton 
           isLoggedIn={isLoggedIn} 
           onSwipeComplete={() => {

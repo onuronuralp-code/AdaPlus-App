@@ -2,7 +2,11 @@ import { Stack } from 'expo-router';
 
 export default function ExploreLayout() {
     return (
-        <Stack screenOptions={{ animation: 'slide_from_right' }}>
+        <Stack screenOptions={{ 
+            animation: 'slide_from_right',
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true 
+        }}>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="island/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="island/restaurant" options={{ headerShown: false }} />

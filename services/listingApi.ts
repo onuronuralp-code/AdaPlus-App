@@ -24,6 +24,7 @@ export interface ListingDto {
   imageUrl?: string;
   imageUrls?: string[];
   contactInfo?: string;
+  sellerName?: string;
   active: boolean;
   status?: string;
   submittedById?: string;
@@ -40,6 +41,7 @@ export interface SaveListingRequest {
   imageUrl?: string;
   imageUrls?: string[];
   contactInfo?: string;
+  sellerName?: string;
   active: boolean;
 }
 
