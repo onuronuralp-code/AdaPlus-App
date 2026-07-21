@@ -66,7 +66,7 @@ export const fetchListings = async (
     }
     return [];
   } catch (error) {
-    console.error("Failed to fetch listings:", error);
+    console.log("Failed to fetch listings:", error);
     triggerNetworkError();
     return [];
   }
@@ -94,7 +94,7 @@ export const createListing = async (
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error("Failed to create listing:", error);
+    console.log("Failed to create listing:", error);
     if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
       triggerNetworkError();
     }
@@ -108,7 +108,7 @@ export const getListing = async (id: string): Promise<ListingDto | null> => {
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch listing detail:", error);
+    console.log("Failed to fetch listing detail:", error);
     return null;
   }
 };
@@ -131,7 +131,7 @@ export const updateListing = async (
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error("Failed to update listing:", error);
+    console.log("Failed to update listing:", error);
     if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
       triggerNetworkError();
     }
@@ -150,7 +150,7 @@ export const fetchMyListings = async (): Promise<ListingDto[]> => {
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Failed to fetch my listings:', error);
+    console.log('Failed to fetch my listings:', error);
     return [];
   }
 };
@@ -168,7 +168,7 @@ export const deleteListing = async (id: string): Promise<boolean> => {
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return true;
   } catch (error) {
-    console.error("Failed to delete listing:", error);
+    console.log("Failed to delete listing:", error);
     if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
       triggerNetworkError();
     }

@@ -33,7 +33,7 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
     const data = await response.json();
     return data.url;
   } catch (error) {
-    console.error('Failed to upload image:', error);
+    console.log('Failed to upload image:', error);
     triggerNetworkError();
     return null;
   }

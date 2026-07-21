@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
@@ -281,13 +282,18 @@ export default function IlanlarScreen() {
     }
   };
 
+  const isPublishingRef = useRef(false);
+
   const handlePublish = async () => {
     Keyboard.dismiss();
-    if (isPublishDisabled) {
-      Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
+    if (isPublishDisabled || isPublishingRef.current) {
+      if (!isPublishingRef.current) {
+        Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
+      }
       return;
     }
 
+    isPublishingRef.current = true;
     setIsUploading(true);
     try {
       let uploadedUrls: string[] = [];
@@ -311,9 +317,10 @@ export default function IlanlarScreen() {
               ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
               : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
           );
-        }, 300);
+        }, 100);
       }
     } finally {
+      isPublishingRef.current = false;
       setIsUploading(false);
     }
   };
@@ -338,7 +345,6 @@ export default function IlanlarScreen() {
       active: true,
       contactInfo: finalContact,
       sellerName: adSeller.trim(),
-      imageUrl: imageUrls.length > 0 ? imageUrls[0] : undefined,
       imageUrls: imageUrls
     };
 
@@ -350,12 +356,14 @@ export default function IlanlarScreen() {
     // if (!resultListing) throw new Error('operation failed');
 
     resetAndCloseModal();
-    Alert.alert(
-      t('common.success', { defaultValue: 'Başarılı' }),
-      editingListingId
-        ? t('common.listingUpdated', { defaultValue: 'İlan başarıyla güncellendi.' })
-        : t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
-    );
+    setTimeout(() => {
+      Alert.alert(
+        t('common.success', { defaultValue: 'Başarılı' }),
+        editingListingId
+          ? t('common.listingUpdated', { defaultValue: 'İlan başarıyla güncellendi.' })
+          : t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+      );
+    }, 400);
     loadListings(true);
   };
 
@@ -375,6 +383,7 @@ export default function IlanlarScreen() {
   });
 
   return (
+    <SwipeNavigation leftRoute="/(tabs)/explore/island/events" rightRoute="/(tabs)/explore/island/forum">
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -483,7 +492,6 @@ export default function IlanlarScreen() {
         statusBarTranslucent={true}
         navigationBarTranslucent={true}
         onRequestClose={handleCloseModal}
-        onShow={() => setTimeout(() => titleInputRef.current?.focus(), 150)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
           <TouchableOpacity style={{ flex: 1 }} onPress={handleCloseModal} activeOpacity={1} />
@@ -503,6 +511,7 @@ export default function IlanlarScreen() {
               <TouchableOpacity 
                 style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                 onPress={handlePublish}
+                disabled={isPublishDisabled}
               >
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -516,14 +525,20 @@ export default function IlanlarScreen() {
           <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View style={{ flexDirection: 'row', gap: 4 }}>
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
-                    style={[styles.adCatItem, { flex: 1, justifyContent: 'center' }, adIsland === island && styles.activeAdCat]}
+                    style={[styles.adCatItem, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && styles.activeAdCat]}
                     onPress={() => setAdIsland(island)}
                   >
-                    <Text style={[styles.adCatText, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}>{island}</Text>
+                    <Text 
+                      style={[styles.adCatText, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
+                      {island}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -549,9 +564,6 @@ export default function IlanlarScreen() {
                 value={adTitle}
                 onChangeText={setAdTitle}
                 ref={titleInputRef}
-
-                autoFocus={true}
-
               />
             </View>
 
@@ -666,6 +678,7 @@ export default function IlanlarScreen() {
         message={t('auth.loginToPost', { defaultValue: 'İlan vermek için giriş yapmalısınız.' })}
       />
     </View>
+    </SwipeNavigation>
   );
 }
 

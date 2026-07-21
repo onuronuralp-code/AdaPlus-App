@@ -74,6 +74,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : '#000000',
         tabBarInactiveTintColor: '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
+        animation: 'shift',
       }}>
       <Tabs.Screen
         name="explore"

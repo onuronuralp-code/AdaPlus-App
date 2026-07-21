@@ -46,7 +46,7 @@ export const fetchDepartures = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Failed to fetch departures:", error);
+    console.log("Failed to fetch departures:", error);
     if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
       triggerNetworkError();
     }
@@ -89,7 +89,7 @@ export const fetchBusDepartures = async (
 
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch bus departures:", error);
+    console.log("Failed to fetch bus departures:", error);
     triggerNetworkError();
     return [];
   }
@@ -131,7 +131,7 @@ export const fetchListings = async (): Promise<AppListingDto[]> => {
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Failed to fetch listings:", error);
+    console.log("Failed to fetch listings:", error);
     triggerNetworkError();
     return [];
   }
@@ -146,7 +146,7 @@ export const getListing = async (id: string): Promise<AppListingDto | null> => {
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch listing:', error);
+    console.log('Failed to fetch listing:', error);
     triggerNetworkError();
     return null;
   }
@@ -159,7 +159,7 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Failed to fetch activities:", error);
+    console.log("Failed to fetch activities:", error);
     triggerNetworkError();
     return [];
   }
@@ -172,7 +172,7 @@ export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppAct
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Failed to fetch upcoming activities:", error);
+    console.log("Failed to fetch upcoming activities:", error);
     if (!(error instanceof Error && error.message.startsWith("Upcoming"))) {
       triggerNetworkError();
     }
@@ -191,7 +191,7 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Failed to fetch my activities:', error);
+    console.log('Failed to fetch my activities:', error);
     return [];
   }
 };
@@ -208,7 +208,7 @@ export const getActivity = async (id: string): Promise<AppActivityDto | null> =>
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch activity:', error);
+    console.log('Failed to fetch activity:', error);
     if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
       triggerNetworkError();
     }
@@ -227,7 +227,7 @@ export const toggleActivityRsvp = async (id: string): Promise<RsvpResponse | nul
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error('Failed to toggle RSVP:', error);
+    console.log('Failed to toggle RSVP:', error);
     return null;
   }
 };
@@ -242,7 +242,7 @@ export const fetchMyListings = async (): Promise<AppListingDto[]> => {
     if (!response.ok) throw new Error("My listings fetch error");
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch my listings:", error);
+    console.log("Failed to fetch my listings:", error);
     return [];
   }
 };
@@ -262,7 +262,7 @@ export const updateListing = async (id: string, request: CreateListingRequest): 
     if (!response.ok) throw new Error("Listing update error");
     return await response.json();
   } catch (error) {
-    console.error("Failed to update listing:", error);
+    console.log("Failed to update listing:", error);
     triggerNetworkError();
     return null;
   }
@@ -285,10 +285,14 @@ export const createActivity = async (
       },
       body: JSON.stringify(request),
     });
-    if (!response.ok) throw new Error("Activity creation error");
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.log("Backend error:", errorText);
+      throw new Error(`Activity creation error: ${errorText}`);
+    }
     return await response.json();
   } catch (error) {
-    console.error("Failed to create activity:", error);
+    console.log("Failed to create activity:", error);
     triggerNetworkError();
     return null;
   }
@@ -312,7 +316,7 @@ export const updateActivity = async (
     if (!response.ok) throw new Error("Activity update error");
     return await response.json();
   } catch (error) {
-    console.error("Failed to update activity:", error);
+    console.log("Failed to update activity:", error);
     triggerNetworkError();
     return null;
   }
@@ -328,7 +332,7 @@ export const deleteActivity = async (id: string): Promise<boolean> => {
     });
     return response.ok;
   } catch (error) {
-    console.error("Failed to delete activity:", error);
+    console.log("Failed to delete activity:", error);
     return false;
   }
 };

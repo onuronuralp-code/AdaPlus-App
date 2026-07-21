@@ -1,7 +1,8 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { s, vs, ms } from '@/utils/scale';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,14 +70,7 @@ export default function ForumScreen() {
     }, [isKeyboardVisible, isDetailModalVisible]);
 
     useEffect(() => {
-        if (isWriteModalVisible) {
-            writeModalSlideAnim.setValue(Dimensions.get('window').height);
-            Animated.spring(writeModalSlideAnim, {
-                toValue: 0,
-                useNativeDriver: true,
-                bounciness: 0,
-            }).start();
-        }
+        // writeModalSlideAnim is now handled in Modal's onShow to ensure native view is ready
     }, [isWriteModalVisible]);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
@@ -388,7 +382,13 @@ export default function ForumScreen() {
     };
 
     const handleCloseWriteModal = () => {
-        resetWriteForm();
+        Animated.timing(writeModalSlideAnim, {
+            toValue: Dimensions.get('window').height,
+            duration: 200,
+            useNativeDriver: true,
+        }).start(() => {
+            resetWriteForm();
+        });
     };
 
     const handleCreatePost = async () => {
@@ -731,9 +731,9 @@ export default function ForumScreen() {
                                 <IconSymbol
                                     name={item.isLiked ? "heart.fill" : "heart"}
                                     size={15}
-                                    color={item.isLiked || item.likeCount > 0 ? "#EF4444" : "#94A3B8"}
+                                    color={item.isLiked ? "#EF4444" : "#94A3B8"}
                                 />
-                                <Text style={[styles.interactionCount, (item.isLiked || item.likeCount > 0) && { color: "#EF4444" }]}>
+                                <Text style={[styles.interactionCount, item.isLiked && { color: "#EF4444" }]}>
                                     {item.likeCount > 0 ? item.likeCount : '0'}
                                 </Text>
                             </TouchableOpacity>
@@ -762,6 +762,7 @@ export default function ForumScreen() {
     };
 
     return (
+        <SwipeNavigation leftRoute="/(tabs)/explore/island/ilanlar">
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             <StatusBar barStyle="dark-content" />
@@ -890,7 +891,14 @@ export default function ForumScreen() {
                 statusBarTranslucent={true}
                 navigationBarTranslucent={true}
                 onRequestClose={handleCloseWriteModal}
-                onShow={() => setTimeout(() => postInputRef.current?.focus(), 150)}
+                onShow={() => {
+                    writeModalSlideAnim.setValue(Dimensions.get('window').height);
+                    Animated.timing(writeModalSlideAnim, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }).start();
+                }}
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', justifyContent: 'flex-end' }}>
                         <TouchableOpacity 
@@ -951,7 +959,7 @@ export default function ForumScreen() {
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
                             <TextInput
-                                style={[styles.premiumTextInput, newPostType === 'poll' && { minHeight: 60, padding: 16 }]}
+                                style={[styles.premiumTextInput, newPostType === 'poll' && { minHeight: 60, height: 60, paddingVertical: 0, paddingHorizontal: 16, justifyContent: 'center', textAlign: 'center' }]}
                                 placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder') : t('forum.whatsOnYourMind')}
                                 placeholderTextColor="#CBD5E1"
                                 multiline={newPostType !== 'poll'}
@@ -959,9 +967,7 @@ export default function ForumScreen() {
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
                                 onChangeText={newPostType === 'poll' ? setPollQuestion : setNewPostContent}
                                 ref={postInputRef}
-                                textAlignVertical="top"
-
-                                autoFocus={true}
+                                textAlignVertical={newPostType === 'poll' ? "center" : "top"}
                             />
                             {postContentTooShort && (
                                 <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>
@@ -1021,9 +1027,10 @@ export default function ForumScreen() {
                                 {pollOptions.map((opt, index) => (
                                     <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                                         <TextInput
-                                            style={[styles.premiumTextInput, { flex: 1, minHeight: 50, padding: 15, fontSize: 16 }]}
+                                            style={[styles.premiumTextInput, { flex: 1, minHeight: 50, height: 50, paddingVertical: 0, paddingHorizontal: 15, fontSize: 16, justifyContent: 'center', textAlign: 'center' }]}
                                             placeholder={t('forum.optionPlaceholder', { number: index + 1 })}
                                             placeholderTextColor="#CBD5E1"
+                                            textAlignVertical="center"
                                             value={opt}
                                             onChangeText={(text) => {
                                                 const newOptions = [...pollOptions];
@@ -1217,8 +1224,8 @@ export default function ForumScreen() {
                                 <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
                                     <View style={styles.interactionGroup}>
                                         <TouchableOpacity style={styles.interactionPill} onPress={() => toggleLike(selectedPost.id)}>
-                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={(selectedPost.isLiked || selectedPost.likeCount > 0) ? "#EF4444" : "#64748B"} />
-                                            <Text style={[styles.interactionCount, (selectedPost.isLiked || selectedPost.likeCount > 0) && { color: "#EF4444" }]}>
+                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? "#EF4444" : "#64748B"} />
+                                            <Text style={[styles.interactionCount, selectedPost.isLiked && { color: "#EF4444" }]}>
                                                 {selectedPost.likeCount > 0 ? selectedPost.likeCount : '0'}
                                             </Text>
                                         </TouchableOpacity>
@@ -1484,6 +1491,7 @@ export default function ForumScreen() {
                 </View>
             </Modal>
         </View>
+        </SwipeNavigation>
     );
 }
 

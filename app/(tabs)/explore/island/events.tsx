@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { fetchActivities, createActivity, updateActivity, getActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
@@ -26,7 +27,7 @@ export default function EventsScreen() {
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isGridView, setIsGridView] = useState(false);
+    const [isGridView, setIsGridView] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -374,6 +375,7 @@ export default function EventsScreen() {
     };
 
     return (
+        <SwipeNavigation rightRoute="/(tabs)/explore/island/ilanlar">
         <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
             
@@ -540,7 +542,6 @@ export default function EventsScreen() {
                 statusBarTranslucent={true}
                 navigationBarTranslucent={true}
                 onRequestClose={closeModal}
-                onShow={() => setTimeout(() => titleInputRef.current?.focus(), 150)}
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
                     <TouchableOpacity style={{ flex: 1 }} onPress={closeModal} activeOpacity={1} />
@@ -563,6 +564,7 @@ export default function EventsScreen() {
                             <TouchableOpacity 
                                 style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
                                 onPress={handlePublishEvent}
+                                disabled={isPublishDisabled}
                             >
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
@@ -581,7 +583,7 @@ export default function EventsScreen() {
                             </View>
                         )}
                         <Text style={styles.inputLabel}>ADA SEÇİMİ *</Text>
-                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
+                        <View style={{ flexDirection: 'row', gap: 4, marginBottom: 20 }}>
                             {['KINALIADA', 'BURGAZADA', 'HEYBELIADA', 'BUYUKADA'].map((islandId) => (
                                 <TouchableOpacity 
                                     key={islandId}
@@ -592,10 +594,14 @@ export default function EventsScreen() {
                                     ]}
                                     onPress={() => setSelectedIsland(islandId)}
                                 >
-                                    <Text style={[
-                                        styles.islandChipText, 
-                                        selectedIsland === islandId && styles.islandChipTextSelected
-                                    ]}>
+                                    <Text 
+                                        numberOfLines={1} 
+                                        adjustsFontSizeToFit 
+                                        style={[
+                                            styles.islandChipText, 
+                                            selectedIsland === islandId && styles.islandChipTextSelected
+                                        ]}
+                                    >
                                         {islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'}
                                     </Text>
                                 </TouchableOpacity>
@@ -609,8 +615,6 @@ export default function EventsScreen() {
                             value={newEventName}
                             onChangeText={setNewEventName}
                             ref={titleInputRef}
-
-                            autoFocus={true}
                         />
 
                         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
@@ -744,6 +748,7 @@ export default function EventsScreen() {
                 message={successModalMessage}
             />
         </View>
+        </SwipeNavigation>
     );
 }
 
@@ -947,7 +952,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#94A3B8',
     },
     islandChip: {
-        paddingHorizontal: 10,
+        paddingHorizontal: 4,
         paddingVertical: 8,
         borderRadius: 8,
         backgroundColor: '#F1F5F9',
@@ -960,7 +965,7 @@ const styles = StyleSheet.create({
         borderColor: '#3B82F6',
     },
     islandChipText: {
-        fontSize: 13,
+        fontSize: 12,
         color: '#64748B',
         fontWeight: '600',
     },

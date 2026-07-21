@@ -26,10 +26,11 @@ export default function VerifyScreen() {
     const { login } = useAuth();
 
     // Support legacy `email` param for any existing deep-links/back-compat
-    const { contact: contactParam, email: emailParam, type } = useLocalSearchParams<{
+    const { contact: contactParam, email: emailParam, type, isInvited } = useLocalSearchParams<{
         contact?: string;
         email?: string;
         type?: 'email' | 'phone';
+        isInvited?: string;
     }>();
     const contact = (contactParam || emailParam || '').slice(0, 320);
     const isPhone = type === 'phone';
@@ -95,7 +96,11 @@ export default function VerifyScreen() {
         try {
             const response = await authApi.verifyOtp(contact, fullCode);
             await login(response.user, response.token);
-            router.replace('/(tabs)/explore');
+            if (isInvited === 'true') {
+                router.replace({ pathname: '/(tabs)/explore', params: { showInviteCelebration: 'true' } });
+            } else {
+                router.replace('/(tabs)/explore');
+            }
         } catch (err: any) {
             const msg = (err.message || '').toLowerCase();
             if (msg.includes('expired')) {

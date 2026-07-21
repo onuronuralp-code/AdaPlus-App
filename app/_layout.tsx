@@ -13,6 +13,8 @@ import "react-native-reanimated";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { fetchAppVersion, requiresUpdate } from "@/services/appVersionApi";
+import { CopilotProvider, useCopilot } from 'react-native-copilot';
+import Svg, { Path } from 'react-native-svg';
 
 // Show push notifications as alerts even when the app is in the foreground.
 // Without this handler, Expo drops all incoming notifications silently.
@@ -45,6 +47,56 @@ SplashScreen.preventAutoHideAsync();
 const APP_STORE_URL =
   process.env.EXPO_PUBLIC_APP_STORE_URL ??
   "https://apps.apple.com/tr/app/ada-plus/id6743840993";
+
+const roundedSvgMaskPath = ({ size, position, canvasSize }: any) => {
+  const radius = 16;
+  const width = typeof size.x === 'number' ? size.x : (size.x._value || 0);
+  const height = typeof size.y === 'number' ? size.y : (size.y._value || 0);
+  const x = typeof position.x === 'number' ? position.x : (position.x._value || 0);
+  const y = typeof position.y === 'number' ? position.y : (position.y._value || 0);
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2)) || 0;
+
+  return `M0,0H${canvasSize.x || 0}V${canvasSize.y || 0}H0V0ZM${x + r},${y}h${width - 2 * r}a${r},${r} 0 0 1 ${r},${r}v${height - 2 * r}a${r},${r} 0 0 1 -${r},${r}h-${width - 2 * r}a${r},${r} 0 0 1 -${r},-${r}v-${height - 2 * r}a${r},${r} 0 0 1 ${r},-${r}Z`;
+};
+
+
+const CustomTooltip = () => {
+  const { currentStep } = useCopilot();
+  return (
+    <View style={{ alignItems: 'center', padding: 16 }}>
+      <Text style={{ color: '#FFFFFF', fontSize: 24, fontFamily: Platform.select({ ios: 'Noteworthy', android: 'cursive' }), textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
+        {currentStep?.text}
+      </Text>
+      
+      <Svg width={40} height={50} viewBox="0 0 40 50" style={{ marginTop: 12, marginBottom: -10 }}>
+        <Path
+          d="M20,0 Q28,25 20,48 M8,35 L20,48 L32,35"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ opacity: 0.9 }}
+        />
+      </Svg>
+    </View>
+  );
+};
+
+const GlobalCopilotButton = () => {
+  const { visible, isLastStep, goToNext, stop } = useCopilot();
+  if (!visible) return null;
+
+  return (
+    <View style={{ position: 'absolute', bottom: 50, right: 24, zIndex: 99999 }}>
+      <TouchableOpacity onPress={isLastStep ? stop : goToNext} style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+          {isLastStep ? 'Bitir' : 'İleri ->'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -104,36 +156,39 @@ export default function RootLayout() {
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <Stack screenOptions={{ 
-              animation: "slide_from_right",
-              gestureEnabled: true,
-              fullScreenGestureEnabled: true
-            }}>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="login" options={{ headerShown: false }} />
-              <Stack.Screen name="signup" options={{ headerShown: false }} />
-              <Stack.Screen name="reset-password" options={{ headerShown: false }} />
-              <Stack.Screen name="verify" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: "modal", title: "Modal" }}
-              />
-              <Stack.Screen
-                name="guide"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="ferry-tracking"
-                options={{
-                  title: "Live Tracking",
-                  headerBackTitle: "Back",
-                }}
-              />
-            </Stack>
-            <StatusBar style="dark" />
-            <GlobalAlert />
-            <GlobalInvisiblePopup />
+            <CopilotProvider tooltipComponent={CustomTooltip} svgMaskPath={roundedSvgMaskPath} stopOnOutsideClick androidStatusBarVisible tooltipStyle={{ backgroundColor: "transparent", elevation: 0, shadowOpacity: 0 }}>
+              <Stack screenOptions={{ 
+                animation: "slide_from_right",
+                gestureEnabled: true,
+                fullScreenGestureEnabled: true
+              }}>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="login" options={{ headerShown: false }} />
+                <Stack.Screen name="signup" options={{ headerShown: false }} />
+                <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+                <Stack.Screen name="verify" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", title: "Modal" }}
+                />
+                <Stack.Screen
+                  name="guide"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="ferry-tracking"
+                  options={{
+                    title: "Live Tracking",
+                    headerBackTitle: "Back",
+                  }}
+                />
+              </Stack>
+              <StatusBar style="dark" />
+              <GlobalAlert />
+              <GlobalInvisiblePopup />
+              <GlobalCopilotButton />
+            </CopilotProvider>
           </ThemeProvider>
         </CustomThemeProvider>
         </AuthProvider>

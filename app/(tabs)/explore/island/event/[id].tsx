@@ -438,12 +438,12 @@ const styles = StyleSheet.create({
         color: '#3B82F6',
     },
     title: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: '800',
         color: '#0F172A',
         marginBottom: 4,
         letterSpacing: -0.5,
-        lineHeight: 30,
+        lineHeight: 26,
     },
     divider: {
         height: 1,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     infoLabel: {
-        fontSize: 11,
+        fontSize: 10,
         color: '#94A3B8',
         fontWeight: '700',
         letterSpacing: 0.8,
@@ -473,27 +473,27 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     infoValue: {
-        fontSize: 15,
+        fontSize: 13,
         color: '#1E293B',
         fontWeight: '700',
-        lineHeight: 22,
+        lineHeight: 18,
     },
     contactText: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#64748B',
         fontWeight: '500',
         marginTop: 2,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '800',
         color: '#1E293B',
         marginBottom: 12,
     },
     description: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#475569',
-        lineHeight: 26,
+        lineHeight: 22,
     },
     rsvpButton: {
         backgroundColor: '#3B82F6',

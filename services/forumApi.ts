@@ -122,7 +122,7 @@ export const fetchPosts = async (topicId?: string): Promise<PostDto[]> => {
 
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Failed to fetch forum posts:", error);
+    console.log("Failed to fetch forum posts:", error);
     triggerNetworkError();
     return [];
   }
@@ -133,7 +133,7 @@ export const fetchHotPosts = async (): Promise<PostDto[]> => {
     const response = await fetchWithAuth(`${FORUM_API_BASE}/posts/hot`);
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch hot posts:", error);
+    console.log("Failed to fetch hot posts:", error);
     triggerNetworkError();
     return [];
   }
@@ -202,7 +202,7 @@ export const likePost = async (postId: string): Promise<LikeResponse | null> => 
     if (!response.ok) return null;
     return await response.json();
   } catch (error) {
-    console.error('Failed to like post:', error);
+    console.log('Failed to like post:', error);
     return null;
   }
 };
@@ -240,7 +240,7 @@ export const voteOnPoll = async (
     );
     return await response.json();
   } catch (error) {
-    console.error("Failed to vote on poll:", error);
+    console.log("Failed to vote on poll:", error);
     return null;
   }
 };
@@ -252,7 +252,7 @@ export const fetchReplies = async (postId: string): Promise<PostDto[]> => {
     );
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch replies:", error);
+    console.log("Failed to fetch replies:", error);
     triggerNetworkError();
     return [];
   }
@@ -286,7 +286,7 @@ export const fetchTopics = async (): Promise<ForumTopicDto[]> => {
     const response = await fetchWithAuth(`${FORUM_API_BASE}/topics`);
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch topics:", error);
+    console.log("Failed to fetch topics:", error);
     return [];
   }
 };

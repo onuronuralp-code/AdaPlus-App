@@ -181,7 +181,7 @@ export default function IlanDetailScreen() {
           <Text style={styles.title}>{listing.title}</Text>
           {listing.price > 0 && (
             <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 8 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
             </View>
           )}
 
@@ -195,7 +195,7 @@ export default function IlanDetailScreen() {
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <IconSymbol name="mappin.and.ellipse" size={20} color="#64748B" />
+                <IconSymbol name="mappin.and.ellipse" size={16} color="#64748B" />
               </View>
               <View>
                 <Text style={styles.infoLabel}>{t('ilanlar.locationLabel', { defaultValue: 'KONUM' })}</Text>
@@ -230,7 +230,7 @@ export default function IlanDetailScreen() {
               <View style={[styles.infoIcon, listing.contactInfo && { backgroundColor: '#ECFDF5' }]}>
                 <IconSymbol 
                   name={listing.contactInfo?.includes('@') ? "envelope.fill" : "phone.fill"} 
-                  size={20} 
+                  size={16} 
                   color={listing.contactInfo ? '#10B981' : '#64748B'} 
                 />
               </View>
@@ -307,19 +307,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   categoryBadgeText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
   },
   timeText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#94A3B8',
     fontWeight: '500',
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 12,
+    marginBottom: 10,
     letterSpacing: -0.5,
   },
   priceContainer: {
@@ -345,15 +345,15 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#475569',
-    lineHeight: 26,
+    lineHeight: 22,
   },
   infoGrid: {
     flexDirection: 'row',
@@ -366,24 +366,24 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   infoIcon: {
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     borderRadius: 10,
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#94A3B8',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1E293B',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   warningCard: {
     flexDirection: 'row',

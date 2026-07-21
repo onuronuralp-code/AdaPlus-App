@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     headerTitle: {
-        fontSize: 26,
+        fontSize: 22,
         fontWeight: '800',
         color: '#0F172A',
         letterSpacing: -0.5,

@@ -155,7 +155,8 @@ export default function SignUpScreen() {
                 inviteToken ?? undefined,
                 undefined,
             );
-            router.push({ pathname: '/verify', params: { contact: actualContact, type: 'email' } });
+            router.push({ pathname: '/verify', params: { contact: actualContact, type: 'email', isInvited: inviteToken ? 'true' : 'false' } });
+
         } catch (error: any) {
             const msg: string = error.message || 'Bir hata oluştu.';
             if (msg.includes('Telefon numaranızla giriş yapın')) {

@@ -119,6 +119,7 @@ export default function IslandDetailScreen() {
                         title={t(`islands.${islandSlug}.activities.seafood`, { defaultValue: 'Restaurants and Cafe' })}
                         subtitle={t(`islands.${islandSlug}.activities.seafoodSub`, { defaultValue: 'World-class dining with ocean views' })}
                         onPress={() => router.push('/(tabs)/explore/island/restaurant')}
+                        image={require('@/assets/images/sunset.jpg')}
                     />
                     <ActivityCard
                         icon="bus.fill"
@@ -147,19 +148,26 @@ export default function IslandDetailScreen() {
     );
 }
 
-function ActivityCard({ icon, color, title, subtitle, onPress }: { icon: string, color: string, title: string, subtitle: string, onPress?: () => void }) {
+function ActivityCard({ icon, color, title, subtitle, onPress, image }: { icon: string, color: string, title: string, subtitle: string, onPress?: () => void, image?: any }) {
     const Component = onPress ? TouchableOpacity : View;
 
     return (
-        <Component style={styles.card} onPress={onPress}>
+        <Component style={[styles.card, { overflow: 'hidden' }]} onPress={onPress}>
             <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
-                {/* 20 opacity hex */}
                 <IconSymbol name={icon as any} size={24} color={color} />
             </View>
             <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>{title}</Text>
-                <Text style={styles.cardSubtitle}>{subtitle}</Text>
+                <Text style={styles.cardSubtitle} numberOfLines={2}>{subtitle}</Text>
             </View>
+            <IconSymbol name="chevron.right" size={20} color="#CBD5E1" />
+            {image && (
+                <Image 
+                    source={image} 
+                    style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 100, opacity: 0.6 }}
+                    resizeMode="cover"
+                />
+            )}
         </Component>
     );
 }
@@ -216,7 +224,7 @@ const styles = StyleSheet.create({
     },
     heroTitle: {
         color: '#fff',
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: 'bold',
         marginBottom: 8,
     },

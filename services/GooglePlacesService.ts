@@ -101,7 +101,7 @@ export const fetchIslandLandmarks = async (): Promise<Place[]> => {
 
         return FALLBACK_POINTS;
     } catch (error) {
-        console.error('Error fetching Google Places:', error);
+        console.log('Error fetching Google Places:', error);
         return FALLBACK_POINTS;
     }
 };
