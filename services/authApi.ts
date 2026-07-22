@@ -242,3 +242,14 @@ export const authApi = {
     }
   },
 };
+
+export const fetchUserCount = async (): Promise<number> => {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/count`);
+    if (!response.ok) return 0;
+    const data = await response.json();
+    return data.count || 0;
+  } catch {
+    return 0;
+  }
+};

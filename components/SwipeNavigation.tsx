@@ -11,57 +11,35 @@ interface Props {
   children: React.ReactNode;
   leftRoute?: string;
   rightRoute?: string;
+  downRoute?: string;
 }
 
-export function SwipeNavigation({ children, leftRoute, rightRoute }: Props) {
+export function SwipeNavigation({ children, leftRoute, rightRoute, downRoute }: Props) {
   const router = useRouter();
-  const translateX = useSharedValue(0);
-  const isEdgeSwipe = useSharedValue(false);
 
   const navigateTo = (route: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.navigate(route as any);
-    // Kısa bir süre sonra ekranı tekrar yerine al ki geri dönüldüğünde ekran kaymış kalmasın
-    setTimeout(() => {
-      translateX.value = 0;
-    }, 150);
   };
 
   const pan = Gesture.Pan()
     .activeOffsetX([-30, 30])
-    .onBegin((e) => {
-       if (e.x < 50 || e.x > SCREEN_WIDTH - 50) {
-           isEdgeSwipe.value = true;
-       } else {
-           isEdgeSwipe.value = false;
-       }
-    })
-    .onUpdate((e) => {
-      if (!isEdgeSwipe.value) return;
-      if ((e.translationX < 0 && rightRoute) || (e.translationX > 0 && leftRoute)) {
-        translateX.value = e.translationX;
-      }
-    })
+    .activeOffsetY([-30, 30])
     .onEnd((e) => {
-      if (!isEdgeSwipe.value) return;
-      if (e.translationX < -70 && rightRoute) {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
-        runOnJS(navigateTo)(rightRoute);
-      } else if (e.translationX > 70 && leftRoute) {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
-        runOnJS(navigateTo)(leftRoute);
-      } else {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
+      if (Math.abs(e.translationX) > Math.abs(e.translationY)) {
+        if (e.translationX < -50 && rightRoute) {
+          runOnJS(navigateTo)(rightRoute);
+        } else if (e.translationX > 50 && leftRoute) {
+          runOnJS(navigateTo)(leftRoute);
+        }
+      } else if (downRoute && e.translationY > 50) {
+        runOnJS(navigateTo)(downRoute);
       }
     });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={[styles.container, animatedStyle]}>
+      <Animated.View style={styles.container}>
         {children}
       </Animated.View>
     </GestureDetector>

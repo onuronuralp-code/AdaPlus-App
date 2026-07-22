@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, Animated } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -255,14 +255,19 @@ export default function ProfileScreen() {
         />
     );
 
-    const renderPostActions = (post: any, isReply: boolean) => {
+    const renderPostActions = (post: any, isReply: boolean) => (progress: any, dragX: any) => {
+        const trans = dragX.interpolate({
+            inputRange: [-80, 0],
+            outputRange: [0, 80],
+            extrapolate: 'clamp',
+        });
         return (
-            <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                <TouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 80, transform: [{ translateX: trans }] }}>
+                <GHTouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                </TouchableOpacity>
-            </View>
+                </GHTouchableOpacity>
+            </Animated.View>
         );
     };
 
@@ -270,9 +275,9 @@ export default function ProfileScreen() {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
         if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
         return (
-            <View style={styles.contentList}>
+            <ScrollView style={[styles.contentList, { flex: 1 }]} contentContainerStyle={{ paddingBottom: 100 }}>
                 {posts.map(post => (
-                    <Swipeable key={post.id} renderRightActions={() => renderPostActions(post, false)} overshootRight={false}>
+                    <Swipeable key={post.id} renderRightActions={renderPostActions(post, false)} overshootRight={false}>
                     <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
                         {editingPostId === post.id ? (
                             <View style={{ flex: 1 }}>
@@ -302,7 +307,7 @@ export default function ProfileScreen() {
                     </View>
                     </Swipeable>
                 ))}
-            </View>
+            </ScrollView>
         );
     };
 
@@ -310,9 +315,9 @@ export default function ProfileScreen() {
         if (loadingReplies) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B5CF6" /></View>;
         if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', t('profile.emptyRepliesTitle', { defaultValue: 'Yanıt Yok' }), t('profile.emptyRepliesDesc', { defaultValue: 'Paylaşımlara yorum yaparak etkileşime geç!' }), '#8B5CF6');
         return (
-            <View style={styles.contentList}>
+            <ScrollView style={[styles.contentList, { flex: 1 }]} contentContainerStyle={{ paddingBottom: 100 }}>
                 {replies.map(reply => (
-                    <Swipeable key={reply.id} renderRightActions={() => renderPostActions(reply, true)} overshootRight={false}>
+                    <Swipeable key={reply.id} renderRightActions={renderPostActions(reply, true)} overshootRight={false}>
                     <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
                         <View style={styles.replyHeader}>
                             <IconSymbol name="arrow.uturn.left" size={12} color="#64748B" />
@@ -346,7 +351,7 @@ export default function ProfileScreen() {
                     </View>
                     </Swipeable>
                 ))}
-            </View>
+            </ScrollView>
         );
     };
 
@@ -363,7 +368,7 @@ export default function ProfileScreen() {
         if (loadingNotifications) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F43F5E" /></View>;
         if (notifications.length === 0) return renderEmpty('bell.fill', t('profile.emptyNotificationsTitle', { defaultValue: 'Bildirim Yok' }), t('profile.emptyNotificationsDesc', { defaultValue: 'Etkinlik onayları ve gönderi yanıtları burada görünecek.' }), '#EF4444');
         return (
-            <View style={styles.contentList}>
+            <ScrollView style={[styles.contentList, { flex: 1 }]} contentContainerStyle={{ paddingBottom: 100 }}>
                 {notifications.map(notif => {
                     const { name, color, bg } = getNotifIcon(notif.type);
                     return (
@@ -392,30 +397,37 @@ export default function ProfileScreen() {
                         </TouchableOpacity>
                     );
                 })}
-            </View>
+            </ScrollView>
         );
     };
 
-    const renderListingActions = (listing: any) => (
-        <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-            <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                <IconSymbol name="pencil" size={24} color="#FFF" />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteListing(listing.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                <IconSymbol name="trash.fill" size={24} color="#FFF" />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-            </TouchableOpacity>
-        </View>
-    );
+    const renderListingActions = (listing: any) => (progress: any, dragX: any) => {
+        const trans = dragX.interpolate({
+            inputRange: [-160, 0],
+            outputRange: [0, 160],
+            extrapolate: 'clamp',
+        });
+        return (
+            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
+                <GHTouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="pencil" size={24} color="#FFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                </GHTouchableOpacity>
+                <GHTouchableOpacity onPress={() => handleDeleteListing(listing.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="trash.fill" size={24} color="#FFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                </GHTouchableOpacity>
+            </Animated.View>
+        );
+    };
 
     const renderListings = () => {
         if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F59E0B" /></View>;
         if (listings.length === 0) return renderEmpty('tag.fill', t('profile.emptyListingsTitle', { defaultValue: 'İlan Yok' }), t('profile.emptyListingsDesc', { defaultValue: 'İlanınızı oluşturmak için İlanlar sayfasını ziyaret edin.' }), '#F59E0B');
         return (
-            <View style={styles.contentList}>
+            <ScrollView style={[styles.contentList, { flex: 1 }]} contentContainerStyle={{ paddingBottom: 100 }}>
                 {listings.map(listing => (
-                    <Swipeable key={listing.id} renderRightActions={() => renderListingActions(listing)} overshootRight={false}>
+                    <Swipeable key={listing.id} renderRightActions={renderListingActions(listing)} overshootRight={false}>
                     <TouchableOpacity 
                         style={[styles.listingCard, { backgroundColor: '#fff' }]}
                         activeOpacity={0.7}
@@ -431,29 +443,36 @@ export default function ProfileScreen() {
                     </TouchableOpacity>
                     </Swipeable>
                 ))}
-            </View>
+            </ScrollView>
         );
     };
-    const renderEventActions = (activity: any) => (
-        <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-            <TouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                <IconSymbol name="pencil" size={24} color="#FFF" />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteEvent(activity.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                <IconSymbol name="trash.fill" size={24} color="#FFF" />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-            </TouchableOpacity>
-        </View>
-    );
+    const renderEventActions = (activity: any) => (progress: any, dragX: any) => {
+        const trans = dragX.interpolate({
+            inputRange: [-160, 0],
+            outputRange: [0, 160],
+            extrapolate: 'clamp',
+        });
+        return (
+            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
+                <GHTouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="pencil" size={24} color="#FFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                </GHTouchableOpacity>
+                <GHTouchableOpacity onPress={() => handleDeleteEvent(activity.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="trash.fill" size={24} color="#FFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                </GHTouchableOpacity>
+            </Animated.View>
+        );
+    };
     const renderEvents = () => {
         if (loadingActivities) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#3B82F6" /></View>;
         if (activities.length === 0) return renderEmpty('calendar', t('profile.emptyActivitiesTitle', { defaultValue: 'Etkinlik Yok' }), t('profile.emptyActivitiesDesc', { defaultValue: 'Oluşturduğunuz etkinlikler burada görünecek.' }), '#3B82F6');
         return (
-            <View style={styles.contentList}>
+            <ScrollView style={[styles.contentList, { flex: 1 }]} contentContainerStyle={{ paddingBottom: 100 }}>
                 {activities.map(activity => {
                     return (
-                        <Swipeable key={activity.id} renderRightActions={() => renderEventActions(activity)} overshootRight={false}>
+                        <Swipeable key={activity.id} renderRightActions={renderEventActions(activity)} overshootRight={false}>
                         <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <View style={{ flex: 1, marginRight: 8 }}>
@@ -466,7 +485,7 @@ export default function ProfileScreen() {
                         </Swipeable>
                     );
                 })}
-            </View>
+            </ScrollView>
         );
     };
 
@@ -474,7 +493,7 @@ export default function ProfileScreen() {
         if (loadingLikes) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#EC4899" /></View>;
         if (likedPosts.length === 0) return renderEmpty('heart.fill', t('profile.emptyLikesTitle', { defaultValue: 'Beğeni Yok' }), t('profile.emptyLikesDesc', { defaultValue: 'Beğendiğiniz paylaşımlar burada görünecek.' }), '#EC4899');
         return (
-            <View style={styles.contentList}>
+            <ScrollView style={[styles.contentList, { flex: 1 }]} contentContainerStyle={{ paddingBottom: 100 }}>
                 {likedPosts.map(post => (
                     <View 
                         key={post.id} 
@@ -492,7 +511,7 @@ export default function ProfileScreen() {
                         </View>
                     </View>
                 ))}
-            </View>
+            </ScrollView>
         );
     };
 
@@ -575,11 +594,8 @@ export default function ProfileScreen() {
                     </TouchableOpacity>
                 </View>
             ) : (
-                <ScrollView 
-                    contentContainerStyle={styles.scrollContent} 
-                    showsVerticalScrollIndicator={false}
-                    bounces={false}
-                    overScrollMode="never"
+                <View 
+                    style={[styles.scrollContent, { flex: 1 }]} 
                 >
                     {/* Profile Info */}
                     <View style={styles.profileCard}>
@@ -676,7 +692,7 @@ export default function ProfileScreen() {
 
                 {/* Tab Content */}
                 {renderContent()}
-                </ScrollView>
+                </View>
             )}
 
             <CelebrationModal 

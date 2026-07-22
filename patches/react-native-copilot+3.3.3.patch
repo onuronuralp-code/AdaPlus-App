@@ -1,0 +1,58 @@
+diff --git a/node_modules/react-native-copilot/dist/index.js b/node_modules/react-native-copilot/dist/index.js
+index 3aff2e2..84bfb0b 100644
+--- a/node_modules/react-native-copilot/dist/index.js
++++ b/node_modules/react-native-copilot/dist/index.js
+@@ -111,7 +111,7 @@ var init_style = __esm({
+         paddingHorizontal: 15,
+         backgroundColor: "#fff",
+         borderRadius: 3,
+-        overflow: "hidden"
++        overflow: "visible"
+       },
+       tooltipText: {},
+       tooltipContainer: {
+@@ -121,7 +121,7 @@ var init_style = __esm({
+         position: "absolute",
+         width: STEP_NUMBER_DIAMETER,
+         height: STEP_NUMBER_DIAMETER,
+-        overflow: "hidden",
++        overflow: "visible",
+         zIndex: ZINDEX + 1
+       },
+       stepNumber: {
+@@ -293,7 +293,7 @@ var init_SvgMask = __esm({
+             ref: maskRef,
+             fill: backdropColor,
+             fillRule: "evenodd",
+-            strokeWidth: 1,
++            stroke: "#FFFFFF", strokeWidth: 2,
+             d: svgMaskPath({
+               size: sizeValue,
+               position: positionValue,
+@@ -459,7 +459,7 @@ var Tooltip = ({ labels }) => {
+   const handlePrev = () => {
+     void goToPrev();
+   };
+-  return /* @__PURE__ */ import_react2.default.createElement(import_react_native3.View, null, /* @__PURE__ */ import_react2.default.createElement(import_react_native3.View, { style: styles.tooltipContainer }, /* @__PURE__ */ import_react2.default.createElement(import_react_native3.Text, { testID: "stepDescription", style: styles.tooltipText }, currentStep == null ? void 0 : currentStep.text)), /* @__PURE__ */ import_react2.default.createElement(import_react_native3.View, { style: [styles.bottomBar] }, !isLastStep ? /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handleStop }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.skip)) : null, !isFirstStep ? /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handlePrev }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.previous)) : null, !isLastStep ? /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handleNext }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.next)) : /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handleStop }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.finish))));
++  return /* @__PURE__ */ import_react2.default.createElement(import_react_native3.View, null, /* @__PURE__ */ import_react2.default.createElement(import_react_native3.View, { style: styles.tooltipContainer }, /* @__PURE__ */ import_react2.default.createElement(import_react_native3.Text, { testID: "stepDescription", style: styles.tooltipText }, currentStep == null ? void 0 : currentStep.text)), /* @__PURE__ */ import_react2.default.createElement(import_react_native3.View, { style: [styles.bottomBar, { display: "none" }] }, !isLastStep ? /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handleStop }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.skip)) : null, !isFirstStep ? /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handlePrev }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.previous)) : null, !isLastStep ? /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handleNext }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.next)) : /* @__PURE__ */ import_react2.default.createElement(import_react_native3.TouchableOpacity, { onPress: handleStop }, /* @__PURE__ */ import_react2.default.createElement(Button, null, labels.finish))));
+ };
+ 
+ // src/components/CopilotModal.tsx
+@@ -495,7 +495,7 @@ var CopilotModal = (0, import_react5.forwardRef)(
+     arrowSize = ARROW_SIZE,
+     margin = MARGIN
+   }, ref) {
+-    const { stop, currentStep, visible } = useCopilot();
++    const { stop, currentStep, visible, isFirstStep, isLastStep, goToNext, goToPrev } = useCopilot();
+     const [tooltipStyles, setTooltipStyles] = (0, import_react5.useState)({});
+     const [arrowStyles, setArrowStyles] = (0, import_react5.useState)({});
+     const [animatedValues] = (0, import_react5.useState)({
+@@ -688,7 +688,7 @@ var CopilotModal = (0, import_react5.forwardRef)(
+         transparent: true,
+         supportedOrientations: ["portrait", "landscape"]
+       },
+-      /* @__PURE__ */ import_react5.default.createElement(import_react_native6.View, { style: styles.container, onLayout: handleLayoutChange }, contentVisible && renderMask(), contentVisible && renderTooltip())
++      /* @__PURE__ */ import_react5.default.createElement(import_react_native6.View, { style: styles.container, onLayout: handleLayoutChange }, contentVisible && renderMask(), contentVisible && renderTooltip(), contentVisible && !isFirstStep && import_react5.default.createElement(import_react_native6.TouchableOpacity, { style: { position: 'absolute', bottom: 50, left: 24, backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)', zIndex: 999999 }, onPress: goToPrev }, import_react5.default.createElement(import_react_native6.Text, { style: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', textAlign: 'center' } }, "← Geri")), contentVisible && import_react5.default.createElement(import_react_native6.TouchableOpacity, { style: { position: 'absolute', bottom: 50, right: 24, backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)', zIndex: 999999 }, onPress: isLastStep ? stop : goToNext }, import_react5.default.createElement(import_react_native6.Text, { style: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', textAlign: 'center' } }, isLastStep ? "Bitir" : "İleri ➔")))
+     );
+     function renderMask() {
+       const MaskComponent = overlay === "svg" ? (

@@ -6,6 +6,10 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableHapticTab = walkthroughable(HapticTab);
+
 function AnimatedTabIcon({ focused, isDeepRoute, iconName, color }: { focused: boolean; isDeepRoute: boolean; iconName: string; color: string }) {
   const indicatorOpacity = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
@@ -69,7 +73,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: (props) => <HapticTab {...props} />,
         tabBarStyle: styles.tabBarLight,
         tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : '#000000',
         tabBarInactiveTintColor: '#AAAAAA',
@@ -95,8 +99,13 @@ export default function TabLayout() {
         name="home"
         options={{
           title: t('common.tabSchedule', { defaultValue: 'Seferler' }),
+          tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="ferry.fill" color={color} />
+            <CopilotStep text={t('explore.tour.tarifeler', { defaultValue: 'Tüm vapur ve motor sefer saatlerini buradan öğrenebilirsin.' })} order={9} name="tarifeler">
+              <WalkthroughableView style={{ paddingHorizontal: 10, marginHorizontal: -10, paddingTop: 2, marginTop: -2, paddingBottom: 18, marginBottom: -18 }}>
+                <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="ferry.fill" color={color} />
+              </WalkthroughableView>
+            </CopilotStep>
           ),
         }}
       />

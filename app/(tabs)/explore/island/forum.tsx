@@ -3,7 +3,7 @@ import { s, vs, ms } from '@/utils/scale';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
-import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView, Share } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -72,6 +72,23 @@ export default function ForumScreen() {
     useEffect(() => {
         // writeModalSlideAnim is now handled in Modal's onShow to ensure native view is ready
     }, [isWriteModalVisible]);
+
+    useEffect(() => {
+        const checkFirstVisit = async () => {
+            try {
+                const hasVisited = await AsyncStorage.getItem('hasVisitedCommunity');
+                if (!hasVisited) {
+                    setTimeout(() => {
+                        setIsRulesModalVisible(true);
+                    }, 500);
+                    await AsyncStorage.setItem('hasVisitedCommunity', 'true');
+                }
+            } catch (error) {
+                console.error("Error reading first visit status", error);
+            }
+        };
+        checkFirstVisit();
+    }, []);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
     const [newPostType, setNewPostType] = useState('discussion');
@@ -125,6 +142,16 @@ export default function ForumScreen() {
         setReplies([]); // Clear old replies
         const data = await forumApi.fetchReplies(post.id);
         setReplies(data);
+    };
+
+    const handleInviteFriends = async () => {
+        try {
+            await Share.share({
+                message: t('forum.inviteMessage', { defaultValue: 'AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası: https://adaplus.app' }),
+            });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const handlePollVote = async (postId: string, optionId: string) => {
@@ -677,6 +704,7 @@ export default function ForumScreen() {
                                 {(() => {
                                     const ended = isPollEnded(item.pollEndsAt);
                                     const countdown = getPollCountdown(item.pollEndsAt);
+                                    const totalVotes = item.pollOptions!.reduce((sum, opt) => sum + (opt.voteCount || 0), 0);
                                     return (
                                         <>
                                             {item.pollOptions!.map((option) => {
@@ -704,12 +732,17 @@ export default function ForumScreen() {
                                                 </TouchableOpacity>
                                                 );
                                             })}
-                                            {countdown && (
-                                                <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
-                                                    <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
-                                                    <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
-                                                </View>
-                                            )}
+                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                                                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600' }}>
+                                                    Toplam {totalVotes} oy
+                                                </Text>
+                                                {countdown && (
+                                                    <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge, { marginTop: 0 }]}>
+                                                        <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                        <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                                    </View>
+                                                )}
+                                            </View>
                                         </>
                                     );
                                 })()}
@@ -773,8 +806,8 @@ export default function ForumScreen() {
                 <View style={styles.headerTitles}>
                     <Text style={styles.headerTitle}>{t('common.community')}</Text>
                 </View>
-                <TouchableOpacity onPress={() => setIsRulesModalVisible(true)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-                    <IconSymbol name="info.circle.fill" size={22} color="#1E293B" />
+                <TouchableOpacity onPress={handleInviteFriends} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                    <IconSymbol name="person.badge.plus" size={24} color="#1E293B" />
                 </TouchableOpacity>
             </View>
             {!isLoggedIn ? (
@@ -959,7 +992,7 @@ export default function ForumScreen() {
                         <View style={styles.formSection}>
                             <Text style={styles.inputLabel}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
                             <TextInput
-                                style={[styles.premiumTextInput, newPostType === 'poll' && { minHeight: 60, height: 60, paddingVertical: 0, paddingHorizontal: 16, justifyContent: 'center', textAlign: 'center' }]}
+                                style={[styles.premiumTextInput, newPostType === 'poll' && { minHeight: 60, height: undefined, paddingVertical: 16, paddingHorizontal: 16, textAlign: 'left', lineHeight: 20 }]}
                                 placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder') : t('forum.whatsOnYourMind')}
                                 placeholderTextColor="#CBD5E1"
                                 multiline={newPostType !== 'poll'}
@@ -1027,7 +1060,7 @@ export default function ForumScreen() {
                                 {pollOptions.map((opt, index) => (
                                     <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                                         <TextInput
-                                            style={[styles.premiumTextInput, { flex: 1, minHeight: 50, height: 50, paddingVertical: 0, paddingHorizontal: 15, fontSize: 16, justifyContent: 'center', textAlign: 'center' }]}
+                                            style={[styles.premiumTextInput, { flex: 1, minHeight: 50, height: undefined, paddingVertical: 14, paddingHorizontal: 15, fontSize: 16, textAlign: 'left', lineHeight: 20 }]}
                                             placeholder={t('forum.optionPlaceholder', { number: index + 1 })}
                                             placeholderTextColor="#CBD5E1"
                                             textAlignVertical="center"
@@ -1373,7 +1406,7 @@ export default function ForumScreen() {
                                 style={[styles.publishButton, (!adTitle.trim() || !adPrice.trim()) && styles.publishButtonDisabled]}
                                 disabled={!adTitle.trim() || !adPrice.trim()}
                             >
-                                <Text style={styles.publishText}>{t('common.publish')}</Text>
+                                <Text style={[styles.publishText, (!adTitle.trim() || !adPrice.trim()) && { color: '#94A3B8' }]}>{t('common.publish')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -1818,7 +1851,7 @@ const styles = StyleSheet.create({
         borderRadius: s(12),
     },
     publishButtonDisabled: {
-        backgroundColor: '#F1F5F9',
+        backgroundColor: '#E2E8F0',
     },
     publishText: {
         color: '#fff',

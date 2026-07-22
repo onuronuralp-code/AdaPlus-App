@@ -7,7 +7,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
+import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, Dimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import * as Notifications from "expo-notifications";
@@ -48,55 +48,56 @@ const APP_STORE_URL =
   process.env.EXPO_PUBLIC_APP_STORE_URL ??
   "https://apps.apple.com/tr/app/ada-plus/id6743840993";
 
-const roundedSvgMaskPath = ({ size, position, canvasSize }: any) => {
-  const radius = 16;
-  const width = typeof size.x === 'number' ? size.x : (size.x._value || 0);
-  const height = typeof size.y === 'number' ? size.y : (size.y._value || 0);
-  const x = typeof position.x === 'number' ? position.x : (position.x._value || 0);
-  const y = typeof position.y === 'number' ? position.y : (position.y._value || 0);
-  const r = Math.max(0, Math.min(radius, width / 2, height / 2)) || 0;
+const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
+  const padding = 8;
+  const width = (typeof size.x === 'number' ? size.x : (size.x._value || 0)) + padding * 2;
+  const height = (typeof size.y === 'number' ? size.y : (size.y._value || 0)) + padding * 2;
+  const x = (typeof position.x === 'number' ? position.x : (position.x._value || 0)) - padding;
+  const y = (typeof position.y === 'number' ? position.y : (position.y._value || 0)) - padding;
 
-  return `M0,0H${canvasSize.x || 0}V${canvasSize.y || 0}H0V0ZM${x + r},${y}h${width - 2 * r}a${r},${r} 0 0 1 ${r},${r}v${height - 2 * r}a${r},${r} 0 0 1 -${r},${r}h-${width - 2 * r}a${r},${r} 0 0 1 -${r},-${r}v-${height - 2 * r}a${r},${r} 0 0 1 ${r},-${r}Z`;
+  // Make the outer canvas bounds much larger than screen to hide the stroke on the edges
+  const outer = `M-20,-20 H${(canvasSize.x || 0) + 40} V${(canvasSize.y || 0) + 40} H-20 V-20 Z`;
+
+  // Subtle hand-drawn rounded rectangle
+  const r = 20;
+  const x1 = x;
+  const x2 = x + width;
+  const y1 = y;
+  const y2 = y + height;
+  
+  const inner = `
+    M ${x1 + r},${y1} 
+    L ${x2 - r},${y1}
+    Q ${x2},${y1} ${x2},${y1 + r}
+    L ${x2},${y2 - r}
+    Q ${x2},${y2} ${x2 - r},${y2}
+    L ${x1 + r},${y2}
+    Q ${x1},${y2} ${x1},${y2 - r}
+    L ${x1},${y1 + r}
+    Q ${x1},${y1} ${x1 + r},${y1}
+    Z
+  `;
+
+  return `${outer} ${inner}`;
 };
 
 
 const CustomTooltip = () => {
-  const { currentStep } = useCopilot();
+  const { currentStep, goToNext, goToPrev, stop, isFirstStep, isLastStep } = useCopilot();
+  
   return (
-    <View style={{ alignItems: 'center', padding: 16 }}>
-      <Text style={{ color: '#FFFFFF', fontSize: 24, fontFamily: Platform.select({ ios: 'Noteworthy', android: 'cursive' }), textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
+    <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 24 }}>
+      <Text style={{ 
+        color: '#FFFFFF', fontSize: 24, fontFamily: Platform.select({ ios: 'Noteworthy', android: 'cursive' }), textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4, marginBottom: 32 }}>
         {currentStep?.text}
       </Text>
-      
-      <Svg width={40} height={50} viewBox="0 0 40 50" style={{ marginTop: 12, marginBottom: -10 }}>
-        <Path
-          d="M20,0 Q28,25 20,48 M8,35 L20,48 L32,35"
-          fill="none"
-          stroke="#FFFFFF"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ opacity: 0.9 }}
-        />
-      </Svg>
+
+
     </View>
   );
 };
 
-const GlobalCopilotButton = () => {
-  const { visible, isLastStep, goToNext, stop } = useCopilot();
-  if (!visible) return null;
 
-  return (
-    <View style={{ position: 'absolute', bottom: 50, right: 24, zIndex: 99999 }}>
-      <TouchableOpacity onPress={isLastStep ? stop : goToNext} style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-          {isLastStep ? 'Bitir' : 'İleri ->'}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -156,7 +157,18 @@ export default function RootLayout() {
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <CopilotProvider tooltipComponent={CustomTooltip} svgMaskPath={roundedSvgMaskPath} stopOnOutsideClick androidStatusBarVisible tooltipStyle={{ backgroundColor: "transparent", elevation: 0, shadowOpacity: 0 }}>
+            <CopilotProvider 
+              backdropColor="rgba(0, 0, 0, 0.65)"
+              tooltipStyle={{ backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, paddingHorizontal: 0, paddingVertical: 0, margin: 0, left: 0, right: 0, borderRadius: 0, width: Dimensions.get('window').width, maxWidth: Dimensions.get('window').width }}
+              stepNumberComponent={() => null}
+              tooltipComponent={CustomTooltip}
+              animated={true}
+              labels={{ skip: 'Atla', previous: 'Önceki', next: 'İleri', finish: 'Bitir' }}
+              svgMaskPath={handDrawnSvgMaskPath} 
+              stopOnOutsideClick={false} 
+              androidStatusBarVisible 
+              arrowSize={0}
+            >
               <Stack screenOptions={{ 
                 animation: "slide_from_right",
                 gestureEnabled: true,
@@ -187,7 +199,6 @@ export default function RootLayout() {
               <StatusBar style="dark" />
               <GlobalAlert />
               <GlobalInvisiblePopup />
-              <GlobalCopilotButton />
             </CopilotProvider>
           </ThemeProvider>
         </CustomThemeProvider>

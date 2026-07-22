@@ -192,16 +192,15 @@ export default function MainMenuScreen() {
   const { start, copilotEvents } = useCopilot();
 
   useEffect(() => {
-    // AsyncStorage kontrolü kaldırıldı - Tur her zaman başlatılacak
-    setTimeout(() => {
-      console.log('Starting copilot... button moved!');
-      start();
-    }, 1000);
+    // Reverted the auto-start for testing. 
+    // Now you can start it manually using the question mark button in the header.
+    const handleStop = () => {
+      AsyncStorage.setItem('has_seen_onboarding_tour', 'true');
+    };
+    copilotEvents?.on('stop', handleStop);
     
     return () => {
-      if (copilotEvents) {
-        copilotEvents.off('stop');
-      }
+      copilotEvents?.off('stop', handleStop);
     };
   }, []);
 
@@ -273,7 +272,7 @@ export default function MainMenuScreen() {
         if (hasSeen !== 'true') {
           setCelebrationContent({
             title: "Tebrikler!",
-            description: "5 kişiyi davet ettin ve Adalı rozetini kazandın! Artık adanın özel alanlarına ve Ada AI'a sınırsız erişimin var."
+            description: "5 kişiyi davet ettin ve Adalı rozetini kazandın! Juju Kafe'den nakit alışverişlerinde %25 indirim kazandın."
           });
           setShowCelebrationModal(true);
           await AsyncStorage.setItem('has_seen_invite_celebration_5', 'true');
@@ -517,7 +516,7 @@ export default function MainMenuScreen() {
 
 
   return (
-    <SwipeNavigation rightRoute="/(tabs)/home">
+    <SwipeNavigation rightRoute="/(tabs)/home" downRoute="/(tabs)/home">
     <View style={styles.container}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
@@ -564,49 +563,78 @@ export default function MainMenuScreen() {
           )}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-            style={{ 
-              width: 44, 
-              height: 44, 
-              borderRadius: 22, 
-              backgroundColor: '#F1F5F9', 
-              alignItems: 'center', 
-              justifyContent: 'center'
+          <Pressable 
+            style={({ pressed }) => [{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: '#F8FAFC',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+            }, pressed && { opacity: 0.7 }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setTimeout(() => {
+                start();
+              }, 300); // Slight delay for smoother start
             }}
-            onPress={async () => {
-              setShowNotificationModal(true);
-              setLoadingNotifications(true);
-              let notificationsData: any[] = [];
-              if (isLoggedIn) {
-                  try {
-                      const fetchedData = await fetchNotifications();
-                      notificationsData = Array.isArray(fetchedData) ? fetchedData : [];
-                  } catch (e) {
-                      console.log('Error fetching notifications', e);
-                  }
-              }
-              
-              setNotifications(notificationsData);
-              setLoadingNotifications(false);
-            }}
-            
           >
-            <IconSymbol name="megaphone.fill" size={20} color="#0F172A" />
-            {notifications.filter(n => !n.read).length > 0 && (
-              <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
-                <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>
-                  {notifications.filter(n => !n.read).length}
-                </Text>
-              </View>
-            )}
+            <IconSymbol name="questionmark.circle" size={22} color="#64748B" />
           </Pressable>
+
+          <CopilotStep text={t('explore.tour.duyurular', { defaultValue: 'Tüm güncel ada duyurularını ve bildirimlerini buradan görebilirsin.' })} order={8} name="duyurular">
+            <WalkthroughableView>
+              <Pressable 
+                style={({ pressed }) => [{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: '#F1F5F9',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }, pressed && { opacity: 0.7 }]}
+                onPress={async () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowNotificationModal(true);
+                  setLoadingNotifications(true);
+                  
+                  let notificationsData: any[] = [];
+                  if (!isLoggedIn) {
+                      const stored = await AsyncStorage.getItem('guest_notifications');
+                      notificationsData = stored ? JSON.parse(stored) : [];
+                  } else {
+                      try {
+                          const fetchedData = await fetchNotifications();
+                          notificationsData = Array.isArray(fetchedData) ? fetchedData : [];
+                      } catch (e) {
+                          console.log('Error fetching notifications', e);
+                      }
+                  }
+                  
+                  setNotifications(notificationsData);
+                  setLoadingNotifications(false);
+                }}
+              >
+                <IconSymbol name="bell.fill" size={22} color="#64748B" />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, zIndex: 10, borderWidth: 2, borderColor: '#F1F5F9' }}>
+                    <Text style={{ color: 'white', fontSize: 11, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
+                      {notifications.filter(n => !n.read).length}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            </WalkthroughableView>
+          </CopilotStep>
         </View>
       </View>
 
 
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-        <CopilotStep text="Buradan ada sakinlerini davet edebilirsin." order={6} name="davet">
+        <CopilotStep text={t('explore.tour.davet', { defaultValue: 'Buradan ada sakinlerini davet edebilirsin.' })} order={1} name="davet">
           <WalkthroughableView style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
@@ -664,8 +692,9 @@ export default function MainMenuScreen() {
       </View>
 
       {/* Hero Header Slider Wrapper */}
-      <View style={[styles.heroWrapper, { height: heroHeight, marginBottom: 0 }]}>
-        <ScrollView 
+      <CopilotStep text={t('explore.tour.banner', { defaultValue: 'Adadaki en önemli duyurular, yaklaşan etkinlikler ve öne çıkan ilanlar burada toplanır.' })} order={2} name="banner">
+        <WalkthroughableView style={[styles.heroWrapper, { height: heroHeight, marginBottom: 0 }]}>
+            <ScrollView 
           ref={heroScrollRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -802,7 +831,8 @@ export default function MainMenuScreen() {
             />
           ))}
         </View>
-      </View>
+        </WalkthroughableView>
+      </CopilotStep>
 
 
 
@@ -816,103 +846,82 @@ export default function MainMenuScreen() {
           style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, gap: 8 }}
         >
           {/* 1. Etkinlikler */}
-          <CopilotStep text={t('explore.tour.events', { defaultValue: 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={1} name="etkinlikler">
-            <WalkthroughableView style={{ flex: 1 }}>
-              <Pressable 
-                style={{ alignItems: 'center', flex: 1, gap: 6 }}
+          <CopilotStep text={t('explore.tour.events', { defaultValue: 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={3} name="etkinlikler">
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+              <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   AsyncStorage.setItem('seenEventIds', JSON.stringify(allEventIds));
                   setUnseenEventsCount(0);
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
-                onPressIn={() => { 
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
-                }}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#3B82F6', elevation: 8, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                {({ pressed }) => (
-                  <>
-                    <View style={[{ width: '100%', maxWidth: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#3B82F6', elevation: 8, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.8 }]}>
-                      <IconSymbol name="calendar" size={32} color="#FFFFFF" />
-                      {unseenEventsCount > 0 && (
-                        <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
-                          <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 2 }}>{t('explore.events')}</Text>
-                      <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
-                    </View>
-                  </>
+                <IconSymbol name="calendar" size={32} color="#FFFFFF" />
+                {unseenEventsCount > 0 && (
+                  <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
+                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
+                  </View>
                 )}
-              </Pressable>
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 2 }}>{t('explore.events')}</Text>
+                <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+              </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 2. Ada AI */}
-          <CopilotStep text={t('explore.tour.adaAi', { defaultValue: 'Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.' })} order={2} name="ada_ai">
-            <WalkthroughableView style={{ flex: 1 }}>
-              <Pressable 
-                style={{ alignItems: 'center', flex: 1, gap: 6 }}
+          <CopilotStep text={t('explore.tour.adaAi', { defaultValue: 'Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.' })} order={4} name="ada_ai">
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+              <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => navigateWithDebounce('/guide')}
-                onPressIn={() => { 
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
-                }}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#EC4899', elevation: 8, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                {({ pressed }) => (
-                  <>
-                    <View style={[{ width: '100%', maxWidth: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#EC4899', elevation: 8, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.8 }]}>
-                      <IconSymbol name="pawprint.fill" size={32} color="#FFFFFF" />
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
-                      <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
-                    </View>
-                  </>
-                )}
-              </Pressable>
+                <IconSymbol name="pawprint.fill" size={32} color="#FFFFFF" />
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
+                <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+              </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 3. İlanlar */}
-          <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={3} name="ilanlar">
-            <WalkthroughableView style={{ flex: 1 }}>
-              <Pressable 
-                style={{ alignItems: 'center', flex: 1, gap: 6 }}
+          <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={5} name="ilanlar">
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+              <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   AsyncStorage.setItem('lastViewedListings', Date.now().toString());
                   setUnseenListingsCount(0);
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
-                onPressIn={() => { 
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
-                }}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#F59E0B', elevation: 8, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                {({ pressed }) => (
-                  <>
-                    <View style={[{ width: '100%', maxWidth: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#F59E0B', elevation: 8, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.8 }]}>
-                      <IconSymbol name="tag.fill" size={32} color="#FFFFFF" />
-                      {unseenListingsCount > 0 && (
-                        <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
-                          <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 2 }}>{t('explore.listings')}</Text>
-                      <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
-                    </View>
-                  </>
+                <IconSymbol name="tag.fill" size={32} color="#FFFFFF" />
+                {unseenListingsCount > 0 && (
+                  <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
+                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
+                  </View>
                 )}
-              </Pressable>
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 2 }}>{t('explore.listings')}</Text>
+                <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+              </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 4. Paket Servis */}
-          <CopilotStep text={t('explore.tour.paket', { defaultValue: 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={4} name="paket">
-            <WalkthroughableView style={{ flex: 1 }}>
-              <Pressable 
-                style={{ alignItems: 'center', flex: 1, gap: 6 }}
+          <CopilotStep text={t('explore.tour.paket', { defaultValue: 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={6} name="paket">
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+              <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   if (!isLoggedIn) {
                     setShowLoginPrompt(true);
@@ -923,31 +932,24 @@ export default function MainMenuScreen() {
                     setShowSurvey(true);
                   }
                 }}
-                onPressIn={() => { 
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); 
-                }}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#8B5CF6', elevation: 8, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                {({ pressed }) => (
-                  <>
-                    <View style={[{ width: '100%', maxWidth: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#8B5CF6', elevation: 8, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.8 }]}>
-                      <IconSymbol name="bag.fill" size={32} color="#FFFFFF" />
-                      <View style={{ position: 'absolute', bottom: -6, backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE', zIndex: 10 }}>
-                        <Text style={{ fontSize: 9, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
-                      </View>
-                    </View>
-                    <View style={{ alignItems: 'center', marginTop: 4 }}>
-                      <Text style={{ fontSize: 13, lineHeight: 14, fontWeight: '700', color: '#1F2937', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
-                    </View>
-                  </>
-                )}
-              </Pressable>
+                <IconSymbol name="bag.fill" size={32} color="#FFFFFF" />
+                <View style={{ position: 'absolute', bottom: -6, backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE', zIndex: 10 }}>
+                  <Text style={{ fontSize: 9, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                </View>
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center', marginTop: 4 }}>
+                <Text style={{ fontSize: 13, lineHeight: 14, fontWeight: '700', color: '#1F2937', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
+              </View>
             </WalkthroughableView>
           </CopilotStep>
         </View>
 
         {/* 5. Topluluk Banner */}
         <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 4, backgroundColor: 'transparent' }}>
-          <CopilotStep text={t('explore.tour.topluluk', { defaultValue: 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={5} name="topluluk">
+          <CopilotStep text={t('explore.tour.topluluk', { defaultValue: 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={7} name="topluluk">
             <WalkthroughableView style={{ width: '100%' }}>
               <SwipeButton 
                 isLoggedIn={isLoggedIn} 

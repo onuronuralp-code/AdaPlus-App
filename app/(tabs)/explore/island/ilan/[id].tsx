@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFBEB',
     padding: 16,
     borderRadius: 14,
-    marginTop: 32,
+    marginTop: 16,
     gap: 12,
     alignItems: 'center',
     borderWidth: 1,

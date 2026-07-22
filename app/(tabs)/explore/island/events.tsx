@@ -569,19 +569,14 @@ export default function EventsScreen() {
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={[styles.publishText, isPublishDisabled && { color: '#475569' }]}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
+                                    <Text style={[styles.publishText, isPublishDisabled && { color: '#94A3B8' }]}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
                     </View>
                     <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
                         <View style={{ padding: 20 }}>
-                        {endDate < startDate && (
-                            <View style={styles.dateErrorBanner}>
-                                <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
-                                <Text style={styles.dateErrorText}>Bitiş tarihi başlangıçtan önce olamaz!</Text>
-                            </View>
-                        )}
+
                         <Text style={styles.inputLabel}>ADA SEÇİMİ *</Text>
                         <View style={{ flexDirection: 'row', gap: 4, marginBottom: 20 }}>
                             {['KINALIADA', 'BURGAZADA', 'HEYBELIADA', 'BUYUKADA'].map((islandId) => (
@@ -900,7 +895,7 @@ const styles = StyleSheet.create({
     },
     publishButton: {
         backgroundColor: '#10B981',
-        paddingHorizontal: 12,
+        paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 8,
     },
@@ -949,7 +944,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     publishButtonDisabled: {
-        backgroundColor: '#94A3B8',
+        backgroundColor: '#E2E8F0',
     },
     islandChip: {
         paddingHorizontal: 4,

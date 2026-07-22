@@ -1,12 +1,14 @@
+import React, { forwardRef } from 'react';
 import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import { View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-export function HapticTab(props: BottomTabBarButtonProps) {
+export const HapticTab = forwardRef<any, BottomTabBarButtonProps>((props, ref) => {
   const isSelected = props.accessibilityState?.selected;
   return (
     <PlatformPressable
+      ref={ref}
       {...props}
       onPressIn={(ev) => {
         if (process.env.EXPO_OS === 'ios') {
@@ -33,4 +35,4 @@ export function HapticTab(props: BottomTabBarButtonProps) {
       {props.children as any}
     </PlatformPressable>
   );
-}
+});
