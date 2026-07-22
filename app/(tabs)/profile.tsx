@@ -628,7 +628,7 @@ export default function ProfileScreen() {
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                         <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
                                         <Text style={{ fontSize: 13, color: '#475569', marginLeft: 6, fontWeight: '600' }}>
-                                            {t('profile.invitedIslanders', { defaultValue: 'Invited Islanders' })}
+                                            Invited Islanders
                                         </Text>
                                     </View>
                                     <Text style={{ fontSize: 15, fontWeight: '800', color: '#6366F1' }}>

@@ -540,7 +540,7 @@ export default function MainMenuScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
               <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '600' }}>
-                {t('profile.invitedIslanders', { defaultValue: 'Invited Islanders' })}
+                Invited Islanders
               </Text>
               <View style={{ width: 80, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 
