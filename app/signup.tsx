@@ -376,7 +376,7 @@ export default function SignUpScreen() {
             {Platform.OS === 'ios' ? (
                 <Modal visible={showDatePicker} transparent animationType="fade">
                     <TouchableOpacity style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
-                        <TouchableOpacity style={{ backgroundColor: 'white', padding: 16 }} activeOpacity={1}>
+                        <View style={{ backgroundColor: 'white', padding: 16 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 }}>
                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                                     <Text style={{ color: '#3B82F6', fontWeight: 'bold', fontSize: 16 }}>Tamam</Text>
@@ -391,7 +391,7 @@ export default function SignUpScreen() {
                                     if (date) setBirthDate(date);
                                 }}
                             />
-                        </TouchableOpacity>
+                        </View>
                     </TouchableOpacity>
                 </Modal>
             ) : (
