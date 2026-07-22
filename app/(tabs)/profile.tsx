@@ -528,81 +528,82 @@ export default function ProfileScreen() {
     return (
         <SwipeNavigation leftRoute="/(tabs)/contact">
         <View style={styles.container}>
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                    {!isLoggedIn ? (
-                        <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 10, padding: 4 }}>
-                            <TouchableOpacity
-                                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
-                                onPress={() => i18n.changeLanguage('tr')}
-                            >
-                                <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('tr') ? '#0F172A' : '#64748B' }}>TR</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
-                                onPress={() => i18n.changeLanguage('en')}
-                            >
-                                <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('en') ? '#0F172A' : '#64748B' }}>EN</Text>
-                            </TouchableOpacity>
-                        </View>
-                    ) : (
-                        <TouchableOpacity 
-                            onPress={() => router.push('/settings')}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                            <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
-                        </TouchableOpacity>
-                    )}
-
-                    {isLoggedIn && (
-                        <TouchableOpacity
-                            onPress={() => {
-                                Alert.alert(
-                                    t('profile.logoutTitle'),
-                                    t('profile.logoutConfirm'),
-                                    [
-                                        { text: t('common.cancel'), style: 'cancel' },
-                                        { text: t('profile.logoutBtn'), style: 'destructive', onPress: () => logout() },
-                                    ]
-                                );
-                            }}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                            <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-
             {!isLoggedIn ? (
-                <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center' }]}>
-                    <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
-                    <Text style={styles.emptyTitle}>
-                        {t('profile.notLoggedInTitle')}
-                    </Text>
-                    <Text style={styles.emptySubtitle}>
-                        {t('profile.notLoggedInDesc')}
-                    </Text>
-                    <TouchableOpacity 
-                        style={styles.loginButton}
-                        onPress={() => router.push('/login')}
-                    >
-                        <Text style={styles.loginButtonText}>
-                            {t('common.login')}
+                <View style={{ flex: 1 }}>
+                    <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                        <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                            <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 10, padding: 4 }}>
+                                <TouchableOpacity
+                                    style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                    onPress={() => i18n.changeLanguage('tr')}
+                                >
+                                    <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('tr') ? '#0F172A' : '#64748B' }}>TR</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                    onPress={() => i18n.changeLanguage('en')}
+                                >
+                                    <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('en') ? '#0F172A' : '#64748B' }}>EN</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center' }]}>
+                        <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
+                        <Text style={styles.emptyTitle}>
+                            {t('profile.notLoggedInTitle')}
                         </Text>
-                    </TouchableOpacity>
+                        <Text style={styles.emptySubtitle}>
+                            {t('profile.notLoggedInDesc')}
+                        </Text>
+                        <TouchableOpacity 
+                            style={styles.loginButton}
+                            onPress={() => router.push('/login')}
+                        >
+                            <Text style={styles.loginButtonText}>
+                                {t('common.login')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             ) : (
-                <View 
-                    style={[styles.scrollContent, { flex: 1 }]} 
-                >
-                    {/* Profile Info */}
-                    <View style={styles.profileCard}>
-                        <View style={styles.avatarPlaceholder}>
-                            <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
+                <View style={[styles.scrollContent, { flex: 1 }]}>
+                    {/* Unified Top Card */}
+                    <View style={styles.unifiedTopCard}>
+                        <View style={[styles.header, { paddingTop: insets.top + 10, paddingBottom: 0 }]}>
+                            <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                                <TouchableOpacity 
+                                    onPress={() => router.push('/settings')}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                    <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        Alert.alert(
+                                            t('profile.logoutTitle'),
+                                            t('profile.logoutConfirm'),
+                                            [
+                                                { text: t('common.cancel'), style: 'cancel' },
+                                                { text: t('profile.logoutBtn'), style: 'destructive', onPress: () => logout() },
+                                            ]
+                                        );
+                                    }}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                    <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
+
+                        {/* Profile Info */}
+                        <View style={styles.profileCard}>
+                            <View style={styles.avatarPlaceholder}>
+                                <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
+                            </View>
+                            <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
                         {user?.email && (
                             <Text style={{ fontSize: 14, color: '#64748B', marginTop: 2, marginBottom: 12 }}>{user.email}</Text>
                         )}
@@ -752,11 +753,12 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff' },
+    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    unifiedTopCard: { backgroundColor: '#fff', paddingBottom: 16, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, zIndex: 10 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: 'transparent' },
     headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: 100 },
-    profileCard: { backgroundColor: '#fff', padding: 24, alignItems: 'center', paddingBottom: 28, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
+    profileCard: { backgroundColor: 'transparent', padding: 24, alignItems: 'center', paddingBottom: 12 },
     avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },
     userName: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
     userBio: { fontSize: 14, color: '#64748B', marginBottom: 8 },
