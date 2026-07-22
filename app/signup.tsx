@@ -221,7 +221,6 @@ export default function SignUpScreen() {
                             contentContainerStyle={[styles.formContainer, { paddingBottom: insets.bottom + vs(12) }]}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
-                            scrollEnabled={false}
                         >
                             {/* İsim */}
                             <View style={styles.inputGroup}>

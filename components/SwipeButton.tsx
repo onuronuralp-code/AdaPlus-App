@@ -4,7 +4,7 @@ import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { API_BASE_URL } from '../services/config';
+import { API_BASE_URL, fetchWithTimeout } from '../services/config';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface SwipeButtonProps {
@@ -56,7 +56,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   }, []);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/v1/users/count`)
+    fetchWithTimeout(`${API_BASE_URL}/api/v1/users/count`)
       .then(res => res.json())
       .then(data => { if (data && typeof data.count === 'number') setUserCount(data.count); })
       .catch(() => {});

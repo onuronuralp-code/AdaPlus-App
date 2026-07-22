@@ -160,7 +160,7 @@ export default function IlanlarScreen() {
       setIsAdModalVisible(false);
       setAdTitle(''); setAdPrice(''); setAdDesc(''); setAdContact(user?.email || ''); setAdSeller(user?.fullName || user?.email || ''); setSelectedImages([]);
       setAdSubCat('sell');
-      setAdIsland('Büyükada');
+      setAdIsland(islands[0]);
       setEditingListingId(null);
     });
   };

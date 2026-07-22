@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { View } from 'react-native';
 import { authApi, UserProfile } from '../services/authApi';
 import { setToken, loadAuthData, setUserStorage } from '../utils/tokenStorage';
 import { registerForPushNotifications, unregisterPushNotifications } from '../services/notificationService';
@@ -87,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const isLoggedIn = !!user;
 
-    if (!isInitialized) return null;
+    if (!isInitialized) return <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />;
 
     return (
         <AuthContext.Provider value={{ 

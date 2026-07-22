@@ -778,7 +778,7 @@ export default function MainMenuScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                           <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
-                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>{slide.island || 'Büyükada'}</Text>
+                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>{slide.island || ''}</Text>
                         </View>
                         {slide.type === 'event' && slide.date && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>

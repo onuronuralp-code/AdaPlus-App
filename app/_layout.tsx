@@ -83,16 +83,28 @@ const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
 
 
 const CustomTooltip = () => {
-  const { currentStep, goToNext, goToPrev, stop, isFirstStep, isLastStep } = useCopilot();
-  
+  const { currentStep, goToNext, stop, isLastStep } = useCopilot();
+
   return (
     <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 24 }}>
-      <Text style={{ 
+      <Text style={{
         color: '#FFFFFF', fontSize: 24, fontFamily: Platform.select({ ios: 'Noteworthy', android: 'cursive' }), textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4, marginBottom: 32 }}>
         {currentStep?.text}
       </Text>
-
-
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <TouchableOpacity
+          onPress={() => stop()}
+          style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}
+        >
+          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Atla</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => isLastStep ? stop() : goToNext()}
+          style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#FFFFFF' }}
+        >
+          <Text style={{ color: '#0F172A', fontSize: 16, fontWeight: '700' }}>{isLastStep ? 'Bitir' : 'İleri'}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

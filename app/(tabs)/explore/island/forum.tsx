@@ -279,7 +279,9 @@ export default function ForumScreen() {
     const getTagColor = (userType?: UserType) => {
         switch (userType) {
             case UserType.ADMIN: return '#EF4444';
-            default: return '#F59E0B'; // Altın (Gold) renk: Adalı
+            case UserType.ISLAND_RESIDENT:
+            case UserType.RESIDENT: return '#F59E0B';
+            default: return '#64748B';
         }
     };
 
@@ -646,7 +648,11 @@ export default function ForumScreen() {
     const renderPost = ({ item }: { item: PostDto }) => {
         const tagColor = getTagColor(item.authorUserType);
         const authorName = item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' });
-        const roleName = item.authorUserType === UserType.ADMIN ? 'Admin' : t('forum.role.islander', { defaultValue: 'Adalı' });
+        const roleName = item.authorUserType === UserType.ADMIN
+            ? 'Admin'
+            : (item.authorUserType === UserType.ISLAND_RESIDENT || item.authorUserType === UserType.RESIDENT)
+                ? t('forum.role.islander', { defaultValue: 'Adalı' })
+                : t('forum.role.visitor', { defaultValue: 'Ziyaretçi' });
 
         const renderRightActions = () => {
             if (item.authorId !== user?.id) return null;
