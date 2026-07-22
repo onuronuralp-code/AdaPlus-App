@@ -1149,7 +1149,8 @@ export default function ForumScreen() {
             >
                 <KeyboardAvoidingView
                     style={[styles.modalContainer, { paddingTop: insets.top }]}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+                    contentContainerStyle={{ flex: 1 }}
                 >
                     <View style={styles.modalHeader}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
