@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     lineHeight: ms(20),
   },
   scrollContent: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: s(20),
     paddingTop: vs(24),
     paddingBottom: vs(24),
