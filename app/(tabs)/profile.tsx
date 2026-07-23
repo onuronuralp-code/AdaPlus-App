@@ -245,14 +245,16 @@ export default function ProfileScreen() {
     };
 
     const renderEmpty = (icon: string, title: string, subtitle: string, color?: string) => (
-        <EmptyState 
-            icon={icon} 
-            title={title} 
-            subtitle={subtitle}
-            color={color}
-            compact={true}
-            style={{ marginTop: 0 }}
-        />
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+            <EmptyState 
+                icon={icon} 
+                title={title} 
+                subtitle={subtitle}
+                color={color}
+                compact={true}
+                style={{ marginTop: 0 }}
+            />
+        </View>
     );
 
     const renderPostActions = (post: any, isReply: boolean) => (progress: any, dragX: any) => {
@@ -275,7 +277,7 @@ export default function ProfileScreen() {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
         if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
         return (
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {posts.map(post => (
                     <Swipeable key={post.id} renderRightActions={renderPostActions(post, false)} overshootRight={false}>
                     <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
@@ -315,7 +317,7 @@ export default function ProfileScreen() {
         if (loadingReplies) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B5CF6" /></View>;
         if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', t('profile.emptyRepliesTitle', { defaultValue: 'Yanıt Yok' }), t('profile.emptyRepliesDesc', { defaultValue: 'Paylaşımlara yorum yaparak etkileşime geç!' }), '#8B5CF6');
         return (
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {replies.map(reply => (
                     <Swipeable key={reply.id} renderRightActions={renderPostActions(reply, true)} overshootRight={false}>
                     <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
@@ -368,7 +370,7 @@ export default function ProfileScreen() {
         if (loadingNotifications) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F43F5E" /></View>;
         if (notifications.length === 0) return renderEmpty('bell.fill', t('profile.emptyNotificationsTitle', { defaultValue: 'Bildirim Yok' }), t('profile.emptyNotificationsDesc', { defaultValue: 'Etkinlik onayları ve gönderi yanıtları burada görünecek.' }), '#EF4444');
         return (
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {notifications.map(notif => {
                     const { name, color, bg } = getNotifIcon(notif.type);
                     return (
@@ -425,7 +427,7 @@ export default function ProfileScreen() {
         if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F59E0B" /></View>;
         if (listings.length === 0) return renderEmpty('tag.fill', t('profile.emptyListingsTitle', { defaultValue: 'İlan Yok' }), t('profile.emptyListingsDesc', { defaultValue: 'İlanınızı oluşturmak için İlanlar sayfasını ziyaret edin.' }), '#F59E0B');
         return (
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {listings.map(listing => (
                     <Swipeable key={listing.id} renderRightActions={renderListingActions(listing)} overshootRight={false}>
                     <TouchableOpacity 
@@ -485,7 +487,7 @@ export default function ProfileScreen() {
         if (loadingActivities) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#3B82F6" /></View>;
         if (activities.length === 0) return renderEmpty('calendar', t('profile.emptyActivitiesTitle', { defaultValue: 'Etkinlik Yok' }), t('profile.emptyActivitiesDesc', { defaultValue: 'Oluşturduğunuz etkinlikler burada görünecek.' }), '#3B82F6');
         return (
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {activities.map(activity => {
                     return (
                         <Swipeable key={activity.id} renderRightActions={renderEventActions(activity)} overshootRight={false}>
@@ -523,7 +525,7 @@ export default function ProfileScreen() {
         if (loadingLikes) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#EC4899" /></View>;
         if (likedPosts.length === 0) return renderEmpty('heart.fill', t('profile.emptyLikesTitle', { defaultValue: 'Beğeni Yok' }), t('profile.emptyLikesDesc', { defaultValue: 'Beğendiğiniz paylaşımlar burada görünecek.' }), '#EC4899');
         return (
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {likedPosts.map(post => (
                     <View 
                         key={post.id} 
@@ -722,7 +724,9 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Tab Content */}
-                {renderContent()}
+                <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+                    {renderContent()}
+                </View>
                 </View>
             )}
 
