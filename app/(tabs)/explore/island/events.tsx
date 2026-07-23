@@ -452,6 +452,12 @@ export default function EventsScreen() {
                                         style={[styles.eventImage, isGridView && { height: 140 }]}
                                     />
                                 )}
+                                {isGridView && (
+                                    <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(15, 23, 42, 0.75)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center', zIndex: 10 }}>
+                                        <IconSymbol name="person.2.fill" size={11} color="#FFFFFF" />
+                                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
+                                    </View>
+                                )}
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
                                     <View style={[styles.titleRow, isGridView && { marginBottom: 4 }]}>
                                         <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={1}>{event.name}</Text>
