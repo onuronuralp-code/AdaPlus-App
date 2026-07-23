@@ -529,7 +529,7 @@ export default function MainMenuScreen() {
         alignItems: 'flex-start', 
         paddingTop: insets.top + (isIphone11 ? 16 : 12), 
         paddingHorizontal: 20 
-      }, isSmallScreen && { marginBottom: 12 }, isLargeScreen && { marginBottom: 20 }]}>
+      }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
           <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 8 }]}>
             {isLoggedIn && user
@@ -540,7 +540,7 @@ export default function MainMenuScreen() {
             <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => router.push('/(tabs)/profile')}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#F1F5F9' }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#F1F5F9' }}
             >
               <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
               <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
@@ -1426,7 +1426,7 @@ const styles = StyleSheet.create({
     marginTop: 0, // Adjusted because we added welcomeContainer
   },
   welcomeContainer: {
-    marginBottom: 28,
+    marginBottom: 16,
     paddingHorizontal: 4,
     marginTop: 4,
   },
