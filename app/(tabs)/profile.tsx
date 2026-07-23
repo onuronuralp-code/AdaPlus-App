@@ -621,13 +621,12 @@ export default function ProfileScreen() {
                             </Text>
                         </View>
 
-                        {/* Sadece Adalı ve Adminlerde Görünen Davet Sayısı Barı (ÖNİZLEME İÇİN HERKESE AÇIK) */}
                         {true && (
-                            <View style={{ marginTop: 20, width: '100%' }}>
+                            <View style={{ marginTop: 20, width: '100%', backgroundColor: '#F8FAFC', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                         <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
-                                        <Text style={{ fontSize: 13, color: '#475569', marginLeft: 6, fontWeight: '600' }}>
+                                        <Text style={{ fontSize: 13, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
                                             Invited Islanders
                                         </Text>
                                     </View>
@@ -643,14 +642,14 @@ export default function ProfileScreen() {
                                         borderRadius: 5 
                                     }} />
                                 </View>
-                                <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 8, textAlign: 'right' }}>
+                                <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 8, textAlign: 'right', fontWeight: '600' }}>
                                     Hedef: 5
                                 </Text>
                                 {/* MOCK CELEBRATION TRIGGER BUTTON */}
                                 <TouchableOpacity 
                                     onPress={() => setShowCelebration(true)}
-                                    style={{ marginTop: 10, alignSelf: 'flex-end', backgroundColor: '#FEF3C7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
-                                    <Text style={{ fontSize: 12, color: '#D97706', fontWeight: 'bold' }}>Kutlamayı Test Et 🚀</Text>
+                                    style={{ marginTop: 12, width: '100%', alignItems: 'center', backgroundColor: '#FEF3C7', paddingVertical: 10, borderRadius: 12 }}>
+                                    <Text style={{ fontSize: 13, color: '#D97706', fontWeight: 'bold' }}>Kutlamayı Test Et 🚀</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
