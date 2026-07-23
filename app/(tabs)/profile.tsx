@@ -687,7 +687,6 @@ export default function ProfileScreen() {
                             )}
                         </View>
                     </View>
-                    </View>
 
                 {fetchError && (
                     <TouchableOpacity
