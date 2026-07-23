@@ -675,13 +675,15 @@ export default function ProfileScreen() {
                                         }} />
                                     </View>
                                     <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
-                                        Hedef: 5
+                                        {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
                                     </Text>
                                     {/* MOCK CELEBRATION TRIGGER BUTTON */}
                                     <TouchableOpacity 
                                         onPress={() => setShowCelebration(true)}
                                         style={{ marginTop: 6, width: '100%', alignItems: 'center', backgroundColor: '#FEF3C7', paddingVertical: 6, borderRadius: 8 }}>
-                                        <Text style={{ fontSize: 12, color: '#D97706', fontWeight: 'bold' }}>Kutlamayı Test Et 🚀</Text>
+                                        <Text style={{ fontSize: 12, color: '#D97706', fontWeight: 'bold' }}>
+                                            {i18n.language.startsWith('en') ? 'Test Celebration 🚀' : 'Kutlamayı Test Et 🚀'}
+                                        </Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
