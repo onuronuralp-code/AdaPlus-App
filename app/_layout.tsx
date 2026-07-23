@@ -84,6 +84,8 @@ const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
 
 const CustomTooltip = () => {
   const { currentStep, goToNext, stop, isLastStep } = useCopilot();
+  const { i18n } = useTranslation();
+  const isEn = i18n.language?.startsWith('en');
 
   return (
     <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 24 }}>
@@ -96,13 +98,17 @@ const CustomTooltip = () => {
           onPress={() => stop()}
           style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Atla</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
+            {isEn ? 'Skip' : 'Atla'}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => isLastStep ? stop() : goToNext()}
           style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#FFFFFF' }}
         >
-          <Text style={{ color: '#0F172A', fontSize: 16, fontWeight: '700' }}>{isLastStep ? 'Bitir' : 'İleri'}</Text>
+          <Text style={{ color: '#0F172A', fontSize: 16, fontWeight: '700' }}>
+            {isLastStep ? (isEn ? 'Finish' : 'Bitir') : (isEn ? 'Next' : 'İleri')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

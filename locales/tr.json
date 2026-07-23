@@ -388,6 +388,16 @@
         "eventOptions": "Etkinlik Seçenekleri",
         "eventOptionsDesc": "Büyükada'da bugün gerçekleşen tüm etkinlikler.",
         "popularListings": "Popüler İlanlar",
-        "popularListingsDesc": "Adalılar tarafından paylaşılan güncel ilanlar."
+        "popularListingsDesc": "Adalılar tarafından paylaşılan güncel ilanlar.",
+        "tour": {
+            "duyurular": "Tüm güncel ada duyurularını ve bildirimlerini buradan görebilirsin.",
+            "davet": "Buradan ada sakinlerini davet edebilirsin.",
+            "banner": "Adadaki en önemli duyurular, yaklaşan etkinlikler ve öne çıkan ilanlar burada toplanır.",
+            "events": "Adadaki tüm etkinlikleri buradan takip edebilirsin.",
+            "adaAi": "Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.",
+            "ilanlar": "Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.",
+            "paket": "Çok yakında paket servis hizmetimiz de burada olacak.",
+            "topluluk": "Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır."
+        }
     }
 }

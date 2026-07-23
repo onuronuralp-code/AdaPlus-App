@@ -388,6 +388,16 @@
         "eventOptions": "Event Options",
         "eventOptionsDesc": "All events happening today in Büyükada.",
         "popularListings": "Popular Listings",
-        "popularListingsDesc": "Latest listings shared by islanders."
+        "popularListingsDesc": "Recent classifieds posted by islanders.",
+        "tour": {
+            "duyurular": "You can view all current island announcements and notifications here.",
+            "davet": "You can invite island residents from here.",
+            "banner": "Important announcements, upcoming events, and featured listings are gathered here.",
+            "events": "You can follow all island events from here.",
+            "adaAi": "You can ask any question to the island AI guide.",
+            "ilanlar": "You can browse real estate, items, or job listings here.",
+            "paket": "Our delivery service will be available here very soon.",
+            "topluluk": "Scroll here to chat with islanders and join discussions."
+        }
     }
 }
