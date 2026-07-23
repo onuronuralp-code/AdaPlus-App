@@ -603,14 +603,14 @@ export default function ProfileScreen() {
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
                     {/* Unified Top Card */}
                     <View style={styles.unifiedTopCard}>
-                        <View style={[styles.header, { paddingTop: insets.top + 10, paddingBottom: 0 }]}>
+                        <View style={[styles.header, { paddingTop: insets.top + 6, paddingBottom: 0 }]}>
                             <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                                 <TouchableOpacity 
                                     onPress={() => router.push('/settings')}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 >
-                                    <IconSymbol name="gearshape.fill" size={24} color="#64748B" />
+                                    <IconSymbol name="gearshape.fill" size={22} color="#64748B" />
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {
@@ -625,7 +625,7 @@ export default function ProfileScreen() {
                                     }}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 >
-                                    <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color="#EF4444" />
+                                    <IconSymbol name="rectangle.portrait.and.arrow.right" size={22} color="#EF4444" />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -636,57 +636,56 @@ export default function ProfileScreen() {
                                 <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
                             </View>
                             <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
-                        {user?.email && (
-                            <Text style={{ fontSize: 14, color: '#64748B', marginTop: 2, marginBottom: 12 }}>{user.email}</Text>
-                        )}
-                        <View style={[styles.roleBadge, 
-                            user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF9C3', borderWidth: 1.5, borderColor: '#F59E0B', paddingVertical: 6, paddingHorizontal: 16, borderRadius: 12 } : 
-                            user?.userType === 'ADMIN' ? { backgroundColor: '#BFDBFE' } : 
-                            { backgroundColor: '#E2E8F0' }
-                        ]}>
-                            <Text style={[styles.roleText, 
-                                user?.userType === 'ISLAND_RESIDENT' ? { color: '#B45309', fontWeight: '800', letterSpacing: 0.5 } : 
-                                user?.userType === 'ADMIN' ? { color: '#1E40AF' } : 
-                                { color: '#475569' }
+                            {user?.email && (
+                                <Text style={{ fontSize: 13, color: '#64748B', marginTop: 1, marginBottom: 6 }}>{user.email}</Text>
+                            )}
+                            <View style={[styles.roleBadge, 
+                                user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF9C3', borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 3, paddingHorizontal: 12, borderRadius: 8 } : 
+                                user?.userType === 'ADMIN' ? { backgroundColor: '#BFDBFE' } : 
+                                { backgroundColor: '#E2E8F0' }
                             ]}>
-                                {user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}
-                            </Text>
-                        </View>
+                                <Text style={[styles.roleText, 
+                                    user?.userType === 'ISLAND_RESIDENT' ? { color: '#B45309', fontWeight: '800', letterSpacing: 0.5 } : 
+                                    user?.userType === 'ADMIN' ? { color: '#1E40AF' } : 
+                                    { color: '#475569' }
+                                ]}>
+                                    {user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}
+                                </Text>
+                            </View>
 
-                        {true && (
-                            <View style={{ marginTop: 20, width: '100%', backgroundColor: '#F8FAFC', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <IconSymbol name="person.2.fill" size={16} color="#6366F1" />
-                                        <Text style={{ fontSize: 13, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
-                                            {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
+                            {true && (
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: '#F8FAFC', padding: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#F1F5F9' }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
+                                            <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
+                                                {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
+                                            </Text>
+                                        </View>
+                                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#6366F1' }}>
+                                            {(user as any)?.invitedUsersCount || 0}
                                         </Text>
                                     </View>
-                                    <Text style={{ fontSize: 15, fontWeight: '800', color: '#6366F1' }}>
-                                        {(user as any)?.invitedUsersCount || 0}
+                                    <View style={{ width: '100%', height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, overflow: 'hidden' }}>
+                                        <View style={{ 
+                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
+                                            height: '100%', 
+                                            backgroundColor: '#6366F1', 
+                                            borderRadius: 3 
+                                        }} />
+                                    </View>
+                                    <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
+                                        Hedef: 5
                                     </Text>
+                                    {/* MOCK CELEBRATION TRIGGER BUTTON */}
+                                    <TouchableOpacity 
+                                        onPress={() => setShowCelebration(true)}
+                                        style={{ marginTop: 6, width: '100%', alignItems: 'center', backgroundColor: '#FEF3C7', paddingVertical: 6, borderRadius: 8 }}>
+                                        <Text style={{ fontSize: 12, color: '#D97706', fontWeight: 'bold' }}>Kutlamayı Test Et 🚀</Text>
+                                    </TouchableOpacity>
                                 </View>
-                                <View style={{ width: '100%', height: 10, backgroundColor: '#E0E7FF', borderRadius: 5, overflow: 'hidden' }}>
-                                    <View style={{ 
-                                        width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
-                                        height: '100%', 
-                                        backgroundColor: '#6366F1', 
-                                        borderRadius: 5 
-                                    }} />
-                                </View>
-                                <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 8, textAlign: 'right', fontWeight: '600' }}>
-                                    Hedef: 5
-                                </Text>
-                                {/* MOCK CELEBRATION TRIGGER BUTTON */}
-                                <TouchableOpacity 
-                                    onPress={() => setShowCelebration(true)}
-                                    style={{ marginTop: 12, width: '100%', alignItems: 'center', backgroundColor: '#FEF3C7', paddingVertical: 10, borderRadius: 12 }}>
-                                    <Text style={{ fontSize: 13, color: '#D97706', fontWeight: 'bold' }}>Kutlamayı Test Et 🚀</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-
-
+                            )}
+                        </View>
                     </View>
                     </View>
 
@@ -788,23 +787,23 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' },
-    unifiedTopCard: { backgroundColor: '#fff', paddingBottom: 16, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, zIndex: 10 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: 'transparent' },
-    headerTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
+    unifiedTopCard: { backgroundColor: '#fff', paddingBottom: 8, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2, zIndex: 10 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 4, backgroundColor: 'transparent' },
+    headerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: 100 },
-    profileCard: { backgroundColor: 'transparent', padding: 24, alignItems: 'center', paddingBottom: 12 },
-    avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#F1F5F9', marginBottom: 14 },
-    userName: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
-    userBio: { fontSize: 14, color: '#64748B', marginBottom: 8 },
-    avatarPlaceholder: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center', marginBottom: 14, borderWidth: 3, borderColor: '#F1F5F9' },
-    avatarText: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
-    roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
-    roleText: { fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
-    loginButton: { marginTop: 24, backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-    loginButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+    profileCard: { backgroundColor: 'transparent', paddingHorizontal: 20, paddingTop: 4, paddingBottom: 8, alignItems: 'center' },
+    avatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: '#F1F5F9', marginBottom: 8 },
+    userName: { fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 2 },
+    userBio: { fontSize: 13, color: '#64748B', marginBottom: 6 },
+    avatarPlaceholder: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center', marginBottom: 8, borderWidth: 2, borderColor: '#F1F5F9' },
+    avatarText: { fontSize: 26, fontWeight: 'bold', color: '#fff' },
+    roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 6 },
+    roleText: { fontSize: 10, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
+    loginButton: { marginTop: 16, backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
+    loginButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
     // Tab Bar
-    tabBar: { paddingVertical: 16 },
+    tabBar: { paddingVertical: 8 },
     tabScroll: { paddingHorizontal: 20, gap: 8, paddingVertical: 6 },
     tabItem: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
     tabLabel: { fontSize: 13, fontWeight: '700', color: '#475569' },
