@@ -540,10 +540,10 @@ export default function MainMenuScreen() {
             <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => router.push('/(tabs)/profile')}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#F1F5F9' }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#E0E7FF' }}
             >
               <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
-              <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
+              <Text style={{ fontSize: 12, color: '#4338CA', marginLeft: 6, fontWeight: '700' }}>
                 {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
               </Text>
               <View style={{ width: 60, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
