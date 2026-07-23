@@ -383,10 +383,10 @@ export default function SignUpScreen() {
                                 </TouchableOpacity>
                             </View>
                             <DateTimePicker
-                                value={birthDate || new Date()}
+                                value={birthDate || new Date(2008, 0, 1)}
                                 mode="date"
                                 display="spinner"
-                                maximumDate={new Date()}
+                                maximumDate={new Date(2011, 11, 31)}
                                 onChange={(event, date) => {
                                     if (date) setBirthDate(date);
                                 }}
@@ -397,10 +397,10 @@ export default function SignUpScreen() {
             ) : (
                 showDatePicker && (
                     <DateTimePicker
-                        value={birthDate || new Date()}
+                        value={birthDate || new Date(2008, 0, 1)}
                         mode="date"
                         display="default"
-                        maximumDate={new Date()}
+                        maximumDate={new Date(2011, 11, 31)}
                         onChange={(event, date) => {
                             setShowDatePicker(false);
                             if (date) setBirthDate(date);
