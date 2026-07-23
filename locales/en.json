@@ -388,7 +388,8 @@
         "eventOptions": "Event Options",
         "eventOptionsDesc": "All events happening today in Büyükada.",
         "popularListings": "Popular Listings",
-        "popularListingsDesc": "Recent classifieds posted by islanders.",
+        "popularListingsDesc": "Current listings shared by islanders.",
+        "readyToExplore": "Ready to explore the islands?",
         "tour": {
             "duyurular": "You can view all current island announcements and notifications here.",
             "davet": "You can invite island residents from here.",

@@ -561,7 +561,7 @@ export default function MainMenuScreen() {
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]} numberOfLines={1} adjustsFontSizeToFit>
-                {t('explore.readyToExplore', { defaultValue: 'Adaları keşfetmeye hazır mısın?' })}
+                {t('explore.readyToExplore', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
               </Text>
             </View>
           )}
