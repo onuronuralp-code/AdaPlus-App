@@ -216,6 +216,7 @@ export function FerrySchedule() {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const calendarScrollRef = useRef<ScrollView>(null);
+  const mainScrollRef = useRef<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // Load initial route (from params or favorites)
@@ -550,18 +551,9 @@ export function FerrySchedule() {
             >
               <IconSymbol name="calendar" size={20} color="#EA580C" />
               <Text style={styles.scheduleTypeText}>
-                {selectedDate.toDateString() === new Date().toDateString() &&
-                isLiveMode
-                  ? i18n.language === "tr"
-                    ? "Bugün"
-                    : "Today"
-                  : selectedDate.getDay() === 0
-                    ? i18n.language === "tr"
-                      ? "Pazar / Tatil"
-                      : "Sun / Holiday"
-                    : i18n.language === "tr"
-                      ? "Haftaiçi / Cmt"
-                      : "Weekday / Sat"}
+                {selectedDate.toDateString() === new Date().toDateString() && isLiveMode
+                  ? (i18n.language === "tr" ? "Bugün" : "Today")
+                  : selectedDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short', weekday: 'short' })}
               </Text>
             </TouchableOpacity>
           </View>
@@ -588,6 +580,7 @@ export function FerrySchedule() {
       {/* Body */}
       <View style={styles.bodyWrapper}>
         <AnimatedRE.ScrollView
+          ref={mainScrollRef}
           contentContainerStyle={styles.scrollBody}
           showsVerticalScrollIndicator={false}
           bounces={true}
@@ -665,7 +658,9 @@ export function FerrySchedule() {
                 onPress={() => {
                   const nextDay = new Date(selectedDate);
                   nextDay.setDate(selectedDate.getDate() + 1);
+                  setIsLiveMode(false);
                   setSelectedDate(nextDay);
+                  mainScrollRef.current?.scrollTo({ y: 0, animated: true });
                 }}
               >
                 <Text style={{ fontSize: 15, fontWeight: '700', color: '#3B82F6' }}>
