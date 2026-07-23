@@ -1595,25 +1595,46 @@ export default function ForumScreen() {
                         <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color="#64748B" />
                         </TouchableOpacity>
-                        <Text style={styles.modalTitle}>{t('common.communityRules', { defaultValue: 'Topluluk Kuralları' })}</Text>
+                        <Text style={styles.modalTitle}>{t('common.communityRules', { defaultValue: i18n.language.startsWith('en') ? 'Community Guidelines' : 'Topluluk Kuralları' })}</Text>
                         <View style={{ width: 40 }} />
                     </View>
                     <ScrollView style={{ flex: 1, padding: 20 }}>
                         <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 12, marginBottom: 40, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
-                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır.</Text>
-                            
-                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam ve Reklam</Text>
-                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>İlgisiz, tekrarlayan mesajlar atmak veya ticari amaçlı izinsiz reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
-                            
-                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Mahremiyet ve Kişisel Veriler</Text>
-                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kendinizin veya başkalarının kişisel iletişim bilgilerini (telefon numarası, açık adres vb.) açık alanda paylaşmayın.</Text>
-                            
-                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Konu Dışı Paylaşımlar</Text>
-                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Lütfen adalarla veya topluluğu ilgilendiren konularla alakalı paylaşımlar yapmaya özen gösterin.</Text>
-                            
-                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderasyon</Text>
-                            <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kurallara uymayan mesajlar moderatörler tarafından silinebilir ve kural ihlali yapan kullanıcıların topluluğa erişimi kısıtlanabilir.</Text>
+                            {i18n.language.startsWith('en') ? (
+                                <>
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Respect & Courtesy</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Always be respectful and polite to community members. Insults, profanity, hate speech, or discriminatory language are strictly prohibited.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam & Advertising</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Posting irrelevant, repetitive messages or unauthorized commercial advertising is prohibited. Please only share relevant topics.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Privacy & Personal Data</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Do not share your own or others' personal contact information (phone number, full address, etc.) in public areas.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Off-topic Posts</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Please make sure your posts are relevant to the islands or matters concerning the community.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderation</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Messages violating the rules may be removed by moderators, and users violating rules may have their community access restricted.</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam ve Reklam</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>İlgisiz, tekrarlayan mesajlar atmak veya ticari amaçlı izinsiz reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Mahremiyet ve Kişisel Veriler</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kendinizin veya başkalarının kişisel iletişim bilgilerini (telefon numarası, açık adres vb.) açık alanda paylaşmayın.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Konu Dışı Paylaşımlar</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Lütfen adalarla veya topluluğu ilgilendiren konularla alakalı paylaşımlar yapmaya özen gösterin.</Text>
+                                    
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderasyon</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kurallara uymayan mesajlar moderatörler tarafından silinebilir ve kural ihlali yapan kullanıcıların topluluğa erişimi kısıtlanabilir.</Text>
+                                </>
+                            )}
                         </View>
                     </ScrollView>
                 </View>
