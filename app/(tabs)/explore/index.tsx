@@ -395,6 +395,7 @@ export default function MainMenuScreen() {
             type: 'event',
             title: event.name,
             subtitle: event.description || event.organizerName || '',
+            island: event.island || event.eventPlace || 'Büyükada',
             date: new Date(event.startDate).getTime(),
             createdAt: event.createdAt ? new Date(event.createdAt).getTime() : new Date(event.startDate).getTime(),
             imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
@@ -406,6 +407,8 @@ export default function MainMenuScreen() {
             type: 'listing',
             title: listing.title,
             subtitle: listing.description || '',
+            island: listing.island || listing.location || 'Büyükada',
+            price: listing.price || 0,
             // If createdAt isn't available, we use now as fallback
             date: listing.createdAt ? new Date(listing.createdAt).getTime() : now.getTime(),
             createdAt: listing.createdAt ? new Date(listing.createdAt).getTime() : now.getTime(),
@@ -782,7 +785,9 @@ export default function MainMenuScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                           <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
-                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>{slide.island || ''}</Text>
+                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>
+                            {slide.island || slide.location || slide.eventPlace || 'Büyükada'}
+                          </Text>
                         </View>
                         {slide.type === 'event' && slide.date && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
