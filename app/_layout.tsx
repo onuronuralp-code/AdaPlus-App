@@ -14,6 +14,7 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { fetchAppVersion, requiresUpdate } from "@/services/appVersionApi";
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
+import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
 
 // Show push notifications as alerts even when the app is in the foreground.

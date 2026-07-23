@@ -351,7 +351,7 @@ export default function ProfileScreen() {
                     </View>
                     </Swipeable>
                 ))}
-            </ScrollView>
+            </View>
         );
     };
 
