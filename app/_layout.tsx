@@ -95,14 +95,6 @@ const CustomTooltip = () => {
         {currentStep?.text}
       </Text>
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        <TouchableOpacity
-          onPress={() => stop()}
-          style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}
-        >
-          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
-            {isEn ? 'Skip' : 'Atla'}
-          </Text>
-        </TouchableOpacity>
         {!isFirstStep && (
           <TouchableOpacity
             onPress={() => goToPrev()}
