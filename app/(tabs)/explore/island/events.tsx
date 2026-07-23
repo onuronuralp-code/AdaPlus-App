@@ -439,7 +439,7 @@ export default function EventsScreen() {
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
                                 {hasUserImage ? (
-                                    <View style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: '#F1F5F9' }}>
+                                    <View style={{ width: '100%', height: isGridView ? 190 : 340, backgroundColor: '#F1F5F9' }}>
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
@@ -449,7 +449,7 @@ export default function EventsScreen() {
                                 ) : (
                                     <Image
                                         source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                        style={[styles.eventImage, isGridView && { height: 140 }]}
+                                        style={[styles.eventImage, isGridView && { height: 190 }]}
                                     />
                                 )}
                                 {isGridView && (

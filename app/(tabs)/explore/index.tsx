@@ -499,7 +499,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isLargeScreen ? 300 : 260;
+  const heroHeight = isLargeScreen ? 340 : 310;
 
   const heroScrollRef = useRef<ScrollView>(null);
 
