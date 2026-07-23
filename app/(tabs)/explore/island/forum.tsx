@@ -443,19 +443,24 @@ export default function ForumScreen() {
         if (!content || content.length < MIN_POST_LENGTH) return;
 
         setIsUploading(true);
-        let imageUrl = undefined;
-        if (selectedImages.length > 0) {
-            const uploadedUrls = [];
-            for (const uri of selectedImages) {
-                const uploaded = await mediaApi.uploadImage(uri);
-                if (uploaded) uploadedUrls.push(uploaded);
-            }
-            if (uploadedUrls.length > 0) {
+        try {
+            let imageUrl: string | undefined = undefined;
+            if (selectedImages.length > 0) {
+                const uploadedUrls: string[] = [];
+                for (const uri of selectedImages) {
+                    const uploaded = await mediaApi.uploadImage(uri);
+                    if (uploaded) uploadedUrls.push(uploaded);
+                }
+                if (uploadedUrls.length < selectedImages.length) {
+                    Alert.alert(
+                        t('common.error', { defaultValue: 'Hata' }),
+                        t('forum.photoUploadFailed', { defaultValue: 'Fotoğraf yüklenemedi. Lütfen tekrar deneyin.' }),
+                    );
+                    return;
+                }
                 imageUrl = uploadedUrls.join(',');
             }
-        }
 
-        try {
             if (editingPostId) {
                 const request: forumApi.UpdatePostRequest = {
                     content,
