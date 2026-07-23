@@ -600,7 +600,7 @@ export default function ProfileScreen() {
                     </View>
                 </View>
             ) : (
-                <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+                <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
                     {/* Unified Top Card */}
                     <View style={styles.unifiedTopCard}>
                         <View style={[styles.header, { paddingTop: insets.top + 6, paddingBottom: 0 }]}>
@@ -654,7 +654,7 @@ export default function ProfileScreen() {
                             </View>
 
                             {true && (
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: '#F8FAFC', padding: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#F1F5F9' }}>
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
@@ -787,8 +787,8 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
-    unifiedTopCard: { backgroundColor: '#fff', paddingBottom: 8, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2, zIndex: 10 },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
+    unifiedTopCard: { backgroundColor: '#FFFFFF', paddingBottom: 8, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2, zIndex: 10 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 4, backgroundColor: 'transparent' },
     headerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: 100 },
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
     loginButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
     // Tab Bar
-    tabBar: { paddingVertical: 8 },
+    tabBar: { paddingVertical: 8, backgroundColor: '#FFFFFF' },
     tabScroll: { paddingHorizontal: 20, gap: 8, paddingVertical: 6 },
     tabItem: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
     tabLabel: { fontSize: 13, fontWeight: '700', color: '#475569' },
