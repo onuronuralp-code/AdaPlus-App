@@ -537,12 +537,16 @@ export default function MainMenuScreen() {
               : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! 🌸`}
           </Text>
           {isLoggedIn ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              onPress={() => router.push('/(tabs)/profile')}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#F1F5F9' }}
+            >
               <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
-              <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '600' }}>
+              <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
                 Invited Islanders
               </Text>
-              <View style={{ width: 80, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
+              <View style={{ width: 60, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 
                     width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
                     height: '100%', 
@@ -553,7 +557,7 @@ export default function MainMenuScreen() {
               <Text style={{ fontSize: 11, color: '#6366F1', fontWeight: '800' }}>
                 {(user as any)?.invitedUsersCount || 0}/5
               </Text>
-            </View>
+            </TouchableOpacity>
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }]} numberOfLines={1} adjustsFontSizeToFit>

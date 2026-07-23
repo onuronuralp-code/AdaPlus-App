@@ -110,6 +110,7 @@ export default function ForumScreen() {
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
     const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
+    const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
 
     // Ad Fields
     const [adTitle, setAdTitle] = useState('');
@@ -144,14 +145,19 @@ export default function ForumScreen() {
         setReplies(data);
     };
 
-    const handleInviteFriends = async () => {
+    const performInviteShare = async () => {
         try {
             await Share.share({
                 message: t('forum.inviteMessage', { defaultValue: 'AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası: https://adaplus.app' }),
             });
+            setIsInviteModalVisible(false);
         } catch (error) {
             console.error(error);
         }
+    };
+
+    const handleInviteFriends = () => {
+        setIsInviteModalVisible(true);
     };
 
     const handlePollVote = async (postId: string, optionId: string) => {
@@ -1499,6 +1505,30 @@ export default function ForumScreen() {
                 }}
                 message={t('auth.loginToPost', { defaultValue: 'Paylaşım yapmak için giriş yapmalısınız.' })}
             />
+
+            {isInviteModalVisible && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 9999, elevation: 9999 }]}>
+                    <View style={{ width: '85%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }}>
+                        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
+                            <IconSymbol name="person.2.fill" size={32} color="#3B82F6" />
+                        </View>
+                        <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }}>
+                            Arkadaşlarını Davet Et
+                        </Text>
+                        <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+                            AdaPlus topluluğunu arkadaşlarınla paylaşarak büyümesine katkıda bulun. Davet ettiğin kişiler Adalı statüsü kazanır!
+                        </Text>
+                        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                            <TouchableOpacity onPress={() => setIsInviteModalVisible(false)} style={{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }}>
+                                <Text style={{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>İptal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={performInviteShare} style={{ flex: 1, backgroundColor: '#3B82F6', paddingVertical: 14, borderRadius: 16 }}>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Şimdi Paylaş</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
 
             {/* Rules Modal */}
             <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
