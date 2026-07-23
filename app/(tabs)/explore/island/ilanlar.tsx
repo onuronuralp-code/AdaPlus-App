@@ -720,7 +720,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
       }}
     >
       {hasUserImage && (
-        <View style={{ width: '100%', height: isGridView ? 220 : 340, backgroundColor: '#F1F5F9' }}>
+        <View style={{ width: '100%', height: isGridView ? 180 : 300, backgroundColor: '#F1F5F9' }}>
           <Image 
              source={{ uri: resolvedUrl }} 
              style={{ width: '100%', height: '100%' }} 

@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: isIphone16 ? SCREEN_WIDTH * 0.85 : SCREEN_WIDTH * 0.65,
+        height: SCREEN_WIDTH * 0.9,
         backgroundColor: '#F1F5F9',
     },
     content: {

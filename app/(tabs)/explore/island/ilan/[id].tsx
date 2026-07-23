@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     width: SCREEN_WIDTH,
-    height: isIphone16 ? SCREEN_WIDTH * 0.85 : SCREEN_WIDTH * 0.65,
+    height: SCREEN_WIDTH * 0.9,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8FAFC',
