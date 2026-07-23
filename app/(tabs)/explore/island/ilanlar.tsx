@@ -64,7 +64,7 @@ const getIslandEnum = (name: string): Island =>
 
 
 export default function IlanlarScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
@@ -394,7 +394,7 @@ export default function IlanlarScreen() {
           >
             <IconSymbol name="chevron.left" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{t('common.classifieds', { defaultValue: 'İlanlar' })}</Text>
+          <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
         </View>
         <TouchableOpacity
           style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
