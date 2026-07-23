@@ -16,7 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useAuth } from '@/context/AuthContext';
-import { API_BASE_URL, fetchWithTimeout } from '@/services/config';
+import { API_BASE_URL, fetchWithTimeout, resolveImageUrl } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
@@ -429,16 +429,32 @@ export default function ProfileScreen() {
                 {listings.map(listing => (
                     <Swipeable key={listing.id} renderRightActions={renderListingActions(listing)} overshootRight={false}>
                     <TouchableOpacity 
-                        style={[styles.listingCard, { backgroundColor: '#fff' }]}
+                        style={[styles.listingCard, { backgroundColor: '#fff', alignItems: 'flex-start' }]}
                         activeOpacity={0.7}
                         onPress={() => router.push(`/(tabs)/explore/island/ilan/${listing.id}`)}
                     >
+                        {listing.imageUrl ? (
+                            <Image 
+                                source={{ uri: resolveImageUrl(listing.imageUrl) }} 
+                                style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9' }} 
+                                resizeMode="cover" 
+                            />
+                        ) : (
+                            <View style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                                <IconSymbol name="photo" size={24} color="#94A3B8" />
+                            </View>
+                        )}
                         <View style={styles.listingInfo}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }]} numberOfLines={1}>{listing.title}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
+                                <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }]} numberOfLines={2}>{listing.title}</Text>
+                                {listing.price > 0 && (
+                                    <View style={[styles.priceTag, { marginLeft: 8 }]}>
+                                        <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+                                    </View>
+                                )}
                             </View>
                             <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
-                            <Text style={styles.listingTime}>{timeAgo(listing.createdAt)}</Text>
+                            <Text style={[styles.listingTime, { marginTop: 4 }]}>{timeAgo(listing.createdAt)}</Text>
                         </View>
                     </TouchableOpacity>
                     </Swipeable>
@@ -473,12 +489,26 @@ export default function ProfileScreen() {
                 {activities.map(activity => {
                     return (
                         <Swipeable key={activity.id} renderRightActions={renderEventActions(activity)} overshootRight={false}>
-                        <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <View style={{ flex: 1, marginRight: 8 }}>
-                                    <Text style={[styles.listingTitle, { marginBottom: 4 }]} numberOfLines={1}>{activity.name}</Text>
-                                    {activity.eventPlace ? <Text style={styles.listingDesc} numberOfLines={1}>{activity.eventPlace}</Text> : null}
-                                    <Text style={[styles.postTime, { marginTop: 2 }]}>{timeAgo(activity.startDate)}</Text>
+                        <View style={[styles.postCard, { backgroundColor: '#fff', flexDirection: 'row', alignItems: 'flex-start' }]}>
+                            {activity.imageUrl ? (
+                                <Image 
+                                    source={{ uri: resolveImageUrl(activity.imageUrl) }} 
+                                    style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9' }} 
+                                    resizeMode="cover" 
+                                />
+                            ) : (
+                                <View style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                                    <IconSymbol name="calendar" size={24} color="#94A3B8" />
+                                </View>
+                            )}
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.listingTitle, { marginBottom: 4 }]} numberOfLines={2}>{activity.name}</Text>
+                                {activity.eventPlace ? <Text style={[styles.listingDesc, { marginBottom: 4 }]} numberOfLines={1}>{activity.eventPlace}</Text> : null}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                    <IconSymbol name="calendar" size={12} color="#3B82F6" />
+                                    <Text style={[styles.listingTime, { color: '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>
+                                        {formatDistanceToNow(new Date(activity.startDate), { locale: i18n.language.startsWith('tr') ? tr : enUS, addSuffix: true })}
+                                    </Text>
                                 </View>
                             </View>
                         </View>
