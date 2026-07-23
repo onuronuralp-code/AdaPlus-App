@@ -88,7 +88,6 @@ const MAPPING = {
   'bubble.left.and.bubble.right': 'chat',
   'mappin.circle.fill': 'location-on',
   'safari.fill': 'explore',
-  'megaphone.fill': 'campaign',
   'checkmark.circle.fill': 'check-circle',
   'apple.logo': 'apple',
   'arrow.clockwise': 'refresh',
