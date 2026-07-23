@@ -621,7 +621,7 @@ export default function MainMenuScreen() {
                   setLoadingNotifications(false);
                 }}
               >
-                <IconSymbol name="bell.fill" size={22} color="#64748B" />
+                <IconSymbol name="megaphone.fill" size={22} color="#64748B" />
                 {notifications.filter(n => !n.read).length > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, zIndex: 10, borderWidth: 2, borderColor: '#F1F5F9' }}>
                     <Text style={{ color: 'white', fontSize: 11, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>

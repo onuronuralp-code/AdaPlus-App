@@ -52,6 +52,8 @@ const MAPPING = {
   'mountain.2.fill': 'landscape', // For Monastery on the hill
   'ferry.fill': 'directions-boat', // For the Pier
   'bell.fill': 'notifications', // For Notifications
+  'megaphone.fill': 'campaign', // For Megaphone / Announcements
+  'megaphone': 'campaign',
   'doc.text.fill': 'menu-book', // For Restaurant Menus
   'info.circle.fill': 'info', // For Information and Details
   
