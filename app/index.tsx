@@ -22,6 +22,7 @@ import {
 } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
+import { useAuth } from "../context/AuthContext";
 
 const NAVY = "#1E3A5F";
 const SEA = "#2F84C8";
@@ -31,6 +32,7 @@ export default function SplashScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
+  const { isLoggedIn } = useAuth();
 
   const [fontsLoaded] = useFonts({
     Poppins_500Medium,
@@ -42,6 +44,13 @@ export default function SplashScreen() {
 
   useEffect(() => {
     if (!fontsLoaded) return;
+    
+    if (isLoggedIn) {
+      ExpoSplashScreen.hideAsync();
+      router.replace("/(tabs)/explore");
+      return;
+    }
+
     ExpoSplashScreen.hideAsync().then(() => {
       Animated.sequence([
         Animated.delay(1200),
@@ -60,7 +69,7 @@ export default function SplashScreen() {
         ])
       ]).start();
     });
-  }, [fontsLoaded]);
+  }, [fontsLoaded, isLoggedIn]);
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 
