@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH * 0.9,
+        height: SCREEN_WIDTH * 0.78,
         backgroundColor: '#F1F5F9',
     },
     content: {
