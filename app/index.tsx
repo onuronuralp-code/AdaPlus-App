@@ -84,13 +84,15 @@ export default function SplashScreen() {
           accessibilityLabel="AdaPlus"
         />
 
-        <Animated.View style={{ marginTop: 40, alignItems: 'center', opacity: contentOpacity }}>
-          <Text style={{ fontSize: 28, fontFamily: "Poppins_800ExtraBold", color: NAVY, marginBottom: 8 }}>
+        <Animated.View style={{ marginTop: 30, alignItems: 'center', opacity: contentOpacity, width: '100%' }}>
+          <Text style={{ fontSize: 28, fontFamily: "Poppins_800ExtraBold", color: NAVY, marginBottom: 6 }}>
             {i18n.language.startsWith('en') ? 'Welcome!' : 'Hoş Geldin!'}
           </Text>
-          <Text style={{ fontSize: 16, fontFamily: "Poppins_500Medium", color: '#64748B', textAlign: 'center', marginBottom: 40, paddingHorizontal: 32 }}>
-            {i18n.language.startsWith('en') ? 'Please select your preferred language to continue.' : 'Devam etmek için lütfen dil seçimi yapın.'}
-          </Text>
+          <View style={{ height: 48, justifyContent: 'center', marginBottom: 32, paddingHorizontal: 16 }}>
+            <Text style={{ fontSize: 15, fontFamily: "Poppins_500Medium", color: '#64748B', textAlign: 'center', lineHeight: 22 }}>
+              {i18n.language.startsWith('en') ? 'Please select your preferred language to continue.' : 'Devam etmek için lütfen dil seçimi yapın.'}
+            </Text>
+          </View>
 
           {/* Language Toggle */}
           <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 6, marginBottom: 48 }}>
