@@ -26,7 +26,7 @@ import { resolveImageUrl } from '@/services/config';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 
-const ENABLE_PHOTO_UPLOAD = false; // Feature flag for photo upload in community posts
+const ENABLE_PHOTO_UPLOAD = true; // Feature flag for photo upload in community posts
 
 export default function ForumScreen() {
     const { t } = useTranslation();
