@@ -779,7 +779,7 @@ export default function ForumScreen() {
                         )}
                         {item.imageUrl && (
                             <View style={styles.bubbleImageWrapper}>
-                                <Image source={{ uri: resolveImageUrl(item.imageUrl) }} style={styles.postImage} />
+                                <Image source={{ uri: resolveImageUrl(item.imageUrl.split(',')[0].trim()) }} style={styles.postImage} resizeMode="cover" />
                             </View>
                         )}
                     </View>
@@ -1759,6 +1759,9 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginTop: vs(8),
         marginBottom: vs(4),
+        height: vs(180),
+        width: '100%',
+        backgroundColor: '#F1F5F9',
     },
     postAuthorInfo: {
         flexDirection: 'row',
