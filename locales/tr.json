@@ -257,6 +257,7 @@
         "notLoggedInTitle": "Giriş Yapılmadı",
         "notLoggedInDesc": "Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.",
         "inviteFriend": "Arkadaşını Davet Et",
+        "invitedIslanders": "Davet Edilen Adalılar",
         "inviteDesc": "Davet etmek istediğiniz kişinin e-posta adresini girin.",
         "inviteEmailPlaceholder": "E-posta adresi",
         "inviteEmailError": "Geçerli bir e-posta adresi girin.",

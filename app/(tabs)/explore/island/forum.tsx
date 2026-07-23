@@ -111,6 +111,7 @@ export default function ForumScreen() {
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
     const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
     const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+    const [inviteContactInput, setInviteContactInput] = useState('');
 
     // Ad Fields
     const [adTitle, setAdTitle] = useState('');
@@ -147,9 +148,20 @@ export default function ForumScreen() {
 
     const performInviteShare = async () => {
         try {
-            await Share.share({
-                message: t('forum.inviteMessage', { defaultValue: 'AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası: https://adaplus.app' }),
-            });
+            const contact = inviteContactInput.trim();
+            if (contact) {
+                Alert.alert(
+                    t('common.success', { defaultValue: 'Başarılı' }),
+                    i18n.language.startsWith('tr') 
+                        ? `${contact} adresine/numarasına davetiye gönderildi!` 
+                        : `Invitation sent to ${contact}!`
+                );
+            } else {
+                await Share.share({
+                    message: t('forum.inviteMessage', { defaultValue: 'AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası: https://adaplus.app' }),
+                });
+            }
+            setInviteContactInput('');
             setIsInviteModalVisible(false);
         } catch (error) {
             console.error(error);
@@ -1506,29 +1518,70 @@ export default function ForumScreen() {
                 message={t('auth.loginToPost', { defaultValue: 'Paylaşım yapmak için giriş yapmalısınız.' })}
             />
 
-            {isInviteModalVisible && (
-                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 9999, elevation: 9999 }]}>
-                    <View style={{ width: '85%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }}>
+            <Modal
+                visible={isInviteModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsInviteModalVisible(false)}
+            >
+                <KeyboardAvoidingView
+                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <TouchableOpacity 
+                        activeOpacity={1} 
+                        style={StyleSheet.absoluteFillObject} 
+                        onPress={() => setIsInviteModalVisible(false)} 
+                    />
+                    <View style={{ width: '100%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', zIndex: 10, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
                         <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
                             <IconSymbol name="person.2.fill" size={32} color="#3B82F6" />
                         </View>
-                        <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }}>
+                        <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }}>
                             Arkadaşlarını Davet Et
                         </Text>
-                        <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+                        <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }}>
                             AdaPlus topluluğunu arkadaşlarınla paylaşarak büyümesine katkıda bulun. Davet ettiğin kişiler Adalı statüsü kazanır!
                         </Text>
+
+                        <TextInput
+                            style={{
+                                width: '100%',
+                                backgroundColor: '#F8FAFC',
+                                borderWidth: 1,
+                                borderColor: '#E2E8F0',
+                                borderRadius: 14,
+                                paddingHorizontal: 16,
+                                paddingVertical: 12,
+                                fontSize: 14,
+                                color: '#1E293B',
+                                marginBottom: 20
+                            }}
+                            placeholder={i18n.language.startsWith('tr') ? 'E-posta veya telefon numarası' : 'Email or phone number'}
+                            placeholderTextColor="#94A3B8"
+                            value={inviteContactInput}
+                            onChangeText={setInviteContactInput}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                            <TouchableOpacity onPress={() => setIsInviteModalVisible(false)} style={{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }}>
-                                <Text style={{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>İptal</Text>
+                            <TouchableOpacity 
+                                onPress={() => { setInviteContactInput(''); setIsInviteModalVisible(false); }} 
+                                style={{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }}
+                            >
+                                <Text style={{ color: '#475569', fontSize: 15, fontWeight: '700', textAlign: 'center' }}>İptal</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={performInviteShare} style={{ flex: 1, backgroundColor: '#3B82F6', paddingVertical: 14, borderRadius: 16 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Şimdi Paylaş</Text>
+                            <TouchableOpacity 
+                                onPress={performInviteShare} 
+                                style={{ flex: 1, backgroundColor: '#3B82F6', paddingVertical: 14, borderRadius: 16 }}
+                            >
+                                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', textAlign: 'center' }}>Davet Et</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
-            )}
+                </KeyboardAvoidingView>
+            </Modal>
 
             {/* Rules Modal */}
             <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>

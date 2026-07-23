@@ -544,7 +544,7 @@ export default function MainMenuScreen() {
             >
               <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
               <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
-                Invited Islanders
+                {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
               </Text>
               <View style={{ width: 60, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 

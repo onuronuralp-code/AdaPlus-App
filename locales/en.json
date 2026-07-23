@@ -257,6 +257,7 @@
         "notLoggedInTitle": "Not Logged In",
         "notLoggedInDesc": "You must log in to view your profile and manage your posts.",
         "inviteFriend": "Invite a Friend",
+        "invitedIslanders": "Invited Islanders",
         "inviteDesc": "Enter the email address of the person you'd like to invite.",
         "inviteEmailPlaceholder": "Email address",
         "inviteEmailError": "Please enter a valid email address.",
