@@ -1960,7 +1960,8 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     detailPostContainer: {
-        paddingVertical: vs(16),
+        paddingTop: vs(16),
+        paddingBottom: vs(8),
         paddingHorizontal: s(20),
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
@@ -1994,10 +1995,11 @@ const styles = StyleSheet.create({
     detailFooter: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: vs(16),
+        paddingTop: vs(12),
     },
     commentsSection: {
-        paddingVertical: vs(16),
+        paddingTop: vs(8),
+        paddingBottom: vs(16),
         paddingHorizontal: s(20),
         backgroundColor: '#FFFFFF',
     },
