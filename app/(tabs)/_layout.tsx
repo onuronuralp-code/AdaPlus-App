@@ -101,7 +101,7 @@ export default function TabLayout() {
           title: t('common.tabSchedule', { defaultValue: 'Seferler' }),
           tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIcon: ({ color, focused }) => (
-            <CopilotStep text={t('explore.tour.tarifeler', { defaultValue: 'Tüm vapur ve motor sefer saatlerini buradan öğrenebilirsin.' })} order={9} name="tarifeler">
+            <CopilotStep text={t('explore.tour.tarifeler', { defaultValue: i18n.language.startsWith('en') ? 'You can check all ferry and boat schedules here.' : 'Tüm vapur ve motor sefer saatlerini buradan öğrenebilirsin.' })} order={9} name="tarifeler">
               <WalkthroughableView style={{ paddingHorizontal: 10, marginHorizontal: -10, paddingTop: 2, marginTop: -2, paddingBottom: 18, marginBottom: -18 }}>
                 <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="ferry.fill" color={color} />
               </WalkthroughableView>
