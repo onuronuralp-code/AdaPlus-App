@@ -101,25 +101,26 @@ export default function SettingsScreen() {
     };
 
     const handleDeleteAccount = () => {
+        const isEn = i18n.language.startsWith('en');
         Alert.alert(
-            t('profile.deleteAccountTitle', { defaultValue: 'Hesabını Sil' }),
-            t('profile.deleteAccountConfirm', { defaultValue: 'Hesabınızı silmek istediğinize emin misiniz? Tüm verileriniz kalıcı olarak silinecektir.' }),
+            t('profile.deleteAccountTitle', { defaultValue: isEn ? 'Delete Account' : 'Hesabını Sil' }),
+            t('profile.deleteAccountConfirm', { defaultValue: isEn ? 'Are you sure you want to delete your account? All your data will be permanently deleted.' : 'Hesabınızı silmek istediğinize emin misiniz? Tüm verileriniz kalıcı olarak silinecektir.' }),
             [
-                { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
+                { text: t('common.cancel', { defaultValue: isEn ? 'Cancel' : 'İptal' }), style: 'cancel' },
                 { 
-                    text: t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' }), 
+                    text: t('profile.deleteAccount', { defaultValue: isEn ? 'Delete Account' : 'Hesabı Sil' }), 
                     style: 'destructive', 
                     onPress: async () => {
                         try {
                             const success = await authApi.deleteAccount();
                             if (!success) {
-                                Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.deleteFailed', { defaultValue: 'Silme işlemi başarısız.' }));
+                                Alert.alert(t('common.error', { defaultValue: isEn ? 'Error' : 'Hata' }), t('common.deleteFailed', { defaultValue: isEn ? 'Deletion failed.' : 'Silme işlemi başarısız.' }));
                                 return;
                             }
                             await logout();
                             router.replace('/');
                         } catch (e) {
-                            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('common.deleteFailed', { defaultValue: 'Silme işlemi başarısız.' }));
+                            Alert.alert(t('common.error', { defaultValue: isEn ? 'Error' : 'Hata' }), t('common.deleteFailed', { defaultValue: isEn ? 'Deletion failed.' : 'Silme işlemi başarısız.' }));
                         }
                     }
                 }
@@ -134,14 +135,14 @@ export default function SettingsScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <IconSymbol name="chevron.left" size={24} color="#0F172A" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('common.settings', { defaultValue: 'Ayarlar' })}</Text>
+                <Text style={styles.headerTitle}>{t('common.settings', { defaultValue: i18n.language.startsWith('en') ? 'Settings' : 'Ayarlar' })}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <View style={styles.content}>
                 {/* Language Selection Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('common.chooseLanguage', { defaultValue: 'Dil Seçimi' })}</Text>
+                    <Text style={styles.sectionTitle}>{t('common.chooseLanguage', { defaultValue: i18n.language.startsWith('en') ? 'Language Selection' : 'Dil Seçimi' })}</Text>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
                             style={[
@@ -172,7 +173,7 @@ export default function SettingsScreen() {
 
                 {/* Default Island Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('common.defaultIsland', { defaultValue: 'Varsayılan Ada' })}</Text>
+                    <Text style={styles.sectionTitle}>{t('common.defaultIsland', { defaultValue: i18n.language.startsWith('en') ? 'Default Island' : 'Varsayılan Ada' })}</Text>
                     <View style={[styles.buttonRow, { flexWrap: 'wrap' }]}>
                         {ISLANDS.map(island => (
                             <TouchableOpacity 
@@ -196,7 +197,7 @@ export default function SettingsScreen() {
                 {/* Notifications Section */}
                 <View style={styles.section}>
                     <View style={styles.row}>
-                        <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: 'Bildirimler' })}</Text>
+                        <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: i18n.language.startsWith('en') ? 'Notifications' : 'Bildirimler' })}</Text>
                         <Switch
                             value={notificationsEnabled}
                             onValueChange={handleNotificationsToggle}
@@ -231,7 +232,7 @@ export default function SettingsScreen() {
                                             activeOpacity={0.8}
                                         >
                                             <Text style={selectedStreet ? styles.pickerValueText : styles.pickerPlaceholderText}>
-                                                {selectedStreet || 'Cadde / Sokak Seç'}
+                                                {selectedStreet || (i18n.language.startsWith('en') ? 'Select Street' : 'Cadde / Sokak Seç')}
                                             </Text>
                                             <IconSymbol name={showStreetPicker ? 'chevron.up' : 'chevron.down'} size={16} color="#94A3B8" />
                                         </TouchableOpacity>
@@ -254,7 +255,7 @@ export default function SettingsScreen() {
                                         {selectedStreet ? (
                                             <TextInput
                                                 style={[styles.input, { marginTop: 8, marginBottom: 0 }]}
-                                                placeholder="Bina No / Daire"
+                                                placeholder={i18n.language.startsWith('en') ? 'Building No / Flat' : 'Bina No / Daire'}
                                                 placeholderTextColor="#94A3B8"
                                                 value={buildingNo}
                                                 onChangeText={setBuildingNo}
@@ -263,15 +264,15 @@ export default function SettingsScreen() {
                                         ) : null}
                                     </View>
                                 ) : (
-                                    <TextInput style={styles.input} placeholder="Adres" placeholderTextColor="#94A3B8" value={buildingNo} onChangeText={setBuildingNo} multiline />
+                                    <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor="#94A3B8" value={buildingNo} onChangeText={setBuildingNo} multiline />
                                 )}
 
                                 {/* Yeni Şifre */}
-                                <TextInput style={styles.input} placeholder="Yeni Şifre" placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
+                                <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? 'New Password' : 'Yeni Şifre'} placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
 
                                 <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={async () => {
                                     if (!editName.trim()) {
-                                        Alert.alert('Hata', 'Ad Soyad zorunludur.');
+                                        Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Full Name is required.' : 'Ad Soyad zorunludur.');
                                         return;
                                     }
                                     const address = selectedStreet
@@ -281,7 +282,7 @@ export default function SettingsScreen() {
                                     try {
                                         const updated = await authApi.updateProfile(editName.trim(), address);
                                         if (!updated) {
-                                            Alert.alert('Hata', 'Kaydedilemedi.');
+                                            Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to save.' : 'Kaydedilemedi.');
                                             return;
                                         }
                                         await updateProfile(updated as any);
@@ -290,7 +291,7 @@ export default function SettingsScreen() {
                                         setIsSaving(false);
                                     }
                                 }}>
-                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : 'Kaydet'}</Text>
+                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : (i18n.language.startsWith('en') ? 'Save' : 'Kaydet')}</Text>
                                 </TouchableOpacity>
                             </View>
                         ) : (
@@ -300,11 +301,11 @@ export default function SettingsScreen() {
                                     setIsEditingAccount(!isEditingAccount);
                                 }} activeOpacity={0.8}>
                                     <IconSymbol name="pencil" size={18} color="#475569" />
-                                    <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: 'Hesabı Düzenle' })}</Text>
+                                    <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: i18n.language.startsWith('en') ? 'Edit Account' : 'Hesabı Düzenle' })}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} activeOpacity={0.8}>
                                     <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
-                                    <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: 'Hesabı Sil' })}</Text>
+                                    <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: i18n.language.startsWith('en') ? 'Delete Account' : 'Hesabı Sil' })}</Text>
                                 </TouchableOpacity>
                             </>
                         )}

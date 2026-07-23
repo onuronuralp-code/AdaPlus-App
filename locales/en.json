@@ -78,7 +78,9 @@
         "save": "SAVE",
         "settings": "Settings",
         "language": "Language",
-        "deleteAccount": "Delete Account"
+        "deleteAccount": "Delete Account",
+        "chooseLanguage": "Language Selection",
+        "defaultIsland": "Default Island"
     },
     "islands": {
         "kinaliada": {
@@ -255,6 +257,11 @@
         "logoutTitle": "Log Out",
         "logoutConfirm": "Are you sure you want to log out?",
         "logoutBtn": "Log Out",
+        "notifications": "Notifications",
+        "editAccount": "Edit Account",
+        "deleteAccount": "Delete Account",
+        "deleteAccountTitle": "Delete Account",
+        "deleteAccountConfirm": "Are you sure you want to delete your account? All your data will be permanently deleted.",
         "notLoggedInTitle": "Not Logged In",
         "notLoggedInDesc": "You must log in to view your profile and manage your posts.",
         "inviteFriend": "Invite a Friend",

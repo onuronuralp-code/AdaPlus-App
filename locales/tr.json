@@ -78,7 +78,9 @@
         "save": "KAYDET",
         "settings": "Ayarlar",
         "language": "Dil (Language)",
-        "deleteAccount": "Hesabı Sil"
+        "deleteAccount": "Hesabı Sil",
+        "chooseLanguage": "Dil Seçimi",
+        "defaultIsland": "Varsayılan Ada"
     },
     "islands": {
         "kinaliada": {
@@ -255,6 +257,11 @@
         "logoutTitle": "Çıkış Yap",
         "logoutConfirm": "Hesabınızdan çıkmak istediğinizden emin misiniz?",
         "logoutBtn": "Çıkış Yap",
+        "notifications": "Bildirimler",
+        "editAccount": "Hesabı Düzenle",
+        "deleteAccount": "Hesabı Sil",
+        "deleteAccountTitle": "Hesabını Sil",
+        "deleteAccountConfirm": "Hesabınızı silmek istediğinize emin misiniz? Tüm verileriniz kalıcı olarak silinecektir.",
         "notLoggedInTitle": "Giriş Yapılmadı",
         "notLoggedInDesc": "Profilini görmek ve paylaşımlarını yönetmek için giriş yapmalısın.",
         "inviteFriend": "Arkadaşını Davet Et",
