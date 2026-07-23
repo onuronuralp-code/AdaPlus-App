@@ -120,16 +120,16 @@ export default function SplashScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View style={{ width: '100%', gap: 12 }}>
+          <View style={{ width: '100%', alignItems: 'center', gap: 12 }}>
             <TouchableOpacity 
               activeOpacity={0.8}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.push("/signup");
               }}
-              style={{ backgroundColor: SEA, paddingHorizontal: 48, paddingVertical: 16, borderRadius: 30, shadowColor: SEA, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 }}
+              style={{ backgroundColor: SEA, paddingHorizontal: 36, paddingVertical: 12, borderRadius: 24, minWidth: 180, shadowColor: SEA, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 }}
             >
-              <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800', textAlign: 'center' }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center' }}>
                 {i18n.language.startsWith('en') ? 'Sign Up' : 'Kayıt Ol'}
               </Text>
             </TouchableOpacity>
