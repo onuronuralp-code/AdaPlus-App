@@ -782,25 +782,25 @@ export default function MainMenuScreen() {
 
                     {/* Details Row */}
                     {slide.type !== 'banner' && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
-                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
+                          <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 18 : 15} color="#E2E8F0" />
+                          <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 14 : 13, marginLeft: 5, fontWeight: '500' }} numberOfLines={1}>
                             {slide.island || slide.location || slide.eventPlace || 'Büyükada'}
                           </Text>
                         </View>
                         {slide.type === 'event' && slide.date && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <IconSymbol name="calendar" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
-                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>
+                            <IconSymbol name="calendar" size={isLargeScreen ? 18 : 15} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 14 : 13, marginLeft: 5, fontWeight: '500' }}>
                               {new Date(slide.date).toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', {day: 'numeric', month: 'long'})}
                             </Text>
                           </View>
                         )}
                         {slide.type === 'listing' && slide.price > 0 && (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <IconSymbol name="tag.fill" size={isLargeScreen ? 18 : 16} color="#E2E8F0" />
-                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 15 : 14, marginLeft: 6, fontWeight: '500' }}>
+                            <IconSymbol name="tag.fill" size={isLargeScreen ? 18 : 15} color="#E2E8F0" />
+                            <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 14 : 13, marginLeft: 5, fontWeight: '500' }}>
                               {slide.price.toLocaleString('tr-TR')} ₺
                             </Text>
                           </View>
