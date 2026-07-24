@@ -535,7 +535,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isLargeScreen ? 300 : 260;
+  const heroHeight = isSmallScreen ? 200 : (isLargeScreen ? 250 : 225);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -561,7 +561,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 110, flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={true}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + 8 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -889,7 +889,7 @@ export default function MainMenuScreen() {
 
       
       {/* 5 Cards Container */}
-      <View style={{ backgroundColor: '#FFFFFF', marginHorizontal: 12, borderRadius: 24, paddingVertical: 16, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, marginTop: isIphone11 ? 16 : (isLargeScreen ? 12 : 8), marginBottom: 24 }}>
+      <View style={{ backgroundColor: '#FFFFFF', marginHorizontal: 12, borderRadius: 24, paddingVertical: 12, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, marginTop: isIphone11 ? 12 : (isLargeScreen ? 10 : 6), marginBottom: 8 }}>
         
         {/* Hızlı Erişim Section */}
         <View 
@@ -1000,7 +1000,7 @@ export default function MainMenuScreen() {
         </View>
 
         {/* 5. Topluluk Banner */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 4, marginBottom: 16, backgroundColor: 'transparent' }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 2, marginBottom: 4, backgroundColor: 'transparent' }}>
           <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
             <WalkthroughableView style={{ width: '100%' }}>
               <SwipeButton 
