@@ -958,7 +958,7 @@ const styles = StyleSheet.create({
   priceTag: {
     backgroundColor: '#10B981',
     paddingHorizontal: 10,
-    height: 28,
+    paddingVertical: 5,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -969,9 +969,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 16,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+    lineHeight: 17,
   },
   emptyState: {
     alignItems: 'center',
