@@ -1,23 +1,39 @@
-import React, { createContext, ReactNode, useContext, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
     theme: Theme;
+    setTheme: (theme: Theme) => void;
     toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-    const [theme, setTheme] = useState<Theme>('light');
+    const [theme, setThemeState] = useState<Theme>('light');
+
+    useEffect(() => {
+        AsyncStorage.getItem('appTheme').then((savedTheme) => {
+            if (savedTheme === 'dark' || savedTheme === 'light') {
+                setThemeState(savedTheme as Theme);
+            }
+        });
+    }, []);
+
+    const setTheme = (newTheme: Theme) => {
+        setThemeState(newTheme);
+        AsyncStorage.setItem('appTheme', newTheme);
+    };
 
     const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+        const nextTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(nextTheme);
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
             {children}
         </ThemeContext.Provider>
     );

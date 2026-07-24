@@ -6,6 +6,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { authApi, UserProfile } from '@/services/authApi';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/services/notificationService';
 
@@ -35,6 +36,7 @@ export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const { isLoggedIn, logout, user, updateProfile } = useAuth();
+    const { theme, setTheme } = useTheme();
     
     const [currentLang, setCurrentLang] = useState(i18n.language);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -174,6 +176,37 @@ export default function SettingsScreen() {
                                 styles.langButtonText,
                                 currentLang.startsWith('en') && styles.activeLangButtonText
                             ]}>English</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Theme Selection Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{currentLang.startsWith('en') ? 'App Theme' : 'Uygulama Teması'}</Text>
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity 
+                            style={[
+                                styles.langButton, 
+                                theme === 'light' && styles.activeLangButton
+                            ]} 
+                            onPress={() => setTheme('light')}
+                        >
+                            <Text style={[
+                                styles.langButtonText,
+                                theme === 'light' && styles.activeLangButtonText
+                            ]}>☀️ {currentLang.startsWith('en') ? 'Light' : 'Açık Tema'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[
+                                styles.langButton, 
+                                theme === 'dark' && styles.activeLangButton
+                            ]} 
+                            onPress={() => setTheme('dark')}
+                        >
+                            <Text style={[
+                                styles.langButtonText,
+                                theme === 'dark' && styles.activeLangButtonText
+                            ]}>🌙 {currentLang.startsWith('en') ? 'Dark (Black)' : 'Koyu (Siyah)'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
