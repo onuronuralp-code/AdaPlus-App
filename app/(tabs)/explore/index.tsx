@@ -54,6 +54,8 @@ const TodayOnIsland = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { height } = useWindowDimensions();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const isLargeScreen = height > 900;
   
   const { weather, loading: weatherLoading } = useWeather();
@@ -132,20 +134,20 @@ const TodayOnIsland = () => {
   return (
     <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
       {/* Weather Badge */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#F97316' : '#FED7AA' }}>
         <IconSymbol 
           name={weatherLoading ? 'sun.max.fill' : (weather?.condition === 'rainy' ? 'cloud.rain.fill' : (weather?.condition === 'cloudy' ? 'cloud.fill' : 'sun.max.fill'))} 
           size={isLargeScreen ? 18 : 14} 
           color={weatherLoading ? '#F97316' : (weather?.condition === 'rainy' ? '#3B82F6' : (weather?.condition === 'cloudy' ? '#94A3B8' : '#F97316'))} 
         />
-        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: '#C2410C', marginLeft: 6 }}>
+        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: isDark ? '#FB923C' : '#C2410C', marginLeft: 6 }}>
           {weatherLoading ? '...' : (weather ? `${weather.temperature}°` : '28°')}
         </Text>
       </View>
 
       {/* Ferry Badge */}
       <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1 }}
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1, borderWidth: 1, borderColor: isDark ? '#3B82F6' : '#BFDBFE' }}
         onPress={() => {
           if (nextFerry) {
             router.push({
@@ -158,8 +160,8 @@ const TodayOnIsland = () => {
         }}
         
       >
-        <IconSymbol name="ferry.fill" size={isLargeScreen ? 18 : 14} color="#3B82F6" />
-        <Text style={{ fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', color: '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
+        <IconSymbol name="ferry.fill" size={isLargeScreen ? 18 : 14} color={isDark ? '#60A5FA' : '#3B82F6'} />
+        <Text style={{ fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', color: isDark ? '#93C5FD' : '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
           {ferryLoading ? (i18n.language.startsWith('en') ? 'Loading...' : 'Yükleniyor...') : (nextFerry ? `${nextFerry.time} ${nextFerry.from}-${nextFerry.to}${nextFerry.provider ? ' (' + nextFerry.provider + ')' : ''}` : (i18n.language.startsWith('en') ? 'No schedule found' : 'Sefer Bulunamadı'))}
         </Text>
       </Pressable>
@@ -217,7 +219,7 @@ export default function MainMenuScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [selectedIsland, setSelectedIsland] = useState("Büyükada");
-  const isSmallScreen = height < 700;
+  const isSmallScreen = height < 820;
   const isLargeScreen = height > 900;
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
@@ -317,7 +319,10 @@ export default function MainMenuScreen() {
     if (!email) return;
 
     if (!EMAIL_REGEX.test(email)) {
-      setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
+      Alert.alert(
+        t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
+        i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
+      );
       return;
     }
 
@@ -340,7 +345,10 @@ export default function MainMenuScreen() {
           body: JSON.stringify({ email })
       });
       if (response.status === 409) {
-        setInviteEmailError(i18n.language.startsWith('en') ? 'An invite has already been sent to this address.' : 'Bu adrese zaten bir davet gönderildi.');
+        Alert.alert(
+          t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
+          i18n.language.startsWith('en') ? 'An invite has already been sent to this address.' : 'Bu adrese zaten bir davet gönderildi.'
+        );
         return;
       }
       if (!response.ok) {
@@ -538,7 +546,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = Math.min(Math.max(height * 0.31, 230), 340);
+  const heroHeight = isSmallScreen ? Math.min(height * 0.25, 210) : Math.min(Math.max(height * 0.31, 230), 340);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -559,12 +567,12 @@ export default function MainMenuScreen() {
 
   return (
     <SwipeNavigation rightRoute="/(tabs)/home" downRoute="/(tabs)/home">
-    <View style={[styles.container, isDark && { backgroundColor: '#090D16' }]}>
+    <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + 8 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + 36 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -582,13 +590,13 @@ export default function MainMenuScreen() {
             <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => router.push('/(tabs)/profile')}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#E0E7FF' }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: isDark ? '#2C2C2E' : '#E0E7FF' }}
             >
-              <IconSymbol name="person.2.fill" size={13} color="#6366F1" />
-              <Text style={{ fontSize: 12, color: '#4338CA', marginLeft: 6, fontWeight: '700' }}>
+              <IconSymbol name="person.2.fill" size={13} color={isDark ? '#818CF8' : '#6366F1'} />
+              <Text style={{ fontSize: 12, color: isDark ? '#93C5FD' : '#4338CA', marginLeft: 6, fontWeight: '700' }}>
                 {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
               </Text>
-              <View style={{ width: 60, height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
+              <View style={{ width: 60, height: 6, backgroundColor: isDark ? '#312E81' : '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 
                     width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
                     height: '100%', 
@@ -596,7 +604,7 @@ export default function MainMenuScreen() {
                     borderRadius: 3 
                 }} />
               </View>
-              <Text style={{ fontSize: 11, color: '#6366F1', fontWeight: '800' }}>
+              <Text style={{ fontSize: 11, color: isDark ? '#818CF8' : '#6366F1', fontWeight: '800' }}>
                 {(user as any)?.invitedUsersCount || 0}/5
               </Text>
             </TouchableOpacity>
@@ -689,8 +697,8 @@ export default function MainMenuScreen() {
           <WalkthroughableView style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E293B' : '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 1, borderColor: '#059669' }}>
-              <IconSymbol name="envelope.fill" size={20} color="#059669" />
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 1, borderColor: isDark ? '#047857' : '#059669' }}>
+              <IconSymbol name="envelope.fill" size={20} color={isDark ? '#34D399' : '#059669'} />
               <TextInput
                 ref={inviteInputRef}
                 style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
@@ -699,11 +707,14 @@ export default function MainMenuScreen() {
                   setIsInviteFocused(false);
                   const email = inviteEmail.trim();
                   if (email && !EMAIL_REGEX.test(email)) {
-                    setInviteEmailError(i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.');
+                    Alert.alert(
+                      t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
+                      i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
+                    );
                   }
                 }}
                 placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' }))}
-                placeholderTextColor="#059669"
+                placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
                 value={inviteEmail}
                 onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
                 onSubmitEditing={handleSendInvite}
@@ -744,7 +755,7 @@ export default function MainMenuScreen() {
 
       {/* Hero Header Slider Wrapper */}
       <CopilotStep text={t('explore.tour.banner', { defaultValue: i18n.language.startsWith('en') ? 'Important announcements, upcoming events, and featured listings are gathered here.' : 'Adadaki en önemli duyurular, yaklaşan etkinlikler ve öne çıkan ilanlar burada toplanır.' })} order={1} name="banner">
-        <WalkthroughableView style={[styles.heroWrapper, { height: heroHeight, marginBottom: 0 }]}>
+        <WalkthroughableView style={{ height: heroHeight, marginHorizontal: 12, borderRadius: 12 }}>
             <ScrollView 
           ref={heroScrollRef}
           horizontal 
@@ -752,6 +763,7 @@ export default function MainMenuScreen() {
           snapToInterval={width}
           decelerationRate="fast"
           bounces={true}
+          style={{ overflow: 'visible' }}
           onMomentumScrollEnd={(e) => {
             const scrollPosition = e.nativeEvent.contentOffset.x;
             const index = Math.round(scrollPosition / width);
@@ -762,7 +774,8 @@ export default function MainMenuScreen() {
             <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
               key={index} 
               style={{
-                marginHorizontal: 12,
+                width: width - 24,
+                marginRight: 24,
                 backgroundColor: '#fff',
                 borderRadius: 12
               }}
@@ -869,9 +882,7 @@ export default function MainMenuScreen() {
         </ScrollView>
 
         {/* Top bar (Fixed over the slider) */}
-        <View pointerEvents="box-none" style={[styles.topBar, { paddingTop: insets.top + 8 }]} />
-
-        {/* Pagination Dots */}
+            {/* Pagination Dots */}
         <View pointerEvents="none" style={{ position: 'absolute', bottom: 12, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 }}>
           {slidesToRender.map((_, index) => (
             <View
@@ -887,20 +898,16 @@ export default function MainMenuScreen() {
         </WalkthroughableView>
       </CopilotStep>
 
-
-
-
-      
       {/* 5 Cards Container */}
-      <View style={{ backgroundColor: isDark ? '#1E293B' : '#FFFFFF', marginHorizontal: 12, borderRadius: 24, paddingVertical: 12, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, marginTop: isIphone11 ? 12 : (isLargeScreen ? 10 : 6), marginBottom: 8 }}>
+      <View style={{ backgroundColor: isDark ? '#121212' : '#FFFFFF', marginHorizontal: 12, borderRadius: isLargeScreen ? 24 : 20, paddingVertical: isLargeScreen ? 12 : (isSmallScreen ? 6 : 8), elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, marginTop: isLargeScreen ? 16 : (isSmallScreen ? 8 : 12), marginBottom: isLargeScreen ? 12 : (isSmallScreen ? 6 : 8) }}>
         
         {/* Hızlı Erişim Section */}
         <View 
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, gap: 8 }}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: isLargeScreen ? 16 : 12, paddingBottom: isLargeScreen ? 8 : 4, gap: isLargeScreen ? 8 : 6 }}
         >
           {/* 1. Etkinlikler */}
           <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
-            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -910,43 +917,43 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#3B82F6', elevation: 8, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="calendar" size={32} color="#FFFFFF" />
+                <IconSymbol name="calendar" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
                 {unseenEventsCount > 0 && (
-                  <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
-                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
+                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
+                    <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 2 }}>{t('explore.events')}</Text>
-                <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 2. Ada AI */}
           <CopilotStep text={t('explore.tour.adaAi', { defaultValue: i18n.language.startsWith('en') ? 'You can ask any question to the island AI guide.' : 'Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.' })} order={3} name="ada_ai">
-            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => navigateWithDebounce('/guide')}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#EC4899', elevation: 8, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="pawprint.fill" size={32} color="#FFFFFF" />
+                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 2 }}>{t('explore.adaAi')}</Text>
-                <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 3. İlanlar */}
           <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'You can browse real estate, items, or job listings here.' : 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={4} name="ilanlar">
-            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -956,25 +963,25 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#F59E0B', elevation: 8, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="tag.fill" size={32} color="#FFFFFF" />
+                <IconSymbol name="tag.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
                 {unseenListingsCount > 0 && (
-                  <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#EF4444', minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 4 }}>
-                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
+                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
+                    <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 2 }}>{t('explore.listings')}</Text>
-                <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 4. Paket Servis */}
           <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={5} name="paket">
-            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
+            <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -988,15 +995,15 @@ export default function MainMenuScreen() {
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: 72, aspectRatio: 1, borderRadius: 18, backgroundColor: '#8B5CF6', elevation: 8, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="bag.fill" size={32} color="#FFFFFF" />
-                <View style={{ position: 'absolute', bottom: -6, backgroundColor: '#F3E8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE', zIndex: 10 }}>
-                  <Text style={{ fontSize: 9, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                <IconSymbol name="bag.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
+                <View style={{ position: 'absolute', bottom: -5, backgroundColor: '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: '#D8B4FE', zIndex: 10 }}>
+                  <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ alignItems: 'center', marginTop: 4 }}>
-                <Text style={{ fontSize: 13, lineHeight: 14, fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 2, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
+              <View style={{ alignItems: 'center', marginTop: 2 }}>
+                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 12 : 13), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1004,7 +1011,7 @@ export default function MainMenuScreen() {
       </View>
 
       {/* 5. Topluluk Banner (Positioned cleanly at bottom of screen above navbar) */}
-      <View style={{ paddingHorizontal: 16, marginTop: 'auto', marginBottom: 12, backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 16, marginTop: 'auto', paddingTop: isLargeScreen ? 6 : (isSmallScreen ? 2 : 4), marginBottom: isLargeScreen ? 44 : (isSmallScreen ? 18 : 28), backgroundColor: 'transparent' }}>
         <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
           <WalkthroughableView style={{ width: '100%' }}>
             <SwipeButton 

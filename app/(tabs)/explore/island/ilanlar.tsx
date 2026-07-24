@@ -22,6 +22,7 @@ import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Modal, KeyboardAvoidingView, ActivityIndicator, InputAccessoryView, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -68,6 +69,8 @@ export default function IlanlarScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const params = useLocalSearchParams();
   
   const [listings, setListings] = useState<ListingDto[]>([]);
@@ -384,24 +387,24 @@ export default function IlanlarScreen() {
 
   return (
     <SwipeNavigation leftRoute="/(tabs)/explore/island/events" rightRoute="/(tabs)/explore/island/forum">
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+    <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, isDark && { backgroundColor: '#000000' }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}
             onPress={() => router.back()}
             activeOpacity={0.8}
           >
-            <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+            <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
+          <Text style={[styles.headerTitle, { marginLeft: 10 }, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
         </View>
         <TouchableOpacity
-          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+          style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
           onPress={() => setIsGridView(!isGridView)}
           activeOpacity={0.7}
         >
-          <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color="#1E293B" />
+          <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
         </TouchableOpacity>
       </View>
 
@@ -415,7 +418,8 @@ export default function IlanlarScreen() {
                 key={key}
                 style={[
                   styles.tabItem,
-                  isActive && styles.activeTabItem
+                  isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
+                  isActive && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeTabItem)
                 ]}
                 onPress={() => setSelectedCategory(key)}
                 activeOpacity={0.7}
@@ -423,9 +427,9 @@ export default function IlanlarScreen() {
                 <IconSymbol 
                   name={cfg.icon as any} 
                   size={14} 
-                  color={isActive ? '#FFFFFF' : '#475569'} 
+                  color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')} 
                 />
-                <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
+                <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
                   {t(`ilanlar.category.${key}`)}
                 </Text>
               </TouchableOpacity>
@@ -462,9 +466,8 @@ export default function IlanlarScreen() {
         )}
       </ScrollView>
 
-      <TouchableOpacity
-        style={[styles.fab, { bottom: 20 }]}
-        activeOpacity={0.85}
+      <TouchableOpacity 
+        style={[styles.fab, { backgroundColor: '#000000', bottom: 20 }]} 
         onPress={() => {
             if (!isLoggedIn) {
                 setShowLoginPrompt(true);
@@ -474,15 +477,11 @@ export default function IlanlarScreen() {
                 setIsAdModalVisible(true);
             }
         }}
+        activeOpacity={0.85}
       >
-        <LinearGradient
-          colors={['#ffffff', '#ffffff']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fabGradient}
-        >
+        <View style={[styles.fabGradient, { backgroundColor: '#000000', borderWidth: 1, borderColor: '#2C2C2E' }]}>
           <IconSymbol name="plus" size={32} color="#3B82F6" />
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
 
       <Modal
@@ -496,44 +495,44 @@ export default function IlanlarScreen() {
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
           <TouchableOpacity style={{ flex: 1 }} onPress={handleCloseModal} activeOpacity={1} />
           <Animated.View 
-            style={[styles.modalContainer, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
+            style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
           >
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
             <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
               <TouchableOpacity onPress={handleCloseModal} style={styles.modalHeaderButton}>
-                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+                <Text style={[styles.cancelText, isDark && { color: '#94A3B8' }]}>{t('common.cancel')}</Text>
               </TouchableOpacity>
             </View>
             <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={styles.modalTitle} numberOfLines={1}>{editingListingId ? t('common.editListing') : t('ilanlar.newAd')}</Text>
+              <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>{editingListingId ? t('common.editListing') : t('ilanlar.newAd')}</Text>
             </View>
             <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
               <TouchableOpacity 
-                style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
+                style={[styles.publishButton, isPublishDisabled && (isDark ? { backgroundColor: '#27272A' } : styles.publishButtonDisabled)]} 
                 onPress={handlePublish}
                 disabled={isPublishDisabled}
               >
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={[styles.publishText, isPublishDisabled && { color: '#94A3B8' }]} numberOfLines={1}>{editingListingId ? t('common.save') : t('common.publish')}</Text>
+                  <Text style={[styles.publishText, isPublishDisabled && { color: isDark ? '#52525B' : '#94A3B8' }]} numberOfLines={1}>{editingListingId ? t('common.save') : t('common.publish')}</Text>
                 )}
               </TouchableOpacity>
             </View>
           </View>
 
-          <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
+          <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.islandSelection')}</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.islandSelection')}</Text>
               <View style={{ flexDirection: 'row', gap: 4 }}>
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
-                    style={[styles.adCatItem, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && styles.activeAdCat]}
+                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeAdCat)]}
                     onPress={() => setAdIsland(island)}
                   >
                     <Text 
-                      style={[styles.adCatText, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}
+                      style={[styles.adCatText, isDark && { color: '#CBD5E1' }, { fontSize: 12 }, adIsland === island && (isDark ? { color: '#93C5FD' } : styles.activeAdCatText)]}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                     >
@@ -545,22 +544,22 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>SATICI ADI *</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>SATICI ADI *</Text>
               <TextInput
-                style={styles.adTitleInput}
+                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder="Adınız Soyadınız"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 value={adSeller}
                 onChangeText={setAdSeller}
               />
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.adTitle')}</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.adTitle')}</Text>
               <TextInput
-                style={styles.adTitleInput}
+                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder={t('ilanlar.titlePlaceholder')}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 value={adTitle}
                 onChangeText={setAdTitle}
                 ref={titleInputRef}
@@ -568,20 +567,20 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('forum.category')}</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.category')}</Text>
               <View style={styles.adCategoryRow}>
                 {adCategories.map(cat => (
                   <TouchableOpacity 
                     key={cat.id} 
-                    style={[styles.adCatItem, adCat === cat.id && styles.activeAdCat]}
+                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, adCat === cat.id && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeAdCat)]}
                     onPress={() => setAdCat(cat.id as IlanCategory)}
                   >
                     <MaterialCommunityIcons 
                       name={cat.icon as any} 
                       size={20} 
-                      color={adCat === cat.id ? '#3B82F6' : '#64748B'} 
+                      color={adCat === cat.id ? '#3B82F6' : (isDark ? '#94A3B8' : '#64748B')} 
                     />
-                    <Text style={[styles.adCatText, adCat === cat.id && styles.activeAdCatText]}>
+                    <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCat === cat.id && (isDark ? { color: '#93C5FD' } : styles.activeAdCatText)]}>
                       {t(`ilanlar.category.${cat.id}`)}
                     </Text>
                   </TouchableOpacity>
@@ -590,11 +589,11 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.price')}</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.price')}</Text>
               <TextInput
-                style={styles.adTitleInput}
+                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder="0"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 keyboardType="number-pad"
                 value={adPrice}
                 onChangeText={t => {
@@ -603,8 +602,6 @@ export default function IlanlarScreen() {
                   const formatted = Number(digits).toLocaleString('tr-TR');
                   setAdPrice(formatted);
                 }}
-
-
               />
               {adPrice.length > 0 && !isPriceValid && (
                 <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{t('ilanlar.invalidPrice')}</Text>
@@ -612,34 +609,37 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>{t('ilanlar.description')}</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.description')}</Text>
               <TextInput
-                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
+                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder={t('ilanlar.descPlaceholder')}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 multiline
                 scrollEnabled={false}
                 value={adDesc}
                 onChangeText={setAdDesc}
                 maxLength={500}
-
-
               />
               <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
               <TextInput
-                style={styles.adTitleInput}
+                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 keyboardType="default"
                 value={adContact}
                 onChangeText={setAdContact}
-
-
               />
+            </View>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>İLAN FOTOĞRAFLARI</Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: selectedImages.length >= 5 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
+                {selectedImages.length}/5 foto
+              </Text>
             </View>
 
             {selectedImages.length > 0 && (
@@ -658,9 +658,9 @@ export default function IlanlarScreen() {
               </ScrollView>
             )}
             {selectedImages.length < 5 && (
-              <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
-                <IconSymbol name="camera.fill" size={24} color="#64748B" />
-                <Text style={styles.addPhotoText}>{t('listings.addPhoto')}</Text>
+              <TouchableOpacity style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]} onPress={pickImage}>
+                <IconSymbol name="camera.fill" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+                <Text style={[styles.addPhotoText, isDark && { color: '#94A3B8' }]}>{t('listings.addPhoto')}</Text>
               </TouchableOpacity>
             )}
           </KeyboardAwareScrollView>
@@ -684,6 +684,8 @@ export default function IlanlarScreen() {
 
 function ListingCard({ listing, router, isGridView }: { listing: ListingDto, router: any, isGridView?: boolean }) {
   const { isLoggedIn } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const backendToFrontend: Record<ListingCategory, IlanCategory> = {
     [ListingCategory.SATILIK]: 'emlak',
     [ListingCategory.KIRALIK]: 'emlak',
@@ -708,7 +710,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
     <TouchableOpacity
       style={[
         styles.card,
-        { borderColor: `${cfg.color}33` },
+        isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 },
         isGridView && { width: '48%', marginHorizontal: 0 }
       ]}
       activeOpacity={0.7}
@@ -720,7 +722,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
       }}
     >
       {hasUserImage && (
-        <View style={{ width: '100%', height: isGridView ? 180 : 300, backgroundColor: '#F1F5F9' }}>
+        <View style={{ width: '100%', height: isGridView ? 180 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}>
           <Image 
              source={{ uri: resolvedUrl }} 
              style={{ width: '100%', height: '100%' }} 
@@ -731,27 +733,27 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
       <View style={{ padding: isGridView ? 12 : 18 }}>
         <View style={[styles.cardHeader, isGridView && { marginBottom: 6 }]}>
           <View style={styles.headerLeft}>
-            <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }, isGridView && { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, gap: 2 }]}>
+            <View style={[styles.categoryBadge, { backgroundColor: isDark ? `${cfg.color}22` : cfg.bg }, isGridView && { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, gap: 2 }]}>
               <IconSymbol name={cfg.icon as any} size={isGridView ? 10 : 12} color={cfg.color} />
               <Text style={[styles.categoryBadgeText, { color: cfg.color }, isGridView && { fontSize: 9.5 }]}>{cfg.label}</Text>
             </View>
           </View>
-          <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }]}>{timeAgo}</Text>
+          <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }, isDark && { color: '#64748B' }]}>{timeAgo}</Text>
         </View>
 
-        <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }]} numberOfLines={1}>{listing.title}</Text>
-        {!isGridView && <Text style={styles.cardDescription} numberOfLines={2}>{listing.description}</Text>}
+        <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{listing.title}</Text>
+        {!isGridView && <Text style={[styles.cardDescription, isDark && { color: '#94A3B8' }]} numberOfLines={2}>{listing.description}</Text>}
 
         <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }]}>
           <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4, flexShrink: 1, marginRight: 8 }]}>
             <View style={styles.metaItem}>
-              <IconSymbol name="mappin.circle.fill" size={12} color="#94A3B8" />
-              <Text style={[styles.metaText, isGridView && { fontSize: 11 }]}>{listing.island}</Text>
+              <IconSymbol name="mappin.circle.fill" size={12} color={isDark ? '#64748B' : '#94A3B8'} />
+              <Text style={[styles.metaText, isGridView && { fontSize: 11 }, isDark && { color: '#94A3B8' }]}>{listing.island}</Text>
             </View>
             {listing.contactInfo && (
               <View style={styles.metaItem}>
-                <IconSymbol name="phone.circle.fill" size={14} color="#94A3B8" />
-                <Text style={[styles.metaText, { flexShrink: 1 }]} numberOfLines={1}>{listing.contactInfo}</Text>
+                <IconSymbol name="phone.circle.fill" size={14} color={isDark ? '#64748B' : '#94A3B8'} />
+                <Text style={[styles.metaText, { flexShrink: 1 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>{listing.contactInfo}</Text>
               </View>
             )}
           </View>

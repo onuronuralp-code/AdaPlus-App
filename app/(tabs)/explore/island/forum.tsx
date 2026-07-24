@@ -18,6 +18,7 @@ import { tr, enUS } from 'date-fns/locale';
 import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EmptyState } from '@/components/EmptyState';
@@ -29,10 +30,12 @@ import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-han
 const ENABLE_PHOTO_UPLOAD = true; // Feature flag for photo upload in community posts
 
 export default function ForumScreen() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isLoggedIn, user } = useAuth();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     React.useEffect(() => {
         if (!isLoggedIn || (user && user.userType !== 'ISLAND_RESIDENT' && user.userType !== 'ADMIN' && user.role !== 'ADMIN')) {
@@ -698,7 +701,7 @@ export default function ForumScreen() {
             <View style={styles.postWrapper}>
                 <Swipeable renderRightActions={renderRightActions}>
                 <TouchableOpacity 
-                    style={[styles.bubbleContainer]}
+                    style={[styles.bubbleContainer, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}
                     activeOpacity={0.9}
                     onPress={() => {
                         if (!isLoggedIn) {
@@ -717,9 +720,9 @@ export default function ForumScreen() {
                             </View>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <View style={styles.islandBadge}>
-                                <IconSymbol name="mappin" size={10} color="#64748B" />
-                                <Text style={styles.islandBadgeText}>
+                            <View style={[styles.islandBadge, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                <IconSymbol name="mappin" size={10} color={isDark ? "#94A3B8" : "#64748B"} />
+                                <Text style={[styles.islandBadgeText, isDark && { color: '#94A3B8' }]}>
                                     {t('places.' + getIslandName(item.island), { defaultValue: getIslandName(item.island) })}
                                 </Text>
                             </View>
@@ -727,7 +730,7 @@ export default function ForumScreen() {
                     </View>
 
                     <View style={styles.postCardBody}>
-                        <Text style={styles.contentText}>{item.content}</Text>
+                        <Text style={[styles.contentText, isDark && { color: '#F8FAFC' }]}>{item.content}</Text>
                         {item.postType === PostType.POLL && item.pollOptions && (
                             <View style={styles.renderedPollContainer}>
                                 {(() => {
@@ -743,8 +746,9 @@ export default function ForumScreen() {
                                                     key={option.id}
                                                     style={[
                                                         styles.renderedPollOption, 
+                                                        isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
                                                         ended && { opacity: 0.6 },
-                                                        isOptionVoted && { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' }
+                                                        isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
                                                     ]}
                                                     onPress={() => !ended && handlePollVote(item.id, option.id)}
                                                     activeOpacity={ended ? 1 : 0.7}
@@ -753,10 +757,10 @@ export default function ForumScreen() {
                                                     <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: isOptionVoted ? '#10B98140' : tagColor + '40' }]} />
                                                     <View style={styles.pollOptionTextRow}>
                                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                            {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color="#059669" />}
-                                                            <Text style={[styles.renderedPollOptionText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{option.text}</Text>
+                                                            {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
+                                                            <Text style={[styles.renderedPollOptionText, isDark && { color: '#F8FAFC' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{option.text}</Text>
                                                         </View>
-                                                        <Text style={[styles.pollPercentText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
+                                                        <Text style={[styles.pollPercentText, isDark && { color: '#CBD5E1' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
                                                     </View>
                                                 </TouchableOpacity>
                                                 );
@@ -825,29 +829,29 @@ export default function ForumScreen() {
 
     return (
         <SwipeNavigation leftRoute="/(tabs)/explore/island/ilanlar">
-        <View style={styles.container}>
+        <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
             <Stack.Screen options={{ headerShown: false }} />
-            <StatusBar barStyle="dark-content" />
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+            <View style={[styles.header, { paddingTop: insets.top + 10 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
+                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}>
+                    <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
                 </TouchableOpacity>
                 <View style={styles.headerTitles}>
-                    <Text style={styles.headerTitle}>{t('common.community')}</Text>
+                    <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.community')}</Text>
                 </View>
                 <TouchableOpacity onPress={handleInviteFriends} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-                    <IconSymbol name="person.badge.plus" size={24} color="#1E293B" />
+                    <IconSymbol name="person.badge.plus" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
                 </TouchableOpacity>
             </View>
             {!isLoggedIn ? (
-                <View style={[styles.emptyContainer, { flex: 1, justifyContent: 'center', paddingHorizontal: 20 }]}>
+                <View style={[{ flex: 1, justifyContent: 'center', paddingHorizontal: 20 }, isDark && { backgroundColor: '#000000' }]}>
                     <View style={{ alignItems: 'center', marginBottom: 24 }}>
                         <IconSymbol name="person.crop.circle.badge.exclamationmark" size={64} color="#CBD5E1" />
                     </View>
-                    <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 10 }}>
+                    <Text style={[{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 10 }, isDark && { color: '#FFFFFF' }]}>
                         {t('profile.notLoggedInTitle', { defaultValue: i18n.language.startsWith('en') ? 'Not Logged In' : 'Giriş Yapılmadı' })}
                     </Text>
-                    <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, paddingHorizontal: 20, marginBottom: 30 }}>
+                    <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, paddingHorizontal: 20, marginBottom: 30 }, isDark && { color: '#94A3B8' }]}>
                         {i18n.language.startsWith('en') ? 'You must log in to view community posts and join the discussion.' : 'Topluluktaki mesajları görmek ve tartışmaya katılmak için giriş yapmalısınız.'}
                     </Text>
                     <TouchableOpacity 
@@ -861,7 +865,7 @@ export default function ForumScreen() {
                 </View>
             ) : (
                 <>
-                    <View style={styles.tabsWrapper}>
+                    <View style={[styles.tabsWrapper, isDark && { backgroundColor: '#000000' }]}>
                         <ScrollView 
                             horizontal 
                             showsHorizontalScrollIndicator={false} 
@@ -873,16 +877,16 @@ export default function ForumScreen() {
                                 return (
                                     <TouchableOpacity 
                                         key={tab.id}
-                                        style={[styles.tabItem, isActive && styles.activeTabItem]}
+                                        style={[styles.tabItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, isActive && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeTabItem)]}
                                         onPress={() => setActiveTab(tab.id)}
                                         activeOpacity={0.7}
                                     >
                                         <IconSymbol 
                                             name={tab.icon} 
                                             size={12} 
-                                            color={isActive ? '#FFFFFF' : '#475569'} 
+                                            color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')} 
                                         />
-                                        <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
+                                        <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
                                             {tab.label}
                                         </Text>
                                     </TouchableOpacity>
@@ -925,7 +929,7 @@ export default function ForumScreen() {
                         )}
                     />
                     <TouchableOpacity 
-                        style={[styles.fab, { bottom: 20 }]} 
+                        style={[styles.fab, { backgroundColor: '#000000', bottom: 20 }]} 
                         onPress={() => {
                             if (!isLoggedIn) {
                                 setShowLoginPrompt(true);
@@ -935,15 +939,10 @@ export default function ForumScreen() {
                         }}
                         activeOpacity={0.85}
                     >
-                            <LinearGradient
-                                colors={['#ffffff', '#ffffff']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.fabGradient}
-                            >
-                                <IconSymbol name="plus" size={32} color="#3B82F6" />
-                            </LinearGradient>
-                        </TouchableOpacity>
+                        <View style={[styles.fabGradient, { backgroundColor: '#000000', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                            <IconSymbol name="plus" size={32} color="#3B82F6" />
+                        </View>
+                    </TouchableOpacity>
                 </>
             )}
             <Modal
@@ -968,13 +967,13 @@ export default function ForumScreen() {
                             activeOpacity={1} 
                             onPress={handleCloseWriteModal} 
                         />
-                        <Animated.View style={[styles.modalContainer, { flex: 0, height: '85%', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
-                            <View style={[styles.modalHeader, { paddingTop: 24 }]}>
+                        <Animated.View style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }, { flex: 0, height: '85%', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
+                            <View style={[styles.modalHeader, { paddingTop: 24 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                                 <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
-                            <IconSymbol name="xmark" size={24} color="#64748B" />
+                            <IconSymbol name="xmark" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
                         </TouchableOpacity>
                         <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
-                            <Text style={styles.modalTitle}>{editingPostId ? t('common.edit', { defaultValue: 'Düzenle' }) : t('forum.createPost')}</Text>
+                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]}>{editingPostId ? t('common.edit', { defaultValue: 'Düzenle' }) : t('forum.createPost')}</Text>
                         </View>
                         <TouchableOpacity 
                             onPress={handleCreatePost} 
@@ -988,42 +987,42 @@ export default function ForumScreen() {
                             )}
                         </TouchableOpacity>
                     </View>
-                    <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={60} keyboardShouldPersistTaps="handled">
+                    <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={60} keyboardShouldPersistTaps="handled">
                         <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>{t('forum.islandSelection')}</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.islandSelection')}</Text>
                             <View style={{ flexDirection: 'row', gap: 8 }}>
                                 {islands.map(island => (
                                     <TouchableOpacity 
                                         key={island} 
-                                        style={[styles.writeChip, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
+                                        style={[styles.writeChip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.writeChipText, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{island}</Text>
+                                        <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{island}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
                         </View>
                         <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>{t('forum.postType')}</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.postType')}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                 {postTypes.map(type => (
                                     <TouchableOpacity 
                                         key={type.id} 
-                                        style={[styles.writeChip, newPostType === type.id && styles.activeWriteChipPink]}
+                                        style={[styles.writeChip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, newPostType === type.id && styles.activeWriteChipPink]}
                                         onPress={() => setNewPostType(type.id)}
                                     >
-                                        <Text style={[styles.writeChipText, newPostType === type.id && styles.activeWriteChipPinkText]}>{type.label}</Text>
+                                        <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, newPostType === type.id && styles.activeWriteChipPinkText]}>{type.label}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
                         </View>
-                        <View style={styles.writeOptionsDivider} />
+                        <View style={[styles.writeOptionsDivider, isDark && { backgroundColor: '#1C1C1E' }]} />
                         <View style={styles.formSection}>
-                            <Text style={styles.inputLabel}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
                             <TextInput
-                                style={[styles.premiumTextInput, newPostType === 'poll' && { minHeight: 60, height: undefined, paddingVertical: 16, paddingHorizontal: 16, textAlign: 'left', lineHeight: 20 }]}
+                                style={[styles.premiumTextInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }, newPostType === 'poll' && { minHeight: 60, height: undefined, paddingVertical: 16, paddingHorizontal: 16, textAlign: 'left', lineHeight: 20 }]}
                                 placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder') : t('forum.whatsOnYourMind')}
-                                placeholderTextColor="#CBD5E1"
+                                placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
                                 multiline={newPostType !== 'poll'}
                                 maxLength={newPostType === 'poll' ? 200 : MAX_POST_LENGTH}
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
@@ -1049,6 +1048,12 @@ export default function ForumScreen() {
                         </View>
                         {newPostType !== 'poll' && ENABLE_PHOTO_UPLOAD && (
                             <View style={styles.formSection}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>FOTOĞRAFLAR</Text>
+                                    <Text style={{ fontSize: 12, fontWeight: '700', color: selectedImages.length >= 5 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
+                                        {selectedImages.length}/5 foto
+                                    </Text>
+                                </View>
                                 {selectedImages.length > 0 ? (
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }} keyboardShouldPersistTaps="handled">
                                         {selectedImages.map((uri, index) => (
@@ -1064,19 +1069,19 @@ export default function ForumScreen() {
                                         ))}
                                         {selectedImages.length < 5 && (
                                             <TouchableOpacity 
-                                                style={[styles.addPhotoBtn, { width: 100, height: 100, borderRadius: 14, marginTop: 0 }]}
+                                                style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { width: 100, height: 100, borderRadius: 14, marginTop: 0 }]}
                                                 onPress={pickImage}
                                             >
-                                                <IconSymbol name="plus" size={28} color="#94A3B8" />
+                                                <IconSymbol name="plus" size={28} color={isDark ? "#94A3B8" : "#94A3B8"} />
                                             </TouchableOpacity>
                                         )}
                                     </ScrollView>
                                 ) : (
                                     <TouchableOpacity 
-                                        style={[styles.addPhotoBtn, { marginTop: -10, marginBottom: 10, height: 100, borderRadius: 14 }]}
+                                        style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { marginTop: 0, marginBottom: 10, height: 100, borderRadius: 14 }]}
                                         onPress={pickImage}
                                     >
-                                        <IconSymbol name="photo.fill" size={28} color="#94A3B8" />
+                                        <IconSymbol name="photo.fill" size={28} color={isDark ? "#94A3B8" : "#94A3B8"} />
                                         <Text style={[styles.addPhotoText, { color: '#94A3B8', fontSize: 14 }]}>{t('forum.addPhoto')}</Text>
                                     </TouchableOpacity>
                                 )}
@@ -1085,13 +1090,13 @@ export default function ForumScreen() {
                         {newPostType === 'poll' && (
                             <>
                             <View style={styles.formSection}>
-                                <Text style={styles.inputLabel}>{t('forum.options')}</Text>
+                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.options')}</Text>
                                 {pollOptions.map((opt, index) => (
                                     <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                                         <TextInput
-                                            style={[styles.premiumTextInput, { flex: 1, minHeight: 50, height: undefined, paddingVertical: 14, paddingHorizontal: 15, fontSize: 16, textAlign: 'left', lineHeight: 20 }]}
+                                            style={[styles.premiumTextInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }, { flex: 1, minHeight: 50, height: undefined, paddingVertical: 14, paddingHorizontal: 15, fontSize: 16, textAlign: 'left', lineHeight: 20 }]}
                                             placeholder={t('forum.optionPlaceholder', { number: index + 1 })}
-                                            placeholderTextColor="#CBD5E1"
+                                            placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
                                             textAlignVertical="center"
                                             value={opt}
                                             onChangeText={(text) => {
@@ -1123,7 +1128,7 @@ export default function ForumScreen() {
                                 )}
                             </View>
                             <View style={styles.formSection}>
-                                <Text style={styles.inputLabel}>{t('forum.pollDuration')}</Text>
+                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.pollDuration')}</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                     {[
                                         { value: 24, label: '1 Gün' },
@@ -1132,10 +1137,10 @@ export default function ForumScreen() {
                                     ].map(opt => (
                                         <TouchableOpacity
                                             key={opt.value}
-                                            style={[styles.writeChip, pollDurationHours === opt.value && styles.activeWriteChipPink]}
+                                            style={[styles.writeChip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, pollDurationHours === opt.value && styles.activeWriteChipPink]}
                                             onPress={() => setPollDurationHours(opt.value)}
                                         >
-                                            <Text style={[styles.writeChipText, pollDurationHours === opt.value && styles.activeWriteChipPinkText]}>{opt.label}</Text>
+                                            <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, pollDurationHours === opt.value && styles.activeWriteChipPinkText]}>{opt.label}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
@@ -1144,16 +1149,16 @@ export default function ForumScreen() {
                         )}
                         <View style={styles.formSection}>
                             <TouchableOpacity
-                                style={styles.anonToggle} 
+                                style={[styles.anonToggle, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }]} 
                                 onPress={() => setIsAnonymous(!isAnonymous)}
                                 activeOpacity={0.7}
                             >
-                                <View style={[styles.anonCheckbox, isAnonymous && styles.anonCheckboxActive]}>
+                                <View style={[styles.anonCheckbox, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, isAnonymous && styles.anonCheckboxActive]}>
                                     {isAnonymous && <IconSymbol name="checkmark" size={14} color="#fff" />}
                                 </View>
                                 <View>
-                                    <Text style={styles.anonLabel}>{t('forum.shareAnonymously')}</Text>
-                                    <Text style={styles.anonSubtext}>{t('forum.anonymousDesc')}</Text>
+                                    <Text style={[styles.anonLabel, isDark && { color: '#FFFFFF' }]}>{t('forum.shareAnonymously')}</Text>
+                                    <Text style={[styles.anonSubtext, isDark && { color: '#94A3B8' }]}>{t('forum.anonymousDesc')}</Text>
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -1176,201 +1181,203 @@ export default function ForumScreen() {
                     }
                 }}
             >
-                <KeyboardAvoidingView
-                    style={[styles.modalContainer, { paddingTop: insets.top }]}
-                    behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-                    contentContainerStyle={{ flex: 1 }}
-                >
-                    <View style={styles.modalHeader}>
+                <View style={[styles.modalContainer, { paddingTop: insets.top }, isDark && { backgroundColor: '#000000' }]}>
+                    <View style={[styles.modalHeader, isDark && { backgroundColor: '#000000', borderBottomWidth: 1, borderBottomColor: '#1F2937' }]}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity onPress={() => setIsDetailModalVisible(false)} style={styles.modalHeaderButton}>
-                                <IconSymbol name="chevron.down" size={24} color="#64748B" />
+                                <IconSymbol name="chevron.down" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
                             </TouchableOpacity>
                         </View>
                         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={styles.modalTitle} numberOfLines={1}>{t('forum.postDetails')}</Text>
+                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>{t('forum.postDetails')}</Text>
                         </View>
                         <View style={{ flex: 1 }} />
                     </View>
-                    <View style={styles.modalBody}>
-                        {selectedPost && (
-                            <View style={styles.detailPostContainer}>
-                                <View style={styles.postCardHeader}>
-                                    <View style={styles.postAuthorInfo}>
-                                        <LinearGradient 
-                                            colors={[getTagColor(selectedPost.authorUserType), getTagColor(selectedPost.authorUserType) + '80']} 
-                                            style={styles.avatar}
-                                        >
-                                            <IconSymbol name="person.fill" size={24} color="#fff" />
-                                        </LinearGradient>
-                                        <View style={{ flex: 1 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                                <Text style={styles.authorName}>{selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' })}</Text>
-                                                <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
-                                                    <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>
-                                                        {(() => {
-                                                            const type = selectedPost.authorUserType;
-                                                            if (type === UserType.RESIDENT || type === UserType.ISLAND_RESIDENT) return t('forum.role.islander');
-                                                            if (type === UserType.ADMIN) return 'Admin';
-                                                            return t('forum.role.visitor');
-                                                        })()}
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                            <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
-                                        </View>
-                                        {selectedPost.authorId !== user?.id && (
-                                            <TouchableOpacity 
-                                                style={[styles.reportIconButton, { alignSelf: 'center', marginLeft: 10 }]}
-                                                onPress={() => handleReport(selectedPost.id)}
-                                            >
-                                                <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
-                                            </TouchableOpacity>
-                                        )}
-                                    </View>
-                                </View>
-                                <Text style={styles.detailContentText}>{selectedPost.content}</Text>
-                                {selectedPost.postType === PostType.POLL && selectedPost.pollOptions && (
-                                    <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
-                                        {(() => {
-                                            const ended = isPollEnded(selectedPost.pollEndsAt);
-                                            const countdown = getPollCountdown(selectedPost.pollEndsAt);
-                                            return (
-                                                <>
-                                                    {selectedPost.pollOptions.map((option: any) => {
-                                                        const isOptionVoted = option.isVoted || option.voted;
-                                                        return (
-                                                        <TouchableOpacity
-                                                            key={option.id}
-                                                            style={[
-                                                                styles.renderedPollOption, 
-                                                                ended && { opacity: 0.6 },
-                                                                isOptionVoted && { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' }
-                                                            ]}
-                                                            onPress={() => !ended && handlePollVote(selectedPost.id, option.id)}
-                                                            activeOpacity={ended ? 1 : 0.7}
-                                                            disabled={ended}
-                                                        >
-                                                            <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
-                                                            <View style={styles.pollOptionTextRow}>
-                                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                                    {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color="#059669" />}
-                                                                    <Text style={[styles.renderedPollOptionText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{option.text}</Text>
-                                                                </View>
-                                                                <Text style={[styles.pollPercentText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
-                                                            </View>
-                                                        </TouchableOpacity>
-                                                        );
-                                                    })}
-                                                    {countdown && (
-                                                        <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
-                                                            <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
-                                                            <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
-                                                        </View>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
-                                    </View>
-                                )}
-                                {selectedPost.imageUrl && (
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.detailImageWrapper}>
-                                        {selectedPost.imageUrl.split(',').map((url: string, index: number) => (
-                                            <Image 
-                                                key={index} 
-                                                source={{ uri: resolveImageUrl(url.trim()) }} 
-                                                style={[styles.detailImage, { marginRight: 10, width: selectedPost.imageUrl.includes(',') ? 300 : '100%' }]} 
-                                            />
-                                        ))}
-                                    </ScrollView>
-                                )}
-                                <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
-                                    <View style={styles.interactionGroup}>
-                                        <TouchableOpacity style={styles.interactionPill} onPress={() => toggleLike(selectedPost.id)}>
-                                            <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? "#EF4444" : "#64748B"} />
-                                            <Text style={[styles.interactionCount, selectedPost.isLiked && { color: "#EF4444" }]}>
-                                                {selectedPost.likeCount > 0 ? selectedPost.likeCount : '0'}
-                                            </Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.interactionPill}>
-                                            <IconSymbol name="bubble.left" size={20} color="#64748B" />
-                                            <Text style={styles.interactionCount}>
-                                                {selectedPost.replyCount > 0 ? selectedPost.replyCount : '0'}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    {selectedPost.authorId === user?.id && (
-                                        <View style={{ flexDirection: 'row', gap: 8 }}>
-                                            <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
-                                                <IconSymbol name="trash.fill" size={14} color="#EF4444" />
-                                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#EF4444' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                        )}
-                        <View style={[styles.commentsSection, { flex: 1, paddingBottom: 0 }]}>
-                            <Text style={styles.commentsTitle}>{t('forum.comments')}</Text>
+                    <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        keyboardVerticalOffset={0}
+                    >
+                        <View style={styles.modalBody}>
                             <ScrollView 
                                 ref={commentsScrollRef}
                                 showsVerticalScrollIndicator={false} 
                                 contentContainerStyle={{ paddingBottom: 20 }}
+                                keyboardShouldPersistTaps="handled"
                                 onContentSizeChange={() => {
                                     if (isKeyboardVisible) {
                                         commentsScrollRef.current?.scrollToEnd({ animated: true });
                                     }
                                 }}
                             >
-                                {replies.length > 0 ? (
-                                replies.map(reply => {
-                                    const renderRightActions = () => {
-                                        if (reply.authorId !== user?.id) return null;
-                                        return (
-                                            <TouchableOpacity onPress={() => handleDeletePost(reply.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                                                <IconSymbol name="trash.fill" size={20} color="#FFF" />
-                                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                            </TouchableOpacity>
-                                        );
-                                    };
-                                    return (
-                                    <View key={reply.id} style={{ marginBottom: 20 }}>
-                                        <Swipeable renderRightActions={renderRightActions}>
-                                            <View style={{ backgroundColor: '#FFF', paddingLeft: 4, borderLeftWidth: 2, borderLeftColor: '#F1F5F9' }}>
-                                                <View style={styles.replyHeader}>
-                                                    <View style={[styles.replyAvatar, { backgroundColor: getTagColor(reply.authorUserType) }]}>
-                                                        <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>
-                                                            {(reply.authorName || '?').charAt(0).toUpperCase()}
+                            {selectedPost && (
+                                <View style={[styles.detailPostContainer, isDark && { backgroundColor: '#000000', borderBottomColor: '#1F2937' }]}>
+                                    <View style={styles.postCardHeader}>
+                                        <View style={styles.postAuthorInfo}>
+                                            <LinearGradient 
+                                                colors={[getTagColor(selectedPost.authorUserType), getTagColor(selectedPost.authorUserType) + '80']} 
+                                                style={styles.avatar}
+                                            >
+                                                <IconSymbol name="person.fill" size={24} color="#fff" />
+                                            </LinearGradient>
+                                            <View style={{ flex: 1 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                    <Text style={[styles.authorName, isDark && { color: '#FFFFFF' }]}>{selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' })}</Text>
+                                                    <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
+                                                        <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>
+                                                            {(() => {
+                                                                const type = selectedPost.authorUserType;
+                                                                if (type === UserType.RESIDENT || type === UserType.ISLAND_RESIDENT) return t('forum.role.islander');
+                                                                if (type === UserType.ADMIN) return 'Admin';
+                                                                return t('forum.role.visitor');
+                                                            })()}
                                                         </Text>
                                                     </View>
-                                                    <View style={{ flex: 1 }}>
-                                                        <Text style={styles.replyAuthor}>{reply.authorName || 'Anonim'}</Text>
-                                                        <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
-                                                    </View>
                                                 </View>
-                                                <Text style={styles.replyContent}>{reply.content}</Text>
+                                                <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
                                             </View>
-                                        </Swipeable>
+                                            {selectedPost.authorId !== user?.id && (
+                                                <TouchableOpacity 
+                                                    style={[styles.reportIconButton, { alignSelf: 'center', marginLeft: 10 }]}
+                                                    onPress={() => handleReport(selectedPost.id)}
+                                                >
+                                                    <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
                                     </View>
-                                    );
-                                })
-                            ) : (
-                                <EmptyState 
-                                    icon="bubble.left.and.bubble.right" 
-                                    title={t('forum.noComments')}
-                                    subtitle={t('forum.firstComment')}
-                                    color="#64748B"
-                                    compact={true}
-                                    style={{ marginTop: 40 }}
-                                />
+                                    <Text style={[styles.detailContentText, isDark && { color: '#F1F5F9' }]}>{selectedPost.content}</Text>
+                                    {selectedPost.postType === PostType.POLL && selectedPost.pollOptions && (
+                                        <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
+                                            {(() => {
+                                                const ended = isPollEnded(selectedPost.pollEndsAt);
+                                                const countdown = getPollCountdown(selectedPost.pollEndsAt);
+                                                return (
+                                                    <>
+                                                        {selectedPost.pollOptions.map((option: any) => {
+                                                            const isOptionVoted = option.isVoted || option.voted;
+                                                            return (
+                                                            <TouchableOpacity
+                                                                key={option.id}
+                                                                style={[
+                                                                    styles.renderedPollOption, 
+                                                                    ended && { opacity: 0.6 },
+                                                                    isOptionVoted && { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' }
+                                                                ]}
+                                                                onPress={() => !ended && handlePollVote(selectedPost.id, option.id)}
+                                                                activeOpacity={ended ? 1 : 0.7}
+                                                                disabled={ended}
+                                                            >
+                                                                <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
+                                                                <View style={styles.pollOptionTextRow}>
+                                                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                                        {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color="#059669" />}
+                                                                        <Text style={[styles.renderedPollOptionText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{option.text}</Text>
+                                                                    </View>
+                                                                    <Text style={[styles.pollPercentText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
+                                                                </View>
+                                                            </TouchableOpacity>
+                                                            );
+                                                        })}
+                                                        {countdown && (
+                                                            <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
+                                                                <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                                <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                                            </View>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
+                                        </View>
+                                    )}
+                                    {selectedPost.imageUrl && (
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.detailImageWrapper}>
+                                            {selectedPost.imageUrl.split(',').map((url: string, index: number) => (
+                                                <Image 
+                                                    key={index} 
+                                                    source={{ uri: resolveImageUrl(url.trim()) }} 
+                                                    style={[styles.detailImage, { marginRight: 10, width: selectedPost.imageUrl.includes(',') ? 300 : '100%' }]} 
+                                                />
+                                            ))}
+                                        </ScrollView>
+                                    )}
+                                    <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
+                                        <View style={styles.interactionGroup}>
+                                            <TouchableOpacity style={styles.interactionPill} onPress={() => toggleLike(selectedPost.id)}>
+                                                <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? "#EF4444" : "#64748B"} />
+                                                <Text style={[styles.interactionCount, selectedPost.isLiked && { color: "#EF4444" }]}>
+                                                    {selectedPost.likeCount > 0 ? selectedPost.likeCount : '0'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.interactionPill}>
+                                                <IconSymbol name="bubble.left" size={20} color="#64748B" />
+                                                <Text style={styles.interactionCount}>
+                                                    {selectedPost.replyCount > 0 ? selectedPost.replyCount : '0'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        {selectedPost.authorId === user?.id && (
+                                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                                <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EF4444', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
+                                                    <IconSymbol name="trash.fill" size={14} color="#FFFFFF" />
+                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+                            )}
+                            <View style={[styles.commentsSection, { flex: 1, paddingTop: 16 }, isDark && { backgroundColor: '#000000' }]}>
+                                <Text style={[styles.commentsTitle, isDark && { color: '#FFFFFF' }]}>{t('forum.comments')}</Text>
+                                {replies.length > 0 ? (
+                                    replies.map(reply => {
+                                        const renderRightActions = () => {
+                                            if (reply.authorId !== user?.id) return null;
+                                            return (
+                                                <TouchableOpacity onPress={() => handleDeletePost(reply.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                    <IconSymbol name="trash.fill" size={20} color="#FFF" />
+                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        };
+                                        return (
+                                        <View key={reply.id} style={{ marginBottom: 20 }}>
+                                            <Swipeable renderRightActions={renderRightActions}>
+                                                <View style={{ backgroundColor: isDark ? '#000000' : '#FFF', paddingLeft: 4, borderLeftWidth: 2, borderLeftColor: isDark ? '#27272A' : '#F1F5F9' }}>
+                                                    <View style={styles.replyHeader}>
+                                                        <View style={[styles.replyAvatar, { backgroundColor: getTagColor(reply.authorUserType) }]}>
+                                                            <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>
+                                                                {(reply.authorName || '?').charAt(0).toUpperCase()}
+                                                            </Text>
+                                                        </View>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text style={[styles.replyAuthor, isDark && { color: '#FFFFFF' }]}>{reply.authorName || 'Anonim'}</Text>
+                                                            <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
+                                                        </View>
+                                                    </View>
+                                                    <Text style={[styles.replyContent, isDark && { color: '#CBD5E1' }]}>{reply.content}</Text>
+                                                </View>
+                                            </Swipeable>
+                                        </View>
+                                        );
+                                    })
+                                ) : (
+                                    <EmptyState 
+                                        icon="bubble.left.and.bubble.right" 
+                                        title={t('forum.noComments')}
+                                        subtitle={t('forum.firstComment')}
+                                        color={isDark ? "#94A3B8" : "#64748B"}
+                                        compact={true}
+                                        style={{ marginTop: 40 }}
+                                    />
                                 )}
-                            </ScrollView>
-                        </View>
+                            </View>
+                        </ScrollView>
                     </View>
-                    <View style={[styles.commentInputArea, { paddingBottom: isKeyboardVisible ? 16 : Math.max(insets.bottom, 16) }]}>
+                    <View style={[styles.commentInputArea, { paddingBottom: isKeyboardVisible ? 16 : Math.max(insets.bottom, 16) }, isDark && { backgroundColor: '#000000', borderTopColor: '#1F2937' }]}>
                         <TextInput
                             ref={replyInputRef}
-                            style={[styles.commentInput, { maxHeight: 120 }]}
+                            style={[styles.commentInput, { maxHeight: 120 }, isDark && { backgroundColor: '#18181B', color: '#FFFFFF' }]}
                             placeholder={t('forum.addComment', { defaultValue: i18n.language.startsWith('en') ? 'Add a comment...' : 'Bir yorum ekle...' })}
                             placeholderTextColor="#94A3B8"
                             multiline
@@ -1387,16 +1394,16 @@ export default function ForumScreen() {
                         </TouchableOpacity>
                     </View>
                     {deleteConfirmState.visible && (
-                        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', zIndex: 9999, elevation: 9999 }]}>
-                            <View style={{ width: '85%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }}>
-                                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
+                        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 9999, elevation: 9999 }]}>
+                            <View style={[{ width: '85%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                                <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A1A' }]}>
                                     <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#EF4444" />
                                 </View>
-                                <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }}>Sil</Text>
-                                <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>Silmek istediğinize emin misiniz?</Text>
+                                <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Sil</Text>
+                                <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Silmek istediğinize emin misiniz?</Text>
                                 <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                                    <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }}>
-                                        <Text style={{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>İptal</Text>
+                                    <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                        <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => {
                                         const id = deleteConfirmState.id;
@@ -1409,7 +1416,8 @@ export default function ForumScreen() {
                             </View>
                         </View>
                     )}
-                </KeyboardAvoidingView>
+                    </KeyboardAvoidingView>
+                </View>
             </Modal>
             <Modal
                 visible={isAdModalVisible}
@@ -1418,17 +1426,17 @@ export default function ForumScreen() {
                 onRequestClose={() => setIsAdModalVisible(false)}
             >
                 <KeyboardAvoidingView 
-                    style={styles.modalContainer} 
+                    style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }]} 
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
+                    <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                         <View style={{ flex: 1.2, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity onPress={() => setIsAdModalVisible(false)} style={styles.modalHeaderButton}>
-                                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+                                <Text style={[styles.cancelText, isDark && { color: '#94A3B8' }]}>{t('common.cancel')}</Text>
                             </TouchableOpacity>
                         </View>
                         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={styles.modalTitle} numberOfLines={1}>{t('forum.placeAd')}</Text>
+                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>{t('forum.placeAd')}</Text>
                         </View>
                         <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
@@ -1440,75 +1448,75 @@ export default function ForumScreen() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <ScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         <View style={styles.inputSection}>
-                            <Text style={styles.inputLabel}>ADA SEÇİMİ</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>ADA SEÇİMİ</Text>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 20 }}>
                                 {islands.map(island => (
                                     <TouchableOpacity 
                                         key={island} 
-                                        style={[styles.chip, selectedIsland === island && styles.activeChip]}
+                                        style={[styles.chip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, selectedIsland === island && styles.activeChip]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.chipText, selectedIsland === island && styles.activeChipText]}>{island}</Text>
+                                        <Text style={[styles.chipText, isDark && { color: '#CBD5E1' }, selectedIsland === island && styles.activeChipText]}>{island}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
                         </View>
                         <View style={styles.inputSection}>
-                            <Text style={styles.inputLabel}>İLAN BAŞLIĞI</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>İLAN BAŞLIĞI</Text>
                             <TextInput
-                                style={styles.adTitleInput}
+                                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                                 placeholder="Ne satıyorsun veya arıyorsun?"
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                                 value={adTitle}
                                 onChangeText={setAdTitle}
                             />
                         </View>
                         <View style={styles.inputSection}>
-                            <Text style={styles.inputLabel}>KATEGORİ</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>KATEGORİ</Text>
                             <View style={styles.adCategoryRow}>
                                 {adCategories.map(cat => (
                                     <TouchableOpacity 
                                         key={cat.id} 
-                                        style={[styles.adCatItem, adCategory === cat.label && styles.activeAdCat]}
+                                        style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, adCategory === cat.label && styles.activeAdCat]}
                                         onPress={() => setAdCategory(cat.label)}
                                     >
                                         <MaterialCommunityIcons 
                                             name={cat.icon as any} 
                                             size={20} 
-                                            color={adCategory === cat.label ? '#fff' : '#64748B'} 
+                                            color={adCategory === cat.label ? '#fff' : (isDark ? '#94A3B8' : '#64748B')} 
                                         />
-                                        <Text style={[styles.adCatText, adCategory === cat.label && styles.activeAdCatText]}>{cat.label}</Text>
+                                        <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCategory === cat.label && styles.activeAdCatText]}>{cat.label}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
                         </View>
                         <View style={styles.inputSection}>
-                            <Text style={styles.inputLabel}>FİYAT (₺)</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>FİYAT (₺)</Text>
                             <TextInput
-                                style={styles.adTitleInput}
+                                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                                 placeholder="0.00"
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                                 keyboardType="numeric"
                                 value={adPrice}
                                 onChangeText={setAdPrice}
                             />
                         </View>
                         <View style={styles.inputSection}>
-                            <Text style={styles.inputLabel}>AÇIKLAMA</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>AÇIKLAMA</Text>
                             <TextInput
-                                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }]}
+                                style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }, { height: 120, textAlignVertical: 'top' }]}
                                 placeholder="Ürün veya hizmet detaylarını yaz..."
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                                 multiline
                                 value={adDesc}
                                 onChangeText={setAdDesc}
                             />
                         </View>
-                        <TouchableOpacity style={styles.addPhotoBtn}>
-                            <IconSymbol name="camera.fill" size={24} color="#64748B" />
-                            <Text style={styles.addPhotoText}>{t('forum.addPhotoSimple')}</Text>
+                        <TouchableOpacity style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]}>
+                            <IconSymbol name="camera.fill" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
+                            <Text style={[styles.addPhotoText, isDark && { color: '#94A3B8' }]}>{t('forum.addPhotoSimple')}</Text>
                         </TouchableOpacity>
                     </ScrollView>
                 </KeyboardAvoidingView>
@@ -1538,19 +1546,19 @@ export default function ForumScreen() {
                         style={StyleSheet.absoluteFillObject} 
                         onPress={() => setIsInviteModalVisible(false)} 
                     />
-                    <View style={{ width: '100%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', zIndex: 10, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
-                        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
-                            <IconSymbol name="person.2.fill" size={32} color="#3B82F6" />
+                    <View style={[{ width: '100%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', zIndex: 10, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                        <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#1E3A8A' }]}>
+                            <IconSymbol name="person.2.fill" size={32} color={isDark ? "#60A5FA" : "#3B82F6"} />
                         </View>
-                        <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }}>
+                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>
                             Arkadaşlarını Davet Et
                         </Text>
-                        <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }}>
+                        <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }, isDark && { color: '#CBD5E1' }]}>
                             AdaPlus topluluğunu arkadaşlarınla paylaşarak büyümesine katkıda bulun. Davet ettiğin kişiler Adalı statüsü kazanır!
                         </Text>
 
                         <TextInput
-                            style={{
+                            style={[{
                                 width: '100%',
                                 backgroundColor: '#F8FAFC',
                                 borderWidth: 1,
@@ -1561,9 +1569,9 @@ export default function ForumScreen() {
                                 fontSize: 14,
                                 color: '#1E293B',
                                 marginBottom: 20
-                            }}
+                            }, isDark && { backgroundColor: '#18181B', borderColor: '#2C2C2E', color: '#FFFFFF' }]}
                             placeholder={i18n.language.startsWith('tr') ? 'E-posta veya telefon numarası' : 'Email or phone number'}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                             value={inviteContactInput}
                             onChangeText={setInviteContactInput}
                             keyboardType="email-address"
@@ -1573,9 +1581,9 @@ export default function ForumScreen() {
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                             <TouchableOpacity 
                                 onPress={() => { setInviteContactInput(''); setIsInviteModalVisible(false); }} 
-                                style={{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }}
+                                style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}
                             >
-                                <Text style={{ color: '#475569', fontSize: 15, fontWeight: '700', textAlign: 'center' }}>İptal</Text>
+                                <Text style={[{ color: '#475569', fontSize: 15, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
                                 onPress={performInviteShare} 
@@ -1590,10 +1598,10 @@ export default function ForumScreen() {
 
             {/* Rules Modal */}
             <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
-                <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-                    <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
+                <View style={[{ flex: 1, backgroundColor: '#F8FAFC' }, isDark && { backgroundColor: '#000000' }]}>
+                    <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                         <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
-                            <IconSymbol name="xmark" size={24} color="#64748B" />
+                            <IconSymbol name="xmark" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
                         </TouchableOpacity>
                         <Text style={styles.modalTitle}>{t('common.communityRules', { defaultValue: i18n.language.startsWith('en') ? 'Community Guidelines' : 'Topluluk Kuralları' })}</Text>
                         <View style={{ width: 40 }} />

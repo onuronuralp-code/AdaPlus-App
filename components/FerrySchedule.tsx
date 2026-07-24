@@ -23,6 +23,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fetchDepartures } from "../services/api";
 import { IconSymbol } from "./ui/icon-symbol";
 
+import { useTheme } from "@/context/ThemeContext";
+
 interface FerryRoute {
   id: string;
   departure: string;
@@ -191,6 +193,8 @@ export function FerrySchedule() {
   const params = useLocalSearchParams<{from?: string, to?: string, time?: string}>();
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const [destination, setDestination] = useState("Unselected");
   const [departure, setDeparture] = useState("Unselected");
@@ -447,16 +451,16 @@ export function FerrySchedule() {
   const bothMainland = departure !== "Unselected" && destination !== "Unselected" && MAINLAND.includes(departure) && MAINLAND.includes(destination) && filteredData.length === 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       {/* Header Section */}
       <View style={[styles.headerContainer, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerTitles}>
-            <Text style={styles.headerTitle}>{t("common.ferrySchedule")}</Text>
+            <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t("common.ferrySchedule")}</Text>
           </View>
         </View>
 
-        <View style={styles.largeRouteCard}>
+        <View style={[styles.largeRouteCard, isDark && { backgroundColor: '#121212', borderColor: '#222222' }]}>
           {departure !== "Unselected" && destination !== "Unselected" && (
             <TouchableOpacity 
               onPress={handleToggleFavorite} 
@@ -468,7 +472,7 @@ export function FerrySchedule() {
           )}
           <View style={styles.routeRow}>
             <View style={styles.routeCol}>
-              <Text style={styles.largeLabel}>{t("common.from")}</Text>
+              <Text style={[styles.largeLabel, isDark && { color: '#94A3B8' }]}>{t("common.from")}</Text>
               <TouchableOpacity
                 onPress={() => setShowDepartureDropdown(true)}
                 style={styles.largePlaceBtn}
@@ -476,7 +480,8 @@ export function FerrySchedule() {
                 <Text
                   style={[
                     styles.largePlaceText,
-                    departure === "Unselected" && styles.placeholder,
+                    isDark && { color: '#FFFFFF' },
+                    departure === "Unselected" && (isDark ? { color: '#64748B' } : styles.placeholder),
                   ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -506,7 +511,7 @@ export function FerrySchedule() {
             </TouchableOpacity>
 
             <View style={styles.routeCol}>
-              <Text style={styles.largeLabel}>{t("common.to")}</Text>
+              <Text style={[styles.largeLabel, isDark && { color: '#94A3B8' }]}>{t("common.to")}</Text>
               <TouchableOpacity
                 onPress={() => setShowDestinationDropdown(true)}
                 style={styles.largePlaceBtn}
@@ -514,7 +519,8 @@ export function FerrySchedule() {
                 <Text
                   style={[
                     styles.largePlaceText,
-                    destination === "Unselected" && styles.placeholder,
+                    isDark && { color: '#FFFFFF' },
+                    destination === "Unselected" && (isDark ? { color: '#64748B' } : styles.placeholder),
                   ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -530,24 +536,24 @@ export function FerrySchedule() {
             </View>
           </View>
 
-          <View style={styles.largeFilterBar}>
+          <View style={[styles.largeFilterBar, isDark && { borderTopColor: '#222222' }]}>
             <TouchableOpacity
               style={styles.filterItem}
               onPress={() => setOnlyDirect(!onlyDirect)}
             >
               <View
-                style={[styles.miniCheck, onlyDirect && styles.miniCheckOn]}
+                style={[styles.miniCheck, onlyDirect && styles.miniCheckOn, isDark && !onlyDirect && { backgroundColor: '#1C1C1E', borderColor: '#333' }]}
               >
                 {onlyDirect && (
                   <IconSymbol name="checkmark" size={10} color="#fff" />
                 )}
               </View>
-              <Text style={styles.filterLabel}>{t("common.directOnly")}</Text>
+              <Text style={[styles.filterLabel, isDark && { color: '#E2E8F0' }]}>{t("common.directOnly")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
-              style={styles.calendarTrigger}
+              style={[styles.calendarTrigger, isDark && { backgroundColor: '#1C1C1E' }]}
             >
               <IconSymbol name="calendar" size={20} color="#EA580C" />
               <Text style={styles.scheduleTypeText}>
@@ -578,7 +584,7 @@ export function FerrySchedule() {
       />
 
       {/* Body */}
-      <View style={styles.bodyWrapper}>
+      <View style={[styles.bodyWrapper, isDark && { backgroundColor: '#000000' }]}>
         <AnimatedRE.ScrollView
           ref={mainScrollRef}
           contentContainerStyle={styles.scrollBody}
@@ -594,10 +600,10 @@ export function FerrySchedule() {
           ) : destination === "Unselected" ? (
             <View style={styles.empty}>
               <IconSymbol name="ferry" size={48} color="#EA580C" />
-              <Text style={styles.emptyTitle}>
+              <Text style={[styles.emptyTitle, isDark && { color: '#FFFFFF' }]}>
                 {i18n.language === "tr" ? "Sefer Seç" : "Select Trip"}
               </Text>
-              <Text style={styles.emptySub}>
+              <Text style={[styles.emptySub, isDark && { color: '#94A3B8' }]}>
                 {i18n.language === "tr"
                   ? "Nereye gitmek istersin?"
                   : "Where would you like to go?"}
@@ -610,8 +616,8 @@ export function FerrySchedule() {
                 size={48}
                 color="#CBD5E1"
               />
-              <Text style={styles.emptyTitle}>{t("common.noDepartures")}</Text>
-              <Text style={styles.emptySub}>
+              <Text style={[styles.emptyTitle, isDark && { color: '#FFFFFF' }]}>{t("common.noDepartures")}</Text>
+              <Text style={[styles.emptySub, isDark && { color: '#94A3B8' }]}>
                 {i18n.language === "tr"
                   ? "Bu tarih için sefer kalmadı."
                   : "No trips left for this date."}
@@ -724,9 +730,17 @@ export function FerrySchedule() {
 }
 
 function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <TouchableOpacity
-      style={[styles.card, isNext && styles.cardNext, isPast && { opacity: 0.45 }]}
+      style={[
+        styles.card,
+        isDark && { backgroundColor: '#121212', borderColor: '#222222', borderWidth: 1 },
+        isNext && (isDark ? { backgroundColor: '#1E120A', borderColor: '#EA580C', borderWidth: 1.5 } : styles.cardNext),
+        isPast && { opacity: 0.45 }
+      ]}
       onPress={onPress}
     >
       {isNext && (
@@ -736,13 +750,13 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
       )}
       <View style={styles.cardContent}>
         <View style={styles.timeGroup}>
-          <Text style={styles.timeMain} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{item.departureTime}</Text>
+          <Text style={[styles.timeMain, isDark && { color: '#FFFFFF' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{item.departureTime}</Text>
           <View style={styles.timeLine}>
-            <View style={styles.tDot} />
-            <View style={styles.tBar} />
-            <View style={styles.tDot} />
+            <View style={[styles.tDot, isDark && { backgroundColor: '#475569' }]} />
+            <View style={[styles.tBar, isDark && { backgroundColor: '#334155' }]} />
+            <View style={[styles.tDot, isDark && { backgroundColor: '#475569' }]} />
           </View>
-          <Text style={styles.timeArrive}>{item.arrivalTime || "--:--"}</Text>
+          <Text style={[styles.timeArrive, isDark && { color: '#94A3B8' }]}>{item.arrivalTime || "--:--"}</Text>
         </View>
         <View style={styles.infoGroup}>
           <View style={{ flexDirection: "row", gap: 6, marginBottom: 6 }}>
@@ -751,7 +765,7 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
                 styles.typeBadge,
                 {
                   backgroundColor:
-                    item.type === "Vapur" ? "#FFF7ED" : "#F0F9FF",
+                    item.type === "Vapur" ? (isDark ? "#2E1505" : "#FFF7ED") : (isDark ? "#051A2E" : "#F0F9FF"),
                   marginBottom: 0,
                 },
               ]}
@@ -776,7 +790,7 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
               style={[
                 styles.typeBadge,
                 {
-                  backgroundColor: item.isDirect ? "#ECFDF5" : "#F5F3FF",
+                  backgroundColor: item.isDirect ? (isDark ? "#052E1B" : "#ECFDF5") : (isDark ? "#1C152E" : "#F5F3FF"),
                   marginBottom: 0,
                 },
               ]}
@@ -800,15 +814,15 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
               </Text>
             </View>
           </View>
-          <Text style={styles.portLabel}>
+          <Text style={[styles.portLabel, isDark && { color: '#F1F5F9' }]}>
             {t("places." + item.departure, { defaultValue: item.departure })} →{" "}
             {t("places." + item.destination, {
               defaultValue: item.destination,
             })}
           </Text>
-          <Text style={styles.providerLabel}>{item.provider}</Text>
+          <Text style={[styles.providerLabel, isDark && { color: '#64748B' }]}>{item.provider}</Text>
         </View>
-        <IconSymbol name="chevron.right" size={16} color="#E2E8F0" />
+        <IconSymbol name="chevron.right" size={16} color={isDark ? "#475569" : "#E2E8F0"} />
       </View>
     </TouchableOpacity>
   );
@@ -822,6 +836,8 @@ function ScheduleDatePicker({
   isLiveMode,
   i18n,
 }: any) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const slideAnim = useRef(
     new Animated.Value(Dimensions.get("window").height),
   ).current;
@@ -855,14 +871,14 @@ function ScheduleDatePicker({
           onPress={handleClose}
         />
         <Animated.View
-          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
+          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }, isDark && { backgroundColor: '#121212', borderColor: '#222222', borderWidth: 1 }]}
         >
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>
+            <Text style={[styles.sheetTitle, isDark && { color: '#FFFFFF' }]}>
               {i18n.language === "tr" ? "Tarife Seçimi" : "Select Schedule"}
             </Text>
             <TouchableOpacity onPress={handleClose}>
-              <IconSymbol name="xmark.circle.fill" size={28} color="#F1F5F9" />
+              <IconSymbol name="xmark.circle.fill" size={28} color={isDark ? "#475569" : "#F1F5F9"} />
             </TouchableOpacity>
           </View>
 
@@ -873,6 +889,10 @@ function ScheduleDatePicker({
                 selectedDate.toDateString() === new Date().toDateString() &&
                   isLiveMode &&
                   styles.scheduleOptionActive,
+                isDark && {
+                  backgroundColor: (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) ? '#2E1505' : '#1C1C1E',
+                  borderColor: (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) ? '#EA580C' : '#2C2C2E',
+                },
               ]}
               onPress={() => {
                 onSelect("today");
@@ -880,15 +900,15 @@ function ScheduleDatePicker({
               }}
             >
               <View
-                style={[styles.optionIconBox, { backgroundColor: "#ECFDF5" }]}
+                style={[styles.optionIconBox, { backgroundColor: isDark ? '#052E1B' : '#ECFDF5' }]}
               >
                 <IconSymbol name="clock.fill" size={20} color="#059669" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.optionTitle}>
+                <Text style={[styles.optionTitle, isDark && { color: '#FFFFFF' }]}>
                   {i18n.language === "tr" ? "Bugün" : "Today"}
                 </Text>
-                <Text style={styles.optionSub}>
+                <Text style={[styles.optionSub, isDark && { color: '#94A3B8' }]}>
                   {i18n.language === "tr"
                     ? "Şu anki saatten itibaren kalkacak tüm seferler"
                     : "All departures from the current time onwards"}
@@ -910,6 +930,10 @@ function ScheduleDatePicker({
                 selectedDate.getDay() !== 0 &&
                   !isLiveMode &&
                   styles.scheduleOptionActive,
+                isDark && {
+                  backgroundColor: (selectedDate.getDay() !== 0 && !isLiveMode) ? '#051A2E' : '#1C1C1E',
+                  borderColor: (selectedDate.getDay() !== 0 && !isLiveMode) ? '#0284C7' : '#2C2C2E',
+                },
               ]}
               onPress={() => {
                 onSelect("weekday");
@@ -917,17 +941,17 @@ function ScheduleDatePicker({
               }}
             >
               <View
-                style={[styles.optionIconBox, { backgroundColor: "#F0F9FF" }]}
+                style={[styles.optionIconBox, { backgroundColor: isDark ? '#051A2E' : '#F0F9FF' }]}
               >
                 <IconSymbol name="briefcase.fill" size={20} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.optionTitle}>
+                <Text style={[styles.optionTitle, isDark && { color: '#FFFFFF' }]}>
                   {i18n.language === "tr"
                     ? "Haftaiçi ve Cumartesi"
                     : "Weekdays & Saturday"}
                 </Text>
-                <Text style={styles.optionSub}>
+                <Text style={[styles.optionSub, isDark && { color: '#94A3B8' }]}>
                   {i18n.language === "tr"
                     ? "Ek seferler hariç genel tarife"
                     : "General schedule excluding extra trips"}
@@ -937,7 +961,7 @@ function ScheduleDatePicker({
                 <IconSymbol
                   name="checkmark.circle.fill"
                   size={24}
-                  color="#EA580C"
+                  color="#0284C7"
                 />
               )}
             </TouchableOpacity>
@@ -948,34 +972,42 @@ function ScheduleDatePicker({
                 selectedDate.getDay() === 0 &&
                   !isLiveMode &&
                   styles.scheduleOptionActive,
+                isDark && {
+                  backgroundColor: (selectedDate.getDay() === 0 && !isLiveMode) ? '#1C152E' : '#1C1C1E',
+                  borderColor: (selectedDate.getDay() === 0 && !isLiveMode) ? '#7C3AED' : '#2C2C2E',
+                },
               ]}
               onPress={() => {
-                onSelect("holiday");
+                onSelect("sunday");
                 handleClose();
               }}
             >
               <View
-                style={[styles.optionIconBox, { backgroundColor: "#FFF7ED" }]}
+                style={[styles.optionIconBox, { backgroundColor: isDark ? '#1C152E' : '#F5F3FF' }]}
               >
-                <IconSymbol name="sun.max.fill" size={20} color="#EA580C" />
+                <IconSymbol
+                  name="sun.max.fill"
+                  size={20}
+                  color="#7C3AED"
+                />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.optionTitle}>
+                <Text style={[styles.optionTitle, isDark && { color: '#FFFFFF' }]}>
                   {i18n.language === "tr"
-                    ? "Pazar ve Tatil Günleri"
-                    : "Sunday & Public Holidays"}
+                    ? "Pazar ve Resmi Tatiller"
+                    : "Sunday & Holidays"}
                 </Text>
-                <Text style={styles.optionSub}>
+                <Text style={[styles.optionSub, isDark && { color: '#94A3B8' }]}>
                   {i18n.language === "tr"
-                    ? "Tüm gün geçerli pazar tarifesi"
-                    : "Full Sunday schedule for all day"}
+                    ? "Pazar günleri uygulanan özel tarife"
+                    : "Special schedule applied on Sundays"}
                 </Text>
               </View>
               {selectedDate.getDay() === 0 && !isLiveMode && (
                 <IconSymbol
                   name="checkmark.circle.fill"
                   size={24}
-                  color="#EA580C"
+                  color="#7C3AED"
                 />
               )}
             </TouchableOpacity>
@@ -995,6 +1027,8 @@ function LocationPicker({
   title,
   t,
 }: any) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const slideAnim = useRef(
     new Animated.Value(Dimensions.get("window").height),
   ).current;
@@ -1028,12 +1062,12 @@ function LocationPicker({
           onPress={handleClose}
         />
         <Animated.View
-          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
+          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }, isDark && { backgroundColor: '#121212', borderColor: '#222222', borderWidth: 1 }]}
         >
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{title}</Text>
+            <Text style={[styles.sheetTitle, isDark && { color: '#FFFFFF' }]}>{title}</Text>
             <TouchableOpacity onPress={handleClose}>
-              <IconSymbol name="xmark.circle.fill" size={28} color="#F1F5F9" />
+              <IconSymbol name="xmark.circle.fill" size={28} color={isDark ? "#475569" : "#F1F5F9"} />
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -1042,7 +1076,7 @@ function LocationPicker({
           >
             <View style={styles.sheetSectionHeader}>
               <View
-                style={[styles.sectionIconBox, { backgroundColor: "#FFF7ED" }]}
+                style={[styles.sectionIconBox, { backgroundColor: isDark ? '#2E1505' : '#FFF7ED' }]}
               >
                 <IconSymbol
                   name="beach.umbrella.fill"
@@ -1065,6 +1099,10 @@ function LocationPicker({
                       styles.islandGridItem,
                       selected === l && styles.islandGridItemActive,
                       isDisabled && styles.locationDisabled,
+                      isDark && {
+                        backgroundColor: selected === l ? '#2E1505' : '#1C1C1E',
+                        borderColor: selected === l ? '#EA580C' : '#2C2C2E',
+                      },
                     ]}
                     onPress={() => {
                       onSelect(l);
@@ -1076,6 +1114,7 @@ function LocationPicker({
                         styles.islandGridText,
                         selected === l && styles.islandGridTextOn,
                         isDisabled && styles.locationDisabledText,
+                        isDark && { color: selected === l ? '#EA580C' : '#FFFFFF' },
                       ]}
                     >
                       {t("places." + l, { defaultValue: l })}
@@ -1095,7 +1134,7 @@ function LocationPicker({
 
             <View style={[styles.sheetSectionHeader, { marginTop: 32 }]}>
               <View
-                style={[styles.sectionIconBox, { backgroundColor: "#F0F9FF" }]}
+                style={[styles.sectionIconBox, { backgroundColor: isDark ? '#051A2E' : '#F0F9FF' }]}
               >
                 <IconSymbol name="building.2.fill" size={18} color="#0284C7" />
               </View>
@@ -1114,6 +1153,10 @@ function LocationPicker({
                       styles.mainlandListItem,
                       selected === l && styles.mainlandListItemActive,
                       isDisabled && styles.locationDisabled,
+                      isDark && {
+                        backgroundColor: selected === l ? '#051A2E' : '#1C1C1E',
+                        borderColor: selected === l ? '#0284C7' : '#2C2C2E',
+                      },
                     ]}
                     onPress={() => {
                       onSelect(l);
@@ -1125,6 +1168,7 @@ function LocationPicker({
                         styles.mainlandListText,
                         selected === l && styles.mainlandListTextOn,
                         isDisabled && styles.locationDisabledText,
+                        isDark && { color: selected === l ? '#0284C7' : '#FFFFFF' },
                       ]}
                     >
                       {t("places." + l, { defaultValue: l })}
@@ -1156,6 +1200,8 @@ function TripDetailPopup({
   t,
   selectedDate,
 }: any) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [showAlarmOptions, setShowAlarmOptions] = useState(false);
   const [alarmSet, setAlarmSet] = useState<number | null>(null);
 
@@ -1320,14 +1366,14 @@ function TripDetailPopup({
         activeOpacity={1}
         onPress={onClose}
       >
-        <TouchableOpacity activeOpacity={1} style={styles.popup}>
+        <TouchableOpacity activeOpacity={1} style={[styles.popup, isDark && { backgroundColor: '#121212', borderColor: '#222222', borderWidth: 1 }]}>
           <View style={styles.popupTop}>
             <View
               style={[
                 styles.popupIcon,
                 {
                   backgroundColor:
-                    trip.type === "Vapur" ? "#FFF7ED" : "#F0F9FF",
+                    trip.type === "Vapur" ? (isDark ? "#2E1505" : "#FFF7ED") : (isDark ? "#051A2E" : "#F0F9FF"),
                 },
               ]}
             >
@@ -1338,7 +1384,7 @@ function TripDetailPopup({
               />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.popupTitle}>
+              <Text style={[styles.popupTitle, isDark && { color: '#FFFFFF' }]}>
                 {t("places." + trip.departure, {
                   defaultValue: trip.departure,
                 })}{" "}
@@ -1347,35 +1393,35 @@ function TripDetailPopup({
                   defaultValue: trip.destination,
                 })}
               </Text>
-              <Text style={styles.popupSub}>{trip.provider}</Text>
+              <Text style={[styles.popupSub, isDark && { color: '#94A3B8' }]}>{trip.provider}</Text>
             </View>
             <TouchableOpacity 
               onPress={onClose} 
-              style={{ position: 'absolute', right: -12, top: -4, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 14 }}
+              style={[{ position: 'absolute', right: -12, top: -4, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 14 }, isDark && { backgroundColor: '#1C1C1E' }]}
             >
-              <IconSymbol name="xmark" size={16} color="#64748B" />
+              <IconSymbol name="xmark" size={16} color={isDark ? "#94A3B8" : "#64748B"} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.popupTimes}>
+          <View style={[styles.popupTimes, isDark && { backgroundColor: '#18181B' }]}>
             <View style={styles.pTimeCol}>
-              <Text style={styles.pTimeLab}>
+              <Text style={[styles.pTimeLab, isDark && { color: '#94A3B8' }]}>
                 {i18n.language === "tr" ? "KALKIŞ" : "DEPARTURE"}
               </Text>
-              <Text style={styles.pTimeVal}>{trip.departureTime}</Text>
+              <Text style={[styles.pTimeVal, isDark && { color: '#FFFFFF' }]}>{trip.departureTime}</Text>
             </View>
             <IconSymbol name="arrow.right" size={20} color="#EA580C" />
             <View style={styles.pTimeCol}>
-              <Text style={styles.pTimeLab}>
+              <Text style={[styles.pTimeLab, isDark && { color: '#94A3B8' }]}>
                 {i18n.language === "tr" ? "VARIŞ" : "ARRIVAL"}
               </Text>
-              <Text style={styles.pTimeVal}>{trip.arrivalTime || "--:--"}</Text>
+              <Text style={[styles.pTimeVal, isDark && { color: '#FFFFFF' }]}>{trip.arrivalTime || "--:--"}</Text>
             </View>
           </View>
 
           {timeline.length > 0 && (
             <View style={styles.viaSection}>
-              <Text style={styles.viaTitle}>
+              <Text style={[styles.viaTitle, isDark && { color: '#94A3B8' }]}>
                 {i18n.language === "tr" ? "GÜZERGAH" : "ROUTE"}
               </Text>
               <View style={styles.timelineList}>
@@ -1387,11 +1433,11 @@ function TripDetailPopup({
                         { backgroundColor: "#3B82F6" },
                       ]}
                     />
-                    <View style={styles.timelineLine} />
+                    <View style={[styles.timelineLine, isDark && { backgroundColor: '#334155' }]} />
                   </View>
                   <View style={styles.timelineContent}>
                     <Text
-                      style={[styles.timelineStop, { fontWeight: "800" }]}
+                      style={[styles.timelineStop, { fontWeight: "800" }, isDark && { color: '#FFFFFF' }]}
                       numberOfLines={1}
                     >
                       {t("places." + trip.departure, {
@@ -1399,7 +1445,7 @@ function TripDetailPopup({
                       })}
                     </Text>
                     <Text
-                      style={[styles.timelineTime, { fontWeight: "800" }]}
+                      style={[styles.timelineTime, { fontWeight: "800" }, isDark && { color: '#94A3B8' }]}
                       numberOfLines={1}
                     >
                       {trip.departureTime}
@@ -1411,15 +1457,15 @@ function TripDetailPopup({
                   <View key={idx} style={styles.timelineItem}>
                     <View style={styles.timelineDotLine}>
                       <View style={styles.timelineDot} />
-                      <View style={styles.timelineLine} />
+                      <View style={[styles.timelineLine, isDark && { backgroundColor: '#334155' }]} />
                     </View>
                     <View style={styles.timelineContent}>
-                      <Text style={styles.timelineStop} numberOfLines={1}>
+                      <Text style={[styles.timelineStop, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>
                         {t("places." + tline.stop, {
                           defaultValue: tline.stop,
                         })}
                       </Text>
-                      <Text style={styles.timelineTime} numberOfLines={1}>
+                      <Text style={[styles.timelineTime, isDark && { color: '#94A3B8' }]} numberOfLines={1}>
                         {tline.time}
                       </Text>
                     </View>
@@ -1436,7 +1482,7 @@ function TripDetailPopup({
                   </View>
                   <View style={styles.timelineContent}>
                     <Text
-                      style={[styles.timelineStop, { fontWeight: "800" }]}
+                      style={[styles.timelineStop, { fontWeight: "800" }, isDark && { color: '#FFFFFF' }]}
                       numberOfLines={1}
                     >
                       {t("places." + trip.destination, {
@@ -1444,7 +1490,7 @@ function TripDetailPopup({
                       })}
                     </Text>
                     <Text
-                      style={[styles.timelineTime, { fontWeight: "800" }]}
+                      style={[styles.timelineTime, { fontWeight: "800" }, isDark && { color: '#94A3B8' }]}
                       numberOfLines={1}
                     >
                       {trip.arrivalTime}

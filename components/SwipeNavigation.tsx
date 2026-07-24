@@ -4,6 +4,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { useTheme } from '@/context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -16,6 +17,8 @@ interface Props {
 
 export function SwipeNavigation({ children, leftRoute, rightRoute, downRoute }: Props) {
   const router = useRouter();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const navigateTo = (route: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -39,7 +42,7 @@ export function SwipeNavigation({ children, leftRoute, rightRoute, downRoute }: 
 
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={styles.container}>
+      <Animated.View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
         {children}
       </Animated.View>
     </GestureDetector>
@@ -49,6 +52,6 @@ export function SwipeNavigation({ children, leftRoute, rightRoute, downRoute }: 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // Arka planın saydam görünmemesi için
+    backgroundColor: '#fff',
   },
 });

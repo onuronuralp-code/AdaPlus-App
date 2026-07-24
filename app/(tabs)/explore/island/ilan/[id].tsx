@@ -23,6 +23,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/context/ThemeContext';
 import { resolveImageUrl } from '@/services/config';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -43,6 +44,8 @@ export default function IlanDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   
   const [listing, setListing] = React.useState<ListingDto | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -108,17 +111,17 @@ export default function IlanDetailScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       {/* Header Overlay */}
       <View style={[styles.headerActions, { top: insets.top + 10 }]}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => {
+        <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} onPress={() => {
           if (router.canGoBack()) router.back();
           else router.replace('/(tabs)/explore/island/ilanlar');
         }}>
-          <IconSymbol name="chevron.left" size={28} color="#1E293B" />
+          <IconSymbol name="chevron.left" size={28} color={isDark ? "#FFFFFF" : "#1E293B"} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconButton} onPress={async () => {
+        <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} onPress={async () => {
           try {
             await Share.share({
               message: `${listing.title}\n\n${listing.description}\n\nAdaPlus'ta incele!`,
@@ -127,14 +130,14 @@ export default function IlanDetailScreen() {
             console.log('Share error:', error);
           }
         }}>
-          <IconSymbol name="square.and.arrow.up" size={24} color="#1E293B" />
+          <IconSymbol name="square.and.arrow.up" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
         </TouchableOpacity>
       </View>
 
       {/* Hero Section / Image Placeholder (Fixed) */}
-      <View style={styles.imagePlaceholder}>
+      <View style={[styles.imagePlaceholder, isDark && { backgroundColor: '#121212' }]}>
         <LinearGradient
-          colors={[cfg.bg, '#fff']}
+          colors={isDark ? ['#1C1C1E', '#000000'] : [cfg.bg, '#fff']}
           style={StyleSheet.absoluteFill}
         />
         {listing.imageUrls && listing.imageUrls.length > 0 ? (
@@ -150,7 +153,7 @@ export default function IlanDetailScreen() {
               }}
             >
               {listing.imageUrls.map((url, idx) => (
-                <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%', backgroundColor: '#F8FAFC' }} resizeMode="cover" />
+                <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%', backgroundColor: isDark ? '#121212' : '#F8FAFC' }} resizeMode="cover" />
               ))}
             </ScrollView>
             
@@ -163,43 +166,43 @@ export default function IlanDetailScreen() {
             )}
           </>
         ) : listing.imageUrl ? (
-          <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={[StyleSheet.absoluteFill, { backgroundColor: '#F8FAFC' }]} resizeMode="cover" />
+          <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]} resizeMode="cover" />
         ) : (
           <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />
         )}
       </View>
 
       <ScrollView style={{ flex: 1, marginTop: 0 }} showsVerticalScrollIndicator={false} bounces={true} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
-        <View style={[styles.content, { marginTop: 0 }]}>
+        <View style={[styles.content, { marginTop: 0 }, isDark && { backgroundColor: '#000000' }]}>
           <View style={styles.categoryRow}>
-            <View style={[styles.categoryBadge, { backgroundColor: cfg.bg }]}>
+            <View style={[styles.categoryBadge, { backgroundColor: isDark ? '#1C1C1E' : cfg.bg }]}>
               <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
             </View>
-            <Text style={styles.timeText}>{timeAgo}</Text>
+            <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
           </View>
 
-          <Text style={styles.title}>{listing.title}</Text>
+          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{listing.title}</Text>
           {listing.price > 0 && (
             <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 8 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
             </View>
           )}
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
-          <Text style={styles.sectionTitle}>{t('ilanlar.descriptionLabel', { defaultValue: 'Açıklama' })}</Text>
-          <Text style={styles.description}>{listing.description}</Text>
+          <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }]}>{t('ilanlar.descriptionLabel', { defaultValue: 'Açıklama' })}</Text>
+          <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>{listing.description}</Text>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <View style={styles.infoIcon}>
-                <IconSymbol name="mappin.and.ellipse" size={16} color="#64748B" />
+              <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
+                <IconSymbol name="mappin.and.ellipse" size={16} color={isDark ? "#94A3B8" : "#64748B"} />
               </View>
               <View>
-                <Text style={styles.infoLabel}>{t('ilanlar.locationLabel', { defaultValue: 'KONUM' })}</Text>
-                <Text style={styles.infoValue}>{listing.island}</Text>
+                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.locationLabel', { defaultValue: 'KONUM' })}</Text>
+                <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{listing.island}</Text>
               </View>
             </View>
 
@@ -227,16 +230,16 @@ export default function IlanDetailScreen() {
                 }
               }}
             >
-              <View style={[styles.infoIcon, listing.contactInfo && { backgroundColor: '#ECFDF5' }]}>
+              <View style={[styles.infoIcon, isDark ? { backgroundColor: '#064E3B' } : (listing.contactInfo && { backgroundColor: '#ECFDF5' })]}>
                 <IconSymbol 
                   name={listing.contactInfo?.includes('@') ? "envelope.fill" : "phone.fill"} 
                   size={16} 
-                  color={listing.contactInfo ? '#10B981' : '#64748B'} 
+                  color={listing.contactInfo ? (isDark ? '#34D399' : '#10B981') : '#64748B'} 
                 />
               </View>
               <View>
-                <Text style={styles.infoLabel}>{t('ilanlar.contactLabel', { defaultValue: 'İLETİŞİM' })}</Text>
-                <Text style={[styles.infoValue, listing.contactInfo && { color: '#10B981' }]}>
+                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.contactLabel', { defaultValue: 'İLETİŞİM' })}</Text>
+                <Text style={[styles.infoValue, listing.contactInfo && { color: isDark ? '#34D399' : '#10B981' }, isDark && !listing.contactInfo && { color: '#CBD5E1' }]}>
                   {listing.contactInfo || t('ilanlar.notShared', { defaultValue: 'Paylaşılmamış' })}
                 </Text>
               </View>
@@ -244,9 +247,9 @@ export default function IlanDetailScreen() {
           </View>
 
           {/* Safety Warning */}
-          <View style={styles.warningCard}>
+          <View style={[styles.warningCard, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
             <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#F59E0B" />
-            <Text style={styles.warningText}>
+            <Text style={[styles.warningText, isDark && { color: '#CBD5E1' }]}>
               {t('ilanlar.safetyWarning', { defaultValue: 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz. Oluşabilecek mağduriyetler AdaPlus sorumluluk alanının dışındadır.' })}
             </Text>
           </View>

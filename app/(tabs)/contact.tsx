@@ -5,6 +5,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { contactApi } from '@/services/contactApi';
 import { s, vs, ms } from '@/utils/scale';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
@@ -12,6 +13,8 @@ import { SwipeNavigation } from '@/components/SwipeNavigation';
 export default function ContactScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const { user } = useAuth();
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -84,9 +87,9 @@ export default function ContactScreen() {
 
   return (
     <SwipeNavigation leftRoute="/(tabs)/home" rightRoute="/(tabs)/profile">
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + vs(10) }]}>
-        <Text style={styles.headerTitle}>{t('common.tabRequests')}</Text>
+    <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
+      <View style={[styles.header, { paddingTop: insets.top + vs(10) }, isDark && { backgroundColor: '#000000' }]}>
+        <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.tabRequests')}</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -95,27 +98,27 @@ export default function ContactScreen() {
       >
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: vs(16) }]} keyboardShouldPersistTaps="handled" bounces={false}>
           {/* Separate Info Banner Component */}
-          <View style={styles.infoBanner}>
-            <View style={styles.infoIconContainer}>
+          <View style={[styles.infoBanner, isDark && { backgroundColor: '#121212', borderColor: '#222222' }]}>
+            <View style={[styles.infoIconContainer, isDark && { backgroundColor: '#1C1C1E' }]}>
               <IconSymbol name="info.circle.fill" size={ms(18)} color="#10B981" />
             </View>
-            <Text style={styles.infoBannerText}>
+            <Text style={[styles.infoBannerText, isDark && { color: '#94A3B8' }]}>
               {t('common.contactSubtitle')}
             </Text>
           </View>
 
           {/* Main Contact Card */}
-          <View style={styles.formCard}>
+          <View style={[styles.formCard, isDark && { backgroundColor: '#121212', borderColor: '#222222' }]}>
 
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{t('common.fullName')}</Text>
-              <View style={[styles.inputWrapper, errors.fullName ? styles.inputWrapperError : null]}>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('common.fullName')}</Text>
+              <View style={[styles.inputWrapper, errors.fullName ? styles.inputWrapperError : null, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
                 <IconSymbol name="person.fill" size={ms(18)} color={errors.fullName ? '#EF4444' : '#94A3B8'} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isDark && { color: '#FFFFFF' }]}
                   placeholder={t('common.fullNamePlaceholder')}
-                  placeholderTextColor="#CBD5E1"
+                  placeholderTextColor={isDark ? "#64748B" : "#CBD5E1"}
                   value={fullName}
                   onChangeText={handleNameChange}
                   onBlur={handleNameBlur}
@@ -130,13 +133,13 @@ export default function ContactScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{t('common.email')}</Text>
-              <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('common.email')}</Text>
+              <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
                 <IconSymbol name="envelope.fill" size={ms(18)} color={errors.email ? '#EF4444' : '#94A3B8'} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isDark && { color: '#FFFFFF' }]}
                   placeholder={t('common.emailPlaceholder')}
-                  placeholderTextColor="#CBD5E1"
+                  placeholderTextColor={isDark ? "#64748B" : "#CBD5E1"}
                   value={email}
                   onChangeText={handleEmailChange}
                   onBlur={handleEmailBlur}
@@ -153,12 +156,12 @@ export default function ContactScreen() {
             </View>
 
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.inputLabel}>{t('common.message')}</Text>
-              <View style={[styles.inputWrapper, styles.textAreaWrapper, errors.message ? styles.inputWrapperError : null, { flex: 1 }]}>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('common.message')}</Text>
+              <View style={[styles.inputWrapper, styles.textAreaWrapper, errors.message ? styles.inputWrapperError : null, { flex: 1 }, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
                 <TextInput
-                  style={[styles.input, styles.textArea, { flex: 1 }]}
+                  style={[styles.input, styles.textArea, { flex: 1 }, isDark && { color: '#FFFFFF' }]}
                   placeholder={t('common.messagePlaceholder')}
-                  placeholderTextColor="#CBD5E1"
+                  placeholderTextColor={isDark ? "#64748B" : "#CBD5E1"}
                   value={message}
                   onChangeText={setMessage}
                   multiline

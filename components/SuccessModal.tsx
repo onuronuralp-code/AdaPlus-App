@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useTheme } from '@/context/ThemeContext';
 
 interface SuccessModalProps {
     visible: boolean;
@@ -11,6 +12,9 @@ interface SuccessModalProps {
 }
 
 export default function SuccessModal({ visible, onClose, title, message, buttonText }: SuccessModalProps) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
     return (
         <Modal
             visible={visible}
@@ -20,12 +24,12 @@ export default function SuccessModal({ visible, onClose, title, message, buttonT
             onRequestClose={onClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.card}>
-                    <View style={styles.iconCircle}>
-                        <IconSymbol name="checkmark.circle.fill" size={28} color="#10B981" />
+                <View style={[styles.card, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                    <View style={[styles.iconCircle, isDark && { backgroundColor: '#064E3B' }]}>
+                        <IconSymbol name="checkmark.circle.fill" size={28} color={isDark ? "#34D399" : "#10B981"} />
                     </View>
-                    <Text style={styles.title}>{title || 'Başarılı'}</Text>
-                    <Text style={styles.message}>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{title || 'Başarılı'}</Text>
+                    <Text style={[styles.message, isDark && { color: '#CBD5E1' }]}>
                         {message || 'İşleminiz başarıyla alındı.'}
                     </Text>
                     <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>

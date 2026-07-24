@@ -16,6 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import i18n from '@/utils/i18n';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { API_BASE_URL, fetchWithTimeout, resolveImageUrl } from '@/services/config';
 import { getToken } from '@/utils/tokenStorage';
 import { authApi } from '@/services/authApi';
@@ -39,6 +40,8 @@ export default function ProfileScreen() {
     const insets = useSafeAreaInsets();
     const router = useRouter();
     const { logout, user, isLoggedIn } = useAuth();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [replies, setReplies] = useState<PostDto[]>([]);
@@ -245,7 +248,7 @@ export default function ProfileScreen() {
     };
 
     const renderEmpty = (icon: string, title: string, subtitle: string, color?: string) => (
-        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
             <EmptyState 
                 icon={icon} 
                 title={title} 
@@ -277,21 +280,21 @@ export default function ProfileScreen() {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
         if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
         return (
-            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {posts.map(post => (
                     <Swipeable key={post.id} renderRightActions={renderPostActions(post, false)} overshootRight={false}>
-                    <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
+                    <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}>
                         {editingPostId === post.id ? (
                             <View style={{ flex: 1 }}>
                                 <TextInput
-                                    style={styles.editInput}
+                                    style={[styles.editInput, isDark && { color: '#FFFFFF', backgroundColor: '#1A1A1A' }]}
                                     value={editingContent}
                                     onChangeText={setEditingContent}
                                     multiline
                                 />
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
                                     <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
-                                        <Text style={{ color: '#64748B' }}>{t('common.cancel')}</Text>
+                                        <Text style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{t('common.cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
                                         {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>{t('common.saveAction')}</Text>}
@@ -300,9 +303,9 @@ export default function ProfileScreen() {
                             </View>
                         ) : (
                             <View>
-                                <Text style={[styles.postContent, { marginBottom: 12 }]}>{post.content}</Text>
+                                <Text style={[styles.postContent, { marginBottom: 12 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                                    <Text style={[styles.postTime, isDark && { color: '#64748B' }]}>{timeAgo(post.createdAt)}</Text>
                                 </View>
                             </View>
                         )}
@@ -317,25 +320,25 @@ export default function ProfileScreen() {
         if (loadingReplies) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B5CF6" /></View>;
         if (replies.length === 0) return renderEmpty('arrow.uturn.left.circle.fill', t('profile.emptyRepliesTitle', { defaultValue: 'Yanıt Yok' }), t('profile.emptyRepliesDesc', { defaultValue: 'Paylaşımlara yorum yaparak etkileşime geç!' }), '#8B5CF6');
         return (
-            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {replies.map(reply => (
                     <Swipeable key={reply.id} renderRightActions={renderPostActions(reply, true)} overshootRight={false}>
-                    <View style={[styles.postCard, { backgroundColor: '#fff' }]}>
+                    <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}>
                         <View style={styles.replyHeader}>
-                            <IconSymbol name="arrow.uturn.left" size={12} color="#64748B" />
-                            <Text style={styles.replyContext}>Gönderiye yanıt olarak:</Text>
+                            <IconSymbol name="arrow.uturn.left" size={12} color={isDark ? '#94A3B8' : '#64748B'} />
+                            <Text style={[styles.replyContext, isDark && { color: '#94A3B8' }]}>Gönderiye yanıt olarak:</Text>
                         </View>
                         {editingPostId === reply.id ? (
                             <View style={{ flex: 1 }}>
                                 <TextInput
-                                    style={styles.editInput}
+                                    style={[styles.editInput, isDark && { color: '#FFFFFF', backgroundColor: '#1A1A1A' }]}
                                     value={editingContent}
                                     onChangeText={setEditingContent}
                                     multiline
                                 />
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
                                     <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
-                                        <Text style={{ color: '#64748B' }}>{t('common.cancel')}</Text>
+                                        <Text style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{t('common.cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => handleSaveEdit(reply.id, true)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
                                         {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>{t('common.saveAction')}</Text>}
@@ -344,9 +347,9 @@ export default function ProfileScreen() {
                             </View>
                         ) : (
                             <View>
-                                <Text style={[styles.postContent, { marginBottom: 12 }]}>{reply.content}</Text>
+                                <Text style={[styles.postContent, { marginBottom: 12 }, isDark && { color: '#E2E8F0' }]}>{reply.content}</Text>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text style={styles.postTime}>{timeAgo(reply.createdAt)}</Text>
+                                    <Text style={[styles.postTime, isDark && { color: '#64748B' }]}>{timeAgo(reply.createdAt)}</Text>
                                 </View>
                             </View>
                         )}
@@ -370,13 +373,17 @@ export default function ProfileScreen() {
         if (loadingNotifications) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F43F5E" /></View>;
         if (notifications.length === 0) return renderEmpty('bell.fill', t('profile.emptyNotificationsTitle', { defaultValue: 'Bildirim Yok' }), t('profile.emptyNotificationsDesc', { defaultValue: 'Etkinlik onayları ve gönderi yanıtları burada görünecek.' }), '#EF4444');
         return (
-            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {notifications.map(notif => {
                     const { name, color, bg } = getNotifIcon(notif.type);
                     return (
                         <TouchableOpacity
                             key={notif.id}
-                            style={[styles.notifCard, !notif.read && styles.notifCardUnread]}
+                            style={[
+                                styles.notifCard, 
+                                !notif.read && (isDark ? { backgroundColor: '#121212' } : styles.notifCardUnread), 
+                                isDark && { backgroundColor: notif.read ? '#000000' : '#121212', borderBottomColor: '#1A1A1A' }
+                            ]}
                             activeOpacity={0.7}
                             onPress={() => {
                                 if (!notif.read) {
@@ -387,13 +394,13 @@ export default function ProfileScreen() {
                                 }
                             }}
                         >
-                            <View style={[styles.notifIcon, { backgroundColor: bg }]}>
+                            <View style={[styles.notifIcon, { backgroundColor: isDark ? '#1A1A2E' : bg }]}>
                                 <IconSymbol name={name as any} size={16} color={color} />
                             </View>
                             <View style={styles.notifBody}>
-                                <Text style={styles.notifTitle}>{notif.title}</Text>
-                                <Text style={styles.notifContent} numberOfLines={2}>{notif.body}</Text>
-                                <Text style={styles.postTime}>{timeAgo(notif.createdAt)}</Text>
+                                <Text style={[styles.notifTitle, isDark && { color: '#FFFFFF' }]}>{notif.title}</Text>
+                                <Text style={[styles.notifContent, isDark && { color: '#94A3B8' }]} numberOfLines={2}>{notif.body}</Text>
+                                <Text style={[styles.postTime, isDark && { color: '#64748B' }]}>{timeAgo(notif.createdAt)}</Text>
                             </View>
                             {!notif.read && <View style={[styles.notifDot, { backgroundColor: color }]} />}
                         </TouchableOpacity>
@@ -427,36 +434,36 @@ export default function ProfileScreen() {
         if (loadingListings) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#F59E0B" /></View>;
         if (listings.length === 0) return renderEmpty('tag.fill', t('profile.emptyListingsTitle', { defaultValue: 'İlan Yok' }), t('profile.emptyListingsDesc', { defaultValue: 'İlanınızı oluşturmak için İlanlar sayfasını ziyaret edin.' }), '#F59E0B');
         return (
-            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {listings.map(listing => (
                     <Swipeable key={listing.id} renderRightActions={renderListingActions(listing)} overshootRight={false}>
                     <TouchableOpacity 
-                        style={[styles.listingCard, { backgroundColor: '#fff', alignItems: 'flex-start' }]}
+                        style={[styles.listingCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9', alignItems: 'flex-start' }]}
                         activeOpacity={0.7}
                         onPress={() => router.push(`/(tabs)/explore/island/ilan/${listing.id}`)}
                     >
                         {listing.imageUrl ? (
                             <Image 
                                 source={{ uri: resolveImageUrl(listing.imageUrl) }} 
-                                style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9' }} 
+                                style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: isDark ? '#1A1A1A' : '#F1F5F9' }} 
                                 resizeMode="cover" 
                             />
                         ) : (
-                            <View style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: isDark ? '#1A1A1A' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                                 <IconSymbol name="photo" size={24} color="#94A3B8" />
                             </View>
                         )}
                         <View style={styles.listingInfo}>
                             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
-                                <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }]} numberOfLines={2}>{listing.title}</Text>
+                                <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{listing.title}</Text>
                                 {listing.price > 0 && (
                                     <View style={[styles.priceTag, { marginLeft: 8 }]}>
                                         <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
                                     </View>
                                 )}
                             </View>
-                            <Text style={styles.listingDesc} numberOfLines={2}>{listing.description}</Text>
-                            <Text style={[styles.listingTime, { marginTop: 4 }]}>{timeAgo(listing.createdAt)}</Text>
+                            <Text style={[styles.listingDesc, isDark && { color: '#94A3B8' }]} numberOfLines={2}>{listing.description}</Text>
+                            <Text style={[styles.listingTime, { marginTop: 4 }, isDark && { color: '#64748B' }]}>{timeAgo(listing.createdAt)}</Text>
                         </View>
                     </TouchableOpacity>
                     </Swipeable>
@@ -487,25 +494,25 @@ export default function ProfileScreen() {
         if (loadingActivities) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#3B82F6" /></View>;
         if (activities.length === 0) return renderEmpty('calendar', t('profile.emptyActivitiesTitle', { defaultValue: 'Etkinlik Yok' }), t('profile.emptyActivitiesDesc', { defaultValue: 'Oluşturduğunuz etkinlikler burada görünecek.' }), '#3B82F6');
         return (
-            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {activities.map(activity => {
                     return (
                         <Swipeable key={activity.id} renderRightActions={renderEventActions(activity)} overshootRight={false}>
-                        <View style={[styles.postCard, { backgroundColor: '#fff', flexDirection: 'row', alignItems: 'flex-start' }]}>
+                        <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9', flexDirection: 'row', alignItems: 'flex-start' }]}>
                             {activity.imageUrl ? (
                                 <Image 
                                     source={{ uri: resolveImageUrl(activity.imageUrl) }} 
-                                    style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9' }} 
+                                    style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: isDark ? '#1A1A1A' : '#F1F5F9' }} 
                                     resizeMode="cover" 
                                 />
                             ) : (
-                                <View style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: isDark ? '#1A1A1A' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                                     <IconSymbol name="calendar" size={24} color="#94A3B8" />
                                 </View>
                             )}
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.listingTitle, { marginBottom: 4 }]} numberOfLines={2}>{activity.name}</Text>
-                                {activity.eventPlace ? <Text style={[styles.listingDesc, { marginBottom: 4 }]} numberOfLines={1}>{activity.eventPlace}</Text> : null}
+                                <Text style={[styles.listingTitle, { marginBottom: 4 }, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{activity.name}</Text>
+                                {activity.eventPlace ? <Text style={[styles.listingDesc, { marginBottom: 4 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>{activity.eventPlace}</Text> : null}
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                     <IconSymbol name="calendar" size={12} color="#3B82F6" />
                                     <Text style={[styles.listingTime, { color: '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>
@@ -525,19 +532,19 @@ export default function ProfileScreen() {
         if (loadingLikes) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#EC4899" /></View>;
         if (likedPosts.length === 0) return renderEmpty('heart.fill', t('profile.emptyLikesTitle', { defaultValue: 'Beğeni Yok' }), t('profile.emptyLikesDesc', { defaultValue: 'Beğendiğiniz paylaşımlar burada görünecek.' }), '#EC4899');
         return (
-            <ScrollView style={{ flex: 1, backgroundColor: '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                 {likedPosts.map(post => (
                     <View 
                         key={post.id} 
-                        style={styles.postCard}
+                        style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}
                     >
-                        <Text style={styles.postContent}>{post.content}</Text>
+                        <Text style={[styles.postContent, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
                         <View style={styles.postFooter}>
-                            <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
+                            <Text style={[styles.postTime, isDark && { color: '#64748B' }]}>{timeAgo(post.createdAt)}</Text>
                             <View style={styles.statsRow}>
                                 <View style={styles.statItem}>
                                     <IconSymbol name="heart.fill" size={14} color="#EC4899" />
-                                    <Text style={styles.statText}>{post.likeCount}</Text>
+                                    <Text style={[styles.statText, isDark && { color: '#94A3B8' }]}>{post.likeCount}</Text>
                                 </View>
                             </View>
                         </View>
@@ -559,7 +566,7 @@ export default function ProfileScreen() {
 
     return (
         <SwipeNavigation leftRoute="/(tabs)/contact">
-        <View style={styles.container}>
+        <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
             {!isLoggedIn ? (
                 <View style={{ flex: 1 }}>
                     <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
@@ -600,11 +607,11 @@ export default function ProfileScreen() {
                     </View>
                 </View>
             ) : (
-                <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+                <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
                     {/* Unified Top Card */}
-                    <View style={styles.unifiedTopCard}>
+                    <View style={[styles.unifiedTopCard, isDark && { backgroundColor: '#000000' }]}>
                         <View style={[styles.header, { paddingTop: insets.top + 6, paddingBottom: 0 }]}>
-                            <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
+                            <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                                 <TouchableOpacity 
                                     onPress={() => router.push('/settings')}
@@ -635,30 +642,30 @@ export default function ProfileScreen() {
                             <View style={styles.avatarPlaceholder}>
                                 <Text style={styles.avatarText}>{user?.fullName?.charAt(0) || '?'}</Text>
                             </View>
-                            <Text style={styles.userName}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
+                            <Text style={[styles.userName, isDark && { color: '#FFFFFF' }]}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
                             {user?.email && (
-                                <Text style={{ fontSize: 13, color: '#64748B', marginTop: 1, marginBottom: 6 }}>{user.email}</Text>
+                                <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 1, marginBottom: 6 }}>{user.email}</Text>
                             )}
                             <View style={[styles.roleBadge, 
-                                user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: '#FEF9C3', borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 3, paddingHorizontal: 12, borderRadius: 8 } : 
-                                user?.userType === 'ADMIN' ? { backgroundColor: '#BFDBFE' } : 
-                                { backgroundColor: '#E2E8F0' }
+                                user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: isDark ? '#451A03' : '#FEF9C3', borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 3, paddingHorizontal: 12, borderRadius: 8 } : 
+                                user?.userType === 'ADMIN' ? { backgroundColor: isDark ? '#1E3A8A' : '#BFDBFE' } : 
+                                { backgroundColor: isDark ? '#1C1C1E' : '#E2E8F0' }
                             ]}>
                                 <Text style={[styles.roleText, 
-                                    user?.userType === 'ISLAND_RESIDENT' ? { color: '#B45309', fontWeight: '800', letterSpacing: 0.5 } : 
-                                    user?.userType === 'ADMIN' ? { color: '#1E40AF' } : 
-                                    { color: '#475569' }
+                                    user?.userType === 'ISLAND_RESIDENT' ? { color: '#F59E0B', fontWeight: '800', letterSpacing: 0.5 } : 
+                                    user?.userType === 'ADMIN' ? { color: '#93C5FD' } : 
+                                    { color: isDark ? '#94A3B8' : '#475569' }
                                 ]}>
                                     {user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}
                                 </Text>
                             </View>
 
                             {true && (
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: isDark ? '#222222' : '#E2E8F0' }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
-                                            <Text style={{ fontSize: 12, color: '#475569', marginLeft: 6, fontWeight: '700' }}>
+                                            <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#475569', marginLeft: 6, fontWeight: '700' }}>
                                                 {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
                                             </Text>
                                         </View>
@@ -666,7 +673,7 @@ export default function ProfileScreen() {
                                             {(user as any)?.invitedUsersCount || 0}
                                         </Text>
                                     </View>
-                                    <View style={{ width: '100%', height: 6, backgroundColor: '#E0E7FF', borderRadius: 3, overflow: 'hidden' }}>
+                                    <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#1E1E38' : '#E0E7FF', borderRadius: 3, overflow: 'hidden' }}>
                                         <View style={{ 
                                             width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
                                             height: '100%', 
@@ -674,14 +681,14 @@ export default function ProfileScreen() {
                                             borderRadius: 3 
                                         }} />
                                     </View>
-                                    <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
+                                    <Text style={{ fontSize: 10, color: isDark ? '#64748B' : '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
                                         {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
                                     </Text>
                                     {/* MOCK CELEBRATION TRIGGER BUTTON */}
                                     <TouchableOpacity 
                                         onPress={() => setShowCelebration(true)}
-                                        style={{ marginTop: 6, width: '100%', alignItems: 'center', backgroundColor: '#FEF3C7', paddingVertical: 6, borderRadius: 8 }}>
-                                        <Text style={{ fontSize: 12, color: '#D97706', fontWeight: 'bold' }}>
+                                        style={{ marginTop: 6, width: '100%', alignItems: 'center', backgroundColor: isDark ? '#065F46' : '#10B981', paddingVertical: 8, borderRadius: 10 }}>
+                                        <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '800' }}>
                                             {i18n.language.startsWith('en') ? 'Test Celebration 🚀' : 'Kutlamayı Test Et 🚀'}
                                         </Text>
                                     </TouchableOpacity>
@@ -702,19 +709,23 @@ export default function ProfileScreen() {
                 )}
 
                 {/* Tab Bar */}
-                <View style={styles.tabBar}>
+                <View style={[styles.tabBar, isDark && { backgroundColor: '#000000' }]}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
                         {TABS.map(tab => {
                             const isActive = activeTab === tab.key;
                             return (
                                 <TouchableOpacity 
                                     key={tab.key} 
-                                    style={[styles.tabItem, isActive && { backgroundColor: tab.color }]}
+                                    style={[
+                                        styles.tabItem, 
+                                        isDark && !isActive && { backgroundColor: '#1C1C1E', shadowColor: 'transparent' },
+                                        isActive && { backgroundColor: tab.color }
+                                    ]}
                                     onPress={() => setActiveTab(tab.key)}
                                     activeOpacity={0.7}
                                 >
-                                    <IconSymbol name={tab.icon as any} size={16} color={isActive ? '#fff' : tab.color} />
-                                    <Text style={[styles.tabLabel, isActive && { color: '#fff' }]}>
+                                    <IconSymbol name={tab.icon as any} size={16} color={isActive ? '#fff' : (isDark ? '#94A3B8' : tab.color)} />
+                                    <Text style={[styles.tabLabel, isDark && !isActive && { color: '#94A3B8' }, isActive && { color: '#fff' }]}>
                                         {t(`profile.tabs.${tab.key}`)}
                                     </Text>
                                 </TouchableOpacity>
@@ -724,7 +735,7 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Tab Content */}
-                <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+                <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
                     {renderContent()}
                 </View>
                 </View>

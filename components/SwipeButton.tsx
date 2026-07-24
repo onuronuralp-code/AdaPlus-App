@@ -17,6 +17,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const router = useRouter();
   const { height } = useWindowDimensions();
   const isLargeScreen = height >= 890;
+  const isSmallScreen = height < 820;
   const isNavigating = useRef(false);
   const [userCount, setUserCount] = useState<number | null>(null);
 
@@ -58,25 +59,26 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   useEffect(() => {
     fetchWithTimeout(`${API_BASE_URL}/api/v1/users/count`)
       .then(res => res.json())
-      .then(data => { if (data && typeof data.count === 'number') setUserCount(data.count); })
+      .then(data => {
+        if (typeof data?.count === 'number') {
+          setUserCount(data.count);
+        }
+      })
       .catch(() => {});
   }, []);
 
   const handlePress = () => {
     if (isNavigating.current) return;
     isNavigating.current = true;
-    setTimeout(() => { isNavigating.current = false; }, 1000);
-
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Animated.sequence([
-      Animated.timing(scaleAnim, { toValue: 0.95, duration: 90, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 4, tension: 200, useNativeDriver: true }),
-    ]).start();
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Vibration.vibrate(40);
-
-    if (!isLoggedIn) { router.push('/login'); return; }
-    onSwipeComplete();
+      Animated.timing(scaleAnim, { toValue: 0.96, duration: 80, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start(() => {
+      if (!isLoggedIn) { router.push('/login'); isNavigating.current = false; return; }
+      onSwipeComplete();
+      setTimeout(() => { isNavigating.current = false; }, 1000);
+    });
   };
 
   const shimmerTranslate = shimmerAnim.interpolate({
@@ -91,6 +93,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
       <Pressable
         style={({ pressed }) => [
           styles.container, 
+          isSmallScreen && { height: 60, borderRadius: 14, paddingHorizontal: 10 },
           isLargeScreen && { height: 88, borderRadius: 20 },
           { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
         ]}
@@ -111,12 +114,13 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
               {/* Icon + live dot */}
               <View style={[
                   styles.iconContainer, 
+                  isSmallScreen && { width: 40, height: 40, borderRadius: 10 },
                   isLargeScreen && { width: 60, height: 60, borderRadius: 16 },
                   { backgroundColor: pressed ? '#047857' : '#059669' }
               ]}>
                 <IconSymbol
                   name="bubble.left.and.bubble.right.fill"
-                  size={isLargeScreen ? 30 : 24}
+                  size={isSmallScreen ? 20 : (isLargeScreen ? 30 : 24)}
                   color="#FFFFFF"
                 />
                 <Animated.View style={[styles.liveDot, { transform: [{ scale: dotScale }], opacity: dotOpacity }]} />
@@ -124,7 +128,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
 
               {/* Text block */}
               <View style={styles.textBlock}>
-                <Text style={[styles.text, isLargeScreen && { fontSize: 18 }]}>
+                <Text style={[styles.text, isSmallScreen && { fontSize: 14 }, isLargeScreen && { fontSize: 18 }]}>
                   {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
                 </Text>
                 {userCount !== null && (

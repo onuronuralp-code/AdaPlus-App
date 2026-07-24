@@ -37,6 +37,7 @@ export default function SettingsScreen() {
     const router = useRouter();
     const { isLoggedIn, logout, user, updateProfile } = useAuth();
     const { theme, setTheme } = useTheme();
+    const isDark = theme === 'dark';
     
     const [currentLang, setCurrentLang] = useState(i18n.language);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -138,96 +139,118 @@ export default function SettingsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <SafeAreaView style={[styles.container, isDark && { backgroundColor: '#000000' }]} edges={['top', 'bottom']}>
             <Stack.Screen options={{ headerShown: false }} />
-            <View style={styles.header}>
+            <View style={[styles.header, isDark && { borderBottomColor: '#1C1C1E' }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <IconSymbol name="chevron.left" size={24} color="#0F172A" />
+                    <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('common.settings', { defaultValue: currentLang.startsWith('en') ? 'Settings' : 'Ayarlar' })}</Text>
+                <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.settings', { defaultValue: currentLang.startsWith('en') ? 'Settings' : 'Ayarlar' })}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <View style={styles.content}>
                 {/* Language Selection Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('common.chooseLanguage', { defaultValue: currentLang.startsWith('en') ? 'Language Selection' : 'Dil Seçimi' })}</Text>
+                <View style={[styles.section, isDark && { borderBottomColor: '#1C1C1E' }]}>
+                    <Text style={[styles.sectionTitle, isDark && { color: '#94A3B8' }]}>{t('common.chooseLanguage', { defaultValue: currentLang.startsWith('en') ? 'Language Selection' : 'Dil Seçimi' })}</Text>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
                             style={[
                                 styles.langButton, 
-                                currentLang.startsWith('tr') && styles.activeLangButton
+                                isDark && styles.darkLangButton,
+                                currentLang.startsWith('tr') && (isDark ? styles.darkActiveLangButton : styles.activeLangButton)
                             ]} 
                             onPress={() => handleLanguageChange('tr')}
                         >
                             <Text style={[
                                 styles.langButtonText,
-                                currentLang.startsWith('tr') && styles.activeLangButtonText
+                                isDark && { color: '#CBD5E1' },
+                                currentLang.startsWith('tr') && (isDark ? styles.darkActiveLangButtonText : styles.activeLangButtonText)
                             ]}>Türkçe</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={[
                                 styles.langButton, 
-                                currentLang.startsWith('en') && styles.activeLangButton
+                                isDark && styles.darkLangButton,
+                                currentLang.startsWith('en') && (isDark ? styles.darkActiveLangButton : styles.activeLangButton)
                             ]} 
                             onPress={() => handleLanguageChange('en')}
                         >
                             <Text style={[
                                 styles.langButtonText,
-                                currentLang.startsWith('en') && styles.activeLangButtonText
+                                isDark && { color: '#CBD5E1' },
+                                currentLang.startsWith('en') && (isDark ? styles.darkActiveLangButtonText : styles.activeLangButtonText)
                             ]}>English</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Theme Selection Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{currentLang.startsWith('en') ? 'App Theme' : 'Uygulama Teması'}</Text>
+                <View style={[styles.section, isDark && { borderBottomColor: '#1C1C1E' }]}>
+                    <Text style={[styles.sectionTitle, isDark && { color: '#94A3B8' }]}>{currentLang.startsWith('en') ? 'App Theme' : 'Uygulama Teması'}</Text>
+                    <View style={[styles.row, { marginBottom: 12 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <IconSymbol name={theme === 'dark' ? "moon.fill" : "sun.max.fill"} size={20} color={theme === 'dark' ? "#38BDF8" : "#F59E0B"} />
+                            <Text style={[styles.rowText, isDark && { color: '#F8FAFC' }]}>{currentLang.startsWith('en') ? 'Dark Mode (Black)' : 'Koyu Tema (Siyah)'}</Text>
+                        </View>
+                        <Switch
+                            value={theme === 'dark'}
+                            onValueChange={(val) => setTheme(val ? 'dark' : 'light')}
+                            trackColor={{ false: '#CBD5E1', true: '#0EA5E9' }}
+                            thumbColor={theme === 'dark' ? '#FFFFFF' : '#94A3B8'}
+                        />
+                    </View>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
                             style={[
                                 styles.langButton, 
-                                theme === 'light' && styles.activeLangButton
+                                isDark && styles.darkLangButton,
+                                theme === 'light' && (isDark ? styles.darkActiveLangButton : styles.activeLangButton)
                             ]} 
                             onPress={() => setTheme('light')}
                         >
                             <Text style={[
                                 styles.langButtonText,
-                                theme === 'light' && styles.activeLangButtonText
+                                isDark && { color: '#CBD5E1' },
+                                theme === 'light' && (isDark ? styles.darkActiveLangButtonText : styles.activeLangButtonText)
                             ]}>☀️ {currentLang.startsWith('en') ? 'Light' : 'Açık Tema'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={[
                                 styles.langButton, 
-                                theme === 'dark' && styles.activeLangButton
+                                isDark && styles.darkLangButton,
+                                theme === 'dark' && (isDark ? styles.darkActiveLangButton : styles.activeLangButton)
                             ]} 
                             onPress={() => setTheme('dark')}
                         >
                             <Text style={[
                                 styles.langButtonText,
-                                theme === 'dark' && styles.activeLangButtonText
+                                isDark && { color: '#CBD5E1' },
+                                theme === 'dark' && (isDark ? styles.darkActiveLangButtonText : styles.activeLangButtonText)
                             ]}>🌙 {currentLang.startsWith('en') ? 'Dark (Black)' : 'Koyu (Siyah)'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Default Island Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('common.defaultIsland', { defaultValue: currentLang.startsWith('en') ? 'Default Island' : 'Varsayılan Ada' })}</Text>
+                <View style={[styles.section, isDark && { borderBottomColor: '#1C1C1E' }]}>
+                    <Text style={[styles.sectionTitle, isDark && { color: '#94A3B8' }]}>{t('common.defaultIsland', { defaultValue: currentLang.startsWith('en') ? 'Default Island' : 'Varsayılan Ada' })}</Text>
                     <View style={[styles.buttonRow, { flexWrap: 'wrap' }]}>
                         {ISLANDS.map(island => (
                             <TouchableOpacity 
                                 key={island}
                                 style={[
                                     styles.langButton, 
-                                    defaultIsland === island && styles.activeIslandButton,
+                                    isDark && styles.darkLangButton,
+                                    defaultIsland === island && (isDark ? styles.darkActiveIslandButton : styles.activeIslandButton),
                                     { minWidth: '45%', marginBottom: 12 }
                                 ]} 
                                 onPress={() => handleIslandSelect(island)}
                             >
                                 <Text style={[
                                     styles.langButtonText,
-                                    defaultIsland === island && styles.activeIslandButtonText
+                                    isDark && { color: '#CBD5E1' },
+                                    defaultIsland === island && (isDark ? styles.darkActiveIslandButtonText : styles.activeIslandButtonText)
                                 ]}>{island}</Text>
                             </TouchableOpacity>
                         ))}
@@ -235,14 +258,14 @@ export default function SettingsScreen() {
                 </View>
 
                 {/* Notifications Section */}
-                <View style={styles.section}>
+                <View style={[styles.section, isDark && { borderBottomColor: '#1C1C1E' }]}>
                     <View style={styles.row}>
-                        <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: currentLang.startsWith('en') ? 'Notifications' : 'Bildirimler' })}</Text>
+                        <Text style={[styles.rowText, isDark && { color: '#F8FAFC' }]}>{t('profile.notifications', { defaultValue: currentLang.startsWith('en') ? 'Notifications' : 'Bildirimler' })}</Text>
                         <Switch
                             value={notificationsEnabled}
                             onValueChange={handleNotificationsToggle}
-                            trackColor={{ false: '#CBD5E1', true: '#D1FAE5' }}
-                            thumbColor={notificationsEnabled ? '#10B981' : '#94A3B8'}
+                            trackColor={{ false: '#CBD5E1', true: '#059669' }}
+                            thumbColor={notificationsEnabled ? '#FFFFFF' : '#94A3B8'}
                         />
                     </View>
                 </View>
@@ -251,40 +274,40 @@ export default function SettingsScreen() {
                 {isLoggedIn && (
                     <View style={[styles.section, { borderBottomWidth: 0, marginTop: 'auto' }]}>
                         {isEditingAccount ? (
-                            <View style={[styles.editForm, { marginBottom: 0 }]}>
+                            <View style={[styles.editForm, isDark && styles.darkEditForm, { marginBottom: 0 }]}>
                                 {/* Ad Soyad — read-only */}
-                                <TextInput style={[styles.input, styles.inputReadOnly]} value={editName} editable={false} />
+                                <TextInput style={[styles.input, isDark && styles.darkInput, styles.inputReadOnly, isDark && styles.darkInputReadOnly]} value={editName} editable={false} />
 
                                 {/* E-mail — read-only */}
-                                <TextInput style={[styles.input, styles.inputReadOnly]} placeholder="E-mail" placeholderTextColor="#CBD5E1" value={editEmail} editable={false} />
+                                <TextInput style={[styles.input, isDark && styles.darkInput, styles.inputReadOnly, isDark && styles.darkInputReadOnly]} placeholder="E-mail" placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} value={editEmail} editable={false} />
 
                                 {/* Telefon — read-only if present */}
                                 {(user as any)?.phone ? (
-                                    <TextInput style={[styles.input, styles.inputReadOnly]} placeholderTextColor="#CBD5E1" value={(user as any).phone} editable={false} />
+                                    <TextInput style={[styles.input, isDark && styles.darkInput, styles.inputReadOnly, isDark && styles.darkInputReadOnly]} placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} value={(user as any).phone} editable={false} />
                                 ) : null}
 
                                 {/* Street picker */}
                                 {streets.length > 0 ? (
                                     <View style={{ marginBottom: 12 }}>
                                         <TouchableOpacity
-                                            style={[styles.input, styles.pickerButton]}
+                                            style={[styles.input, isDark && styles.darkInput, styles.pickerButton]}
                                             onPress={() => setShowStreetPicker(v => !v)}
                                             activeOpacity={0.8}
                                         >
-                                            <Text style={selectedStreet ? styles.pickerValueText : styles.pickerPlaceholderText}>
+                                            <Text style={selectedStreet ? [styles.pickerValueText, isDark && { color: '#FFFFFF' }] : styles.pickerPlaceholderText}>
                                                 {selectedStreet || (currentLang.startsWith('en') ? 'Select Street' : 'Cadde / Sokak Seç')}
                                             </Text>
                                             <IconSymbol name={showStreetPicker ? 'chevron.up' : 'chevron.down'} size={16} color="#94A3B8" />
                                         </TouchableOpacity>
                                         {showStreetPicker && (
-                                            <View style={styles.streetList}>
+                                            <View style={[styles.streetList, isDark && styles.darkStreetList]}>
                                                 {streets.map(street => (
                                                     <TouchableOpacity
                                                         key={street}
-                                                        style={[styles.streetItem, selectedStreet === street && styles.streetItemActive]}
+                                                        style={[styles.streetItem, isDark && { borderBottomColor: '#2C2C2E' }, selectedStreet === street && (isDark ? styles.darkStreetItemActive : styles.streetItemActive)]}
                                                         onPress={() => { setSelectedStreet(street); setShowStreetPicker(false); }}
                                                     >
-                                                        <Text style={[styles.streetItemText, selectedStreet === street && styles.streetItemTextActive]}>
+                                                        <Text style={[styles.streetItemText, isDark && { color: '#E2E8F0' }, selectedStreet === street && styles.streetItemTextActive]}>
                                                             {street}
                                                         </Text>
                                                         {selectedStreet === street && <IconSymbol name="checkmark" size={14} color="#059669" />}
@@ -294,9 +317,9 @@ export default function SettingsScreen() {
                                         )}
                                         {selectedStreet ? (
                                             <TextInput
-                                                style={[styles.input, { marginTop: 8, marginBottom: 0 }]}
+                                                style={[styles.input, isDark && styles.darkInput, { marginTop: 8, marginBottom: 0 }]}
                                                 placeholder={currentLang.startsWith('en') ? 'Building No / Flat' : 'Bina No / Daire'}
-                                                placeholderTextColor="#94A3B8"
+                                                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                                                 value={buildingNo}
                                                 onChangeText={setBuildingNo}
                                                 keyboardType="default"
@@ -304,11 +327,11 @@ export default function SettingsScreen() {
                                         ) : null}
                                     </View>
                                 ) : (
-                                    <TextInput style={styles.input} placeholder={currentLang.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor="#94A3B8" value={buildingNo} onChangeText={setBuildingNo} multiline />
+                                    <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={buildingNo} onChangeText={setBuildingNo} multiline />
                                 )}
 
                                 {/* Yeni Şifre */}
-                                <TextInput style={styles.input} placeholder={currentLang.startsWith('en') ? 'New Password' : 'Yeni Şifre'} placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
+                                <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'New Password' : 'Yeni Şifre'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={editPassword} onChangeText={setEditPassword} secureTextEntry />
 
                                 <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={async () => {
                                     if (!editName.trim()) {
@@ -336,12 +359,12 @@ export default function SettingsScreen() {
                             </View>
                         ) : (
                             <>
-                                <TouchableOpacity style={[styles.editButton, { marginBottom: 12 }]} onPress={() => {
+                                <TouchableOpacity style={[styles.editButton, isDark && styles.darkEditButton, { marginBottom: 12 }]} onPress={() => {
                                     if (!isEditingAccount) openEditForm();
                                     setIsEditingAccount(!isEditingAccount);
                                 }} activeOpacity={0.8}>
-                                    <IconSymbol name="pencil" size={18} color="#475569" />
-                                    <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: currentLang.startsWith('en') ? 'Edit Account' : 'Hesabı Düzenle' })}</Text>
+                                    <IconSymbol name="pencil" size={18} color={isDark ? '#94A3B8' : '#475569'} />
+                                    <Text style={[styles.editButtonText, isDark && { color: '#F8FAFC' }]}>{t('profile.editAccount', { defaultValue: currentLang.startsWith('en') ? 'Edit Account' : 'Hesabı Düzenle' })}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} activeOpacity={0.8}>
                                     <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
@@ -409,9 +432,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F8FAFC',
     },
+    darkLangButton: {
+        borderColor: '#2C2C2E',
+        backgroundColor: '#1C1C1E',
+    },
     activeLangButton: {
         borderColor: '#3B82F6', // Blue border
         backgroundColor: '#EFF6FF', // Light blue bg
+    },
+    darkActiveLangButton: {
+        borderColor: '#3B82F6',
+        backgroundColor: '#1E3A8A',
     },
     langButtonText: {
         fontSize: 14,
@@ -422,13 +453,49 @@ const styles = StyleSheet.create({
         color: '#2563EB', // Blue text
         fontWeight: '700',
     },
+    darkActiveLangButtonText: {
+        color: '#93C5FD',
+        fontWeight: '700',
+    },
     activeIslandButton: {
         borderColor: '#3B82F6', // Blue border
         backgroundColor: '#EFF6FF', // Light blue bg
     },
+    darkActiveIslandButton: {
+        borderColor: '#3B82F6',
+        backgroundColor: '#1E3A8A',
+    },
     activeIslandButtonText: {
         color: '#2563EB', // Blue text
         fontWeight: '700',
+    },
+    darkActiveIslandButtonText: {
+        color: '#93C5FD',
+        fontWeight: '700',
+    },
+    darkEditButton: {
+        backgroundColor: '#1C1C1E',
+        borderColor: '#2C2C2E',
+    },
+    darkEditForm: {
+        backgroundColor: '#1C1C1E',
+        borderColor: '#2C2C2E',
+    },
+    darkInput: {
+        backgroundColor: '#121212',
+        color: '#FFFFFF',
+        borderColor: '#2C2C2E',
+    },
+    darkInputReadOnly: {
+        backgroundColor: '#27272A',
+        color: '#71717A',
+    },
+    darkStreetList: {
+        backgroundColor: '#121212',
+        borderColor: '#2C2C2E',
+    },
+    darkStreetItemActive: {
+        backgroundColor: '#064E3B',
     },
     row: {
         flexDirection: 'row',

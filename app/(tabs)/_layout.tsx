@@ -5,6 +5,7 @@ import { StyleSheet, Platform, View, Animated } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/context/ThemeContext';
 
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 const WalkthroughableView = walkthroughable(View);
@@ -41,6 +42,8 @@ export default function TabLayout() {
   const { t, i18n } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const isDeepRoute = pathname.includes('/island/') || pathname.includes('/guide');
 
@@ -69,14 +72,14 @@ export default function TabLayout() {
   }, [pathname, isDeepRoute]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: (props) => <HapticTab {...props} />,
-        tabBarStyle: styles.tabBarLight,
-        tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : '#000000',
-        tabBarInactiveTintColor: '#AAAAAA',
+        tabBarStyle: isDark ? styles.tabBarDark : styles.tabBarLight,
+        tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : (isDark ? '#FFFFFF' : '#000000'),
+        tabBarInactiveTintColor: isDark ? '#64748B' : '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
         animation: 'none',
       }}>
@@ -106,7 +109,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contact"
         options={{
-          title: t('common.tabRequests', { defaultValue: 'İletişim' }),
+          title: t('common.tabContact', { defaultValue: 'İletişim' }),
           tabBarIcon: ({ color, focused }) => (
             <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="envelope.fill" color={color} />
           ),
@@ -126,12 +129,12 @@ export default function TabLayout() {
         <Animated.View
           style={{
             position: 'absolute',
-            bottom: Platform.OS === 'ios' ? 88 - 1 : 84 - 1,
+            bottom: Platform.OS === 'ios' ? 85.5 : 81.5,
             left: 0,
             width: 42,
             height: 2.5,
             borderRadius: 2,
-            backgroundColor: '#000000',
+            backgroundColor: isDark ? '#FFFFFF' : '#000000',
             opacity: opacityAnim,
             transform: [{ translateX: slideAnim }],
             zIndex: 100,
@@ -152,9 +155,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   tabBarDark: {
-    backgroundColor: '#050A18',
+    backgroundColor: '#000000',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.05)',
+    borderTopColor: '#1A1A1A',
     height: Platform.OS === 'ios' ? 88 : 84,
     paddingBottom: Platform.OS === 'ios' ? 28 : 28,
     paddingTop: 12,

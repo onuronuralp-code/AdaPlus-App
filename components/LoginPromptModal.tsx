@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useTheme } from '@/context/ThemeContext';
 
 interface LoginPromptModalProps {
     visible: boolean;
@@ -10,6 +11,9 @@ interface LoginPromptModalProps {
 }
 
 export default function LoginPromptModal({ visible, onClose, onLogin, message }: LoginPromptModalProps) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
     return (
         <Modal
             visible={visible}
@@ -19,19 +23,19 @@ export default function LoginPromptModal({ visible, onClose, onLogin, message }:
             onRequestClose={onClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.card}>
-                    <View style={styles.iconCircle}>
-                        <IconSymbol name="person.fill" size={28} color="#10B981" />
+                <View style={[styles.card, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                    <View style={[styles.iconCircle, isDark && { backgroundColor: '#064E3B' }]}>
+                        <IconSymbol name="person.fill" size={28} color={isDark ? "#34D399" : "#10B981"} />
                     </View>
-                    <Text style={styles.title}>Giriş Gerekli</Text>
-                    <Text style={styles.message}>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>Giriş Gerekli</Text>
+                    <Text style={[styles.message, isDark && { color: '#CBD5E1' }]}>
                         {message || 'Bu işlemi yapabilmek için giriş yapmalısınız.'}
                     </Text>
                     <TouchableOpacity style={styles.loginButton} onPress={onLogin} activeOpacity={0.8}>
                         <Text style={styles.loginButtonText}>Giriş Yap</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.cancelButton} onPress={onClose} activeOpacity={0.7}>
-                        <Text style={styles.cancelButtonText}>İptal</Text>
+                    <TouchableOpacity style={[styles.cancelButton, isDark && { backgroundColor: '#1C1C1E' }]} onPress={onClose} activeOpacity={0.7}>
+                        <Text style={[styles.cancelButtonText, isDark && { color: '#94A3B8' }]}>İptal</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -11,6 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as mediaApi from '@/services/mediaApi';
 import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 import SuccessModal from '@/components/SuccessModal';
@@ -24,6 +25,8 @@ export default function EventsScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isLoggedIn, user } = useAuth();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -376,28 +379,28 @@ export default function EventsScreen() {
 
     return (
         <SwipeNavigation rightRoute="/(tabs)/explore/island/ilanlar">
-        <View style={styles.container}>
+        <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
             <Stack.Screen options={{ headerShown: false }} />
             
-            <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 }]}>
+            <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 }, isDark && { backgroundColor: '#000000' }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => {
+                    <TouchableOpacity style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]} onPress={() => {
                         if (router.canGoBack()) {
                             router.back();
                         } else {
                             router.back();
                         }
                     }}>
-                        <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+                        <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
+                    <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
                 </View>
                 <TouchableOpacity
-                    style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+                    style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
                     onPress={() => setIsGridView(!isGridView)}
                     activeOpacity={0.7}
                 >
-                    <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color="#1E293B" />
+                    <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
                 </TouchableOpacity>
             </View>
 
@@ -434,12 +437,12 @@ export default function EventsScreen() {
                             return (
                             <TouchableOpacity
                                 key={event.id}
-                                style={[styles.eventCard, isGridView && { width: '48%', marginHorizontal: 0 }]}
+                                style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }, isGridView && { width: '48%', marginHorizontal: 0 }]}
                                 activeOpacity={0.8}
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
                                 {hasUserImage ? (
-                                    <View style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: '#F1F5F9' }}>
+                                    <View style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}>
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
@@ -460,7 +463,7 @@ export default function EventsScreen() {
                                 )}
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
                                     <View style={[styles.titleRow, isGridView && { marginBottom: 4 }]}>
-                                        <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }]} numberOfLines={1}>{event.name}</Text>
+                                        <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{event.name}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <View style={{ flex: 1, paddingRight: 8 }}>
@@ -485,8 +488,8 @@ export default function EventsScreen() {
                                                     
                                                     return (
                                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                            <IconSymbol name="mappin.circle.fill" size={14} color="#94A3B8" />
-                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: '#64748B', fontWeight: '600' }]} numberOfLines={1}>
+                                                            <IconSymbol name="mappin.circle.fill" size={14} color={isDark ? '#64748B' : '#94A3B8'} />
+                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600' }]} numberOfLines={1}>
                                                                 {locationText}
                                                             </Text>
                                                         </View>
@@ -495,8 +498,8 @@ export default function EventsScreen() {
 
                                                 {!isGridView && (
                                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                        <IconSymbol name="person.fill" size={14} color="#778DA9" />
-                                                        <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4 }]} numberOfLines={1}>
+                                                        <IconSymbol name="person.fill" size={14} color={isDark ? '#64748B' : '#778DA9'} />
+                                                        <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>
                                                             {event.organizerName || 'Ada Plus'}
                                                         </Text>
                                                     </View>
@@ -504,9 +507,9 @@ export default function EventsScreen() {
                                             </View>
                                         </View>
                                         {!isGridView && (event.rsvpCount || 0) >= 0 && (
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
-                                                <IconSymbol name="person.2.fill" size={12} color="#64748B" />
-                                                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
+                                            <View style={[{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
+                                                <IconSymbol name="person.2.fill" size={12} color={isDark ? '#94A3B8' : '#64748B'} />
+                                                <Text style={[{ fontSize: 11, fontWeight: '700', color: '#475569', marginLeft: 4 }, isDark && { color: '#CBD5E1' }]}>{event.rsvpCount || 0}</Text>
                                             </View>
                                         )}
                                     </View>
@@ -518,9 +521,8 @@ export default function EventsScreen() {
                 )}
             </ScrollView>
 
-            <TouchableOpacity
-                style={[styles.fab, { bottom: 20 }]}
-                activeOpacity={0.8}
+            <TouchableOpacity 
+                style={[styles.fab, { backgroundColor: '#000000', bottom: 20 }]} 
                 onPress={() => {
                     if (!isLoggedIn) {
                         setShowLoginPrompt(true);
@@ -530,15 +532,11 @@ export default function EventsScreen() {
                         setIsAddModalVisible(true);
                     }
                 }}
+                activeOpacity={0.85}
             >
-                <LinearGradient
-                    colors={['#ffffff', '#ffffff']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.fabGradient}
-                >
+                <View style={[styles.fabGradient, { backgroundColor: '#000000', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                     <IconSymbol name="plus" size={32} color="#3B82F6" />
-                </LinearGradient>
+                </View>
             </TouchableOpacity>
 
             <Modal
@@ -549,49 +547,50 @@ export default function EventsScreen() {
                 navigationBarTranslucent={true}
                 onRequestClose={closeModal}
             >
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
                     <TouchableOpacity style={{ flex: 1 }} onPress={closeModal} activeOpacity={1} />
                     <Animated.View 
-                        style={[styles.modalContainer, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
+                        style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
                     >
-                    <View style={styles.modalHeader}>
+                    <View style={[styles.modalHeader, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                         <View style={{ flex: 1.5, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity 
                                 style={styles.modalHeaderButton} 
                             onPress={closeModal}
                             >
-                                <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: 'İPTAL' })}</Text>
+                                <Text style={[styles.cancelText, isDark && { color: '#94A3B8' }]}>{t('common.cancel', { defaultValue: 'İPTAL' })}</Text>
                             </TouchableOpacity>
                         </View>
                         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={styles.modalTitle} numberOfLines={1}>{editingActivityId ? t('events.editEvent') : t('events.newEvent')}</Text>
+                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>{editingActivityId ? t('events.editEvent') : t('events.newEvent')}</Text>
                         </View>
                         <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
                             <TouchableOpacity 
-                                style={[styles.publishButton, isPublishDisabled && styles.publishButtonDisabled]} 
+                                style={[styles.publishButton, isPublishDisabled && (isDark ? { backgroundColor: '#27272A' } : styles.publishButtonDisabled)]} 
                                 onPress={handlePublishEvent}
                                 disabled={isPublishDisabled}
                             >
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={[styles.publishText, isPublishDisabled && { color: '#94A3B8' }]}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
+                                    <Text style={[styles.publishText, isPublishDisabled && { color: isDark ? '#52525B' : '#94A3B8' }]}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <KeyboardAwareScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
+                    <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
                         <View style={{ padding: 20 }}>
 
-                        <Text style={styles.inputLabel}>ADA SEÇİMİ *</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>ADA SEÇİMİ *</Text>
                         <View style={{ flexDirection: 'row', gap: 4, marginBottom: 20 }}>
                             {['KINALIADA', 'BURGAZADA', 'HEYBELIADA', 'BUYUKADA'].map((islandId) => (
                                 <TouchableOpacity 
                                     key={islandId}
                                     style={[
                                         styles.islandChip, 
+                                        isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
                                         { flex: 1 },
-                                        selectedIsland === islandId && styles.islandChipSelected
+                                        selectedIsland === islandId && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.islandChipSelected)
                                     ]}
                                     onPress={() => setSelectedIsland(islandId)}
                                 >
@@ -600,7 +599,8 @@ export default function EventsScreen() {
                                         adjustsFontSizeToFit 
                                         style={[
                                             styles.islandChipText, 
-                                            selectedIsland === islandId && styles.islandChipTextSelected
+                                            isDark && { color: '#CBD5E1' },
+                                            selectedIsland === islandId && (isDark ? { color: '#93C5FD' } : styles.islandChipTextSelected)
                                         ]}
                                     >
                                         {islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'}
@@ -608,11 +608,11 @@ export default function EventsScreen() {
                                 </TouchableOpacity>
                             ))}
                         </View>
-                        <Text style={styles.inputLabel}>{t('events.eventName')}</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventName')}</Text>
                         <TextInput 
-                            style={styles.input}
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder={t('events.titlePlaceholder')}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             value={newEventName}
                             onChangeText={setNewEventName}
                             ref={titleInputRef}
@@ -620,12 +620,12 @@ export default function EventsScreen() {
 
                         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.inputLabel} numberOfLines={1} adjustsFontSizeToFit>{t('events.startDate')}</Text>
+                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>{t('events.startDate')}</Text>
                                 <TouchableOpacity 
-                                    style={[styles.dateSelector, { paddingHorizontal: 12 }]} 
+                                    style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]} 
                                     onPress={() => setShowStartPicker(true)}
                                 >
-                                    <Text style={[styles.dateSelectorText, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
+                                    <Text style={[styles.dateSelectorText, isDark && { color: '#FFFFFF' }, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
                                         {startDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                     </Text>
                                     <IconSymbol name="calendar" size={14} color="#3B82F6" />
@@ -643,59 +643,49 @@ export default function EventsScreen() {
                             onCancel={() => setShowStartPicker(false)}
                         />
 
-
-
-                        <Text style={styles.inputLabel}>{t('events.eventLocation')}</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventLocation')}</Text>
                         <TextInput 
-                            style={styles.input}
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder={t('events.locationPlaceholder')}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             value={newEventLocation}
                             onChangeText={setNewEventLocation}
-
-
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.orgName')}</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.orgName')}</Text>
                         <TextInput 
-                            style={styles.input}
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder={t('events.orgPlaceholder')}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             value={organizerName}
                             onChangeText={setOrganizerName}
-
-
                         />
 
-                        <Text style={styles.inputLabel}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
                         <TextInput 
-                            style={[styles.input]}
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             keyboardType="default"
                             value={contactNumber}
                             onChangeText={setContactNumber}
-
-
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.socialLink')}</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.socialLink')}</Text>
                         <TextInput 
-                            style={styles.input}
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder="https://instagram.com/..."
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             autoCapitalize="none"
                             value={socialLink}
                             onChangeText={setSocialLink}
-
-
                         />
 
-                        <Text style={styles.inputLabel}>{t('events.eventDetails')}</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventDetails')}</Text>
                         <TextInput 
-                            style={[styles.input, styles.textArea]}
+                            style={[styles.input, styles.textArea, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder={t('events.detailsPlaceholder')}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             value={newEventDetails}
                             onChangeText={setNewEventDetails}
                             multiline
@@ -703,12 +693,15 @@ export default function EventsScreen() {
                             numberOfLines={4}
                             textAlignVertical="top"
                             maxLength={500}
-
-
                         />
                         <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{newEventDetails.length}/500</Text>
 
-                        <Text style={styles.inputLabel}>{t('events.eventPhoto')}</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{t('events.eventPhoto')}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: selectedImage ? '#10B981' : (isDark ? '#94A3B8' : '#64748B') }}>
+                                {selectedImage ? '1/1 foto' : '0/1 foto'}
+                            </Text>
+                        </View>
                         {selectedImage ? (
                             <View style={styles.imagePreviewContainer}>
                                 <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
@@ -720,9 +713,9 @@ export default function EventsScreen() {
                                 </TouchableOpacity>
                             </View>
                         ) : (
-                            <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
-                                <IconSymbol name="camera.fill" size={24} color="#64748B" />
-                                <Text style={styles.addPhotoText}>{t('events.addPhoto')}</Text>
+                            <TouchableOpacity style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]} onPress={pickImage}>
+                                <IconSymbol name="camera.fill" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+                                <Text style={[styles.addPhotoText, isDark && { color: '#94A3B8' }]}>{t('events.addPhoto')}</Text>
                             </TouchableOpacity>
                         )}
                         </View>

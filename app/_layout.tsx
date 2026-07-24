@@ -30,7 +30,7 @@ Notifications.setNotificationHandler({
 });
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { ThemeProvider as CustomThemeProvider } from "../context/ThemeContext";
+import { ThemeProvider as CustomThemeProvider, useTheme } from "../context/ThemeContext";
 import { AuthProvider } from "../context/AuthContext";
 import { NetworkProvider } from "../context/NetworkContext";
 import { store } from "../store/store";
@@ -118,10 +118,58 @@ const CustomTooltip = () => {
   );
 };
 
-
+function RootLayoutNav() {
+  const { theme } = useTheme();
+  return (
+    <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+      <CopilotProvider 
+        backdropColor="rgba(0, 0, 0, 0.65)"
+        tooltipStyle={{ backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, paddingHorizontal: 0, paddingVertical: 0, margin: 0, left: 0, right: 0, borderRadius: 0, width: Dimensions.get('window').width, maxWidth: Dimensions.get('window').width }}
+        stepNumberComponent={() => null}
+        tooltipComponent={CustomTooltip}
+        animated={true}
+        labels={{ skip: 'Atla', previous: 'Önceki', next: 'İleri', finish: 'Bitir' }}
+        svgMaskPath={handDrawnSvgMaskPath} 
+        stopOnOutsideClick={false} 
+        androidStatusBarVisible 
+        arrowSize={0}
+      >
+        <Stack screenOptions={{ 
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true
+        }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="signup" options={{ headerShown: false }} />
+          <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+          <Stack.Screen name="verify" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal", title: "Modal" }}
+          />
+          <Stack.Screen
+            name="guide"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ferry-tracking"
+            options={{
+              title: "Live Tracking",
+              headerBackTitle: "Back",
+            }}
+          />
+        </Stack>
+        <StatusBar style={theme === "dark" ? "light" : "dark"} />
+        <GlobalAlert />
+        <GlobalInvisiblePopup />
+      </CopilotProvider>
+    </ThemeProvider>
+  );
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
   const [updateRequired, setUpdateRequired] = useState(true);
 
@@ -173,57 +221,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
         <NetworkProvider>
-        <AuthProvider>
-        <CustomThemeProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <CopilotProvider 
-              backdropColor="rgba(0, 0, 0, 0.65)"
-              tooltipStyle={{ backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, paddingHorizontal: 0, paddingVertical: 0, margin: 0, left: 0, right: 0, borderRadius: 0, width: Dimensions.get('window').width, maxWidth: Dimensions.get('window').width }}
-              stepNumberComponent={() => null}
-              tooltipComponent={CustomTooltip}
-              animated={true}
-              labels={{ skip: 'Atla', previous: 'Önceki', next: 'İleri', finish: 'Bitir' }}
-              svgMaskPath={handDrawnSvgMaskPath} 
-              stopOnOutsideClick={false} 
-              androidStatusBarVisible 
-              arrowSize={0}
-            >
-              <Stack screenOptions={{ 
-                animation: "slide_from_right",
-                gestureEnabled: true,
-                fullScreenGestureEnabled: true
-              }}>
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="signup" options={{ headerShown: false }} />
-                <Stack.Screen name="reset-password" options={{ headerShown: false }} />
-                <Stack.Screen name="verify" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Modal" }}
-                />
-                <Stack.Screen
-                  name="guide"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="ferry-tracking"
-                  options={{
-                    title: "Live Tracking",
-                    headerBackTitle: "Back",
-                  }}
-                />
-              </Stack>
-              <StatusBar style="dark" />
-              <GlobalAlert />
-              <GlobalInvisiblePopup />
-            </CopilotProvider>
-          </ThemeProvider>
-        </CustomThemeProvider>
-        </AuthProvider>
+          <AuthProvider>
+            <CustomThemeProvider>
+              <RootLayoutNav />
+            </CustomThemeProvider>
+          </AuthProvider>
         </NetworkProvider>
       </Provider>
     </GestureHandlerRootView>

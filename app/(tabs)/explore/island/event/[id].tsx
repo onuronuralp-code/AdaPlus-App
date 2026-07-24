@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppActivityDto, getActivity, toggleActivityRsvp } from '@/services/api';
 import { resolveImageUrl, safeOpenUrl } from '@/services/config';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 
@@ -39,6 +40,8 @@ export default function EventDetailScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isLoggedIn } = useAuth();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const { t, i18n } = useTranslation();
 
     const [activity, setActivity] = useState<AppActivityDto | null>(null);
@@ -144,7 +147,7 @@ export default function EventDetailScreen() {
 
     if (isLoading) {
         return (
-            <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+            <View style={[styles.container, isDark && { backgroundColor: '#000000' }, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
                 <ActivityIndicator size="large" color="#3B82F6" />
             </View>
         );
@@ -152,12 +155,12 @@ export default function EventDetailScreen() {
 
     if (!activity) {
         return (
-            <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
-                <IconSymbol name="exclamationmark.triangle.fill" size={64} color="#CBD5E1" />
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }}>
+            <View style={[styles.container, isDark && { backgroundColor: '#000000' }, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
+                <IconSymbol name="exclamationmark.triangle.fill" size={64} color={isDark ? "#475569" : "#CBD5E1"} />
+                <Text style={[{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }, isDark && { color: '#FFFFFF' }]}>
                     {loadError ? 'Bağlantı hatası.' : 'Etkinlik bulunamadı.'}
                 </Text>
-                <Text style={{ fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8 }}>
+                <Text style={[{ fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8 }, isDark && { color: '#94A3B8' }]}>
                     {loadError
                         ? 'Etkinlik yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.'
                         : 'Bu etkinlik silinmiş veya yayından kaldırılmış olabilir.'}
@@ -167,7 +170,7 @@ export default function EventDetailScreen() {
                         if (router.canGoBack()) router.back();
                         else router.back();
                     }}
-                    style={{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }}
+                    style={[{ marginTop: 24, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }, isDark && { backgroundColor: '#1C1C1E' }]}
                 >
                     <Text style={{ color: '#3B82F6', fontWeight: '700' }}>Geri Dön</Text>
                 </TouchableOpacity>
@@ -179,21 +182,21 @@ export default function EventDetailScreen() {
         'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80';
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
             {/* Floating back + share buttons */}
             <View style={[styles.headerActions, { top: insets.top + 10 }]}>
                 <TouchableOpacity
-                    style={styles.iconButton}
+                    style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]}
                     onPress={() => {
                         if (router.canGoBack()) router.back();
                         else router.back();
                     }}
                 >
-                    <IconSymbol name="chevron.left" size={24} color="#1E293B" />
+                    <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={styles.iconButton}
+                    style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]}
                     onPress={async () => {
                         try {
                             await Share.share({
@@ -204,12 +207,12 @@ export default function EventDetailScreen() {
                         }
                     }}
                 >
-                    <IconSymbol name="square.and.arrow.up" size={20} color="#1E293B" />
+                    <IconSymbol name="square.and.arrow.up" size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
                 </TouchableOpacity>
             </View>
 
             {/* Hero image (Fixed) */}
-            <Image source={{ uri: heroUri }} style={[styles.heroImage, { backgroundColor: '#F1F5F9' }]} resizeMode="cover" />
+            <Image source={{ uri: heroUri }} style={[styles.heroImage, { backgroundColor: isDark ? '#121212' : '#F1F5F9' }]} resizeMode="cover" />
 
             <ScrollView
                 style={{ flex: 1, marginTop: 0 }}
@@ -217,34 +220,34 @@ export default function EventDetailScreen() {
                 bounces={true}
                 contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
             >
-                <View style={[styles.content, { marginTop: 0 }]}>
+                <View style={[styles.content, { marginTop: 0 }, isDark && { backgroundColor: '#000000' }]}>
                     {/* Badge + date */}
                     <View style={styles.metaRow}>
-                        <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{t('events.badge')}</Text>
+                        <View style={[styles.badge, isDark && { backgroundColor: '#1E3A8A' }]}>
+                            <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{t('events.badge')}</Text>
                         </View>
                         {rsvpCount > 0 && (
-                            <View style={styles.attendeePill}>
+                            <View style={[styles.attendeePill, isDark && { backgroundColor: '#1C1C1E' }]}>
                                 <IconSymbol name="person.2.fill" size={13} color="#3B82F6" />
-                                <Text style={styles.attendeeText}>{rsvpCount} {t('events.attendeesCount', { defaultValue: 'katılımcı' })}</Text>
+                                <Text style={[styles.attendeeText, isDark && { color: '#60A5FA' }]}>{rsvpCount} {t('events.attendeesCount', { defaultValue: 'katılımcı' })}</Text>
                             </View>
                         )}
                     </View>
 
-                    <Text style={styles.title}>{activity.name}</Text>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{activity.name}</Text>
 
                     {/* Description */}
-                    <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }]}>{activity.description}</Text>
+                    <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }, isDark && { color: '#CBD5E1' }]}>{activity.description}</Text>
 
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
                     {/* Date / time */}
                     <View style={styles.infoItem}>
-                        <View style={styles.infoIcon}>
+                        <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>{t('events.dateLabel', { defaultValue: 'BAŞLANGIÇ VE BİTİŞ' })}</Text>
+                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.dateLabel', { defaultValue: 'BAŞLANGIÇ VE BİTİŞ' })}</Text>
                             {(() => {
                                 const parseDateAndTime = (ds?: string) => {
                                     if (!ds) return { date: '', time: '' };
@@ -259,9 +262,9 @@ export default function EventDetailScreen() {
                                 
                                 return (
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2, paddingRight: 8 }}>
-                                        <Text style={styles.infoValue}>{start.date}</Text>
-                                        <View style={{ backgroundColor: '#FFFFFF', borderColor: '#10B981', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                                            <Text style={{ color: '#10B981', fontWeight: 'bold', fontSize: 14 }}>{start.time}</Text>
+                                        <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{start.date}</Text>
+                                        <View style={{ backgroundColor: isDark ? '#064E3B' : '#FFFFFF', borderColor: '#10B981', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                            <Text style={{ color: isDark ? '#34D399' : '#10B981', fontWeight: 'bold', fontSize: 14 }}>{start.time}</Text>
                                         </View>
                                     </View>
                                 );
@@ -272,24 +275,24 @@ export default function EventDetailScreen() {
                     {/* Location */}
                     {activity.eventPlace && (
                         <View style={[styles.infoItem, { marginTop: 20 }]}>
-                            <View style={styles.infoIcon}>
-                                <IconSymbol name="mappin.and.ellipse" size={20} color="#64748B" />
+                            <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                <IconSymbol name="mappin.and.ellipse" size={20} color={isDark ? "#94A3B8" : "#64748B"} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.infoLabel}>{t('events.locationLabel')}</Text>
-                                <Text style={styles.infoValue}>{activity.eventPlace}</Text>
+                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.locationLabel')}</Text>
+                                <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{activity.eventPlace}</Text>
                             </View>
                         </View>
                     )}
 
                     {/* Organizer */}
                     <View style={[styles.infoItem, { marginTop: 20 }]}>
-                        <View style={styles.infoIcon}>
-                            <IconSymbol name="person.fill" size={20} color="#64748B" />
+                        <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
+                            <IconSymbol name="person.fill" size={20} color={isDark ? "#94A3B8" : "#64748B"} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.infoLabel}>{t('events.organizerLabel')}</Text>
-                            <Text style={styles.infoValue}>{activity.organizerName}</Text>
+                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.organizerLabel')}</Text>
+                            <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{activity.organizerName}</Text>
                             {activity.organizerContact && (
                                 <TouchableOpacity 
                                     activeOpacity={0.6}
@@ -320,15 +323,15 @@ export default function EventDetailScreen() {
                     {/* Instagram */}
                     {activity.instagramLink && (
                         <View style={[styles.infoItem, { marginTop: 20 }]}>
-                            <View style={styles.infoIcon}>
-                                <IconSymbol name="link" size={20} color="#64748B" />
+                            <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                <IconSymbol name="link" size={20} color={isDark ? "#94A3B8" : "#64748B"} />
                             </View>
                             <TouchableOpacity
                                 style={{ flex: 1 }}
                                 onPress={() => safeOpenUrl(activity.instagramLink ? normalizeInstagramUrl(activity.instagramLink) : undefined)}
                                 activeOpacity={0.7}
                             >
-                                <Text style={styles.infoLabel}>{t('events.socialMediaLabel', { defaultValue: 'SOSYAL MEDYA' })}</Text>
+                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.socialMediaLabel', { defaultValue: 'SOSYAL MEDYA' })}</Text>
                                 <Text style={[styles.infoValue, { color: '#3B82F6' }]} numberOfLines={1}>
                                     {activity.instagramLink}
                                 </Text>
@@ -337,16 +340,16 @@ export default function EventDetailScreen() {
                     )}
 
                     <TouchableOpacity 
-                        style={[styles.rsvpButton, going && styles.rsvpButtonActive, { marginTop: 32, marginBottom: 8 }]} 
+                        style={[styles.rsvpButton, going && (isDark ? { backgroundColor: '#1E3A8A', borderWidth: 1, borderColor: '#3B82F6' } : styles.rsvpButtonActive), { marginTop: 32, marginBottom: 8 }]} 
                         onPress={handleRsvp}
                         disabled={rsvpLoading}
                     >
                         {rsvpLoading ? (
-                            <ActivityIndicator color={going ? '#3B82F6' : '#fff'} />
+                            <ActivityIndicator color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
                         ) : (
                             <>
-                                <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? '#3B82F6' : '#fff'} />
-                                <Text style={[styles.rsvpButtonText, going && styles.rsvpButtonTextActive]}>
+                                <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
+                                <Text style={[styles.rsvpButtonText, going && (isDark ? { color: '#60A5FA' } : styles.rsvpButtonTextActive)]}>
                                     {going ? t('events.going', { defaultValue: 'Katılıyorum' }) : t('events.join', { defaultValue: 'Katılacağım' })}
                                 </Text>
                             </>
