@@ -433,18 +433,22 @@ export default function MainMenuScreen() {
 
         setTotalEventsCount(validEvents.length);
         setTotalListingsCount(validListings.length);
+        AsyncStorage.setItem('cached_total_events', validEvents.length.toString());
+        AsyncStorage.setItem('cached_total_listings', validListings.length.toString());
 
         setAllEventIds(validEvents.map(e => e.id));
         AsyncStorage.getItem('seenEventIds').then(seenStr => {
           const seenIds = seenStr ? JSON.parse(seenStr) : [];
           const unseenCount = validEvents.filter(e => !seenIds.includes(e.id)).length;
           setUnseenEventsCount(unseenCount);
+          AsyncStorage.setItem('cached_unseen_events', unseenCount.toString());
         });
 
         AsyncStorage.getItem('lastViewedListings').then(lastViewedStr => {
           const lastViewed = lastViewedStr ? parseInt(lastViewedStr, 10) : 0;
           const unseenCount = validListings.filter(l => l.createdAt > lastViewed).length;
           setUnseenListingsCount(unseenCount);
+          AsyncStorage.setItem('cached_unseen_listings', unseenCount.toString());
         });
 
         if (combined.length > 0) {
@@ -454,27 +458,18 @@ export default function MainMenuScreen() {
         }
       }).catch(err => console.log('Error fetching hero slider data:', err));
 
-      // Load cached notifications immediately on focus so unread badge shows on reload
-      AsyncStorage.getItem('cached_notifications').then(stored => {
-        if (stored) {
+      // Load cached counts immediately on focus so event/listing badges show on reload
+      AsyncStorage.multiGet(['cached_unseen_events', 'cached_unseen_listings', 'cached_total_events', 'cached_total_listings', 'cached_notifications']).then(stores => {
+        const map = Object.fromEntries(stores);
+        if (map['cached_unseen_events']) setUnseenEventsCount(parseInt(map['cached_unseen_events'], 10) || 0);
+        if (map['cached_unseen_listings']) setUnseenListingsCount(parseInt(map['cached_unseen_listings'], 10) || 0);
+        if (map['cached_total_events']) setTotalEventsCount(parseInt(map['cached_total_events'], 10) || 0);
+        if (map['cached_total_listings']) setTotalListingsCount(parseInt(map['cached_total_listings'], 10) || 0);
+        if (map['cached_notifications']) {
           try {
-            const parsed = JSON.parse(stored);
+            const parsed = JSON.parse(map['cached_notifications']);
             if (Array.isArray(parsed) && parsed.length > 0) setNotifications(parsed);
           } catch (e) {}
-        } else {
-          // Default initial notification if no cache exists
-          const defaults = [
-            {
-              id: 'welcome-notif-1',
-              type: 'SYSTEM',
-              title: i18n.language.startsWith('en') ? 'Welcome to AdaPlus!' : 'AdaPlus\'a Hoş Geldiniz!',
-              body: i18n.language.startsWith('en') ? 'Explore island events, listings, and join community discussions.' : 'Ada etkinliklerini, ilanları ve topluluk sohbetlerini keşfedin.',
-              read: false,
-              createdAt: new Date().toISOString(),
-            }
-          ];
-          setNotifications(defaults as any);
-          AsyncStorage.setItem('cached_notifications', JSON.stringify(defaults));
         }
       });
 
@@ -890,6 +885,7 @@ export default function MainMenuScreen() {
                 onPress={() => {
                   AsyncStorage.setItem('seenEventIds', JSON.stringify(allEventIds));
                   setUnseenEventsCount(0);
+                  AsyncStorage.setItem('cached_unseen_events', '0');
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
@@ -935,6 +931,7 @@ export default function MainMenuScreen() {
                 onPress={() => {
                   AsyncStorage.setItem('lastViewedListings', Date.now().toString());
                   setUnseenListingsCount(0);
+                  AsyncStorage.setItem('cached_unseen_listings', '0');
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
