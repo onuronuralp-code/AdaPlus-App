@@ -682,7 +682,7 @@ export default function MainMenuScreen() {
 
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
       <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-        <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={1} name="davet">
+        <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
@@ -740,7 +740,7 @@ export default function MainMenuScreen() {
       </View>
 
       {/* Hero Header Slider Wrapper */}
-      <CopilotStep text={t('explore.tour.banner', { defaultValue: i18n.language.startsWith('en') ? 'Important announcements, upcoming events, and featured listings are gathered here.' : 'Adadaki en önemli duyurular, yaklaşan etkinlikler ve öne çıkan ilanlar burada toplanır.' })} order={2} name="banner">
+      <CopilotStep text={t('explore.tour.banner', { defaultValue: i18n.language.startsWith('en') ? 'Important announcements, upcoming events, and featured listings are gathered here.' : 'Adadaki en önemli duyurular, yaklaşan etkinlikler ve öne çıkan ilanlar burada toplanır.' })} order={1} name="banner">
         <WalkthroughableView style={[styles.heroWrapper, { height: heroHeight, marginBottom: 0 }]}>
             <ScrollView 
           ref={heroScrollRef}
@@ -896,7 +896,7 @@ export default function MainMenuScreen() {
           style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, gap: 8 }}
         >
           {/* 1. Etkinlikler */}
-          <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={3} name="etkinlikler">
+          <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
             <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -924,7 +924,7 @@ export default function MainMenuScreen() {
           </CopilotStep>
 
           {/* 2. Ada AI */}
-          <CopilotStep text={t('explore.tour.adaAi', { defaultValue: i18n.language.startsWith('en') ? 'You can ask any question to the island AI guide.' : 'Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.' })} order={4} name="ada_ai">
+          <CopilotStep text={t('explore.tour.adaAi', { defaultValue: i18n.language.startsWith('en') ? 'You can ask any question to the island AI guide.' : 'Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.' })} order={3} name="ada_ai">
             <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -942,7 +942,7 @@ export default function MainMenuScreen() {
           </CopilotStep>
 
           {/* 3. İlanlar */}
-          <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'You can browse real estate, items, or job listings here.' : 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={5} name="ilanlar">
+          <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'You can browse real estate, items, or job listings here.' : 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={4} name="ilanlar">
             <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -970,7 +970,7 @@ export default function MainMenuScreen() {
           </CopilotStep>
 
           {/* 4. Paket Servis */}
-          <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={6} name="paket">
+          <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={5} name="paket">
             <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: 6 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -1001,7 +1001,7 @@ export default function MainMenuScreen() {
 
         {/* 5. Topluluk Banner */}
         <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 4, marginBottom: 16, backgroundColor: 'transparent' }}>
-          <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={7} name="topluluk">
+          <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
             <WalkthroughableView style={{ width: '100%' }}>
               <SwipeButton 
                 isLoggedIn={isLoggedIn} 
