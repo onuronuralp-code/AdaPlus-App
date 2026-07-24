@@ -470,7 +470,12 @@ export default function EventsScreen() {
                                             {/* 1. Tarih (Date) */}
                                             <View style={[styles.eventDetailsRow, isGridView && { marginTop: 2, marginBottom: 0 }]}>
                                                 <IconSymbol name="calendar" size={14} color="#3B82F6" />
-                                                <Text style={[styles.eventDate, { color: '#3B82F6', fontSize: 13, marginLeft: 4, flex: 1 }]} numberOfLines={2}>
+                                                <Text 
+                                                    style={[styles.eventDate, { color: '#3B82F6', fontSize: isGridView ? 11.5 : 13, marginLeft: 4, flex: 1 }]} 
+                                                    numberOfLines={1}
+                                                    adjustsFontSizeToFit={true}
+                                                    minimumFontScale={0.85}
+                                                >
                                                     {formatCardDate(event.startDate, event.endDate, true)}
                                                 </Text>
                                             </View>
