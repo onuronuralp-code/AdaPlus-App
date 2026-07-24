@@ -36,9 +36,16 @@ export default function SettingsScreen() {
     const router = useRouter();
     const { isLoggedIn, logout, user, updateProfile } = useAuth();
     
+    const [currentLang, setCurrentLang] = useState(i18n.language);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [defaultIsland, setDefaultIsland] = useState('Büyükada');
     const ISLANDS = ['Kınalıada', 'Burgazada', 'Heybeliada', 'Büyükada'];
+
+    const handleLanguageChange = async (lang: string) => {
+        await i18n.changeLanguage(lang);
+        await AsyncStorage.setItem('userLanguage', lang);
+        setCurrentLang(lang);
+    };
 
     // Edit Account states
     const [isEditingAccount, setIsEditingAccount] = useState(false);
@@ -135,37 +142,37 @@ export default function SettingsScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <IconSymbol name="chevron.left" size={24} color="#0F172A" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('common.settings', { defaultValue: i18n.language.startsWith('en') ? 'Settings' : 'Ayarlar' })}</Text>
+                <Text style={styles.headerTitle}>{t('common.settings', { defaultValue: currentLang.startsWith('en') ? 'Settings' : 'Ayarlar' })}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <View style={styles.content}>
                 {/* Language Selection Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('common.chooseLanguage', { defaultValue: i18n.language.startsWith('en') ? 'Language Selection' : 'Dil Seçimi' })}</Text>
+                    <Text style={styles.sectionTitle}>{t('common.chooseLanguage', { defaultValue: currentLang.startsWith('en') ? 'Language Selection' : 'Dil Seçimi' })}</Text>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
                             style={[
                                 styles.langButton, 
-                                i18n.language.startsWith('tr') && styles.activeLangButton
+                                currentLang.startsWith('tr') && styles.activeLangButton
                             ]} 
-                            onPress={() => i18n.changeLanguage('tr')}
+                            onPress={() => handleLanguageChange('tr')}
                         >
                             <Text style={[
                                 styles.langButtonText,
-                                i18n.language.startsWith('tr') && styles.activeLangButtonText
+                                currentLang.startsWith('tr') && styles.activeLangButtonText
                             ]}>Türkçe</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={[
                                 styles.langButton, 
-                                i18n.language.startsWith('en') && styles.activeLangButton
+                                currentLang.startsWith('en') && styles.activeLangButton
                             ]} 
-                            onPress={() => i18n.changeLanguage('en')}
+                            onPress={() => handleLanguageChange('en')}
                         >
                             <Text style={[
                                 styles.langButtonText,
-                                i18n.language.startsWith('en') && styles.activeLangButtonText
+                                currentLang.startsWith('en') && styles.activeLangButtonText
                             ]}>English</Text>
                         </TouchableOpacity>
                     </View>
@@ -173,7 +180,7 @@ export default function SettingsScreen() {
 
                 {/* Default Island Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('common.defaultIsland', { defaultValue: i18n.language.startsWith('en') ? 'Default Island' : 'Varsayılan Ada' })}</Text>
+                    <Text style={styles.sectionTitle}>{t('common.defaultIsland', { defaultValue: currentLang.startsWith('en') ? 'Default Island' : 'Varsayılan Ada' })}</Text>
                     <View style={[styles.buttonRow, { flexWrap: 'wrap' }]}>
                         {ISLANDS.map(island => (
                             <TouchableOpacity 
@@ -197,7 +204,7 @@ export default function SettingsScreen() {
                 {/* Notifications Section */}
                 <View style={styles.section}>
                     <View style={styles.row}>
-                        <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: i18n.language.startsWith('en') ? 'Notifications' : 'Bildirimler' })}</Text>
+                        <Text style={styles.rowText}>{t('profile.notifications', { defaultValue: currentLang.startsWith('en') ? 'Notifications' : 'Bildirimler' })}</Text>
                         <Switch
                             value={notificationsEnabled}
                             onValueChange={handleNotificationsToggle}
@@ -232,7 +239,7 @@ export default function SettingsScreen() {
                                             activeOpacity={0.8}
                                         >
                                             <Text style={selectedStreet ? styles.pickerValueText : styles.pickerPlaceholderText}>
-                                                {selectedStreet || (i18n.language.startsWith('en') ? 'Select Street' : 'Cadde / Sokak Seç')}
+                                                {selectedStreet || (currentLang.startsWith('en') ? 'Select Street' : 'Cadde / Sokak Seç')}
                                             </Text>
                                             <IconSymbol name={showStreetPicker ? 'chevron.up' : 'chevron.down'} size={16} color="#94A3B8" />
                                         </TouchableOpacity>
@@ -255,7 +262,7 @@ export default function SettingsScreen() {
                                         {selectedStreet ? (
                                             <TextInput
                                                 style={[styles.input, { marginTop: 8, marginBottom: 0 }]}
-                                                placeholder={i18n.language.startsWith('en') ? 'Building No / Flat' : 'Bina No / Daire'}
+                                                placeholder={currentLang.startsWith('en') ? 'Building No / Flat' : 'Bina No / Daire'}
                                                 placeholderTextColor="#94A3B8"
                                                 value={buildingNo}
                                                 onChangeText={setBuildingNo}
@@ -264,15 +271,15 @@ export default function SettingsScreen() {
                                         ) : null}
                                     </View>
                                 ) : (
-                                    <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor="#94A3B8" value={buildingNo} onChangeText={setBuildingNo} multiline />
+                                    <TextInput style={styles.input} placeholder={currentLang.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor="#94A3B8" value={buildingNo} onChangeText={setBuildingNo} multiline />
                                 )}
 
                                 {/* Yeni Şifre */}
-                                <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? 'New Password' : 'Yeni Şifre'} placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
+                                <TextInput style={styles.input} placeholder={currentLang.startsWith('en') ? 'New Password' : 'Yeni Şifre'} placeholderTextColor="#94A3B8" value={editPassword} onChangeText={setEditPassword} secureTextEntry />
 
                                 <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={async () => {
                                     if (!editName.trim()) {
-                                        Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Full Name is required.' : 'Ad Soyad zorunludur.');
+                                        Alert.alert(currentLang.startsWith('en') ? 'Error' : 'Hata', currentLang.startsWith('en') ? 'Full Name is required.' : 'Ad Soyad zorunludur.');
                                         return;
                                     }
                                     const address = selectedStreet
@@ -282,7 +289,7 @@ export default function SettingsScreen() {
                                     try {
                                         const updated = await authApi.updateProfile(editName.trim(), address);
                                         if (!updated) {
-                                            Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to save.' : 'Kaydedilemedi.');
+                                            Alert.alert(currentLang.startsWith('en') ? 'Error' : 'Hata', currentLang.startsWith('en') ? 'Failed to save.' : 'Kaydedilemedi.');
                                             return;
                                         }
                                         await updateProfile(updated as any);
@@ -291,7 +298,7 @@ export default function SettingsScreen() {
                                         setIsSaving(false);
                                     }
                                 }}>
-                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : (i18n.language.startsWith('en') ? 'Save' : 'Kaydet')}</Text>
+                                    <Text style={styles.saveButtonText}>{isSaving ? '...' : (currentLang.startsWith('en') ? 'Save' : 'Kaydet')}</Text>
                                 </TouchableOpacity>
                             </View>
                         ) : (
@@ -301,11 +308,11 @@ export default function SettingsScreen() {
                                     setIsEditingAccount(!isEditingAccount);
                                 }} activeOpacity={0.8}>
                                     <IconSymbol name="pencil" size={18} color="#475569" />
-                                    <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: i18n.language.startsWith('en') ? 'Edit Account' : 'Hesabı Düzenle' })}</Text>
+                                    <Text style={styles.editButtonText}>{t('profile.editAccount', { defaultValue: currentLang.startsWith('en') ? 'Edit Account' : 'Hesabı Düzenle' })}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} activeOpacity={0.8}>
                                     <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FFFFFF" />
-                                    <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: i18n.language.startsWith('en') ? 'Delete Account' : 'Hesabı Sil' })}</Text>
+                                    <Text style={styles.deleteButtonText}>{t('profile.deleteAccount', { defaultValue: currentLang.startsWith('en') ? 'Delete Account' : 'Hesabı Sil' })}</Text>
                                 </TouchableOpacity>
                             </>
                         )}
