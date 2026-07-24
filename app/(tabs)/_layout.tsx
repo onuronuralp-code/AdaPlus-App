@@ -79,7 +79,6 @@ export default function TabLayout() {
         tabBarInactiveTintColor: '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
         animation: 'none',
-        detachInactiveScreens: true,
       }}>
       <Tabs.Screen
         name="explore"
