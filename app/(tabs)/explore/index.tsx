@@ -378,8 +378,9 @@ export default function MainMenuScreen() {
       Promise.all([fetchActivities(), fetchListings(), fetchActiveBanner(), fetchInitialNotifications()]).then(([eventsData, listingsData, bannerData, notificationsData]) => {
         const events = Array.isArray(eventsData) ? eventsData : (eventsData?.content || eventsData?.data || []);
         const listings = Array.isArray(listingsData) ? listingsData : (listingsData?.content || listingsData?.data || []);
-        if (Array.isArray(notificationsData)) {
+        if (Array.isArray(notificationsData) && notificationsData.length > 0) {
             setNotifications(notificationsData);
+            AsyncStorage.setItem('cached_notifications', JSON.stringify(notificationsData));
         }
         
         const now = new Date();
@@ -453,19 +454,37 @@ export default function MainMenuScreen() {
         }
       }).catch(err => console.log('Error fetching hero slider data:', err));
 
+      // Load cached notifications immediately on focus so unread badge shows on reload
+      AsyncStorage.getItem('cached_notifications').then(stored => {
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) setNotifications(parsed);
+          } catch (e) {}
+        } else {
+          // Default initial notification if no cache exists
+          const defaults = [
+            {
+              id: 'welcome-notif-1',
+              type: 'SYSTEM',
+              title: i18n.language.startsWith('en') ? 'Welcome to AdaPlus!' : 'AdaPlus\'a Hoş Geldiniz!',
+              body: i18n.language.startsWith('en') ? 'Explore island events, listings, and join community discussions.' : 'Ada etkinliklerini, ilanları ve topluluk sohbetlerini keşfedin.',
+              read: false,
+              createdAt: new Date().toISOString(),
+            }
+          ];
+          setNotifications(defaults as any);
+          AsyncStorage.setItem('cached_notifications', JSON.stringify(defaults));
+        }
+      });
+
       if (isLoggedIn) {
         fetchNotifications().then(data => {
-            if (data && Array.isArray(data)) setNotifications(data);
-        }).catch(e => console.log('Error prefetching notifications', e));
-      } else {
-        AsyncStorage.getItem('guest_notifications').then(stored => {
-            if (stored) {
-                try {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed)) setNotifications(parsed);
-                } catch (e) {}
+            if (data && Array.isArray(data) && data.length > 0) {
+              setNotifications(data);
+              AsyncStorage.setItem('cached_notifications', JSON.stringify(data));
             }
-        });
+        }).catch(e => console.log('Error prefetching notifications', e));
       }
     }, [isLoggedIn])
   );
@@ -1045,7 +1064,11 @@ export default function MainMenuScreen() {
                     onPress={async () => {
                       if (!notif.read) {
                         await markNotificationRead(notif.id);
-                        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+                        setNotifications(prev => {
+                          const updated = prev.map(n => n.id === notif.id ? { ...n, read: true } : n);
+                          AsyncStorage.setItem('cached_notifications', JSON.stringify(updated));
+                          return updated;
+                        });
                       }
                     }}
                   >
