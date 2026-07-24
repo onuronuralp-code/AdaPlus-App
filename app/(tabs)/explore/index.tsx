@@ -457,6 +457,15 @@ export default function MainMenuScreen() {
         fetchNotifications().then(data => {
             if (data && Array.isArray(data)) setNotifications(data);
         }).catch(e => console.log('Error prefetching notifications', e));
+      } else {
+        AsyncStorage.getItem('guest_notifications').then(stored => {
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) setNotifications(parsed);
+                } catch (e) {}
+            }
+        });
       }
     }, [isLoggedIn])
   );
@@ -626,9 +635,9 @@ export default function MainMenuScreen() {
               >
                 <IconSymbol name="megaphone.fill" size={22} color="#64748B" />
                 {notifications.filter(n => !n.read).length > 0 && (
-                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, zIndex: 10, borderWidth: 2, borderColor: '#F1F5F9' }}>
-                    <Text style={{ color: 'white', fontSize: 11, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
-                      {notifications.filter(n => !n.read).length}
+                  <View style={{ position: 'absolute', top: -2, right: -2, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, zIndex: 10, borderWidth: 2, borderColor: '#FFFFFF', elevation: 3 }}>
+                    <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
+                      {notifications.filter(n => !n.read).length > 99 ? '99+' : notifications.filter(n => !n.read).length}
                     </Text>
                   </View>
                 )}
