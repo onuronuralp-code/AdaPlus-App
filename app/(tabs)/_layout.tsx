@@ -78,16 +78,11 @@ export default function TabLayout() {
         tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : '#000000',
         tabBarInactiveTintColor: '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
-        animation: 'shift',
+        animation: 'none',
+        detachInactiveScreens: true,
       }}>
       <Tabs.Screen
         name="explore"
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.navigate('/(tabs)/explore');
-          },
-        }}
         options={{
           title: t('common.tabDiscover', { defaultValue: 'Keşfet' }),
           tabBarIcon: ({ color, focused }) => (
