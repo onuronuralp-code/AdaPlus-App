@@ -844,8 +844,8 @@ const styles = StyleSheet.create({
     listingTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B', marginBottom: 4 },
     listingDesc: { fontSize: 13, color: '#64748B', lineHeight: 18, marginBottom: 6 },
     listingTime: { fontSize: 12, color: '#94A3B8' },
-    priceTag: { backgroundColor: '#ECFDF5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, marginLeft: 12 },
-    priceText: { fontSize: 14, fontWeight: '800', color: '#10B981' },
+    priceTag: { backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, marginLeft: 12 },
+    priceText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
     
     // Notifications
     notifCard: {

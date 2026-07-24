@@ -956,15 +956,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   priceTag: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#10B981',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
   priceText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#10B981',
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   emptyState: {
     alignItems: 'center',
