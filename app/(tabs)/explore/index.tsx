@@ -525,7 +525,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 110, flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={true}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -957,7 +957,7 @@ export default function MainMenuScreen() {
         </View>
 
         {/* 5. Topluluk Banner */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 4, backgroundColor: 'transparent' }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 4, marginBottom: 16, backgroundColor: 'transparent' }}>
           <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={7} name="topluluk">
             <WalkthroughableView style={{ width: '100%' }}>
               <SwipeButton 
