@@ -721,8 +721,8 @@ export default function ForumScreen() {
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <View style={[styles.islandBadge, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                <IconSymbol name="mappin" size={10} color={isDark ? "#94A3B8" : "#64748B"} />
-                                <Text style={[styles.islandBadgeText, isDark && { color: '#94A3B8' }]}>
+                                <IconSymbol name="mappin" size={10} color={isDark ? "#CBD5E1" : "#64748B"} />
+                                <Text style={[styles.islandBadgeText, isDark && { color: '#CBD5E1' }]}>
                                     {t('places.' + getIslandName(item.island), { defaultValue: getIslandName(item.island) })}
                                 </Text>
                             </View>
@@ -766,7 +766,7 @@ export default function ForumScreen() {
                                                 );
                                             })}
                                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                                                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600' }}>
+                                                <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
                                                     Toplam {totalVotes} oy
                                                 </Text>
                                                 {countdown && (
@@ -819,7 +819,7 @@ export default function ForumScreen() {
                                 </Text>
                             </TouchableOpacity>
                         </View>
-                        <Text style={styles.chatTime}>{formatTime(item.createdAt)}</Text>
+                        <Text style={[styles.chatTime, isDark && { color: '#CBD5E1' }]}>{formatTime(item.createdAt)}</Text>
                     </View>
                 </TouchableOpacity>
                 </Swipeable>

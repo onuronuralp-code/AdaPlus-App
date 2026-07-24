@@ -738,22 +738,22 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
               <Text style={[styles.categoryBadgeText, { color: cfg.color }, isGridView && { fontSize: 9.5 }]}>{cfg.label}</Text>
             </View>
           </View>
-          <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }, isDark && { color: '#64748B' }]}>{timeAgo}</Text>
+          <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
         </View>
 
         <Text style={[styles.cardTitle, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{listing.title}</Text>
-        {!isGridView && <Text style={[styles.cardDescription, isDark && { color: '#94A3B8' }]} numberOfLines={2}>{listing.description}</Text>}
+        {!isGridView && <Text style={[styles.cardDescription, isDark && { color: '#CBD5E1' }]} numberOfLines={2}>{listing.description}</Text>}
 
         <View style={[styles.cardFooter, isGridView && { marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }]}>
           <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4, flexShrink: 1, marginRight: 8 }]}>
             <View style={styles.metaItem}>
-              <IconSymbol name="mappin.circle.fill" size={12} color={isDark ? '#64748B' : '#94A3B8'} />
-              <Text style={[styles.metaText, isGridView && { fontSize: 11 }, isDark && { color: '#94A3B8' }]}>{listing.island}</Text>
+              <IconSymbol name="mappin.circle.fill" size={12} color={isDark ? '#94A3B8' : '#94A3B8'} />
+              <Text style={[styles.metaText, isGridView && { fontSize: 11 }, isDark && { color: '#CBD5E1' }]}>{listing.island}</Text>
             </View>
             {listing.contactInfo && (
               <View style={styles.metaItem}>
-                <IconSymbol name="phone.circle.fill" size={14} color={isDark ? '#64748B' : '#94A3B8'} />
-                <Text style={[styles.metaText, { flexShrink: 1 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>{listing.contactInfo}</Text>
+                <IconSymbol name="phone.circle.fill" size={14} color={isDark ? '#94A3B8' : '#94A3B8'} />
+                <Text style={[styles.metaText, { flexShrink: 1 }, isDark && { color: '#CBD5E1' }]} numberOfLines={1}>{listing.contactInfo}</Text>
               </View>
             )}
           </View>

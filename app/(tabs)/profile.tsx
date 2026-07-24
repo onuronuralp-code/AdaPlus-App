@@ -462,8 +462,8 @@ export default function ProfileScreen() {
                                     </View>
                                 )}
                             </View>
-                            <Text style={[styles.listingDesc, isDark && { color: '#94A3B8' }]} numberOfLines={2}>{listing.description}</Text>
-                            <Text style={[styles.listingTime, { marginTop: 4 }, isDark && { color: '#64748B' }]}>{timeAgo(listing.createdAt)}</Text>
+                            <Text style={[styles.listingDesc, isDark && { color: '#CBD5E1' }]} numberOfLines={2}>{listing.description}</Text>
+                            <Text style={[styles.listingTime, { marginTop: 4 }, isDark && { color: '#94A3B8' }]}>{timeAgo(listing.createdAt)}</Text>
                         </View>
                     </TouchableOpacity>
                     </Swipeable>
@@ -644,7 +644,7 @@ export default function ProfileScreen() {
                             </View>
                             <Text style={[styles.userName, isDark && { color: '#FFFFFF' }]}>{user?.fullName || 'İsimsiz Kullanıcı'}</Text>
                             {user?.email && (
-                                <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 1, marginBottom: 6 }}>{user.email}</Text>
+                                <Text style={{ fontSize: 13, color: isDark ? '#CBD5E1' : '#64748B', marginTop: 1, marginBottom: 6 }}>{user.email}</Text>
                             )}
                             <View style={[styles.roleBadge, 
                                 user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: isDark ? '#451A03' : '#FEF9C3', borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 3, paddingHorizontal: 12, borderRadius: 8 } : 
@@ -654,7 +654,7 @@ export default function ProfileScreen() {
                                 <Text style={[styles.roleText, 
                                     user?.userType === 'ISLAND_RESIDENT' ? { color: '#F59E0B', fontWeight: '800', letterSpacing: 0.5 } : 
                                     user?.userType === 'ADMIN' ? { color: '#93C5FD' } : 
-                                    { color: isDark ? '#94A3B8' : '#475569' }
+                                    { color: isDark ? '#CBD5E1' : '#475569' }
                                 ]}>
                                     {user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}
                                 </Text>
@@ -665,7 +665,7 @@ export default function ProfileScreen() {
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
-                                            <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#475569', marginLeft: 6, fontWeight: '700' }}>
+                                            <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#475569', marginLeft: 6, fontWeight: '700' }}>
                                                 {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
                                             </Text>
                                         </View>
@@ -681,7 +681,7 @@ export default function ProfileScreen() {
                                             borderRadius: 3 
                                         }} />
                                     </View>
-                                    <Text style={{ fontSize: 10, color: isDark ? '#64748B' : '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
+                                    <Text style={{ fontSize: 10, color: isDark ? '#CBD5E1' : '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
                                         {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
                                     </Text>
                                     {/* MOCK CELEBRATION TRIGGER BUTTON */}

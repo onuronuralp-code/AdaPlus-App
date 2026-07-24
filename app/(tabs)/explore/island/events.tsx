@@ -493,8 +493,8 @@ export default function EventsScreen() {
                                                     
                                                     return (
                                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                            <IconSymbol name="mappin.circle.fill" size={14} color={isDark ? '#64748B' : '#94A3B8'} />
-                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600' }]} numberOfLines={1}>
+                                                            <IconSymbol name="mappin.circle.fill" size={14} color={isDark ? '#94A3B8' : '#94A3B8'} />
+                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#CBD5E1' : '#64748B', fontWeight: '600' }]} numberOfLines={1}>
                                                                 {locationText}
                                                             </Text>
                                                         </View>
@@ -503,8 +503,8 @@ export default function EventsScreen() {
 
                                                 {!isGridView && (
                                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                        <IconSymbol name="person.fill" size={14} color={isDark ? '#64748B' : '#778DA9'} />
-                                                        <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>
+                                                        <IconSymbol name="person.fill" size={14} color={isDark ? '#94A3B8' : '#778DA9'} />
+                                                        <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4 }, isDark && { color: '#CBD5E1' }]} numberOfLines={1}>
                                                             {event.organizerName || 'Ada Plus'}
                                                         </Text>
                                                     </View>

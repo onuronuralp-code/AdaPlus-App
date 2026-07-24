@@ -928,7 +928,7 @@ export default function MainMenuScreen() {
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -946,7 +946,7 @@ export default function MainMenuScreen() {
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -974,7 +974,7 @@ export default function MainMenuScreen() {
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#94A3B8' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
