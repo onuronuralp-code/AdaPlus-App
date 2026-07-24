@@ -31,7 +31,7 @@ import { fetchActivities, fetchDepartures } from '@/services/api';
 import { fetchListings } from '@/services/listingApi';
 import { API_BASE_URL, resolveImageUrl } from '@/services/config';
 
-import { fetchNotifications, markNotificationRead, NotificationDto } from '@/services/notificationApi';
+import { fetchNotifications, markNotificationRead, markAllRead, NotificationDto } from '@/services/notificationApi';
 import { ListingDto } from '@/services/listingApi';
 import { useAuth } from '@/context/AuthContext';
 import { getToken } from '@/utils/tokenStorage';
@@ -458,8 +458,8 @@ export default function MainMenuScreen() {
         }
       }).catch(err => console.log('Error fetching hero slider data:', err));
 
-      // Load cached counts immediately on focus so event/listing badges show on reload
-      AsyncStorage.multiGet(['cached_unseen_events', 'cached_unseen_listings', 'cached_total_events', 'cached_total_listings', 'cached_notifications']).then(stores => {
+      // Load cached counts immediately on focus so event/listing/notification badges show on reload
+      AsyncStorage.multiGet(['cached_unseen_events', 'cached_unseen_listings', 'cached_total_events', 'cached_total_listings', 'cached_notifications', 'lastViewedNotifications']).then(stores => {
         const map = Object.fromEntries(stores);
         if (map['cached_unseen_events']) setUnseenEventsCount(parseInt(map['cached_unseen_events'], 10) || 0);
         if (map['cached_unseen_listings']) setUnseenListingsCount(parseInt(map['cached_unseen_listings'], 10) || 0);
@@ -468,16 +468,29 @@ export default function MainMenuScreen() {
         if (map['cached_notifications']) {
           try {
             const parsed = JSON.parse(map['cached_notifications']);
-            if (Array.isArray(parsed) && parsed.length > 0) setNotifications(parsed);
+            const lastViewedTime = map['lastViewedNotifications'] ? parseInt(map['lastViewedNotifications'], 10) : 0;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const processed = parsed.map(n => ({
+                ...n,
+                read: n.read || (n.createdAt ? new Date(n.createdAt).getTime() <= lastViewedTime : true)
+              }));
+              setNotifications(processed);
+            }
           } catch (e) {}
         }
       });
 
       if (isLoggedIn) {
-        fetchNotifications().then(data => {
+        fetchNotifications().then(async data => {
             if (data && Array.isArray(data) && data.length > 0) {
-              setNotifications(data);
-              AsyncStorage.setItem('cached_notifications', JSON.stringify(data));
+              const lastViewedStr = await AsyncStorage.getItem('lastViewedNotifications');
+              const lastViewedTime = lastViewedStr ? parseInt(lastViewedStr, 10) : 0;
+              const processed = data.map(n => ({
+                ...n,
+                read: n.read || (n.createdAt ? new Date(n.createdAt).getTime() <= lastViewedTime : true)
+              }));
+              setNotifications(processed);
+              AsyncStorage.setItem('cached_notifications', JSON.stringify(processed));
             }
         }).catch(e => console.log('Error prefetching notifications', e));
       }
@@ -638,12 +651,17 @@ export default function MainMenuScreen() {
                       try {
                           const fetchedData = await fetchNotifications();
                           notificationsData = Array.isArray(fetchedData) ? fetchedData : [];
+                          markAllRead().catch(() => {});
                       } catch (e) {
                           console.log('Error fetching notifications', e);
                       }
                   }
                   
-                  setNotifications(notificationsData);
+                  const now = Date.now();
+                  const allReadData = notificationsData.map(n => ({ ...n, read: true }));
+                  setNotifications(allReadData);
+                  await AsyncStorage.setItem('cached_notifications', JSON.stringify(allReadData));
+                  await AsyncStorage.setItem('lastViewedNotifications', now.toString());
                   setLoadingNotifications(false);
                 }}
               >
