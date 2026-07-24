@@ -535,7 +535,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? 200 : (isLargeScreen ? 250 : 225);
+  const heroHeight = isSmallScreen ? 230 : (isLargeScreen ? 290 : 260);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -561,7 +561,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + 8 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 12 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -1000,7 +1000,7 @@ export default function MainMenuScreen() {
         </View>
 
         {/* 5. Topluluk Banner */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 2, marginBottom: 4, backgroundColor: 'transparent' }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 'auto', marginBottom: 8, backgroundColor: 'transparent' }}>
           <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
             <WalkthroughableView style={{ width: '100%' }}>
               <SwipeButton 
