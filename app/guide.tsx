@@ -1,5 +1,6 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth, handleUnauthorized } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { sendChatMessageStream } from '@/services/guideApi';
 import { Stack, useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
@@ -37,6 +38,8 @@ export default function GuideScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isLoggedIn, user } = useAuth();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
@@ -204,17 +207,17 @@ export default function GuideScreen() {
 
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={[styles.container, isDark && { backgroundColor: '#000000' }]} edges={['top', 'left', 'right']}>
             <Stack.Screen options={{ headerShown: false }} />
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <IconSymbol name="chevron.left" size={24} color="#000" />
+            <View style={[styles.header, isDark && { backgroundColor: '#000000' }]}>
+                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}>
+                    <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#000"} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('common.adaAI')}</Text>
-                <View style={[styles.islandBadge, { backgroundColor: '#FCE7F3' }]}>
-                    <Text style={[styles.islandBadgeText, { color: '#EC4899', fontWeight: 'bold' }]}>
+                <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.adaAI')}</Text>
+                <View style={[styles.islandBadge, isDark ? { backgroundColor: '#831843', borderColor: '#EC4899' } : { backgroundColor: '#FCE7F3' }]}>
+                    <Text style={[styles.islandBadgeText, { color: isDark ? '#F472B6' : '#EC4899', fontWeight: 'bold' }]}>
                         {user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'ADMIN' 
                             ? "Sınırsız Soru" 
                             : `${Math.max(0, (isLoggedIn ? 10 : 3) - guestMessageCount)} Soru Hakkı`}
@@ -225,7 +228,7 @@ export default function GuideScreen() {
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <ScrollView
                     ref={scrollRef}
-                    style={styles.content}
+                    style={[styles.content, isDark && { backgroundColor: '#000000' }]}
                     contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
@@ -240,11 +243,11 @@ export default function GuideScreen() {
                                     <IconSymbol name="pawprint.fill" size={16} color="#fff" />
                                 </View>
                             )}
-                            <View style={[styles.bubble, msg.isBot ? styles.botBubble : styles.userBubble]}>
+                            <View style={[styles.bubble, msg.isBot ? [styles.botBubble, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }] : styles.userBubble]}>
                                 {msg.text === '...' ? (
                                     <ActivityIndicator size="small" color="#EC4899" />
                                 ) : msg.isBot ? (
-                                    <MarkdownText text={msg.text} style={[styles.messageText, styles.botText]} />
+                                    <MarkdownText text={msg.text} style={[styles.messageText, styles.botText, isDark && { color: '#F8FAFC' }]} isDark={isDark} />
                                 ) : (
                                     <Text style={[styles.messageText, styles.userText]}>
                                         {msg.text}
@@ -257,7 +260,7 @@ export default function GuideScreen() {
                     {showIslandChips && (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsContainer}>
                             {ISLANDS.map(island => (
-                                <SuggestionChip key={island} text={island} disabled={isLoading} onPress={() => handleIslandSelect(island)} />
+                                <SuggestionChip key={island} text={island} disabled={isLoading} isDark={isDark} onPress={() => handleIslandSelect(island)} />
                             ))}
                         </ScrollView>
                     )}
@@ -267,28 +270,31 @@ export default function GuideScreen() {
                             <SuggestionChip
                                 text={t('guide.chip.sightseeing')}
                                 disabled={isLoading}
+                                isDark={isDark}
                                 onPress={() => handleSend(t('guide.prompt.sightseeing'))}
                             />
                             <SuggestionChip
                                 text={t('guide.chip.cafes')}
                                 disabled={isLoading}
+                                isDark={isDark}
                                 onPress={() => handleSend(t('guide.prompt.cafes'))}
                             />
                             <SuggestionChip
                                 text={t('guide.chip.beaches')}
                                 disabled={isLoading}
+                                isDark={isDark}
                                 onPress={() => handleSend(t('guide.prompt.beaches'))}
                             />
                         </ScrollView>
                     )}
                 </ScrollView>
 
-                <View style={[styles.inputContainer, { paddingBottom: keyboardVisible ? 8 : insets.bottom + 8 }]}>
-                    <View style={styles.inputBox}>
+                <View style={[styles.inputContainer, { paddingBottom: keyboardVisible ? 8 : insets.bottom + 8 }, isDark && { backgroundColor: '#000000', borderTopColor: '#1C1C1E' }]}>
+                    <View style={[styles.inputBox, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                         <TextInput
-                            style={styles.textInput}
+                            style={[styles.textInput, isDark && { color: '#FFFFFF' }]}
                             placeholder={t('guide.placeholder')}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                             value={prompt}
                             onChangeText={setPrompt}
                             multiline
@@ -296,14 +302,14 @@ export default function GuideScreen() {
                             onSubmitEditing={handleSend}
                         />
                         <TouchableOpacity
-                            style={[styles.sendButton, (!prompt.trim() || isLoading) && styles.sendButtonDisabled]}
+                            style={[styles.sendButton, (!prompt.trim() || isLoading) && (isDark ? { backgroundColor: '#1C1C1E' } : styles.sendButtonDisabled)]}
                             disabled={!prompt.trim() || isLoading}
                             onPress={handleSend}
                         >
                             {isLoading ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
-                                <IconSymbol name="paperplane.fill" size={20} color={prompt.trim() ? '#fff' : '#94A3B8'} />
+                                <IconSymbol name="paperplane.fill" size={20} color={prompt.trim() ? '#fff' : (isDark ? '#64748B' : '#94A3B8')} />
                             )}
                         </TouchableOpacity>
                     </View>
@@ -313,7 +319,7 @@ export default function GuideScreen() {
     );
 }
 
-function parseBoldSegments(text: string): React.ReactNode[] {
+function parseBoldSegments(text: string, isDark?: boolean): React.ReactNode[] {
     const nodes: React.ReactNode[] = [];
     let remaining = text;
     let key = 0;
@@ -323,13 +329,13 @@ function parseBoldSegments(text: string): React.ReactNode[] {
         if (s > 0) nodes.push(remaining.slice(0, s));
         const e = remaining.indexOf('**', s + 2);
         if (e === -1) { nodes.push(remaining); break; }
-        nodes.push(<Text key={key++} style={{ fontWeight: '700', color: '#0F172A' }}>{remaining.slice(s + 2, e)}</Text>);
+        nodes.push(<Text key={key++} style={{ fontWeight: '700', color: isDark ? '#FFFFFF' : '#0F172A' }}>{remaining.slice(s + 2, e)}</Text>);
         remaining = remaining.slice(e + 2);
     }
     return nodes;
 }
 
-function MarkdownText({ text, style }: { text: string; style?: object | object[] }) {
+function MarkdownText({ text, style, isDark }: { text: string; style?: object | object[]; isDark?: boolean }) {
     const lines = text.split('\n');
     return (
         <View>
@@ -341,11 +347,11 @@ function MarkdownText({ text, style }: { text: string; style?: object | object[]
                     return (
                         <View key={i} style={mdStyles.bulletRow}>
                             <Text style={[style, mdStyles.bullet]}>•</Text>
-                            <Text style={[style, mdStyles.bulletText]}>{parseBoldSegments(content)}</Text>
+                            <Text style={[style, mdStyles.bulletText]}>{parseBoldSegments(content, isDark)}</Text>
                         </View>
                     );
                 }
-                return <Text key={i} style={style}>{parseBoldSegments(content)}</Text>;
+                return <Text key={i} style={style}>{parseBoldSegments(content, isDark)}</Text>;
             })}
         </View>
     );
@@ -357,15 +363,15 @@ const mdStyles = StyleSheet.create({
     bulletText: { flex: 1, lineHeight: 22 },
 });
 
-function SuggestionChip({ text, onPress, disabled }: { text: string; onPress: () => void; disabled?: boolean }) {
+function SuggestionChip({ text, onPress, disabled, isDark }: { text: string; onPress: () => void; disabled?: boolean; isDark?: boolean }) {
     return (
         <TouchableOpacity
-            style={[styles.suggestionChip, disabled && styles.suggestionChipDisabled]}
+            style={[styles.suggestionChip, isDark && { backgroundColor: '#121212', borderColor: '#EC4899' }, disabled && (isDark ? { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' } : styles.suggestionChipDisabled)]}
             onPress={onPress}
             disabled={disabled}
             activeOpacity={0.7}
         >
-            <Text style={[styles.suggestionText, disabled && styles.suggestionTextDisabled]}>{text}</Text>
+            <Text style={[styles.suggestionText, isDark && { color: '#F472B6' }, disabled && styles.suggestionTextDisabled]}>{text}</Text>
         </TouchableOpacity>
     );
 }
