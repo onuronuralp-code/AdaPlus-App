@@ -1159,17 +1159,17 @@ export default function MainMenuScreen() {
         statusBarTranslucent
         onRequestClose={() => setShowSurvey(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.5)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <View style={{ width: '100%', backgroundColor: '#fff', borderRadius: 28, padding: 28, alignItems: 'center', elevation: 10, }}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <View style={[{ width: '100%', backgroundColor: '#fff', borderRadius: 28, padding: 28, alignItems: 'center', elevation: 10 }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
             {surveySubmitted ? (
               <>
-                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                  <IconSymbol name="checkmark" size={28} color="#10B981" />
+                <View style={[{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }, isDark && { backgroundColor: '#064E3B' }]}>
+                  <IconSymbol name="checkmark" size={28} color={isDark ? "#34D399" : "#10B981"} />
                 </View>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
+                <Text style={[{ fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 8, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>
                   {i18n.language.startsWith('en') ? 'Thank You!' : 'Teşekkürler!'}
                 </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }, isDark && { color: '#CBD5E1' }]}>
                   {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring electric vehicle services to the islands.' : 'Görüşleriniz alındı. Adalara elektrikli taşıt hizmetini getirmek için var gücümüzle çalışıyoruz.'}
                 </Text>
                 <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
@@ -1183,13 +1183,13 @@ export default function MainMenuScreen() {
               </>
             ) : (
               <>
-                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                  <IconSymbol name="bag.fill" size={28} color="#8B5CF6" />
+                <View style={[{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }, isDark && { backgroundColor: '#3B0764' }]}>
+                  <IconSymbol name="bag.fill" size={28} color={isDark ? "#C084FC" : "#8B5CF6"} />
                 </View>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 8, textAlign: 'center' }}>
+                <Text style={[{ fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 8, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>
                   {i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}
                 </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }, isDark && { color: '#CBD5E1' }]}>
                   {i18n.language.startsWith('en') ? 'What kind of delivery service would you use most on the island?' : 'Adada en çok hangi paket servis hizmetine ihtiyaç duyuyorsunuz?'}
                 </Text>
                 
@@ -1202,28 +1202,31 @@ export default function MainMenuScreen() {
                   ].map((option) => (
                     <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                       key={option}
-                      style={{ 
+                      style={[{ 
                         width: '100%', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, marginBottom: 10,
                         backgroundColor: surveyOptions.includes(option) ? '#F3E8FF' : '#F8FAFC',
                         borderWidth: 1, borderColor: surveyOptions.includes(option) ? '#8B5CF6' : '#E2E8F0',
                         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
-                      }}
+                      }, isDark && {
+                        backgroundColor: surveyOptions.includes(option) ? '#3B0764' : '#18181B',
+                        borderColor: surveyOptions.includes(option) ? '#A855F7' : '#2C2C2E'
+                      }]}
                       onPress={() => setSurveyOptions(prev => prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option])}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: surveyOptions.includes(option) ? '700' : '500', color: surveyOptions.includes(option) ? '#6D28D9' : '#334155' }}>
+                      <Text style={[{ fontSize: 14, fontWeight: surveyOptions.includes(option) ? '700' : '500', color: surveyOptions.includes(option) ? '#6D28D9' : '#334155' }, isDark && { color: surveyOptions.includes(option) ? '#E9D5FF' : '#E2E8F0' }]}>
                         {option}
                       </Text>
-                      {surveyOptions.includes(option) && <IconSymbol name="checkmark.circle.fill" size={20} color="#8B5CF6" />}
+                      {surveyOptions.includes(option) && <IconSymbol name="checkmark.circle.fill" size={20} color={isDark ? "#C084FC" : "#8B5CF6"} />}
                     </Pressable>
                   ))}
                   {(surveyOptions.includes('Diğer') || surveyOptions.includes('Other')) && (
                     <TextInput
-                      style={{
+                      style={[{
                         width: '100%', backgroundColor: '#F8FAFC', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16,
                         borderWidth: 1, borderColor: '#E2E8F0', fontSize: 14, color: '#0F172A', marginTop: 4, marginBottom: 10,
-                      }}
+                      }, isDark && { backgroundColor: '#18181B', borderColor: '#2C2C2E', color: '#FFFFFF' }]}
                       placeholder={i18n.language.startsWith('en') ? 'Please specify...' : 'Lütfen belirtin...'}
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                       value={surveyOtherText}
                       onChangeText={setSurveyOtherText}
                     />
@@ -1231,7 +1234,7 @@ export default function MainMenuScreen() {
                 </ScrollView>
 
                 <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-                  style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : '#CBD5E1', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
+                  style={{ width: '100%', backgroundColor: surveyOptions.length > 0 ? '#8B5CF6' : (isDark ? '#2C2C2E' : '#CBD5E1'), borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 }} 
                   onPress={() => {
                     setSurveySubmitted(true);
                     setHasCompletedSurvey(true);
@@ -1244,7 +1247,7 @@ export default function MainMenuScreen() {
                   </Text>
                 </Pressable>
                 <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} style={{ width: '100%', paddingVertical: 14, alignItems: 'center', marginTop: 4 }} onPress={() => setShowSurvey(false)}>
-                  <Text style={{ color: '#94A3B8', fontSize: 14, fontWeight: '600' }}>
+                  <Text style={[{ color: '#94A3B8', fontSize: 14, fontWeight: '600' }, isDark && { color: '#64748B' }]}>
                     {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
                   </Text>
                 </Pressable>
