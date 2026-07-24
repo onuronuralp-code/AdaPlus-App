@@ -960,11 +960,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
   },
   priceText: {
     fontSize: 13,
     fontWeight: '800',
     color: '#FFFFFF',
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   emptyState: {
     alignItems: 'center',

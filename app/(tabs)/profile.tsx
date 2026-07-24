@@ -438,7 +438,7 @@ export default function ProfileScreen() {
                 {listings.map(listing => (
                     <Swipeable key={listing.id} renderRightActions={renderListingActions(listing)} overshootRight={false}>
                     <TouchableOpacity 
-                        style={[styles.listingCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9', alignItems: 'flex-start' }]}
+                        style={[styles.listingCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9', alignItems: 'center' }]}
                         activeOpacity={0.7}
                         onPress={() => router.push(`/(tabs)/explore/island/ilan/${listing.id}`)}
                     >
@@ -454,10 +454,10 @@ export default function ProfileScreen() {
                             </View>
                         )}
                         <View style={styles.listingInfo}>
-                            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                                 <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{listing.title}</Text>
                                 {listing.price > 0 && (
-                                    <View style={[styles.priceTag, { marginLeft: 8 }]}>
+                                    <View style={[styles.priceTag, { marginLeft: 8, alignSelf: 'center' }]}>
                                         <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
                                     </View>
                                 )}
@@ -844,8 +844,8 @@ const styles = StyleSheet.create({
     listingTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B', marginBottom: 4 },
     listingDesc: { fontSize: 13, color: '#64748B', lineHeight: 18, marginBottom: 6 },
     listingTime: { fontSize: 12, color: '#94A3B8' },
-    priceTag: { backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, marginLeft: 12 },
-    priceText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+    priceTag: { backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, marginLeft: 12, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
+    priceText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', textAlign: 'center', includeFontPadding: false },
     
     // Notifications
     notifCard: {
