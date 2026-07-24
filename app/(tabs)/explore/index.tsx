@@ -590,7 +590,7 @@ export default function MainMenuScreen() {
             <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => router.push('/(tabs)/profile')}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1, borderColor: isDark ? '#2C2C2E' : '#E0E7FF' }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: isDark ? '#6366F1' : '#6366F1' }}
             >
               <IconSymbol name="person.2.fill" size={13} color={isDark ? '#818CF8' : '#6366F1'} />
               <Text style={{ fontSize: 12, color: isDark ? '#93C5FD' : '#4338CA', marginLeft: 6, fontWeight: '700' }}>
