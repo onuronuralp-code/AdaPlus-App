@@ -561,7 +561,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 12 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + 8 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -998,24 +998,24 @@ export default function MainMenuScreen() {
             </WalkthroughableView>
           </CopilotStep>
         </View>
+      </View>
 
-        {/* 5. Topluluk Banner */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 0, marginTop: 'auto', marginBottom: 8, backgroundColor: 'transparent' }}>
-          <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
-            <WalkthroughableView style={{ width: '100%' }}>
-              <SwipeButton 
-                isLoggedIn={isLoggedIn} 
-                onSwipeComplete={() => {
-                  if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
-                    setShowIslanderStepsModal(true);
-                  } else {
-                    navigateWithDebounce('/(tabs)/explore/island/forum');
-                  }
-                }} 
-              />
-            </WalkthroughableView>
-          </CopilotStep>
-        </View>
+      {/* 5. Topluluk Banner (Positioned cleanly at bottom of screen above navbar) */}
+      <View style={{ paddingHorizontal: 16, marginTop: 'auto', marginBottom: 12, backgroundColor: 'transparent' }}>
+        <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
+          <WalkthroughableView style={{ width: '100%' }}>
+            <SwipeButton 
+              isLoggedIn={isLoggedIn} 
+              onSwipeComplete={() => {
+                if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
+                  setShowIslanderStepsModal(true);
+                } else {
+                  navigateWithDebounce('/(tabs)/explore/island/forum');
+                }
+              }} 
+            />
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
 
 </ScrollView>
