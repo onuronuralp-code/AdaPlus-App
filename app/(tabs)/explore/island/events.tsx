@@ -786,7 +786,8 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: 16,
+        paddingHorizontal: 4,
+        paddingTop: 16,
     },
     eventCard: {
         backgroundColor: '#fff',

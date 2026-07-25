@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
     paddingTop: 8,
     paddingBottom: 0, // overridden inline with tabBarHeight
   },
