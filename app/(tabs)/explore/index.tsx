@@ -1294,20 +1294,20 @@ export default function MainMenuScreen() {
               <IconSymbol name="pawprint.fill" size={34} color="#EC4899" />
             </View>
             <View style={{ backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 12 }}>
-              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>ADA AI • YAKINDA</Text>
+              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>{t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'ADA AI • COMING SOON' : 'ADA AI • YAKINDA' })}</Text>
             </View>
             <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 12 }}>
               {t('explore.adaAi', { defaultValue: 'ADA AI' })}
             </Text>
             <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#CBD5E1' : '#475569', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
-              Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.
+              {t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to build a genuine artificial intelligence for the Islands.' : 'Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })}
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setShowAdaAiModal(false)}
               style={{ width: '100%', paddingVertical: 14, borderRadius: 14, backgroundColor: '#EC4899', alignItems: 'center', justifyContent: 'center' }}
             >
-              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>Anladım</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>{t('common.gotIt', { defaultValue: i18n.language.startsWith('en') ? 'Got it' : 'Anladım' })}</Text>
             </TouchableOpacity>
           </View>
         </View>

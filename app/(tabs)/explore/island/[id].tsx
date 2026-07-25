@@ -8,7 +8,7 @@ import { ISLANDS } from '../../../../constants/Islands';
 import { useWeather } from '@/hooks/useWeather';
 
 export default function IslandDetailScreen() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { id, name, image, description, sunset } = useLocalSearchParams();
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -131,12 +131,12 @@ export default function IslandDetailScreen() {
                     <ActivityCard
                         icon="pawprint.fill"
                         color="#EC4899"
-                        title={t('common.adaAI', { defaultValue: 'Ada AI (Yakında)' })}
-                        subtitle={t('common.yourSmartGuide', { defaultValue: 'Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...' })}
+                        title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI (Coming Soon)' : 'Ada AI (Yakında)' })}
+                        subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon - In collaboration with the Islands Municipality and Museum...' : 'Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...' })}
                         onPress={() => {
                             Alert.alert(
-                                'Ada AI • Yakında',
-                                'Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.'
+                                t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI • Coming Soon' : 'Ada AI • Yakında' }),
+                                t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to build a genuine artificial intelligence for the Islands.' : 'Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })
                             );
                         }}
                     />
