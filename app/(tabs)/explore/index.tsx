@@ -1011,7 +1011,7 @@ export default function MainMenuScreen() {
       </View>
 
       {/* 5. Topluluk Banner (Positioned cleanly at bottom of screen above navbar) */}
-      <View style={{ paddingHorizontal: 16, marginTop: 'auto', paddingTop: isLargeScreen ? 6 : (isSmallScreen ? 2 : 4), marginBottom: isLargeScreen ? 44 : (isSmallScreen ? 18 : 28), backgroundColor: 'transparent' }}>
+      <View style={{ paddingHorizontal: 16, marginTop: 'auto', paddingTop: isLargeScreen ? 6 : (isSmallScreen ? 2 : 4), marginBottom: isLargeScreen ? 76 : (isSmallScreen ? 18 : 28), backgroundColor: 'transparent' }}>
         <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
           <WalkthroughableView style={{ width: '100%' }}>
             <SwipeButton 
