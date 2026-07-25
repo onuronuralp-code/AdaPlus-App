@@ -694,7 +694,7 @@ export default function ForumScreen() {
                 ? t('forum.role.islander', { defaultValue: 'Adalı' })
                 : t('forum.role.visitor', { defaultValue: 'Ziyaretçi' });
 
-        const renderRightActions = () => {
+        const renderRightActions = (progress: any, dragX: any, swipeable?: any) => {
             if (item.authorId !== user?.id) return null;
 
             return (
@@ -702,7 +702,7 @@ export default function ForumScreen() {
                     <TouchableOpacity 
                         style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12, marginRight: 4 }}
                         activeOpacity={0.7}
-                        onPress={() => handleEditPost(item)}
+                        onPress={() => { swipeable?.close(); handleEditPost(item); }}
                     >
                         <IconSymbol name="pencil" size={24} color="#FFF" />
                         <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
@@ -710,7 +710,7 @@ export default function ForumScreen() {
                     <TouchableOpacity 
                         style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
                         activeOpacity={0.7}
-                        onPress={() => handleDeletePost(item.id)}
+                        onPress={() => { swipeable?.close(); handleDeletePost(item.id); }}
                     >
                         <IconSymbol name="trash.fill" size={24} color="#FFF" />
                         <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
@@ -1363,10 +1363,10 @@ export default function ForumScreen() {
                                 <Text style={[styles.commentsTitle, isDark && { color: '#FFFFFF' }]}>{t('forum.comments')}</Text>
                                 {replies.length > 0 ? (
                                     replies.map(reply => {
-                                        const renderRightActions = () => {
+                                        const renderRightActions = (progress: any, dragX: any, swipeable?: any) => {
                                             if (reply.authorId !== user?.id) return null;
                                             return (
-                                                <TouchableOpacity onPress={() => handleDeletePost(reply.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                                                     <IconSymbol name="trash.fill" size={20} color="#FFF" />
                                                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                                                 </TouchableOpacity>

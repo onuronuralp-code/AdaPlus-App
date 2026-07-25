@@ -261,7 +261,7 @@ export default function ProfileScreen() {
         </View>
     );
 
-    const renderPostActions = (post: any, isReply: boolean) => (progress: any, dragX: any) => {
+    const renderPostActions = (post: any, isReply: boolean) => (progress: any, dragX: any, swipeable?: any) => {
         const trans = dragX.interpolate({
             inputRange: [-160, 0],
             outputRange: [0, 160],
@@ -269,11 +269,11 @@ export default function ProfileScreen() {
         });
         return (
             <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
-                <GHTouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <GHTouchableOpacity onPress={() => { swipeable?.close(); setEditingPostId(post.id); setEditingContent(post.content); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="pencil" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                 </GHTouchableOpacity>
-                <GHTouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <GHTouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(post.id, isReply); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                 </GHTouchableOpacity>
@@ -420,7 +420,7 @@ export default function ProfileScreen() {
         );
     };
 
-    const renderListingActions = (listing: any) => (progress: any, dragX: any) => {
+    const renderListingActions = (listing: any) => (progress: any, dragX: any, swipeable?: any) => {
         const trans = dragX.interpolate({
             inputRange: [-160, 0],
             outputRange: [0, 160],
@@ -428,11 +428,11 @@ export default function ProfileScreen() {
         });
         return (
             <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
-                <GHTouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <GHTouchableOpacity onPress={() => { swipeable?.close(); router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="pencil" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                 </GHTouchableOpacity>
-                <GHTouchableOpacity onPress={() => handleDeleteListing(listing.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <GHTouchableOpacity onPress={() => { swipeable?.close(); handleDeleteListing(listing.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                 </GHTouchableOpacity>
@@ -483,7 +483,7 @@ export default function ProfileScreen() {
         );
     };
 
-    const renderEventActions = (activity: any) => (progress: any, dragX: any) => {
+    const renderEventActions = (activity: any) => (progress: any, dragX: any, swipeable?: any) => {
         const trans = dragX.interpolate({
             inputRange: [-160, 0],
             outputRange: [0, 160],
@@ -491,11 +491,11 @@ export default function ProfileScreen() {
         });
         return (
             <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
-                <GHTouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <GHTouchableOpacity onPress={() => { swipeable?.close(); router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="pencil" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                 </GHTouchableOpacity>
-                <GHTouchableOpacity onPress={() => handleDeleteEvent(activity.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                <GHTouchableOpacity onPress={() => { swipeable?.close(); handleDeleteEvent(activity.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                 </GHTouchableOpacity>
