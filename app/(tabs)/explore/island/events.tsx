@@ -588,7 +588,7 @@ export default function EventsScreen() {
                     <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
                         <View style={{ padding: 20 }}>
 
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>ADA SEÇİMİ *</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'SELECT ISLAND * (Required)' : 'ADA SEÇİMİ * (Zorunlu)'}</Text>
                         <View style={{ flexDirection: 'row', gap: 4, marginBottom: 20 }}>
                             {['KINALIADA', 'BURGAZADA', 'HEYBELIADA', 'BUYUKADA'].map((islandId) => (
                                 <TouchableOpacity 
@@ -668,7 +668,7 @@ export default function EventsScreen() {
                             onChangeText={setOrganizerName}
                         />
 
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'CONTACT INFO (TEL/EMAIL) * (Required)' : 'İLETİŞİM BİLGİSİ (TEL/E-POSTA) * (Zorunlu)'}</Text>
                         <TextInput 
                             style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"

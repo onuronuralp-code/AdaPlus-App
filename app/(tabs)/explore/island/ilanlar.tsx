@@ -549,7 +549,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>SATICI ADI *</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'SELLER NAME * (Required)' : 'SATICI ADI * (Zorunlu)'}</Text>
               <TextInput
                 style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder="Adınız Soyadınız"
@@ -629,7 +629,7 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>İLETİŞİM BİLGİSİ (TEL/E-POSTA) *</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'CONTACT INFO (TEL/EMAIL) * (Required)' : 'İLETİŞİM BİLGİSİ (TEL/E-POSTA) * (Zorunlu)'}</Text>
               <TextInput
                 style={[styles.adTitleInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                 placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"
