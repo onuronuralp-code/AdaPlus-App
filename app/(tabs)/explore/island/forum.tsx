@@ -1026,7 +1026,19 @@ export default function ForumScreen() {
                         </View>
                         <View style={[styles.writeOptionsDivider, isDark && { backgroundColor: '#1C1C1E' }]} />
                         <View style={styles.formSection}>
-                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
+                                {newPostType !== 'poll' && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                        <Text style={{ color: '#94A3B8', fontSize: 12, fontWeight: '600' }}>
+                                            {newPostContent.trim() ? newPostContent.trim().split(/\s+/).length : 0} kelime
+                                        </Text>
+                                        <Text style={{ color: newPostContent.length >= MAX_POST_LENGTH ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B'), fontSize: 12, fontWeight: '700' }}>
+                                            {newPostContent.length}/{MAX_POST_LENGTH}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                             <TextInput
                                 style={[styles.premiumTextInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }, newPostType === 'poll' && { minHeight: 60, height: undefined, paddingVertical: 16, paddingHorizontal: 16, textAlign: 'left', lineHeight: 20 }]}
                                 placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder') : t('forum.whatsOnYourMind')}
@@ -1042,16 +1054,6 @@ export default function ForumScreen() {
                                 <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>
                                     En az {MIN_POST_LENGTH} karakter gerekli ({trimmedPostContent.length}/{MIN_POST_LENGTH})
                                 </Text>
-                            )}
-                            {newPostType !== 'poll' && (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-                                    <Text style={{ color: '#94A3B8', fontSize: 11, fontWeight: '500' }}>
-                                        {newPostContent.trim() ? newPostContent.trim().split(/\s+/).length : 0} kelime
-                                    </Text>
-                                    <Text style={{ color: newPostContent.length >= MAX_POST_LENGTH ? '#EF4444' : '#94A3B8', fontSize: 11, fontWeight: '500' }}>
-                                        {newPostContent.length}/{MAX_POST_LENGTH}
-                                    </Text>
-                                </View>
                             )}
                         </View>
                         {newPostType !== 'poll' && ENABLE_PHOTO_UPLOAD && (
