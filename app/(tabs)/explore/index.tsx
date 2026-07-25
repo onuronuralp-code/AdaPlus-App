@@ -979,7 +979,7 @@ export default function MainMenuScreen() {
           </CopilotStep>
 
           {/* 3. Ada AI */}
-          <CopilotStep text={t('explore.tour.adaAi', { defaultValue: i18n.language.startsWith('en') ? 'You can ask any question to the island AI guide.' : 'Adanın yapay zeka rehberine her türlü soruyu sorabilirsin.' })} order={4} name="ada_ai">
+          <CopilotStep text={t('explore.tour.adaAi', { defaultValue: i18n.language.startsWith('en') ? 'Our AI guide, specially developed for the islands, is currently under development.' : 'Adalar için özel olarak geliştirilen yapay zeka rehberimiz şu an geliştirilme aşamasındadır.' })} order={4} name="ada_ai">
             <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
