@@ -701,7 +701,7 @@ export default function ForumScreen() {
             <View style={styles.postWrapper}>
                 <Swipeable renderRightActions={renderRightActions}>
                 <TouchableOpacity 
-                    style={[styles.bubbleContainer, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}
+                    style={[styles.bubbleContainer, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]}
                     activeOpacity={0.9}
                     onPress={() => {
                         if (!isLoggedIn) {
@@ -1752,13 +1752,21 @@ const styles = StyleSheet.create({
     },
     postWrapper: {
         width: '100%',
+        paddingHorizontal: s(12),
+        marginVertical: vs(5),
     },
     bubbleContainer: {
         backgroundColor: '#FFFFFF',
         padding: s(16),
         width: '100%',
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E2E8F0',
+        borderRadius: s(16),
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 2,
     },
     bubbleHeader: {
         flexDirection: 'row',
