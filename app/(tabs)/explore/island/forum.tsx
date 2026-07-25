@@ -686,7 +686,15 @@ export default function ForumScreen() {
             return (
                 <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
                     <TouchableOpacity 
-                        style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}
+                        style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12, marginRight: 4 }}
+                        activeOpacity={0.7}
+                        onPress={() => handleEditPost(item)}
+                    >
+                        <IconSymbol name="pencil" size={24} color="#FFF" />
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
                         activeOpacity={0.7}
                         onPress={() => handleDeletePost(item.id)}
                     >

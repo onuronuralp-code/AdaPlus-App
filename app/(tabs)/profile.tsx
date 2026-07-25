@@ -263,12 +263,16 @@ export default function ProfileScreen() {
 
     const renderPostActions = (post: any, isReply: boolean) => (progress: any, dragX: any) => {
         const trans = dragX.interpolate({
-            inputRange: [-80, 0],
-            outputRange: [0, 80],
+            inputRange: [-160, 0],
+            outputRange: [0, 160],
             extrapolate: 'clamp',
         });
         return (
-            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 80, transform: [{ translateX: trans }] }}>
+            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
+                <GHTouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                    <IconSymbol name="pencil" size={24} color="#FFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                </GHTouchableOpacity>
                 <GHTouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
