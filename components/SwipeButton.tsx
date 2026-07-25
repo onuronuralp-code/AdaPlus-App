@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Vibration, useWindowDimensions, Animated, Easing, Alert } from 'react-native';
 import { IconSymbol } from './ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +10,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
   isLoggedIn?: boolean;
+  isActive?: boolean;
 }
 
-export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonProps) {
+export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = true }: SwipeButtonProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { height } = useWindowDimensions();
@@ -20,10 +21,27 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const isSmallScreen = height < 820;
   const isNavigating = useRef(false);
   const [userCount, setUserCount] = useState<number | null>(null);
+  const [isDeactivated, setIsDeactivated] = useState<boolean>(!isActive);
 
   const shimmerAnim = useRef(new Animated.Value(-1)).current;
   const pulseAnim  = useRef(new Animated.Value(0)).current;
   const scaleAnim  = useRef(new Animated.Value(1)).current;
+
+  // Fetch backend community active status
+  useEffect(() => {
+    fetchWithTimeout(`${API_BASE_URL}/api/v1/community/status`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && (data.active === false || data.enabled === false || data.status === 'DEACTIVE' || data.status === 'DISABLED' || data.deactivated === true)) {
+          setIsDeactivated(true);
+        } else if (data && (data.active === true || data.enabled === true || data.status === 'ACTIVE')) {
+          setIsDeactivated(false);
+        }
+      })
+      .catch(() => {
+        setIsDeactivated(!isActive);
+      });
+  }, [isActive]);
 
   // Shimmer sweeps left→right every ~3.5 s
   useEffect(() => {
@@ -68,6 +86,14 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   }, []);
 
   const handlePress = () => {
+    if (isDeactivated) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert(
+        i18n.language.startsWith('en') ? 'Feature Disabled' : 'Özellik Deaktif',
+        i18n.language.startsWith('en') ? 'Community feature is currently deactivated and unavailable.' : 'Topluluk özelliği şu anda deaktiftir ve erişime kapalıdır.'
+      );
+      return;
+    }
     if (isNavigating.current) return;
     isNavigating.current = true;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -89,13 +115,15 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
   const dotOpacity = pulseAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.5, 1, 0.5] });
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: isDeactivated ? 0.75 : 1 }}>
       <Pressable
         style={({ pressed }) => [
           styles.container, 
           isSmallScreen && { height: 60, borderRadius: 14, paddingHorizontal: 10 },
           isLargeScreen && { height: 88, borderRadius: 20 },
-          { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
+          isDeactivated
+            ? { backgroundColor: '#DC2626', borderColor: '#B91C1C' }
+            : { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
         ]}
         onPress={handlePress}
       >
@@ -103,11 +131,11 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
           <>
             {/* Base gradient matching the Etkinlikler/İlanlar cards */}
             <LinearGradient
-              colors={['#34D399', '#10B981']}
+              colors={isDeactivated ? ['#EF4444', '#DC2626'] : ['#34D399', '#10B981']}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
               locations={[0, 0.8]}
-              style={[StyleSheet.absoluteFillObject, pressed && { opacity: 0 }]}
+              style={[StyleSheet.absoluteFillObject, pressed && !isDeactivated && { opacity: 0 }]}
             />
 
             <View style={styles.content}>
@@ -116,14 +144,19 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
                   styles.iconContainer, 
                   isSmallScreen && { width: 40, height: 40, borderRadius: 10 },
                   isLargeScreen && { width: 60, height: 60, borderRadius: 16 },
-                  { backgroundColor: pressed ? '#047857' : '#059669' }
+                  { backgroundColor: isDeactivated ? '#B91C1C' : (pressed ? '#047857' : '#059669') }
               ]}>
                 <IconSymbol
                   name="bubble.left.and.bubble.right.fill"
                   size={isSmallScreen ? 20 : (isLargeScreen ? 30 : 24)}
                   color="#FFFFFF"
                 />
-                <Animated.View style={[styles.liveDot, { transform: [{ scale: dotScale }], opacity: dotOpacity }]} />
+                <Animated.View style={[
+                  styles.liveDot, 
+                  isDeactivated
+                    ? { backgroundColor: '#EF4444', borderColor: '#FEE2E2' }
+                    : { transform: [{ scale: dotScale }], opacity: dotOpacity }
+                ]} />
               </View>
 
               {/* Text block */}
@@ -131,18 +164,30 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true }: SwipeButtonP
                 <Text style={[styles.text, isSmallScreen && { fontSize: 14 }, isLargeScreen && { fontSize: 18 }]}>
                   {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
                 </Text>
-                {userCount !== null && (
-                  <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
-                    {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                {isDeactivated ? (
+                  <Text style={[styles.subtext, { color: '#FEE2E2', fontWeight: '700' }]}>
+                    {i18n.language.startsWith('en') ? 'Deactivated (Unavailable)' : 'Deaktif (Erişime Kapalı)'}
                   </Text>
+                ) : (
+                  userCount !== null && (
+                    <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
+                      {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                    </Text>
+                  )
                 )}
               </View>
 
-              {/* Cascading arrows */}
+              {/* Cascading arrows or warning indicator */}
               <View style={styles.arrows}>
-                <IconSymbol name="chevron.right" size={12} color="rgba(255, 255, 255, 0.4)" />
-                <IconSymbol name="chevron.right" size={14} color="rgba(255, 255, 255, 0.7)" />
-                <IconSymbol name="chevron.right" size={isLargeScreen ? 20 : 17} color="#FFFFFF" />
+                {isDeactivated ? (
+                  <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#FEE2E2" />
+                ) : (
+                  <>
+                    <IconSymbol name="chevron.right" size={12} color="rgba(255, 255, 255, 0.4)" />
+                    <IconSymbol name="chevron.right" size={14} color="rgba(255, 255, 255, 0.7)" />
+                    <IconSymbol name="chevron.right" size={isLargeScreen ? 20 : 17} color="#FFFFFF" />
+                  </>
+                )}
               </View>
             </View>
           </>
