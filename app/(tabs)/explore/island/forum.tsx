@@ -1,5 +1,5 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { s, vs, ms } from '@/utils/scale';
+import { s, vs, ms, isLargeScreen } from '@/utils/scale';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
@@ -1762,7 +1762,7 @@ const styles = StyleSheet.create({
     },
     postWrapper: {
         width: '100%',
-        paddingHorizontal: s(4),
+        paddingHorizontal: isLargeScreen ? s(10) : s(6),
         marginVertical: vs(4),
     },
     bubbleContainer: {
