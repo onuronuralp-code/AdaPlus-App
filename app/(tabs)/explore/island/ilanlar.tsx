@@ -445,7 +445,7 @@ export default function IlanlarScreen() {
 
       <ScrollView 
         style={styles.listContainer} 
-        contentContainerStyle={[styles.listContent, { paddingBottom: 20 }, ((isLoading && !isRefreshing) || filteredListings.length === 0) && { flex: 1 }]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: Math.max(insets.bottom + 120, 140) }, ((isLoading && !isRefreshing) || filteredListings.length === 0) && { flex: 1 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#3B82F6" />
@@ -472,7 +472,7 @@ export default function IlanlarScreen() {
       </ScrollView>
 
       <TouchableOpacity 
-        style={[styles.fab, { bottom: 20, backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
+        style={[styles.fab, { bottom: Math.max(insets.bottom + 90, 105), backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
         onPress={() => {
             if (!isLoggedIn) {
                 setShowLoginPrompt(true);

@@ -932,6 +932,7 @@ export default function ForumScreen() {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={[
                             styles.listContent, 
+                            { paddingBottom: Math.max(insets.bottom + 120, 140) },
                             posts.filter(post => {
                                 if (activeTab === 'polls') return post.postType === PostType.POLL;
                                 if (activeTab === 'complaints') return post.postType === PostType.COMPLAINT;
@@ -954,7 +955,7 @@ export default function ForumScreen() {
                         )}
                     />
                     <TouchableOpacity 
-                        style={[styles.fab, { bottom: 20, backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
+                        style={[styles.fab, { bottom: Math.max(insets.bottom + 90, 105), backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
                         onPress={() => {
                             if (!isLoggedIn) {
                                 setShowLoginPrompt(true);
