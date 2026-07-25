@@ -1286,7 +1286,7 @@ export default function MainMenuScreen() {
               {t('explore.adaAi', { defaultValue: 'ADA AI' })}
             </Text>
             <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#CBD5E1' : '#475569', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
-              Adaların gerçek bir yapay zekasının olabilmesi için belediye ve adalar müzesiyle çalışmalarımız devam etmektedir.
+              Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}

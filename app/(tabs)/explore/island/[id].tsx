@@ -132,11 +132,11 @@ export default function IslandDetailScreen() {
                         icon="sparkles"
                         color="#EC4899"
                         title={t('common.adaAI', { defaultValue: 'Ada AI (Yakında)' })}
-                        subtitle={t('common.yourSmartGuide', { defaultValue: 'Yakında - Belediye ve Adalar Müzesi işbirliğiyle...' })}
+                        subtitle={t('common.yourSmartGuide', { defaultValue: 'Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...' })}
                         onPress={() => {
                             Alert.alert(
                                 'Ada AI • Yakında',
-                                'Adaların gerçek bir yapay zekasının olabilmesi için belediye ve adalar müzesiyle çalışmalarımız devam etmektedir.'
+                                'Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.'
                             );
                         }}
                     />
