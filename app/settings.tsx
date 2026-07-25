@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -48,6 +48,36 @@ export default function SettingsScreen() {
         await i18n.changeLanguage(lang);
         await AsyncStorage.setItem('userLanguage', lang);
         setCurrentLang(lang);
+    };
+
+    // Edit Account Verification States
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [verifyPassword, setVerifyPassword] = useState('');
+    const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+
+    const handleVerifyPasswordAndNavigate = async () => {
+        if (!verifyPassword.trim()) {
+            setPasswordError(currentLang.startsWith('en') ? 'Please enter your password.' : 'Lütfen şifrenizi girin.');
+            return;
+        }
+        setPasswordError('');
+        setIsVerifyingPassword(true);
+        try {
+            const res = await authApi.changePassword(verifyPassword.trim(), verifyPassword.trim());
+            if (!res.success) {
+                setPasswordError(res.message || (currentLang.startsWith('en') ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.'));
+                setIsVerifyingPassword(false);
+                return;
+            }
+            setShowPasswordModal(false);
+            setVerifyPassword('');
+            router.push('/edit-account');
+        } catch {
+            setPasswordError(currentLang.startsWith('en') ? 'Verification failed.' : 'Doğrulama başarısız.');
+        } finally {
+            setIsVerifyingPassword(false);
+        }
     };
 
     // Edit Account states
@@ -245,7 +275,7 @@ export default function SettingsScreen() {
                 {/* Account Section */}
                 {isLoggedIn && (
                     <View style={[styles.section, { borderBottomWidth: 0, marginTop: 'auto' }]}>
-                        <TouchableOpacity style={[styles.editButton, isDark && styles.darkEditButton, { marginBottom: 12 }]} onPress={() => router.push('/edit-account')} activeOpacity={0.8}>
+                        <TouchableOpacity style={[styles.editButton, isDark && styles.darkEditButton, { marginBottom: 12 }]} onPress={() => { setVerifyPassword(''); setPasswordError(''); setShowPasswordModal(true); }} activeOpacity={0.8}>
                             <IconSymbol name="pencil" size={18} color={isDark ? '#94A3B8' : '#475569'} />
                             <Text style={[styles.editButtonText, isDark && { color: '#F8FAFC' }]}>{t('profile.editAccount', { defaultValue: currentLang.startsWith('en') ? 'Edit Account' : 'Hesabı Düzenle' })}</Text>
                         </TouchableOpacity>
@@ -256,6 +286,68 @@ export default function SettingsScreen() {
                     </View>
                 )}
             </View>
+
+            {/* Password Verification Modal before Edit Account */}
+            <Modal
+                visible={showPasswordModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => { setShowPasswordModal(false); setVerifyPassword(''); setPasswordError(''); }}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                    <View style={{ width: '100%', maxWidth: 340, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20 }}>
+                        <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: isDark ? '#2E2A68' : '#EEF2FF', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                            <IconSymbol name="lock.fill" size={28} color="#6366F1" />
+                        </View>
+                        <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 6 }}>
+                            {currentLang.startsWith('en') ? 'Security Verification' : 'Güvenlik Doğrulaması'}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 18 }}>
+                            {currentLang.startsWith('en') ? 'Please enter your current password to edit your account.' : 'Hesabınızı düzenlemek için lütfen mevcut şifrenizi giriniz.'}
+                        </Text>
+                        
+                        <TextInput
+                            style={{ width: '100%', height: 48, backgroundColor: isDark ? '#1E1B4B' : '#F8FAFC', borderWidth: 1, borderColor: passwordError ? '#EF4444' : (isDark ? '#2E2A68' : '#E2E8F0'), borderRadius: 12, paddingHorizontal: 16, fontSize: 15, color: isDark ? '#FFFFFF' : '#0F172A', marginBottom: passwordError ? 6 : 16 }}
+                            placeholder={currentLang.startsWith('en') ? 'Current Password' : 'Mevcut Şifre'}
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                            value={verifyPassword}
+                            onChangeText={(text) => { setVerifyPassword(text); if (passwordError) setPasswordError(''); }}
+                            secureTextEntry
+                            autoCapitalize="none"
+                        />
+                        {!!passwordError && (
+                            <Text style={{ color: '#EF4444', fontSize: 12, fontWeight: '600', marginBottom: 14, alignSelf: 'flex-start' }}>{passwordError}</Text>
+                        )}
+
+                        <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => { setShowPasswordModal(false); setVerifyPassword(''); setPasswordError(''); }}
+                                style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={{ fontSize: 14, fontWeight: '700', color: isDark ? '#CBD5E1' : '#64748B' }}>
+                                    {currentLang.startsWith('en') ? 'Cancel' : 'İptal'}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={handleVerifyPasswordAndNavigate}
+                                disabled={isVerifyingPassword}
+                                style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center', opacity: isVerifyingPassword ? 0.7 : 1 }}
+                            >
+                                {isVerifyingPassword ? (
+                                    <ActivityIndicator color="#FFFFFF" size="small" />
+                                ) : (
+                                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>
+                                        {currentLang.startsWith('en') ? 'Continue' : 'Devam Et'}
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
