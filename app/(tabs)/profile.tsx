@@ -671,7 +671,7 @@ export default function ProfileScreen() {
                             </View>
 
                             {true && (
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1.5, borderColor: isDark ? '#6366F1' : '#6366F1' }}>
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
