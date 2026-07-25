@@ -21,7 +21,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
   const isSmallScreen = height < 820;
   const isNavigating = useRef(false);
   const [userCount, setUserCount] = useState<number | null>(null);
-  const [isDeactivated, setIsDeactivated] = useState<boolean>(isActive === false);
+  const [isDeactivated, setIsDeactivated] = useState<boolean>(!isActive);
 
   const shimmerAnim = useRef(new Animated.Value(-1)).current;
   const pulseAnim  = useRef(new Animated.Value(0)).current;
@@ -29,15 +29,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
   // Fetch backend community active status
   useEffect(() => {
-    if (isActive === false) {
-      setIsDeactivated(true);
-      return;
-    }
     fetchWithTimeout(`${API_BASE_URL}/api/v1/community/status`)
-      .then(res => {
-        if (!res.ok) return null;
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
         if (data && (data.active === false || data.enabled === false || data.status === 'DEACTIVE' || data.status === 'DISABLED' || data.deactivated === true)) {
           setIsDeactivated(true);
@@ -45,7 +38,9 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
           setIsDeactivated(false);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setIsDeactivated(!isActive);
+      });
   }, [isActive]);
 
   // Shimmer sweeps left→right every ~3.5 s
@@ -120,14 +115,14 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
   const dotOpacity = pulseAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.5, 1, 0.5] });
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: isDeactivated ? 0.75 : 1 }}>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: 1 }}>
       <Pressable
         style={({ pressed }) => [
           styles.container, 
           isSmallScreen && { height: 60, borderRadius: 14, paddingHorizontal: 10 },
           isLargeScreen && { height: 74, borderRadius: 18 },
           isDeactivated
-            ? { backgroundColor: '#DC2626', borderColor: '#B91C1C' }
+            ? { backgroundColor: '#D32F2F', borderColor: '#B71C1C', shadowColor: '#FF0000' }
             : { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
         ]}
         onPress={handlePress}
@@ -136,7 +131,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
           <>
             {/* Base gradient matching the Etkinlikler/İlanlar cards */}
             <LinearGradient
-              colors={isDeactivated ? ['#EF4444', '#DC2626'] : ['#34D399', '#10B981']}
+              colors={isDeactivated ? ['#FF1E1E', '#C81E1E'] : ['#34D399', '#10B981']}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
               locations={[0, 0.8]}
@@ -149,7 +144,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                   styles.iconContainer, 
                   isSmallScreen && { width: 40, height: 40, borderRadius: 10 },
                   isLargeScreen && { width: 60, height: 60, borderRadius: 16 },
-                  { backgroundColor: isDeactivated ? '#B91C1C' : (pressed ? '#047857' : '#059669') }
+                  { backgroundColor: isDeactivated ? '#9A0007' : (pressed ? '#047857' : '#059669') }
               ]}>
                 <IconSymbol
                   name="bubble.left.and.bubble.right.fill"
@@ -159,7 +154,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                 <Animated.View style={[
                   styles.liveDot, 
                   isDeactivated
-                    ? { backgroundColor: '#B91C1C', borderColor: '#FEE2E2', transform: [{ scale: 1 }], opacity: 1 }
+                    ? { backgroundColor: '#EF4444', borderColor: '#FEE2E2' }
                     : { transform: [{ scale: dotScale }], opacity: dotOpacity }
                 ]} />
               </View>
