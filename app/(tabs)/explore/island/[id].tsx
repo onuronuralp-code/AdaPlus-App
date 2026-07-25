@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Alert } from 'react-native';
 import Animated, { scrollTo, useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '../../../../components/ui/icon-symbol';
@@ -129,11 +129,16 @@ export default function IslandDetailScreen() {
                         onPress={() => router.push({ pathname: '/(tabs)/explore/island/transportation', params: { islandId: id } })}
                     />
                     <ActivityCard
-                        icon="map.fill"
+                        icon="sparkles"
                         color="#EC4899"
-                        title={t('common.adaAI', { defaultValue: 'Tur Rehberi' })}
-                        subtitle={t('common.yourSmartGuide', { defaultValue: 'Adalar için akıllı seyahat asistanın' })}
-                        onPress={() => router.push('/guide')}
+                        title={t('common.adaAI', { defaultValue: 'Ada AI (Yakında)' })}
+                        subtitle={t('common.yourSmartGuide', { defaultValue: 'Yakında - Belediye ve Adalar Müzesi işbirliğiyle...' })}
+                        onPress={() => {
+                            Alert.alert(
+                                'Ada AI • Yakında',
+                                'Adaların gerçek bir yapay zekasının olabilmesi için belediye ve adalar müzesiyle çalışmalarımız devam etmektedir.'
+                            );
+                        }}
                     />
                     <ActivityCard
                         icon="bubble.left.and.bubble.right.fill"

@@ -255,6 +255,7 @@ export default function MainMenuScreen() {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const [showAdaAiModal, setShowAdaAiModal] = useState(false);
   const celebrationScale = useRef(new Animated.Value(0)).current;
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -938,7 +939,7 @@ export default function MainMenuScreen() {
             <WalkthroughableView style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => navigateWithDebounce('/guide')}
+                onPress={() => setShowAdaAiModal(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                 style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -946,7 +947,7 @@ export default function MainMenuScreen() {
               </TouchableOpacity>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında'}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1263,6 +1264,37 @@ export default function MainMenuScreen() {
         visible={showLoginPrompt} 
         onClose={() => setShowLoginPrompt(false)} 
       />
+
+      <Modal
+        visible={showAdaAiModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAdaAiModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <View style={{ width: '100%', maxWidth: 340, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: isDark ? '#2D1B28' : '#FDF2F8', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <IconSymbol name="sparkles" size={34} color="#EC4899" />
+            </View>
+            <View style={{ backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 12 }}>
+              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>ADA AI • YAKINDA</Text>
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 12 }}>
+              {t('explore.adaAi', { defaultValue: 'ADA AI' })}
+            </Text>
+            <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#CBD5E1' : '#475569', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
+              Adaların gerçek bir yapay zekasının olabilmesi için belediye ve adalar müzesiyle çalışmalarımız devam etmektedir.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowAdaAiModal(false)}
+              style={{ width: '100%', paddingVertical: 14, borderRadius: 14, backgroundColor: '#EC4899', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>Anladım</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <CelebrationModal 
         visible={showCelebrationModal} 
