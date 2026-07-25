@@ -469,9 +469,9 @@ export default function EventsScreen() {
                                         <View style={{ flex: 1, paddingRight: 8 }}>
                                             {/* 1. Tarih (Date) */}
                                             <View style={[styles.eventDetailsRow, isGridView && { marginTop: 2, marginBottom: 0 }]}>
-                                                <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                                <IconSymbol name="calendar" size={14} color={isDark ? "#60A5FA" : "#3B82F6"} />
                                                 <Text 
-                                                    style={[styles.eventDate, { color: '#3B82F6', fontSize: isGridView ? 11.5 : 13, marginLeft: 4, flex: 1 }]} 
+                                                    style={[styles.eventDate, { color: isDark ? '#60A5FA' : '#3B82F6', fontSize: isGridView ? 11.5 : 13, marginLeft: 4, flex: 1, fontWeight: '700' }]} 
                                                     numberOfLines={1}
                                                     adjustsFontSizeToFit={true}
                                                     minimumFontScale={0.85}
