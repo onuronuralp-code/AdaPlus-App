@@ -940,7 +940,7 @@ export default function ForumScreen() {
                         activeOpacity={0.85}
                     >
                         <View style={[styles.fabGradient, isDark ? { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' } : { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 }]}>
-                            <IconSymbol name="plus" size={32} color={isDark ? "#3B82F6" : "#0F172A"} />
+                            <IconSymbol name="plus" size={32} color="#3B82F6" />
                         </View>
                     </TouchableOpacity>
                 </>
