@@ -28,6 +28,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as listingApi from '@/services/listingApi';
 import { ListingDto, ListingCategory } from '@/services/listingApi';
+import { isLargeScreen } from '@/utils/scale';
 import { Island } from '@/services/forumApi';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
@@ -857,7 +858,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 4,
+    paddingHorizontal: isLargeScreen ? 16 : 4,
     paddingTop: 8,
     paddingBottom: 0, // overridden inline with tabBarHeight
   },

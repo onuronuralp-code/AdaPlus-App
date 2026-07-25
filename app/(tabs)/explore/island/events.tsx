@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
+import { isLargeScreen } from '@/utils/scale';
 import { useTranslation } from 'react-i18next';
 import SuccessModal from '@/components/SuccessModal';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -784,7 +785,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: 4,
+        paddingHorizontal: isLargeScreen ? 16 : 4,
         paddingTop: 16,
     },
     eventCard: {

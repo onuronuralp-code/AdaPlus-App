@@ -1762,7 +1762,7 @@ const styles = StyleSheet.create({
     },
     postWrapper: {
         width: '100%',
-        paddingHorizontal: isLargeScreen ? s(14) : s(4),
+        paddingHorizontal: isLargeScreen ? s(18) : s(4),
         marginVertical: vs(4),
     },
     bubbleContainer: {
