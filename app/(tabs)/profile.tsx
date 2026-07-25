@@ -454,17 +454,15 @@ export default function ProfileScreen() {
                             </View>
                         )}
                         <View style={styles.listingInfo}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                                <Text style={[styles.listingTitle, { flex: 1, marginBottom: 0 }, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{listing.title}</Text>
-                                {listing.price > 0 && (
-                                    <View style={[styles.priceTag, { marginLeft: 8, alignSelf: 'center' }]}>
-                                        <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
-                                    </View>
-                                )}
-                            </View>
+                            <Text style={[styles.listingTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{listing.title}</Text>
                             <Text style={[styles.listingDesc, isDark && { color: '#CBD5E1' }]} numberOfLines={2}>{listing.description}</Text>
                             <Text style={[styles.listingTime, { marginTop: 4 }, isDark && { color: '#94A3B8' }]}>{timeAgo(listing.createdAt)}</Text>
                         </View>
+                        {listing.price > 0 && (
+                            <View style={[styles.priceTag, { marginLeft: 12, alignSelf: 'center' }]}>
+                                <Text style={styles.priceText}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
                     </Swipeable>
                 ))}
