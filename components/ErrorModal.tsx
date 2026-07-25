@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ErrorModalProps {
     visible: boolean;
@@ -11,6 +12,9 @@ interface ErrorModalProps {
 }
 
 export default function ErrorModal({ visible, onClose, title, message, buttonText }: ErrorModalProps) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
     return (
         <Modal
             visible={visible}
@@ -20,12 +24,12 @@ export default function ErrorModal({ visible, onClose, title, message, buttonTex
             onRequestClose={onClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.card}>
-                    <View style={styles.iconCircle}>
+                <View style={[styles.card, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#27272A' }]}>
+                    <View style={[styles.iconCircle, isDark && { backgroundColor: '#3F0F12' }]}>
                         <IconSymbol name="exclamationmark.circle.fill" size={28} color="#EF4444" />
                     </View>
-                    <Text style={styles.title}>{title || 'Hata'}</Text>
-                    <Text style={styles.message}>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{title || 'Hata'}</Text>
+                    <Text style={[styles.message, isDark && { color: '#CBD5E1' }]}>
                         {message || 'Bir hata oluştu. Lütfen tekrar deneyin.'}
                     </Text>
                     <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>

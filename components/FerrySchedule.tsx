@@ -1924,10 +1924,11 @@ const styles = StyleSheet.create({
   },
   sheetSec: { fontSize: 13, fontWeight: "900", letterSpacing: 1.5 },
 
-  islandsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  islandsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   islandGridItem: {
-    width: (SCREEN_WIDTH - 60) / 2,
-    height: 60,
+    width: "48%",
+    height: 56,
+    marginBottom: 10,
     backgroundColor: "#F8F9FA",
     borderRadius: 12,
     alignItems: "center",

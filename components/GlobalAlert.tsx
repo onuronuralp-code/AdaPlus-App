@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Alert as RNAlert, AlertButton } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useTheme } from '@/context/ThemeContext';
 
 type AlertState = {
   visible: boolean;
@@ -10,6 +11,9 @@ type AlertState = {
 };
 
 export function GlobalAlert() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [alertState, setAlertState] = useState<AlertState>({
     visible: false,
     title: '',
@@ -45,18 +49,16 @@ export function GlobalAlert() {
 
   if (!alertState.visible) return null;
 
-  const isError = alertState.title.toLowerCase().includes('hata') || alertState.title.toLowerCase().includes('error') || alertState.title.toLowerCase().includes('başarısız') || alertState.title.toLowerCase().includes('gerekli');
-  const isSuccess = alertState.title.toLowerCase().includes('başarılı') || alertState.title.toLowerCase().includes('success') || alertState.title.toLowerCase().includes('alındı') || alertState.title.toLowerCase().includes('gönderildi');
-  const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('sil') || alertState.title.toLowerCase().includes('bildir');
-  const isSettings = alertState.title.toLowerCase().includes('ayar') || alertState.title.toLowerCase().includes('setting');
-  const isLogout = alertState.title.toLowerCase().includes('çıkış') || alertState.title.toLowerCase().includes('logout');
+  const isError = alertState.title.toLowerCase().includes('hata') || alertState.title.toLowerCase().includes('error') || alertState.title.toLowerCase().includes('başarısız') || alertState.title.toLowerCase().includes('failed');
+  const isSuccess = alertState.title.toLowerCase().includes('başarılı') || alertState.title.toLowerCase().includes('success') || alertState.title.toLowerCase().includes('tebrik') || alertState.title.toLowerCase().includes('harika');
+  const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('warning') || alertState.title.toLowerCase().includes('dikkat');
   
   let iconName = 'info.circle.fill';
   let iconColor = '#3B82F6';
   let iconBg = '#EFF6FF';
 
   if (isError) {
-    iconName = 'exclamationmark.circle.fill';
+    iconName = 'exclamationmark.triangle.fill';
     iconColor = '#EF4444';
     iconBg = '#FEF2F2';
   } else if (isSuccess) {
@@ -64,19 +66,17 @@ export function GlobalAlert() {
     iconColor = '#10B981';
     iconBg = '#ECFDF5';
   } else if (isWarning) {
-    iconName = 'exclamationmark.triangle.fill';
-    iconColor = '#EF4444';
-    iconBg = '#FEF2F2';
-  } else if (isSettings) {
-    iconName = 'gearshape.fill';
-    iconColor = '#64748B';
-    iconBg = '#F1F5F9';
-  } else if (isLogout) {
-    iconName = 'rectangle.portrait.and.arrow.right';
-    iconColor = '#EF4444';
-    iconBg = '#FEF2F2';
+    iconName = 'exclamationmark.circle.fill';
+    iconColor = '#F59E0B';
+    iconBg = '#FFFBEB';
   }
 
+  if (isDark) {
+    if (isError) iconBg = '#450A0A';
+    else if (isWarning) iconBg = '#451A03';
+    else if (isSuccess) iconBg = '#064E3B';
+    else iconBg = '#1E1B4B';
+  }
 
   const renderButtons = () => {
     const buttons = alertState.buttons || [];
@@ -105,10 +105,10 @@ export function GlobalAlert() {
       return (
         <View style={styles.twoButtonRow}>
           <TouchableOpacity
-            style={[styles.button, styles.secondaryButton, { flex: 1, marginRight: 8 }]}
+            style={[styles.button, styles.secondaryButton, isDark && { backgroundColor: '#27272A' }, { flex: 1, marginRight: 8 }]}
             onPress={() => handlePress(cancelBtn.onPress)}
           >
-            <Text style={styles.secondaryButtonText} numberOfLines={1} adjustsFontSizeToFit>{cancelBtn.text}</Text>
+            <Text style={[styles.secondaryButtonText, isDark && { color: '#E4E4E7' }]} numberOfLines={1} adjustsFontSizeToFit>{cancelBtn.text}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, isDestructive ? styles.destructiveButton : styles.primaryButton, isSuccess && !isDestructive && { backgroundColor: '#10B981' }, { flex: 1, marginLeft: 8 }]}
@@ -131,13 +131,13 @@ export function GlobalAlert() {
               key={index}
               style={[
                 styles.button,
-                isCancel ? styles.secondaryButton : (isDestructive ? styles.destructiveButton : styles.primaryButton),
+                isCancel ? (isDark ? { backgroundColor: '#27272A' } : styles.secondaryButton) : (isDestructive ? styles.destructiveButton : styles.primaryButton),
                 isSuccess && !isCancel && !isDestructive && { backgroundColor: '#10B981' }
               ]}
               onPress={() => handlePress(btn.onPress)}
             >
               <Text style={[
-                isCancel ? styles.secondaryButtonText : (isDestructive ? styles.destructiveButtonText : styles.primaryButtonText)
+                isCancel ? (isDark ? { color: '#E4E4E7' } : styles.secondaryButtonText) : (isDestructive ? styles.destructiveButtonText : styles.primaryButtonText)
               ]}>
                 {btn.text}
               </Text>
@@ -158,13 +158,13 @@ export function GlobalAlert() {
       onRequestClose={() => handlePress(alertState.buttons?.find(b => b.style === 'cancel')?.onPress)}
     >
       <View style={styles.overlay}>
-        <View style={styles.alertContainer}>
+        <View style={[styles.alertContainer, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#27272A' }]}>
           <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
             <IconSymbol name={iconName as any} size={28} color={iconColor} />
           </View>
           
-          <Text style={styles.title}>{alertState.title}</Text>
-          {alertState.message ? <Text style={styles.message}>{alertState.message}</Text> : null}
+          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{alertState.title}</Text>
+          {alertState.message ? <Text style={[styles.message, isDark && { color: '#CBD5E1' }]}>{alertState.message}</Text> : null}
 
           <View style={styles.buttonContainer}>
             {renderButtons()}
@@ -178,7 +178,7 @@ export function GlobalAlert() {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.4)', // Dark overlay #0F172A
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
