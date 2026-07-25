@@ -51,7 +51,7 @@ export function GlobalAlert() {
 
   const isError = alertState.title.toLowerCase().includes('hata') || alertState.title.toLowerCase().includes('error') || alertState.title.toLowerCase().includes('başarısız') || alertState.title.toLowerCase().includes('failed');
   const isSuccess = alertState.title.toLowerCase().includes('başarılı') || alertState.title.toLowerCase().includes('success') || alertState.title.toLowerCase().includes('tebrik') || alertState.title.toLowerCase().includes('harika');
-  const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('warning') || alertState.title.toLowerCase().includes('dikkat') || alertState.title.toLowerCase().includes('deaktif') || alertState.title.toLowerCase().includes('disabled') || alertState.title.toLowerCase().includes('kapalı');
+  const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('warning') || alertState.title.toLowerCase().includes('dikkat') || alertState.title.toLowerCase().includes('deaktif') || alertState.title.toLowerCase().includes('disabled') || alertState.title.toLowerCase().includes('kapalı') || alertState.title.toLowerCase().includes('erişim') || alertState.title.toLowerCase().includes('access') || alertState.title.toLowerCase().includes('bakım');
   
   let iconName = 'info.circle.fill';
   let iconColor = '#3B82F6';

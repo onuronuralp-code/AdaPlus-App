@@ -89,8 +89,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
     if (isDeactivated) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert(
-        i18n.language.startsWith('en') ? 'Feature Disabled' : 'Özellik Deaktif',
-        i18n.language.startsWith('en') ? 'Community feature is currently deactivated and unavailable.' : 'Topluluk özelliği şu anda deaktiftir ve erişime kapalıdır.'
+        i18n.language.startsWith('en') ? 'No Access' : 'Erişim Yok',
+        i18n.language.startsWith('en') ? 'Our community servers are currently under maintenance.' : 'Topluluk serverlarımız şu anda bakımda'
       );
       return;
     }
