@@ -271,7 +271,7 @@ export default function ProfileScreen() {
             <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
                 <GHTouchableOpacity onPress={() => { setEditingPostId(post.id); setEditingContent(post.content); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="pencil" size={24} color="#FFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                 </GHTouchableOpacity>
                 <GHTouchableOpacity onPress={() => handleDeletePost(post.id, isReply)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
@@ -430,7 +430,7 @@ export default function ProfileScreen() {
             <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
                 <GHTouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/ilanlar?editListingId=${listing.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="pencil" size={24} color="#FFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                 </GHTouchableOpacity>
                 <GHTouchableOpacity onPress={() => handleDeleteListing(listing.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
@@ -493,7 +493,7 @@ export default function ProfileScreen() {
             <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
                 <GHTouchableOpacity onPress={() => router.push(`/(tabs)/explore/island/events?editActivityId=${activity.id}`)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="pencil" size={24} color="#FFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                 </GHTouchableOpacity>
                 <GHTouchableOpacity onPress={() => handleDeleteEvent(activity.id)} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />

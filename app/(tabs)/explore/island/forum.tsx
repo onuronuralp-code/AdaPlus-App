@@ -691,7 +691,7 @@ export default function ForumScreen() {
                         onPress={() => handleEditPost(item)}
                     >
                         <IconSymbol name="pencil" size={24} color="#FFF" />
-                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: 'Düzenle' })}</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
@@ -981,7 +981,7 @@ export default function ForumScreen() {
                             <IconSymbol name="xmark" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
                         </TouchableOpacity>
                         <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
-                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]}>{editingPostId ? t('common.edit', { defaultValue: 'Düzenle' }) : t('forum.createPost')}</Text>
+                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]}>{editingPostId ? t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' }) : t('forum.createPost')}</Text>
                         </View>
                         <TouchableOpacity 
                             onPress={handleCreatePost} 

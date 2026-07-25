@@ -49,6 +49,7 @@
         "success": "Başarılı",
         "cancel": "İptal",
         "delete": "Sil",
+        "edit": "Düzenle",
         "deleteConfirm": "Silmek istediğinize emin misiniz?",
         "deleteFailed": "Silinemedi.",
         "saveAction": "Kaydet",

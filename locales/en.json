@@ -49,6 +49,7 @@
         "success": "Success",
         "cancel": "Cancel",
         "delete": "Delete",
+        "edit": "Edit",
         "deleteConfirm": "Are you sure you want to delete?",
         "deleteFailed": "Could not delete.",
         "saveAction": "Save",
