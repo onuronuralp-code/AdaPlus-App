@@ -333,7 +333,8 @@
             "tasit": "Vehicle",
             "service": "Service",
             "job": "Jobs",
-            "lost": "Lost & Found"
+            "lost": "Lost & Found",
+            "pet": "Pets"
         }
     },
     "listings": {

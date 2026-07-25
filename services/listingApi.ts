@@ -11,6 +11,7 @@ export enum ListingCategory {
   KAYIP = "KAYIP",
   ESYA = "ESYA",
   TASIT = "TASIT",
+  EVCIL_HAYVAN = "EVCIL_HAYVAN",
 }
 
 export interface ListingDto {

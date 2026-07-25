@@ -42,7 +42,7 @@ import { resolveImageUrl } from '@/services/config';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // İlan türleri
-type IlanCategory = 'all' | 'emlak' | 'esya' | 'tasit' | 'service' | 'lost' | 'job';
+type IlanCategory = 'all' | 'emlak' | 'esya' | 'tasit' | 'service' | 'lost' | 'job' | 'pet';
 
 const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color: string; bg: string; backend?: ListingCategory }> = {
   all:     { label: 'Tümü',      icon: 'square.grid.2x2.fill', color: '#3B82F6', bg: '#EFF6FF' },
@@ -52,6 +52,7 @@ const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color
   service: { label: 'Hizmet',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF', backend: ListingCategory.HIZMET },
   job:     { label: 'İş İlanı',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF', backend: ListingCategory.IS_ILANI },
   lost:    { label: 'Kayıp',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2', backend: ListingCategory.KAYIP },
+  pet:     { label: 'Evcil Hayvan', icon: 'pawprint.fill',     color: '#F43F5E', bg: '#FFE4E6', backend: ListingCategory.EVCIL_HAYVAN },
 };
 
 const ISLAND_ENUM_MAP: Record<string, Island> = {
@@ -140,6 +141,8 @@ export default function IlanlarScreen() {
             frontendCat = 'esya';
           } else if (listing.category === ListingCategory.TASIT) {
             frontendCat = 'tasit';
+          } else if (listing.category === ListingCategory.EVCIL_HAYVAN) {
+            frontendCat = 'pet';
           }
           setAdCat(frontendCat);
           setIsAdModalVisible(true);
@@ -372,12 +375,13 @@ export default function IlanlarScreen() {
   };
 
   const adCategories = [
-    { id: 'emlak',   label: 'Emlak',    icon: 'home-outline' },
-    { id: 'esya',    label: 'Eşya',     icon: 'archive-outline' },
-    { id: 'tasit',   label: 'Taşıt',    icon: 'car-outline' },
-    { id: 'service', label: 'Hizmet',   icon: 'hammer-wrench' },
-    { id: 'job',     label: 'İş İlanı', icon: 'briefcase-outline' },
-    { id: 'lost',    label: 'Kayıp',    icon: 'alert-circle-outline' },
+    { id: 'emlak',   label: 'Emlak',        icon: 'home-outline' },
+    { id: 'esya',    label: 'Eşya',         icon: 'archive-outline' },
+    { id: 'tasit',   label: 'Taşıt',        icon: 'car-outline' },
+    { id: 'service', label: 'Hizmet',       icon: 'hammer-wrench' },
+    { id: 'job',     label: 'İş İlanı',     icon: 'briefcase-outline' },
+    { id: 'pet',     label: 'Evcil Hayvan', icon: 'paw-outline' },
+    { id: 'lost',    label: 'Kayıp',        icon: 'alert-circle-outline' },
   ];
 
   const filteredListings = listings.filter(l => {
@@ -696,6 +700,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
     [ListingCategory.ESYA]: 'esya',
     [ListingCategory.TASIT]: 'tasit',
     [ListingCategory.KAYIP]: 'lost',
+    [ListingCategory.EVCIL_HAYVAN]: 'pet',
   };
   
   const frontendCat = backendToFrontend[listing.category] || 'all';

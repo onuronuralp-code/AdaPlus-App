@@ -29,7 +29,7 @@ import { resolveImageUrl } from '@/services/config';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isIphone16 = Platform.OS === 'ios' && SCREEN_HEIGHT >= 852;
 
-type IlanCategory = 'all' | 'emlak' | 'service' | 'lost' | 'job' | 'esya' | 'tasit';
+type IlanCategory = 'all' | 'emlak' | 'service' | 'lost' | 'job' | 'esya' | 'tasit' | 'pet';
 
 const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color: string; bg: string }> = {
   all:     { label: 'TÜMÜ',      icon: 'square.grid.2x2.fill', color: '#3B82F6', bg: '#EFF6FF' },
@@ -39,6 +39,7 @@ const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color
   service: { label: 'HİZMET',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF' },
   job:     { label: 'İŞ İLANI',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF' },
   lost:    { label: 'KAYIP',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2' },
+  pet:     { label: 'EVCİL HAYVAN', icon: 'pawprint.fill',     color: '#F43F5E', bg: '#FFE4E6' },
 };
 
 export default function IlanDetailScreen() {
@@ -104,6 +105,7 @@ export default function IlanDetailScreen() {
     [ListingCategory.ESYA]: 'esya',
     [ListingCategory.TASIT]: 'tasit',
     [ListingCategory.KAYIP]: 'lost',
+    [ListingCategory.EVCIL_HAYVAN]: 'pet',
   };
   
   const frontendCat = backendToFrontend[listing.category] || 'emlak';
