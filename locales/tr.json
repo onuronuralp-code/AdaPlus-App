@@ -308,6 +308,10 @@
         "addPhoto": "Fotoğraf Ekle",
         "startLabel": "BAŞLANGIÇ",
         "endLabel": "BİTİŞ",
+        "dateLabel": "BAŞLANGIÇ",
+        "going": "Katılıyorum",
+        "join": "Katılacağım",
+        "attendeesCount": "katılımcı",
         "locationLabel": "KONUM",
         "organizerLabel": "ORGANİZATÖR",
         "detailsLabel": "Etkinlik Detayları"

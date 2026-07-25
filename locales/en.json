@@ -308,6 +308,10 @@
         "addPhoto": "Add Photo",
         "startLabel": "START",
         "endLabel": "END",
+        "dateLabel": "START TIME",
+        "going": "I'm Attending",
+        "join": "I'll Attend",
+        "attendeesCount": "attendees",
         "locationLabel": "LOCATION",
         "organizerLabel": "ORGANIZER",
         "detailsLabel": "Event Details"

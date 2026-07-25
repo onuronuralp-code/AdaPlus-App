@@ -247,7 +247,7 @@ export default function EventDetailScreen() {
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.dateLabel', { defaultValue: 'BAŞLANGIÇ VE BİTİŞ' })}</Text>
+                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.dateLabel', { defaultValue: i18n.language.startsWith('en') ? 'START TIME' : 'BAŞLANGIÇ' })}</Text>
                             {(() => {
                                 const parseDateAndTime = (ds?: string) => {
                                     if (!ds) return { date: '', time: '' };
@@ -350,7 +350,7 @@ export default function EventDetailScreen() {
                             <>
                                 <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
                                 <Text style={[styles.rsvpButtonText, going && (isDark ? { color: '#60A5FA' } : styles.rsvpButtonTextActive)]}>
-                                    {going ? t('events.going', { defaultValue: 'Katılıyorum' }) : t('events.join', { defaultValue: 'Katılacağım' })}
+                                    {going ? t('events.going', { defaultValue: i18n.language.startsWith('en') ? "I'm Attending" : 'Katılıyorum' }) : t('events.join', { defaultValue: i18n.language.startsWith('en') ? "I'll Attend" : 'Katılacağım' })}
                                 </Text>
                             </>
                         )}
