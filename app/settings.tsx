@@ -190,7 +190,7 @@ export default function SettingsScreen() {
                 {/* Theme Selection Section */}
                 <View style={[styles.section, isDark && { borderBottomColor: '#1C1C1E' }]}>
                     <Text style={[styles.sectionTitle, isDark && { color: '#94A3B8' }]}>{currentLang.startsWith('en') ? 'App Theme' : 'Uygulama Teması'}</Text>
-                    <View style={[styles.row, { marginBottom: 12 }]}>
+                    <View style={styles.row}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                             <IconSymbol name={theme === 'dark' ? "moon.fill" : "sun.max.fill"} size={20} color={theme === 'dark' ? "#38BDF8" : "#F59E0B"} />
                             <Text style={[styles.rowText, isDark && { color: '#F8FAFC' }]}>{currentLang.startsWith('en') ? 'Dark Mode (Black)' : 'Koyu Tema (Siyah)'}</Text>
@@ -201,36 +201,6 @@ export default function SettingsScreen() {
                             trackColor={{ false: '#CBD5E1', true: '#0EA5E9' }}
                             thumbColor={theme === 'dark' ? '#FFFFFF' : '#94A3B8'}
                         />
-                    </View>
-                    <View style={styles.buttonRow}>
-                        <TouchableOpacity 
-                            style={[
-                                styles.langButton, 
-                                isDark && styles.darkLangButton,
-                                theme === 'light' && (isDark ? styles.darkActiveLangButton : styles.activeLangButton)
-                            ]} 
-                            onPress={() => setTheme('light')}
-                        >
-                            <Text style={[
-                                styles.langButtonText,
-                                isDark && { color: '#CBD5E1' },
-                                theme === 'light' && (isDark ? styles.darkActiveLangButtonText : styles.activeLangButtonText)
-                            ]}>☀️ {currentLang.startsWith('en') ? 'Light' : 'Açık Tema'}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={[
-                                styles.langButton, 
-                                isDark && styles.darkLangButton,
-                                theme === 'dark' && (isDark ? styles.darkActiveLangButton : styles.activeLangButton)
-                            ]} 
-                            onPress={() => setTheme('dark')}
-                        >
-                            <Text style={[
-                                styles.langButtonText,
-                                isDark && { color: '#CBD5E1' },
-                                theme === 'dark' && (isDark ? styles.darkActiveLangButtonText : styles.activeLangButtonText)
-                            ]}>🌙 {currentLang.startsWith('en') ? 'Dark (Black)' : 'Koyu (Siyah)'}</Text>
-                        </TouchableOpacity>
                     </View>
                 </View>
 
