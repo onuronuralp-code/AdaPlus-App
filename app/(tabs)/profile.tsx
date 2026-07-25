@@ -304,8 +304,9 @@ export default function ProfileScreen() {
                         ) : (
                             <View>
                                 <Text style={[styles.postContent, { marginBottom: 12 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                    <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
                                 </View>
                             </View>
                         )}
@@ -348,8 +349,9 @@ export default function ProfileScreen() {
                         ) : (
                             <View>
                                 <Text style={[styles.postContent, { marginBottom: 12 }, isDark && { color: '#E2E8F0' }]}>{reply.content}</Text>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600' }]}>{timeAgo(reply.createdAt)}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                    <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(reply.createdAt)}</Text>
                                 </View>
                             </View>
                         )}
@@ -400,7 +402,10 @@ export default function ProfileScreen() {
                             <View style={styles.notifBody}>
                                 <Text style={[styles.notifTitle, isDark && { color: '#FFFFFF' }]}>{notif.title}</Text>
                                 <Text style={[styles.notifContent, isDark && { color: '#94A3B8' }]} numberOfLines={2}>{notif.body}</Text>
-                                <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600' }]}>{timeAgo(notif.createdAt)}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                    <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(notif.createdAt)}</Text>
+                                </View>
                             </View>
                             {!notif.read && <View style={[styles.notifDot, { backgroundColor: color }]} />}
                         </TouchableOpacity>
@@ -456,7 +461,10 @@ export default function ProfileScreen() {
                         <View style={styles.listingInfo}>
                             <Text style={[styles.listingTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{listing.title}</Text>
                             <Text style={[styles.listingDesc, isDark && { color: '#CBD5E1' }]} numberOfLines={2}>{listing.description}</Text>
-                            <Text style={[styles.listingTime, { marginTop: 4 }, isDark && { color: '#94A3B8' }]}>{timeAgo(listing.createdAt)}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                <Text style={[styles.listingTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(listing.createdAt)}</Text>
+                            </View>
                         </View>
                         {listing.price > 0 && (
                             <View style={[styles.priceTag, { marginLeft: 12, alignSelf: 'center' }]}>
@@ -515,7 +523,7 @@ export default function ProfileScreen() {
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                     <IconSymbol name="calendar" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
                                     <Text style={[styles.listingTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '700' }]}>
-                                        {formatDistanceToNow(new Date(activity.startDate), { locale: i18n.language.startsWith('tr') ? tr : enUS, addSuffix: true })}
+                                        {timeAgo(activity.startDate)}
                                     </Text>
                                 </View>
                             </View>
@@ -539,7 +547,10 @@ export default function ProfileScreen() {
                     >
                         <Text style={[styles.postContent, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
                         <View style={styles.postFooter}>
-                            <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
+                            </View>
                             <View style={styles.statsRow}>
                                 <View style={styles.statItem}>
                                     <IconSymbol name="heart.fill" size={14} color="#EC4899" />
