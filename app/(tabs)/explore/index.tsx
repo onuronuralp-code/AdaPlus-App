@@ -698,7 +698,7 @@ export default function MainMenuScreen() {
           <WalkthroughableView collapsable={false} style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 1, borderColor: isDark ? '#047857' : '#059669' }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 2, borderColor: isDark ? '#047857' : '#059669' }}>
               <IconSymbol name="envelope.fill" size={20} color={isDark ? '#34D399' : '#059669'} />
               <TextInput
                 ref={inviteInputRef}
