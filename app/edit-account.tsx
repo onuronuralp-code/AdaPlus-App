@@ -78,44 +78,35 @@ export default function EditAccountScreen() {
             return;
         }
 
-        if (editPassword.trim()) {
-            if (!currentPassword.trim()) {
-                Alert.alert(
-                    isEn ? 'Error' : 'Hata',
-                    isEn ? 'Please enter your current password to set a new password.' : 'Yeni şifre belirlemek için lütfen mevcut şifrenizi girin.'
-                );
-                return;
-            }
+        if (!currentPassword.trim()) {
+            Alert.alert(
+                isEn ? 'Error' : 'Hata',
+                isEn ? 'Please enter your current password to update your account.' : 'Hesap bilgilerinizi güncellemek için lütfen mevcut şifrenizi girin.'
+            );
+            return;
+        }
 
-            setIsSaving(true);
-            try {
-                const pwdResult = await authApi.changePassword(currentPassword.trim(), editPassword.trim());
-                if (!pwdResult.success) {
-                    Alert.alert(
-                        isEn ? 'Error' : 'Hata',
-                        pwdResult.message || (isEn ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.')
-                    );
-                    setIsSaving(false);
-                    return;
-                }
-            } catch {
+        setIsSaving(true);
+        try {
+            const pwdToSet = editPassword.trim() || currentPassword.trim();
+            const pwdResult = await authApi.changePassword(currentPassword.trim(), pwdToSet);
+            if (!pwdResult.success) {
                 Alert.alert(
                     isEn ? 'Error' : 'Hata',
-                    isEn ? 'Failed to update password.' : 'Şifre güncellenemedi.'
+                    pwdResult.message || (isEn ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.')
                 );
                 setIsSaving(false);
                 return;
             }
-        }
 
-        const address = selectedStreet
-            ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
-            : buildingNo.trim();
-        setIsSaving(true);
-        try {
+            const address = selectedStreet
+                ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
+                : buildingNo.trim();
+
             const updated = await authApi.updateProfile(editName.trim(), address);
             if (!updated) {
                 Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to save profile.' : 'Profil kaydedilemedi.');
+                setIsSaving(false);
                 return;
             }
             await updateProfile(updated as any);
@@ -123,6 +114,11 @@ export default function EditAccountScreen() {
                 isEn ? 'Success' : 'Başarılı',
                 isEn ? 'Account details updated successfully.' : 'Hesap bilgileriniz başarıyla güncellendi.',
                 [{ text: 'OK', onPress: () => router.back() }]
+            );
+        } catch {
+            Alert.alert(
+                isEn ? 'Error' : 'Hata',
+                isEn ? 'Failed to update account.' : 'Hesap bilgileri güncellenemedi.'
             );
         } finally {
             setIsSaving(false);
@@ -211,8 +207,8 @@ export default function EditAccountScreen() {
                     )}
 
                     {/* Mevcut Şifre */}
-                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginTop: 8 }]}>{isEn ? 'Current Password' : 'Mevcut Şifre'}</Text>
-                    <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'Current Password' : 'Mevcut Şifre'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry />
+                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginTop: 8 }]}>{isEn ? 'Current Password *' : 'Mevcut Şifre *'}</Text>
+                    <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'Current Password *' : 'Mevcut Şifre *'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry />
 
                     {/* Yeni Şifre */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'New Password' : 'Yeni Şifre'}</Text>
