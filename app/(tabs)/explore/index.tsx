@@ -573,7 +573,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + 36 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 34) + (isLargeScreen ? 64 : 44) }} showsVerticalScrollIndicator={false} bounces={true}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 

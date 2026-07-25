@@ -409,7 +409,7 @@ export default function EventsScreen() {
             <ScrollView
                 style={styles.content}
                 contentContainerStyle={[
-                    { paddingBottom: Math.max(insets.bottom + 120, 140) },
+                    { paddingBottom: 20 },
                     (loading || events.length === 0) && { flex: 1 }
                 ]}
                 showsVerticalScrollIndicator={false}
@@ -529,7 +529,7 @@ export default function EventsScreen() {
             </ScrollView>
 
             <TouchableOpacity 
-                style={[styles.fab, { bottom: Math.max(insets.bottom + 90, 105), backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
+                style={[styles.fab, { bottom: 20, backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
                 onPress={() => {
                     if (!isLoggedIn) {
                         setShowLoginPrompt(true);
