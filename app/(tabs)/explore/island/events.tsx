@@ -594,9 +594,8 @@ export default function EventsScreen() {
                                     key={islandId}
                                     style={[
                                         styles.islandChip, 
-                                        isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
                                         { flex: 1 },
-                                        selectedIsland === islandId && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.islandChipSelected)
+                                        selectedIsland === islandId && styles.islandChipSelected
                                     ]}
                                     onPress={() => setSelectedIsland(islandId)}
                                 >
@@ -605,8 +604,7 @@ export default function EventsScreen() {
                                         adjustsFontSizeToFit 
                                         style={[
                                             styles.islandChipText, 
-                                            isDark && { color: '#CBD5E1' },
-                                            selectedIsland === islandId && (isDark ? { color: '#93C5FD' } : styles.islandChipTextSelected)
+                                            selectedIsland === islandId && styles.islandChipTextSelected
                                         ]}
                                     >
                                         {t('places.' + (islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'))}
@@ -962,7 +960,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     islandChipSelected: {
-        backgroundColor: '#EFF6FF',
+        backgroundColor: '#3B82F6',
         borderColor: '#3B82F6',
     },
     islandChipText: {
@@ -971,7 +969,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     islandChipTextSelected: {
-        color: '#3B82F6',
+        color: '#FFFFFF',
     },
     imagePreviewContainer: {
         position: 'relative',

@@ -528,11 +528,11 @@ export default function IlanlarScreen() {
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
-                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeAdCat)]}
+                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && styles.activeAdCat]}
                     onPress={() => setAdIsland(island)}
                   >
                     <Text 
-                      style={[styles.adCatText, isDark && { color: '#CBD5E1' }, { fontSize: 12 }, adIsland === island && (isDark ? { color: '#93C5FD' } : styles.activeAdCatText)]}
+                      style={[styles.adCatText, isDark && { color: '#CBD5E1' }, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                     >
@@ -572,15 +572,15 @@ export default function IlanlarScreen() {
                 {adCategories.map(cat => (
                   <TouchableOpacity 
                     key={cat.id} 
-                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, adCat === cat.id && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeAdCat)]}
+                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, adCat === cat.id && styles.activeAdCat]}
                     onPress={() => setAdCat(cat.id as IlanCategory)}
                   >
                     <MaterialCommunityIcons 
                       name={cat.icon as any} 
                       size={20} 
-                      color={adCat === cat.id ? '#3B82F6' : (isDark ? '#94A3B8' : '#64748B')} 
+                      color={adCat === cat.id ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} 
                     />
-                    <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCat === cat.id && (isDark ? { color: '#93C5FD' } : styles.activeAdCatText)]}>
+                    <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCat === cat.id && styles.activeAdCatText]}>
                       {t(`ilanlar.category.${cat.id}`)}
                     </Text>
                   </TouchableOpacity>
@@ -1117,7 +1117,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   activeAdCat: {
-    backgroundColor: '#F0F9FF',
+    backgroundColor: '#3B82F6',
     borderColor: '#3B82F6',
   },
   adCatText: {
@@ -1126,7 +1126,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   activeAdCatText: {
-    color: '#3B82F6',
+    color: '#FFFFFF',
   },
   addPhotoBtn: {
     marginTop: 10,
