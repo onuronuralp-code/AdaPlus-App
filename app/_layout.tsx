@@ -181,7 +181,6 @@ export default function RootLayout() {
         Alert.alert(title, body);
       },
     );
-    SplashScreen.hideAsync();
 
     const showUpdateAlert = () => {
       Alert.alert(

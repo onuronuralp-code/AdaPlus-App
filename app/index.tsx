@@ -46,24 +46,26 @@ export default function SplashScreen() {
     if (!fontsLoaded) return;
     
     if (isLoggedIn) {
-      ExpoSplashScreen.hideAsync();
-      router.replace("/(tabs)/explore");
-      return;
+      const timer = setTimeout(() => {
+        ExpoSplashScreen.hideAsync();
+        router.replace("/(tabs)/explore");
+      }, 2000);
+      return () => clearTimeout(timer);
     }
 
     ExpoSplashScreen.hideAsync().then(() => {
       Animated.sequence([
-        Animated.delay(1200),
+        Animated.delay(2000),
         Animated.parallel([
           Animated.timing(logoTranslateY, {
             toValue: 0,
-            duration: 800,
+            duration: 900,
             useNativeDriver: true,
             easing: Easing.out(Easing.cubic)
           }),
           Animated.timing(contentOpacity, {
             toValue: 1,
-            duration: 800,
+            duration: 900,
             useNativeDriver: true,
           })
         ])
