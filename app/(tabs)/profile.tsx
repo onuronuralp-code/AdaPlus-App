@@ -757,18 +757,19 @@ export default function ProfileScreen() {
                     style={styles.modalOverlay}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{t('profile.inviteFriend')}</Text>
+                    <View style={[styles.modalContent, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                        <View style={[styles.modalHeader, isDark && { borderBottomColor: '#2C2C2E' }]}>
+                            <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]}>{t('profile.inviteFriend')}</Text>
                             <TouchableOpacity onPress={() => { setShowInviteModal(false); setInviteEmailError(''); setInviteEmail(''); }}>
-                                <IconSymbol name="xmark.circle.fill" size={24} color="#94A3B8" />
+                                <IconSymbol name="xmark.circle.fill" size={24} color={isDark ? "#64748B" : "#94A3B8"} />
                             </TouchableOpacity>
                         </View>
                         <View style={styles.modalBody}>
-                            <Text style={styles.modalDescription}>{t('profile.inviteDesc')}</Text>
+                            <Text style={[styles.modalDescription, isDark && { color: '#CBD5E1' }]}>{t('profile.inviteDesc')}</Text>
                             <TextInput
-                                style={[styles.inviteInput, inviteEmailError ? { borderColor: '#EF4444' } : {}]}
+                                style={[styles.inviteInput, isDark && { backgroundColor: '#18181B', borderColor: '#2C2C2E', color: '#FFFFFF' }, inviteEmailError ? { borderColor: '#EF4444' } : {}]}
                                 placeholder={t('profile.inviteEmailPlaceholder')}
+                                placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                                 value={inviteEmail}
                                 onChangeText={(v) => { setInviteEmail(v); setInviteEmailError(''); }}
                                 onBlur={() => { if (inviteEmail.trim() && !EMAIL_REGEX.test(inviteEmail.trim())) setInviteEmailError(t('profile.inviteEmailError')); }}

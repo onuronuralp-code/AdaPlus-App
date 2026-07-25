@@ -3,6 +3,7 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Plat
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { useTheme } from '@/context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,6 +15,8 @@ interface CelebrationModalProps {
 }
 
 export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onClose, title = "Tebrikler!", description = "5 kişiyi davet ettin ve Adalı rozetini kazandın! Juju Kafe'den nakit alışverişlerinde %25 indirim kazandın." }) => {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const scaleAnim = useRef(new Animated.Value(0.5)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,13 +49,17 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onC
 
     return (
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-            <View style={styles.overlay}>
-                <Animated.View style={[styles.card, { opacity: opacityAnim, transform: [{ scale: scaleAnim }] }]}>
-                    <View style={styles.iconContainer}>
+            <View style={[styles.overlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.7)' }]}>
+                <Animated.View style={[
+                    styles.card, 
+                    isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
+                    { opacity: opacityAnim, transform: [{ scale: scaleAnim }] }
+                ]}>
+                    <View style={[styles.iconContainer, isDark && { backgroundColor: '#312E81' }]}>
                         <Text style={{ fontSize: 40 }}>🎉</Text>
                     </View>
-                    <Text style={styles.title}>{title}</Text>
-                    <Text style={styles.description}>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{title}</Text>
+                    <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>
                         {description}
                     </Text>
                     <TouchableOpacity style={styles.button} onPress={onClose} activeOpacity={0.8}>
