@@ -182,7 +182,7 @@ export default function IlanDetailScreen() {
         <View style={[styles.content, { marginTop: 0 }, isDark && { backgroundColor: '#000000' }]}>
           <View style={styles.categoryRow}>
             <View style={[styles.categoryBadge, { backgroundColor: isDark ? '#1C1C1E' : cfg.bg }]}>
-              <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+              <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{t(`ilanlar.category.${frontendCat}`, { defaultValue: cfg.label })}</Text>
             </View>
             <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
           </View>

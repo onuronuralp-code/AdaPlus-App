@@ -742,7 +742,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
           <View style={styles.headerLeft}>
             <View style={[styles.categoryBadge, { backgroundColor: isDark ? `${cfg.color}22` : cfg.bg }, isGridView && { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, gap: 2 }]}>
               <IconSymbol name={cfg.icon as any} size={isGridView ? 10 : 12} color={cfg.color} />
-              <Text style={[styles.categoryBadgeText, { color: cfg.color }, isGridView && { fontSize: 9.5 }]}>{cfg.label}</Text>
+              <Text style={[styles.categoryBadgeText, { color: cfg.color }, isGridView && { fontSize: 9.5 }]}>{t(`ilanlar.category.${frontendCat}`, { defaultValue: cfg.label })}</Text>
             </View>
           </View>
           <Text style={[styles.timeAgo, isGridView && { fontSize: 10 }, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
