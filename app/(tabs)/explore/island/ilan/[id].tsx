@@ -39,7 +39,7 @@ const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color
   service: { label: 'HİZMET',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF' },
   job:     { label: 'İŞ İLANI',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF' },
   lost:    { label: 'KAYIP',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2' },
-  pet:     { label: 'EVCİL HAYVAN', icon: 'pawprint.fill',     color: '#F43F5E', bg: '#FFE4E6' },
+  pet:     { label: 'EVCİL HAYVAN', icon: 'cat.fill',          color: '#F43F5E', bg: '#FFE4E6' },
 };
 
 export default function IlanDetailScreen() {

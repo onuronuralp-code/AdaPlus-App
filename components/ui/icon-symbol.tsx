@@ -106,6 +106,8 @@ const MAPPING = {
   'wrench.and.screwdriver.fill': 'build',
   'slider.horizontal.3': 'tune',
   'pawprint.fill': 'pets',
+  'cat.fill': 'pets',
+  'cat': 'pets',
   'bag.fill': 'shopping-bag',
   'beach.umbrella.fill': 'beach-access',
   'building.2.fill': 'location-city',

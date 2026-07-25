@@ -52,7 +52,7 @@ const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color
   service: { label: 'Hizmet',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF', backend: ListingCategory.HIZMET },
   job:     { label: 'İş İlanı',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF', backend: ListingCategory.IS_ILANI },
   lost:    { label: 'Kayıp',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2', backend: ListingCategory.KAYIP },
-  pet:     { label: 'Evcil Hayvan', icon: 'pawprint.fill',     color: '#F43F5E', bg: '#FFE4E6', backend: ListingCategory.EVCIL_HAYVAN },
+  pet:     { label: 'Evcil Hayvan', icon: 'cat.fill',          color: '#F43F5E', bg: '#FFE4E6', backend: ListingCategory.EVCIL_HAYVAN },
 };
 
 const ISLAND_ENUM_MAP: Record<string, Island> = {
