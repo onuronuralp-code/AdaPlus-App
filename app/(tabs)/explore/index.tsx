@@ -1049,19 +1049,21 @@ export default function MainMenuScreen() {
           <View 
             onStartShouldSetResponder={() => true}
             style={{ 
-              backgroundColor: '#fff', 
+              backgroundColor: isDark ? '#121212' : '#fff', 
               borderRadius: 16, 
               width: '95%', 
               maxHeight: '60%', 
               marginTop: insets.top + 90, 
               padding: 24, 
-              elevation: 10, 
+              elevation: 10,
+              borderWidth: isDark ? 1 : 0,
+              borderColor: '#2C2C2E',
             }}
           >
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Duyurular</Text>
-              <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowNotificationModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
-                <IconSymbol name="xmark" size={14} color="#64748B" />
+              <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FFFFFF' : '#0F172A' }}>Duyurular</Text>
+              <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowNotificationModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                <IconSymbol name="xmark" size={14} color={isDark ? '#94A3B8' : '#64748B'} />
               </Pressable>
             </View>
             
@@ -1072,12 +1074,12 @@ export default function MainMenuScreen() {
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Static Community Announcement */}
-                <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#FECACA' }}>
+                <View style={{ backgroundColor: isDark ? '#2A1215' : '#FEF2F2', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: isDark ? '#7F1D1D' : '#FECACA' }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                     <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" style={{ marginRight: 6 }} />
-                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#991B1B' }}>Topluluk Duyurusu</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FCA5A5' : '#991B1B' }}>Topluluk Duyurusu</Text>
                   </View>
-                  <Text style={{ fontSize: 14, color: '#7F1D1D', lineHeight: 22 }}>
+                  <Text style={{ fontSize: 14, color: isDark ? '#FEE2E2' : '#7F1D1D', lineHeight: 22 }}>
                     Topluluğa lütfen sadece Adada yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.
                   </Text>
                 </View>
@@ -1085,7 +1087,7 @@ export default function MainMenuScreen() {
                 {notifications.map(notif => (
                   <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                     key={notif.id} 
-                    style={{ backgroundColor: notif.read ? '#F8FAFC' : '#EFF6FF', borderRadius: 12, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: notif.read ? '#F1F5F9' : '#BFDBFE' }}
+                    style={{ backgroundColor: isDark ? (notif.read ? '#18181B' : '#1E293B') : (notif.read ? '#F8FAFC' : '#EFF6FF'), borderRadius: 12, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: isDark ? (notif.read ? '#27272A' : '#3B82F6') : (notif.read ? '#F1F5F9' : '#BFDBFE') }}
                     onPress={async () => {
                       if (!notif.read) {
                         await markNotificationRead(notif.id);
@@ -1098,10 +1100,10 @@ export default function MainMenuScreen() {
                     }}
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FFFFFF' : '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
                       <Text style={{ fontSize: 14, color: '#94A3B8' }}>{new Date(notif.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</Text>
                     </View>
-                    <Text style={{ fontSize: 14, color: '#475569', lineHeight: 24 }}>{notif.body}</Text>
+                    <Text style={{ fontSize: 14, color: isDark ? '#CBD5E1' : '#475569', lineHeight: 24 }}>{notif.body}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
@@ -1121,19 +1123,19 @@ export default function MainMenuScreen() {
           <TouchableWithoutFeedback onPress={() => setShowIslanderStepsModal(false)}>
             <View style={{ ...StyleSheet.absoluteFillObject }} />
           </TouchableWithoutFeedback>
-          <View style={{ width: '85%', backgroundColor: '#ffffff', borderRadius: 20, padding: 24, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 }}>
+          <View style={{ width: '85%', backgroundColor: isDark ? '#121212' : '#ffffff', borderRadius: 20, padding: 24, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, borderWidth: isDark ? 1 : 0, borderColor: '#2C2C2E' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <IconSymbol name="pin.fill" size={16} color="#10B981" />
-                <Text style={{ fontSize: 18, fontWeight: '800', color: '#064E3B' }}>Adalı Olma Adımları</Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#34D399' : '#064E3B' }}>Adalı Olma Adımları</Text>
               </View>
-              <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowIslanderStepsModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
-                <IconSymbol name="xmark" size={14} color="#64748B" />
+              <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowIslanderStepsModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                <IconSymbol name="xmark" size={14} color={isDark ? '#94A3B8' : '#64748B'} />
               </Pressable>
             </View>
             
-            <View style={{ backgroundColor: '#F0FDF4', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#BBF7D0' }}>
-              <Text style={{ fontSize: 14, color: '#065F46', lineHeight: 22 }}>
+            <View style={{ backgroundColor: isDark ? '#064E3B' : '#F0FDF4', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: isDark ? '#047857' : '#BBF7D0' }}>
+              <Text style={{ fontSize: 14, color: isDark ? '#A7F3D0' : '#065F46', lineHeight: 22 }}>
                 AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
                 {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
                 {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
