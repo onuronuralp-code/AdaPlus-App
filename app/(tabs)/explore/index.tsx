@@ -1033,7 +1033,8 @@ export default function MainMenuScreen() {
         <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
           <WalkthroughableView collapsable={false} style={{ width: '100%' }}>
             <SwipeButton 
-              isLoggedIn={isLoggedIn} 
+              isLoggedIn={isLoggedIn}
+              isActive={false} 
               onSwipeComplete={() => {
                 if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
                   setShowIslanderStepsModal(true);
