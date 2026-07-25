@@ -448,7 +448,7 @@ export function FerrySchedule() {
     setShowDatePicker(false);
   };
 
-  const bothMainland = departure !== "Unselected" && destination !== "Unselected" && MAINLAND.includes(departure) && MAINLAND.includes(destination) && filteredData.length === 0;
+  const bothMainland = departure !== "Unselected" && destination !== "Unselected" && departure !== destination && MAINLAND.includes(departure) && MAINLAND.includes(destination) && filteredData.length === 0;
 
   return (
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
@@ -616,11 +616,15 @@ export function FerrySchedule() {
                 size={48}
                 color="#CBD5E1"
               />
-              <Text style={[styles.emptyTitle, isDark && { color: '#FFFFFF' }]}>{t("common.noDepartures")}</Text>
+              <Text style={[styles.emptyTitle, isDark && { color: '#FFFFFF' }]}>
+                {departure !== "Unselected" && destination !== "Unselected" && departure === destination
+                  ? (i18n.language === "tr" ? "Sefer Bulunamadı" : "No Trips Found")
+                  : t("common.noDepartures")}
+              </Text>
               <Text style={[styles.emptySub, isDark && { color: '#94A3B8' }]}>
-                {i18n.language === "tr"
-                  ? "Bu tarih için sefer kalmadı."
-                  : "No trips left for this date."}
+                {departure !== "Unselected" && destination !== "Unselected" && departure === destination
+                  ? (i18n.language === "tr" ? "Aynı kalkış ve varış noktası arasında sefer bulunmamaktadır." : "No trips available between the same origin and destination.")
+                  : (i18n.language === "tr" ? "Bu tarih için sefer kalmadı." : "No trips left for this date.")}
               </Text>
             </View>
           ) : (
@@ -1090,15 +1094,12 @@ function LocationPicker({
             </View>
             <View style={styles.islandsGrid}>
               {ISLANDS.map((l) => {
-                const isDisabled = l === otherSelected;
                 return (
                   <TouchableOpacity
                     key={l}
-                    disabled={isDisabled}
                     style={[
                       styles.islandGridItem,
                       selected === l && styles.islandGridItemActive,
-                      isDisabled && styles.locationDisabled,
                       isDark && {
                         backgroundColor: selected === l ? '#2E1505' : '#1C1C1E',
                         borderColor: selected === l ? '#EA580C' : '#2C2C2E',
@@ -1113,7 +1114,6 @@ function LocationPicker({
                       style={[
                         styles.islandGridText,
                         selected === l && styles.islandGridTextOn,
-                        isDisabled && styles.locationDisabledText,
                         isDark && { color: selected === l ? '#EA580C' : '#FFFFFF' },
                       ]}
                     >
@@ -1144,15 +1144,12 @@ function LocationPicker({
             </View>
             <View style={styles.mainlandList}>
               {MAINLAND.map((l) => {
-                const isDisabled = l === otherSelected;
                 return (
                   <TouchableOpacity
                     key={l}
-                    disabled={isDisabled}
                     style={[
                       styles.mainlandListItem,
                       selected === l && styles.mainlandListItemActive,
-                      isDisabled && styles.locationDisabled,
                       isDark && {
                         backgroundColor: selected === l ? '#051A2E' : '#1C1C1E',
                         borderColor: selected === l ? '#0284C7' : '#2C2C2E',
@@ -1167,7 +1164,6 @@ function LocationPicker({
                       style={[
                         styles.mainlandListText,
                         selected === l && styles.mainlandListTextOn,
-                        isDisabled && styles.locationDisabledText,
                         isDark && { color: selected === l ? '#0284C7' : '#FFFFFF' },
                       ]}
                     >
