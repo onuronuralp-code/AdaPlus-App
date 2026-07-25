@@ -134,7 +134,7 @@ const TodayOnIsland = () => {
   return (
     <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
       {/* Weather Badge */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#F97316' : '#FED7AA' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, borderWidth: 2, borderColor: isDark ? '#F97316' : '#FED7AA' }}>
         <IconSymbol 
           name={weatherLoading ? 'sun.max.fill' : (weather?.condition === 'rainy' ? 'cloud.rain.fill' : (weather?.condition === 'cloudy' ? 'cloud.fill' : 'sun.max.fill'))} 
           size={isLargeScreen ? 18 : 14} 
@@ -147,7 +147,7 @@ const TodayOnIsland = () => {
 
       {/* Ferry Badge */}
       <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1, borderWidth: 1, borderColor: isDark ? '#3B82F6' : '#BFDBFE' }}
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1, borderWidth: 2, borderColor: isDark ? '#3B82F6' : '#BFDBFE' }}
         onPress={() => {
           if (nextFerry) {
             router.push({
