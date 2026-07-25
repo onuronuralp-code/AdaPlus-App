@@ -972,10 +972,13 @@ export default function MainMenuScreen() {
                 style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
                 <IconSymbol name="pawprint.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
+                <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
+                  <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                </View>
               </TouchableOpacity>
-              <View style={{ alignItems: 'center' }}>
+              <View style={{ alignItems: 'center', marginTop: 2 }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında'}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
