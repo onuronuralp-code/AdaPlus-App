@@ -367,7 +367,7 @@ export default function SettingsScreen() {
                                             ) : null}
                                         </View>
                                     ) : (
-                                        <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={buildingNo} onChangeText={setBuildingNo} multiline />
+                                        <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={buildingNo} onChangeText={setBuildingNo} />
                                     )}
 
                                     {/* Yeni Şifre */}
