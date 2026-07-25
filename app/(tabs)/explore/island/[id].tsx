@@ -129,7 +129,7 @@ export default function IslandDetailScreen() {
                         onPress={() => router.push({ pathname: '/(tabs)/explore/island/transportation', params: { islandId: id } })}
                     />
                     <ActivityCard
-                        icon="sparkles"
+                        icon="pawprint.fill"
                         color="#EC4899"
                         title={t('common.adaAI', { defaultValue: 'Ada AI (Yakında)' })}
                         subtitle={t('common.yourSmartGuide', { defaultValue: 'Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...' })}

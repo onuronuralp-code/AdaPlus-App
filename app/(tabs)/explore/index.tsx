@@ -1277,7 +1277,7 @@ export default function MainMenuScreen() {
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
           <View style={{ width: '100%', maxWidth: 340, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: isDark ? '#2D1B28' : '#FDF2F8', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-              <IconSymbol name="sparkles" size={34} color="#EC4899" />
+              <IconSymbol name="pawprint.fill" size={34} color="#EC4899" />
             </View>
             <View style={{ backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 12 }}>
               <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>ADA AI • YAKINDA</Text>
