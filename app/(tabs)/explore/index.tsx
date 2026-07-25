@@ -899,12 +899,28 @@ export default function MainMenuScreen() {
         </WalkthroughableView>
       </CopilotStep>
 
-      {/* 5 Cards Container */}
-      <View style={{ backgroundColor: isDark ? '#121212' : '#FFFFFF', marginHorizontal: 12, borderRadius: isLargeScreen ? 24 : 20, paddingVertical: isLargeScreen ? 12 : (isSmallScreen ? 6 : 8), elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, marginTop: isLargeScreen ? 16 : (isSmallScreen ? 8 : 12), marginBottom: isLargeScreen ? 12 : (isSmallScreen ? 6 : 8) }}>
-        
-        {/* Hızlı Erişim Section */}
+      {/* 5 Cards Unified Frame Container */}
+      <View style={{
+        backgroundColor: isDark ? '#121212' : '#FFFFFF',
+        marginHorizontal: 12,
+        borderRadius: isLargeScreen ? 24 : 20,
+        paddingTop: isLargeScreen ? 16 : (isSmallScreen ? 10 : 12),
+        paddingBottom: isLargeScreen ? 14 : (isSmallScreen ? 10 : 12),
+        paddingHorizontal: isLargeScreen ? 14 : 10,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        borderWidth: 1,
+        borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
+        marginTop: isLargeScreen ? 16 : (isSmallScreen ? 8 : 12),
+        marginBottom: isLargeScreen ? 110 : (isSmallScreen ? 18 : 28),
+        gap: isLargeScreen ? 14 : 10
+      }}>
+        {/* Hızlı Erişim Section (4 Buttons) */}
         <View 
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: isLargeScreen ? 16 : 12, paddingBottom: isLargeScreen ? 8 : 4, gap: isLargeScreen ? 8 : 6 }}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2, gap: isLargeScreen ? 8 : 6 }}
         >
           {/* 1. Etkinlikler */}
           <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
@@ -1012,10 +1028,8 @@ export default function MainMenuScreen() {
             </WalkthroughableView>
           </CopilotStep>
         </View>
-      </View>
 
-      {/* 5. Topluluk Banner (Positioned cleanly at bottom of screen above navbar) */}
-      <View style={{ paddingHorizontal: 16, marginTop: 'auto', paddingTop: isLargeScreen ? 6 : (isSmallScreen ? 2 : 4), marginBottom: isLargeScreen ? 110 : (isSmallScreen ? 18 : 28), backgroundColor: 'transparent' }}>
+        {/* 5. Topluluk Banner */}
         <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
           <WalkthroughableView collapsable={false} style={{ width: '100%' }}>
             <SwipeButton 
