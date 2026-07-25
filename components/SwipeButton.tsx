@@ -21,7 +21,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
   const isSmallScreen = height < 820;
   const isNavigating = useRef(false);
   const [userCount, setUserCount] = useState<number | null>(null);
-  const [isDeactivated, setIsDeactivated] = useState<boolean>(!isActive);
+  const [isDeactivated, setIsDeactivated] = useState<boolean>(isActive === false);
 
   const shimmerAnim = useRef(new Animated.Value(-1)).current;
   const pulseAnim  = useRef(new Animated.Value(0)).current;
@@ -29,8 +29,15 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
   // Fetch backend community active status
   useEffect(() => {
+    if (isActive === false) {
+      setIsDeactivated(true);
+      return;
+    }
     fetchWithTimeout(`${API_BASE_URL}/api/v1/community/status`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then(data => {
         if (data && (data.active === false || data.enabled === false || data.status === 'DEACTIVE' || data.status === 'DISABLED' || data.deactivated === true)) {
           setIsDeactivated(true);
@@ -38,9 +45,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
           setIsDeactivated(false);
         }
       })
-      .catch(() => {
-        setIsDeactivated(!isActive);
-      });
+      .catch(() => {});
   }, [isActive]);
 
   // Shimmer sweeps left→right every ~3.5 s
@@ -154,7 +159,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                 <Animated.View style={[
                   styles.liveDot, 
                   isDeactivated
-                    ? { backgroundColor: '#EF4444', borderColor: '#FEE2E2' }
+                    ? { backgroundColor: '#B91C1C', borderColor: '#FEE2E2', transform: [{ scale: 1 }], opacity: 1 }
                     : { transform: [{ scale: dotScale }], opacity: dotOpacity }
                 ]} />
               </View>
