@@ -188,6 +188,19 @@ export const authApi = {
     }
   },
 
+  verifyPassword: async (identifier: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      if (!identifier) return { success: false, message: i18n.t('errors.invalidPassword', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
+      const res = await authApi.login(identifier, password);
+      if (res && res.token) {
+        return { success: true };
+      }
+      return { success: false, message: i18n.t('errors.invalidPassword', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
+    } catch {
+      return { success: false, message: i18n.t('errors.invalidPassword', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
+    }
+  },
+
   changePassword: async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const token = getToken();
@@ -196,13 +209,13 @@ export const authApi = {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-      const data = await response.json();
       if (!response.ok) {
-        return { success: false, message: data.message || data.error || i18n.t('errors.changePasswordFailed', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
+        return { success: false, message: i18n.t('errors.changePasswordFailed', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
       }
+      const data = await response.json();
       return { success: true, message: data.message };
-    } catch (error: any) {
-      return { success: false, message: error?.message || 'Bir hata oluştu.' };
+    } catch {
+      return { success: false, message: i18n.t('errors.changePasswordFailed', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
     }
   },
 

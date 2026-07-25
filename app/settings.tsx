@@ -64,9 +64,10 @@ export default function SettingsScreen() {
         setPasswordError('');
         setIsVerifyingPassword(true);
         try {
-            const res = await authApi.changePassword(verifyPassword.trim(), verifyPassword.trim());
+            const identifier = user?.email || (user as any)?.phone || '';
+            const res = await authApi.verifyPassword(identifier, verifyPassword.trim());
             if (!res.success) {
-                setPasswordError(res.message || (currentLang.startsWith('en') ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.'));
+                setPasswordError(currentLang.startsWith('en') ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.');
                 setIsVerifyingPassword(false);
                 return;
             }
@@ -74,7 +75,7 @@ export default function SettingsScreen() {
             setVerifyPassword('');
             router.push('/edit-account');
         } catch {
-            setPasswordError(currentLang.startsWith('en') ? 'Verification failed.' : 'Doğrulama başarısız.');
+            setPasswordError(currentLang.startsWith('en') ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.');
         } finally {
             setIsVerifyingPassword(false);
         }
