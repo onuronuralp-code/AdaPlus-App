@@ -195,14 +195,15 @@ export default function EventsScreen() {
     const getIslandName = (event: AppActivityDto) => {
         if (event.island) {
             const id = event.island.toUpperCase();
-            return id === 'BUYUKADA' ? 'Büyükada' : id === 'HEYBELIADA' ? 'Heybeliada' : id === 'BURGAZADA' ? 'Burgazada' : id === 'KINALIADA' ? 'Kınalıada' : event.island;
+            const rawName = id === 'BUYUKADA' ? 'Büyükada' : id === 'HEYBELIADA' ? 'Heybeliada' : id === 'BURGAZADA' ? 'Burgazada' : id === 'KINALIADA' ? 'Kınalıada' : event.island;
+            return t('places.' + rawName, { defaultValue: rawName });
         }
         
         const searchText = `${event.eventPlace || ''} ${event.name || ''}`.toLowerCase();
-        if (searchText.includes('kınalı') || searchText.includes('kinal') || searchText.includes('kınal')) return 'Kınalıada';
-        if (searchText.includes('burgaz')) return 'Burgazada';
-        if (searchText.includes('heybeli')) return 'Heybeliada';
-        if (searchText.includes('büyük') || searchText.includes('buyuk')) return 'Büyükada';
+        if (searchText.includes('kınalı') || searchText.includes('kinal') || searchText.includes('kınal')) return t('places.Kınalıada');
+        if (searchText.includes('burgaz')) return t('places.Burgazada');
+        if (searchText.includes('heybeli')) return t('places.Heybeliada');
+        if (searchText.includes('büyük') || searchText.includes('buyuk')) return t('places.Büyükada');
         
         return '';
     };
@@ -608,7 +609,7 @@ export default function EventsScreen() {
                                             selectedIsland === islandId && (isDark ? { color: '#93C5FD' } : styles.islandChipTextSelected)
                                         ]}
                                     >
-                                        {islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'}
+                                        {t('places.' + (islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'))}
                                     </Text>
                                 </TouchableOpacity>
                             ))}

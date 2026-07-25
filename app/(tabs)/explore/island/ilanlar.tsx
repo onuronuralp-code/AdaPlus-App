@@ -683,6 +683,7 @@ export default function IlanlarScreen() {
 }
 
 function ListingCard({ listing, router, isGridView }: { listing: ListingDto, router: any, isGridView?: boolean }) {
+  const { t } = useTranslation();
   const { isLoggedIn } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -748,7 +749,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
           <View style={[styles.cardMeta, isGridView && { flexDirection: 'column', gap: 4, flexShrink: 1, marginRight: 8 }]}>
             <View style={styles.metaItem}>
               <IconSymbol name="mappin.circle.fill" size={12} color={isDark ? '#94A3B8' : '#94A3B8'} />
-              <Text style={[styles.metaText, isGridView && { fontSize: 11 }, isDark && { color: '#CBD5E1' }]}>{listing.island}</Text>
+              <Text style={[styles.metaText, isGridView && { fontSize: 11 }, isDark && { color: '#CBD5E1' }]}>{t('places.' + listing.island, { defaultValue: listing.island })}</Text>
             </View>
             {listing.contactInfo && (
               <View style={styles.metaItem}>

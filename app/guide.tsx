@@ -260,7 +260,7 @@ export default function GuideScreen() {
                     {showIslandChips && (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsContainer}>
                             {ISLANDS.map(island => (
-                                <SuggestionChip key={island} text={island} disabled={isLoading} isDark={isDark} onPress={() => handleIslandSelect(island)} />
+                                <SuggestionChip key={island} text={t('places.' + island, { defaultValue: island })} disabled={isLoading} isDark={isDark} onPress={() => handleIslandSelect(island)} />
                             ))}
                         </ScrollView>
                     )}
