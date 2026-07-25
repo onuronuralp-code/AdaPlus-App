@@ -465,11 +465,11 @@ export default function ForumScreen() {
             }
 
             if (editingPostId) {
-                const request: forumApi.UpdatePostRequest = {
+                const updateReq: forumApi.UpdatePostRequest = {
                     content,
                     imageUrl: imageUrl,
                 };
-                const updatedPost = await forumApi.updatePost(editingPostId, request);
+                const updatedPost = await forumApi.updatePost(editingPostId, updateReq);
                 setPosts(posts.map(p => p.id === editingPostId ? updatedPost : p));
                 if (selectedPost && selectedPost.id === editingPostId) {
                     setSelectedPost(updatedPost);
@@ -484,22 +484,36 @@ export default function ForumScreen() {
                 setEditingPostId(null);
                 setIsWriteModalVisible(false);
             } else {
-                const request: forumApi.CreatePostRequest = {
+                const filterOpts = newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : undefined;
+                const createReq: forumApi.CreatePostRequest = {
                     content,
                     postType: newPostType.toUpperCase() as PostType,
                     island: getIslandEnum(selectedIsland),
                     anonymous: isAnonymous,
-                    pollOptions: newPostType === 'poll' ? pollOptions.filter(opt => opt.trim() !== '') : undefined,
+                    pollOptions: filterOpts,
                     imageUrl: imageUrl,
                     pollDurationHours: newPostType === 'poll' ? pollDurationHours : undefined,
                 };
 
-                const createdPost = await forumApi.createPost(request);
-                const completePost = {
+                const createdPost = await forumApi.createPost(createReq);
+                const optionsFromReq = filterOpts ? filterOpts.map((text, idx) => ({
+                    id: `opt-${idx}-${Date.now()}`,
+                    text,
+                    voteCount: 0,
+                    percentage: 0,
+                    isVoted: false,
+                    voted: false
+                })) : undefined;
+
+                const completePost: PostDto = {
                     ...createdPost,
+                    postType: createdPost.postType || (newPostType.toUpperCase() as PostType),
                     authorId: createdPost.authorId || user?.id,
                     authorName: createdPost.authorName || user?.fullName || 'Anonim',
-                    authorUserType: createdPost.authorUserType || user?.userType || UserType.VISITOR
+                    authorUserType: (createdPost.authorUserType || user?.userType || UserType.VISITOR) as any,
+                    pollOptions: (createdPost.pollOptions && createdPost.pollOptions.length > 0)
+                        ? createdPost.pollOptions
+                        : (createdPost as any).options || (createdPost as any).poll_options || optionsFromReq
                 };
                 setPosts([completePost, ...posts]);
                 setNewPostContent('');
@@ -739,56 +753,59 @@ export default function ForumScreen() {
 
                     <View style={styles.postCardBody}>
                         <Text style={[styles.contentText, isDark && { color: '#F8FAFC' }]}>{item.content}</Text>
-                        {item.postType === PostType.POLL && item.pollOptions && (
-                            <View style={styles.renderedPollContainer}>
-                                {(() => {
-                                    const ended = isPollEnded(item.pollEndsAt);
-                                    const countdown = getPollCountdown(item.pollEndsAt);
-                                    const totalVotes = item.pollOptions!.reduce((sum, opt) => sum + (opt.voteCount || 0), 0);
-                                    return (
-                                        <>
-                                            {item.pollOptions!.map((option) => {
-                                                const isOptionVoted = option.isVoted || option.voted;
-                                                return (
-                                                <TouchableOpacity
-                                                    key={option.id}
-                                                    style={[
-                                                        styles.renderedPollOption, 
-                                                        isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
-                                                        ended && { opacity: 0.6 },
-                                                        isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
-                                                    ]}
-                                                    onPress={() => !ended && handlePollVote(item.id, option.id)}
-                                                    activeOpacity={ended ? 1 : 0.7}
-                                                    disabled={ended}
-                                                >
-                                                    <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: isOptionVoted ? '#10B98140' : tagColor + '40' }]} />
-                                                    <View style={styles.pollOptionTextRow}>
-                                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                            {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
-                                                            <Text style={[styles.renderedPollOptionText, isDark && { color: '#F8FAFC' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{option.text}</Text>
-                                                        </View>
-                                                        <Text style={[styles.pollPercentText, isDark && { color: '#CBD5E1' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
-                                                    </View>
-                                                </TouchableOpacity>
-                                                );
-                                            })}
-                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                                                <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
-                                                    Toplam {totalVotes} oy
-                                                </Text>
-                                                {countdown && (
-                                                    <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge, { marginTop: 0 }]}>
-                                                        <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
-                                                        <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
-                                                    </View>
-                                                )}
+                        {(() => {
+                            const isPoll = (item.postType as any) === PostType.POLL || (item.postType as any) === 'POLL' || String(item.postType)?.toUpperCase() === 'POLL';
+                            const pollOpts = item.pollOptions || (item as any).options || (item as any).poll_options;
+                            if (!isPoll || !pollOpts || pollOpts.length === 0) return null;
+
+                            const ended = isPollEnded(item.pollEndsAt);
+                            const countdown = getPollCountdown(item.pollEndsAt);
+                            const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
+
+                            return (
+                                <View style={styles.renderedPollContainer}>
+                                    {pollOpts.map((option: any, optIdx: number) => {
+                                        const isOptionVoted = option.isVoted || option.voted;
+                                        const optText = option.text || option.optionText || option.title || '';
+                                        const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
+                                        return (
+                                        <TouchableOpacity
+                                            key={option.id || `opt-${optIdx}`}
+                                            style={[
+                                                styles.renderedPollOption, 
+                                                isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
+                                                ended && { opacity: 0.6 },
+                                                isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
+                                            ]}
+                                            onPress={() => !ended && handlePollVote(item.id, option.id)}
+                                            activeOpacity={ended ? 1 : 0.7}
+                                            disabled={ended}
+                                        >
+                                            <View style={[styles.pollProgressFill, { width: `${optPercent}%`, backgroundColor: isOptionVoted ? '#10B98140' : tagColor + '40' }]} />
+                                            <View style={styles.pollOptionTextRow}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                    {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
+                                                    <Text style={[styles.renderedPollOptionText, isDark && { color: '#F8FAFC' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{optText}</Text>
+                                                </View>
+                                                <Text style={[styles.pollPercentText, isDark && { color: '#CBD5E1' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
                                             </View>
-                                        </>
-                                    );
-                                })()}
-                            </View>
-                        )}
+                                        </TouchableOpacity>
+                                        );
+                                    })}
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                                        <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
+                                            Toplam {totalVotes} oy
+                                        </Text>
+                                        {countdown && (
+                                            <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge, { marginTop: 0 }]}>
+                                                <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+                            );
+                        })()}
                         {item.imageUrl && (
                             <View style={styles.bubbleImageWrapper}>
                                 <Image source={{ uri: resolveImageUrl(item.imageUrl.split(',')[0].trim()) }} style={styles.postImage} resizeMode="cover" />
@@ -1257,50 +1274,54 @@ export default function ForumScreen() {
                                         </View>
                                     </View>
                                     <Text style={[styles.detailContentText, isDark && { color: '#F1F5F9' }]}>{selectedPost.content}</Text>
-                                    {selectedPost.postType === PostType.POLL && selectedPost.pollOptions && (
-                                        <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
-                                            {(() => {
-                                                const ended = isPollEnded(selectedPost.pollEndsAt);
-                                                const countdown = getPollCountdown(selectedPost.pollEndsAt);
-                                                return (
-                                                    <>
-                                                        {selectedPost.pollOptions.map((option: any) => {
-                                                            const isOptionVoted = option.isVoted || option.voted;
-                                                            return (
-                                                            <TouchableOpacity
-                                                                key={option.id}
-                                                                style={[
-                                                                    styles.renderedPollOption, 
-                                                                    isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
-                                                                    ended && { opacity: 0.6 },
-                                                                    isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
-                                                                ]}
-                                                                onPress={() => !ended && handlePollVote(selectedPost.id, option.id)}
-                                                                activeOpacity={ended ? 1 : 0.7}
-                                                                disabled={ended}
-                                                            >
-                                                                <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
-                                                                <View style={styles.pollOptionTextRow}>
-                                                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                                        {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
-                                                                        <Text style={[styles.renderedPollOptionText, isDark && { color: '#F8FAFC' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{option.text}</Text>
-                                                                    </View>
-                                                                    <Text style={[styles.pollPercentText, isDark && { color: '#CBD5E1' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
-                                                                </View>
-                                                            </TouchableOpacity>
-                                                            );
-                                                        })}
-                                                        {countdown && (
-                                                            <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
-                                                                <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
-                                                                <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                    {(() => {
+                                        const isPoll = (selectedPost.postType as any) === PostType.POLL || (selectedPost.postType as any) === 'POLL' || String(selectedPost.postType)?.toUpperCase() === 'POLL';
+                                        const pollOpts = selectedPost.pollOptions || (selectedPost as any).options || (selectedPost as any).poll_options;
+                                        if (!isPoll || !pollOpts || pollOpts.length === 0) return null;
+
+                                        const ended = isPollEnded(selectedPost.pollEndsAt);
+                                        const countdown = getPollCountdown(selectedPost.pollEndsAt);
+                                        const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
+
+                                        return (
+                                            <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
+                                                {pollOpts.map((option: any, optIdx: number) => {
+                                                    const isOptionVoted = option.isVoted || option.voted;
+                                                    const optText = option.text || option.optionText || option.title || '';
+                                                    const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
+                                                    return (
+                                                    <TouchableOpacity
+                                                        key={option.id || `opt-${optIdx}`}
+                                                        style={[
+                                                            styles.renderedPollOption, 
+                                                            isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
+                                                            ended && { opacity: 0.6 },
+                                                            isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
+                                                        ]}
+                                                        onPress={() => !ended && handlePollVote(selectedPost.id, option.id)}
+                                                        activeOpacity={ended ? 1 : 0.7}
+                                                        disabled={ended}
+                                                    >
+                                                        <View style={[styles.pollProgressFill, { width: `${optPercent}%`, backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
+                                                        <View style={styles.pollOptionTextRow}>
+                                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                                {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
+                                                                <Text style={[styles.renderedPollOptionText, isDark && { color: '#F8FAFC' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{optText}</Text>
                                                             </View>
-                                                        )}
-                                                    </>
-                                                );
-                                            })()}
-                                        </View>
-                                    )}
+                                                            <Text style={[styles.pollPercentText, isDark && { color: '#CBD5E1' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                    );
+                                                })}
+                                                {countdown && (
+                                                    <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
+                                                        <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                        <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        );
+                                    })()}
                                     {selectedPost.imageUrl && (
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.detailImageWrapper}>
                                             {selectedPost.imageUrl.split(',').map((url: string, index: number) => (
