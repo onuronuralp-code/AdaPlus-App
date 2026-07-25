@@ -186,7 +186,7 @@ export default function EventDetailScreen() {
             {/* Floating back + share buttons */}
             <View style={[styles.headerActions, { top: insets.top + 10 }]}>
                 <TouchableOpacity
-                    style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]}
+                    style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]}
                     onPress={() => {
                         if (router.canGoBack()) router.back();
                         else router.back();
@@ -196,7 +196,7 @@ export default function EventDetailScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]}
+                    style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]}
                     onPress={async () => {
                         try {
                             await Share.share({

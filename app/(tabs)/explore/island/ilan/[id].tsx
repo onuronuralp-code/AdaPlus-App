@@ -114,14 +114,14 @@ export default function IlanDetailScreen() {
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       {/* Header Overlay */}
       <View style={[styles.headerActions, { top: insets.top + 10 }]}>
-        <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} onPress={() => {
+        <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]} onPress={() => {
           if (router.canGoBack()) router.back();
           else router.replace('/(tabs)/explore/island/ilanlar');
         }}>
           <IconSymbol name="chevron.left" size={28} color={isDark ? "#FFFFFF" : "#1E293B"} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} onPress={async () => {
+        <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]} onPress={async () => {
           try {
             await Share.share({
               message: `${listing.title}\n\n${listing.description}\n\nAdaPlus'ta incele!`,
