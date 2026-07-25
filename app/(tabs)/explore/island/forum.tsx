@@ -1261,8 +1261,9 @@ export default function ForumScreen() {
                                                                 key={option.id}
                                                                 style={[
                                                                     styles.renderedPollOption, 
+                                                                    isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
                                                                     ended && { opacity: 0.6 },
-                                                                    isOptionVoted && { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' }
+                                                                    isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
                                                                 ]}
                                                                 onPress={() => !ended && handlePollVote(selectedPost.id, option.id)}
                                                                 activeOpacity={ended ? 1 : 0.7}
@@ -1271,10 +1272,10 @@ export default function ForumScreen() {
                                                                 <View style={[styles.pollProgressFill, { width: `${option.percentage}%`, backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
                                                                 <View style={styles.pollOptionTextRow}>
                                                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                                        {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color="#059669" />}
-                                                                        <Text style={[styles.renderedPollOptionText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{option.text}</Text>
+                                                                        {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
+                                                                        <Text style={[styles.renderedPollOptionText, isDark && { color: '#F8FAFC' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{option.text}</Text>
                                                                     </View>
-                                                                    <Text style={[styles.pollPercentText, isOptionVoted && { color: '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
+                                                                    <Text style={[styles.pollPercentText, isDark && { color: '#CBD5E1' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(option.percentage)}%</Text>
                                                                 </View>
                                                             </TouchableOpacity>
                                                             );
@@ -1304,14 +1305,14 @@ export default function ForumScreen() {
                                     <View style={[styles.detailFooter, { justifyContent: 'space-between' }]}>
                                         <View style={styles.interactionGroup}>
                                             <TouchableOpacity style={styles.interactionPill} onPress={() => toggleLike(selectedPost.id)}>
-                                                <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? "#EF4444" : "#64748B"} />
-                                                <Text style={[styles.interactionCount, selectedPost.isLiked && { color: "#EF4444" }]}>
+                                                <IconSymbol name={selectedPost.isLiked ? "heart.fill" : "heart"} size={20} color={selectedPost.isLiked ? "#EF4444" : (isDark ? "#CBD5E1" : "#64748B")} />
+                                                <Text style={[styles.interactionCount, selectedPost.isLiked && { color: "#EF4444" }, isDark && { color: "#CBD5E1" }]}>
                                                     {selectedPost.likeCount > 0 ? selectedPost.likeCount : '0'}
                                                 </Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity style={styles.interactionPill}>
-                                                <IconSymbol name="bubble.left" size={20} color="#64748B" />
-                                                <Text style={styles.interactionCount}>
+                                                <IconSymbol name="bubble.left" size={20} color={isDark ? "#CBD5E1" : "#64748B"} />
+                                                <Text style={[styles.interactionCount, isDark && { color: "#CBD5E1" }]}>
                                                     {selectedPost.replyCount > 0 ? selectedPost.replyCount : '0'}
                                                 </Text>
                                             </TouchableOpacity>
