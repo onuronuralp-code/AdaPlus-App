@@ -1234,7 +1234,7 @@ export default function ForumScreen() {
                                                         </Text>
                                                     </View>
                                                 </View>
-                                                <Text style={styles.timeText}>{formatTime(selectedPost.createdAt)}</Text>
+                                                <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{formatTime(selectedPost.createdAt)}</Text>
                                             </View>
                                             {selectedPost.authorId !== user?.id && (
                                                 <TouchableOpacity 
@@ -1353,7 +1353,7 @@ export default function ForumScreen() {
                                                         </View>
                                                         <View style={{ flex: 1 }}>
                                                             <Text style={[styles.replyAuthor, isDark && { color: '#FFFFFF' }]}>{reply.authorName || 'Anonim'}</Text>
-                                                            <Text style={styles.replyTime}>{formatTime(reply.createdAt)}</Text>
+                                                            <Text style={[styles.replyTime, isDark && { color: '#94A3B8' }]}>{formatTime(reply.createdAt)}</Text>
                                                         </View>
                                                     </View>
                                                     <Text style={[styles.replyContent, isDark && { color: '#CBD5E1' }]}>{reply.content}</Text>
