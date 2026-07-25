@@ -997,7 +997,7 @@ export default function ForumScreen() {
                                         style={[styles.writeChip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{island}</Text>
+                                        <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{t('places.' + island, { defaultValue: island })}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -1459,7 +1459,7 @@ export default function ForumScreen() {
                                         style={[styles.chip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, selectedIsland === island && styles.activeChip]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.chipText, isDark && { color: '#CBD5E1' }, selectedIsland === island && styles.activeChipText]}>{island}</Text>
+                                        <Text style={[styles.chipText, isDark && { color: '#CBD5E1' }, selectedIsland === island && styles.activeChipText]}>{t('places.' + island, { defaultValue: island })}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>

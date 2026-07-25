@@ -433,7 +433,7 @@ export default function SignUpScreen() {
                                 onPress={() => { setSelectedIsland(island); setIslandOpen(false); }}
                             >
                                 <Text style={{ fontSize: 16, color: selectedIsland === island ? '#3B82F6' : '#1E293B', fontWeight: selectedIsland === island ? '700' : '500' }}>
-                                    {island}
+                                    {t('places.' + island, { defaultValue: island })}
                                 </Text>
                                 {selectedIsland === island && (
                                     <IconSymbol name="checkmark" size={18} color="#3B82F6" />

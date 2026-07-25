@@ -536,7 +536,7 @@ export default function IlanlarScreen() {
                       numberOfLines={1}
                       adjustsFontSizeToFit
                     >
-                      {island}
+                      {t('places.' + island, { defaultValue: island })}
                     </Text>
                   </TouchableOpacity>
                 ))}

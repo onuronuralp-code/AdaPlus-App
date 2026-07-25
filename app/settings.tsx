@@ -251,7 +251,7 @@ export default function SettingsScreen() {
                                     styles.langButtonText,
                                     isDark && { color: '#CBD5E1' },
                                     defaultIsland === island && (isDark ? styles.darkActiveIslandButtonText : styles.activeIslandButtonText)
-                                ]}>{island}</Text>
+                                ]}>{t('places.' + island, { defaultValue: island })}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
