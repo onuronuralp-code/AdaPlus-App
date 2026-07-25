@@ -51,7 +51,7 @@ export function GlobalAlert() {
 
   const isError = alertState.title.toLowerCase().includes('hata') || alertState.title.toLowerCase().includes('error') || alertState.title.toLowerCase().includes('başarısız') || alertState.title.toLowerCase().includes('failed');
   const isSuccess = alertState.title.toLowerCase().includes('başarılı') || alertState.title.toLowerCase().includes('success') || alertState.title.toLowerCase().includes('tebrik') || alertState.title.toLowerCase().includes('harika');
-  const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('warning') || alertState.title.toLowerCase().includes('dikkat');
+  const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('warning') || alertState.title.toLowerCase().includes('dikkat') || alertState.title.toLowerCase().includes('deaktif') || alertState.title.toLowerCase().includes('disabled') || alertState.title.toLowerCase().includes('kapalı');
   
   let iconName = 'info.circle.fill';
   let iconColor = '#3B82F6';
@@ -66,7 +66,7 @@ export function GlobalAlert() {
     iconColor = '#10B981';
     iconBg = '#ECFDF5';
   } else if (isWarning) {
-    iconName = 'exclamationmark.circle.fill';
+    iconName = 'exclamationmark.triangle.fill';
     iconColor = '#F59E0B';
     iconBg = '#FFFBEB';
   }
