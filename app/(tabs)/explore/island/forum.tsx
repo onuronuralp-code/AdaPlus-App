@@ -1209,7 +1209,7 @@ export default function ForumScreen() {
                 }}
             >
                 <View style={[styles.modalContainer, { paddingTop: insets.top }, isDark && { backgroundColor: '#000000' }]}>
-                    <View style={[styles.modalHeader, isDark && { backgroundColor: '#000000', borderBottomWidth: 1, borderBottomColor: '#1F2937' }]}>
+                    <View style={[styles.modalHeader, isDark && { backgroundColor: '#000000', borderBottomWidth: 0 }]}>
                         <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
                             <TouchableOpacity onPress={() => setIsDetailModalVisible(false)} style={styles.modalHeaderButton}>
                                 <IconSymbol name="chevron.down" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
