@@ -573,7 +573,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 34) + (isLargeScreen ? 64 : 44) }} showsVerticalScrollIndicator={false} bounces={true}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 28) + 16 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -915,7 +915,7 @@ export default function MainMenuScreen() {
         borderWidth: 1,
         borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
         marginTop: isLargeScreen ? 16 : (isSmallScreen ? 8 : 12),
-        marginBottom: isLargeScreen ? 110 : (isSmallScreen ? 18 : 28),
+        marginBottom: isLargeScreen ? 14 : (isSmallScreen ? 8 : 12),
         gap: isLargeScreen ? 14 : 10
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
