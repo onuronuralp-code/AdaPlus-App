@@ -14,7 +14,7 @@ interface CelebrationModalProps {
     description?: string;
 }
 
-export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onClose, title = "Tebrikler!", description = "5 kişiyi davet ettin ve Adalı rozetini kazandın! Juju Kafe'den nakit alışverişlerinde %25 indirim kazandın." }) => {
+export const CelebrationModal: React.FC<CelebrationModalProps> = ({ visible, onClose, title = "Tebrikler!", description = "5 kişiyi davet ettin ve Adalı rozetini kazandın!" }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
     const scaleAnim = useRef(new Animated.Value(0.5)).current;

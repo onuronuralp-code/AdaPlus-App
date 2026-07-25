@@ -278,7 +278,7 @@ export default function MainMenuScreen() {
         if (hasSeen !== 'true') {
           setCelebrationContent({
             title: "Tebrikler!",
-            description: "5 kişiyi davet ettin ve Adalı rozetini kazandın! Juju Kafe'den nakit alışverişlerinde %25 indirim kazandın."
+            description: "5 kişiyi davet ettin ve Adalı rozetini kazandın!"
           });
           setShowCelebrationModal(true);
           await AsyncStorage.setItem('has_seen_invite_celebration_5', 'true');
