@@ -153,18 +153,25 @@ export default function SettingsScreen() {
                 { 
                     text: t('profile.deleteAccount', { defaultValue: isEn ? 'Delete Account' : 'Hesabı Sil' }), 
                     style: 'destructive', 
-                    onPress: async () => {
-                        try {
-                            const success = await authApi.deleteAccount();
-                            if (!success) {
-                                Alert.alert(t('common.error', { defaultValue: isEn ? 'Error' : 'Hata' }), t('common.deleteFailed', { defaultValue: isEn ? 'Deletion failed.' : 'Silme işlemi başarısız.' }));
-                                return;
+                    onPress: () => {
+                        (async () => {
+                            try {
+                                const success = await authApi.deleteAccount();
+                                try {
+                                    await logout();
+                                } catch (logoutError) {
+                                    console.warn('Logout error after account deletion:', logoutError);
+                                }
+                                router.replace('/');
+                            } catch (e) {
+                                Alert.alert(
+                                    t('common.error', { defaultValue: isEn ? 'Error' : 'Hata' }), 
+                                    t('common.deleteFailed', { defaultValue: isEn ? 'Deletion failed.' : 'Silme işlemi başarısız.' })
+                                );
                             }
-                            await logout();
-                            router.replace('/');
-                        } catch (e) {
-                            Alert.alert(t('common.error', { defaultValue: isEn ? 'Error' : 'Hata' }), t('common.deleteFailed', { defaultValue: isEn ? 'Deletion failed.' : 'Silme işlemi başarısız.' }));
-                        }
+                        })().catch((err) => {
+                            console.error('Delete account uncaught error:', err);
+                        });
                     }
                 }
             ]

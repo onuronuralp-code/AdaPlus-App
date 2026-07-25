@@ -263,12 +263,22 @@ export const authApi = {
   deleteAccount: async (): Promise<boolean> => {
     try {
       const token = getToken();
+      if (!token) return true;
       const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      return response.ok;
-    } catch {
+      if (response.ok) return true;
+      if (response.status === 404) {
+        const altResponse = await fetchWithTimeout(`${API_BASE_URL}/api/v1/auth/account`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        return altResponse.ok;
+      }
+      return false;
+    } catch (e) {
+      console.warn("deleteAccount request error:", e);
       return false;
     }
   },
