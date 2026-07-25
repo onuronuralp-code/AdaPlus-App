@@ -1002,8 +1002,8 @@ export default function MainMenuScreen() {
                 style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
                 <IconSymbol name="bag.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
-                <View style={{ position: 'absolute', bottom: -5, backgroundColor: '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: '#D8B4FE', zIndex: 10 }}>
-                  <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
+                  <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
               <View style={{ alignItems: 'center', marginTop: 2 }}>
