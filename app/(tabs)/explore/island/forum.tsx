@@ -2267,11 +2267,11 @@ const styles = StyleSheet.create({
         borderColor: '#F1F5F9',
     },
     activeWriteChip: {
-        backgroundColor: '#F0F9FF',
+        backgroundColor: '#3B82F6',
         borderColor: '#3B82F6',
     },
     activeWriteChipPink: {
-        backgroundColor: '#F0F9FF',
+        backgroundColor: '#3B82F6',
         borderColor: '#3B82F6',
     },
     writeChipText: {
@@ -2280,10 +2280,10 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     activeWriteChipText: {
-        color: '#3B82F6',
+        color: '#FFFFFF',
     },
     activeWriteChipPinkText: {
-        color: '#3B82F6',
+        color: '#FFFFFF',
     },
     writeToolbar: {
         flexDirection: 'row',
