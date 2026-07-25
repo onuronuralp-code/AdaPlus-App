@@ -505,7 +505,7 @@ export default function ProfileScreen() {
                 {activities.map(activity => {
                     return (
                         <Swipeable key={activity.id} renderRightActions={renderEventActions(activity)} overshootRight={false}>
-                        <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9', flexDirection: 'row', alignItems: 'flex-start' }]}>
+                        <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9', flexDirection: 'row', alignItems: 'center' }]}>
                             {activity.imageUrl ? (
                                 <Image 
                                     source={{ uri: resolveImageUrl(activity.imageUrl) }} 
@@ -517,7 +517,7 @@ export default function ProfileScreen() {
                                     <IconSymbol name="calendar" size={24} color={isDark ? "#60A5FA" : "#3B82F6"} />
                                 </View>
                             )}
-                            <View style={{ flex: 1 }}>
+                            <View style={{ flex: 1, justifyContent: 'center' }}>
                                 <Text style={[styles.listingTitle, { marginBottom: 4 }, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{activity.name}</Text>
                                 {activity.eventPlace ? <Text style={[styles.listingDesc, { marginBottom: 4 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>{activity.eventPlace}</Text> : null}
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
 
     // Listing Cards
     listingCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-    listingInfo: { flex: 1 },
+    listingInfo: { flex: 1, justifyContent: 'center' },
     listingTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B', marginBottom: 4 },
     listingDesc: { fontSize: 13, color: '#64748B', lineHeight: 18, marginBottom: 6 },
     listingTime: { fontSize: 12, color: '#94A3B8' },
