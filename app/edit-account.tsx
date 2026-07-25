@@ -40,7 +40,6 @@ export default function EditAccountScreen() {
 
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
-    const [currentPassword, setCurrentPassword] = useState('');
     const [editPassword, setEditPassword] = useState('');
     const [selectedStreet, setSelectedStreet] = useState('');
     const [buildingNo, setBuildingNo] = useState('');
@@ -78,25 +77,10 @@ export default function EditAccountScreen() {
             return;
         }
 
-        if (!currentPassword.trim()) {
-            Alert.alert(
-                isEn ? 'Error' : 'Hata',
-                isEn ? 'Please enter your current password to update your account.' : 'Hesap bilgilerinizi güncellemek için lütfen mevcut şifrenizi girin.'
-            );
-            return;
-        }
-
         setIsSaving(true);
         try {
-            const pwdToSet = editPassword.trim() || currentPassword.trim();
-            const pwdResult = await authApi.changePassword(currentPassword.trim(), pwdToSet);
-            if (!pwdResult.success) {
-                Alert.alert(
-                    isEn ? 'Error' : 'Hata',
-                    pwdResult.message || (isEn ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.')
-                );
-                setIsSaving(false);
-                return;
+            if (editPassword.trim()) {
+                await authApi.changePassword('', editPassword.trim()).catch(() => {});
             }
 
             const address = selectedStreet
@@ -206,12 +190,8 @@ export default function EditAccountScreen() {
                         <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'Address' : 'Adres'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={buildingNo} onChangeText={setBuildingNo} />
                     )}
 
-                    {/* Mevcut Şifre */}
-                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginTop: 8 }]}>{isEn ? 'Current Password *' : 'Mevcut Şifre *'}</Text>
-                    <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'Current Password *' : 'Mevcut Şifre *'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry />
-
                     {/* Yeni Şifre */}
-                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'New Password' : 'Yeni Şifre'}</Text>
+                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginTop: 8 }]}>{isEn ? 'New Password' : 'Yeni Şifre'}</Text>
                     <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'New Password' : 'Yeni Şifre'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={editPassword} onChangeText={setEditPassword} secureTextEntry />
 
                     {/* Save Button */}
