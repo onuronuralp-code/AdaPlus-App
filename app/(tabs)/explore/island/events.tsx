@@ -595,6 +595,7 @@ export default function EventsScreen() {
                                     key={islandId}
                                     style={[
                                         styles.islandChip, 
+                                        isDark && { backgroundColor: '#000000', borderColor: '#262626' },
                                         { flex: 1 },
                                         selectedIsland === islandId && styles.islandChipSelected
                                     ]}
@@ -605,6 +606,7 @@ export default function EventsScreen() {
                                         adjustsFontSizeToFit 
                                         style={[
                                             styles.islandChipText, 
+                                            isDark && { color: '#E5E5E5' },
                                             selectedIsland === islandId && styles.islandChipTextSelected
                                         ]}
                                     >

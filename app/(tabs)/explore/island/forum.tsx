@@ -1019,10 +1019,10 @@ export default function ForumScreen() {
                                 {islands.map(island => (
                                     <TouchableOpacity 
                                         key={island} 
-                                        style={[styles.writeChip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
+                                        style={[styles.writeChip, isDark && { backgroundColor: '#000000', borderColor: '#262626' }, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{t('places.' + island, { defaultValue: island })}</Text>
+                                        <Text style={[styles.writeChipText, isDark && { color: '#E5E5E5' }, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{t('places.' + island, { defaultValue: island })}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>

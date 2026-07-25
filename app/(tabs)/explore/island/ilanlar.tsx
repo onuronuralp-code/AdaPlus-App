@@ -533,11 +533,11 @@ export default function IlanlarScreen() {
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
-                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && styles.activeAdCat]}
+                    style={[styles.adCatItem, isDark && { backgroundColor: '#000000', borderColor: '#262626' }, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && styles.activeAdCat]}
                     onPress={() => setAdIsland(island)}
                   >
                     <Text 
-                      style={[styles.adCatText, isDark && { color: '#CBD5E1' }, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}
+                      style={[styles.adCatText, isDark && { color: '#E5E5E5' }, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                     >
