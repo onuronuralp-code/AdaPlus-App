@@ -153,9 +153,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                 />
                 <Animated.View style={[
                   styles.liveDot, 
-                  isDeactivated
-                    ? { backgroundColor: '#EF4444', borderColor: '#FEE2E2' }
-                    : { transform: [{ scale: dotScale }], opacity: dotOpacity }
+                  { transform: [{ scale: dotScale }], opacity: dotOpacity },
+                  isDeactivated && { backgroundColor: '#FF0000', borderColor: '#FFFFFF' }
                 ]} />
               </View>
 
