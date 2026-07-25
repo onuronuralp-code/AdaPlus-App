@@ -521,7 +521,7 @@ export default function ProfileScreen() {
                                 <Text style={[styles.listingTitle, { marginBottom: 4 }, isDark && { color: '#FFFFFF' }]} numberOfLines={2}>{activity.name}</Text>
                                 {activity.eventPlace ? <Text style={[styles.listingDesc, { marginBottom: 4 }, isDark && { color: '#94A3B8' }]} numberOfLines={1}>{activity.eventPlace}</Text> : null}
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                    <IconSymbol name="calendar" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                    <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
                                     <Text style={[styles.listingTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '700' }]}>
                                         {timeAgo(activity.startDate)}
                                     </Text>
