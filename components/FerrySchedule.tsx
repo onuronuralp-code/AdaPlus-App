@@ -448,8 +448,6 @@ export function FerrySchedule() {
     setShowDatePicker(false);
   };
 
-  const bothMainland = departure !== "Unselected" && destination !== "Unselected" && departure !== destination && MAINLAND.includes(departure) && MAINLAND.includes(destination) && filteredData.length === 0;
-
   return (
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       {/* Header Section */}
@@ -564,14 +562,6 @@ export function FerrySchedule() {
             </TouchableOpacity>
           </View>
         </View>
-        {bothMainland && (
-          <View style={{ marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 12, borderWidth: 1, borderColor: '#FECACA', flexDirection: 'row', alignItems: 'center' }}>
-            <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#EF4444" />
-            <Text style={{ flex: 1, marginLeft: 10, color: '#991B1B', fontSize: 13, lineHeight: 18, fontWeight: '500' }}>
-              {i18n.language === 'tr' ? 'Anakara iskeleleri (Kabataş, Bostancı vb.) arasında doğrudan ada vapuru seferi bulunmamaktadır. Lütfen bir ada iskelesi seçin.' : 'There are no direct island ferry trips between mainland piers. Please select an island pier.'}
-            </Text>
-          </View>
-        )}
       </View>
 
       <ScheduleDatePicker
