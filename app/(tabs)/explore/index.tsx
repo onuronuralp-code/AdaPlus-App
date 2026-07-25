@@ -547,7 +547,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? Math.min(height * 0.25, 210) : Math.min(Math.max(height * 0.31, 230), 340);
+  const heroHeight = isSmallScreen ? 180 : (isLargeScreen ? Math.min(height * 0.23, 210) : 195);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -573,7 +573,7 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 28) + 16 }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: insets.bottom + (Platform.OS === 'ios' ? 90 : 70) }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
