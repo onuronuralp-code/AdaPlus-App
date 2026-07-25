@@ -164,10 +164,16 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                 <Text style={[styles.text, isSmallScreen && { fontSize: 14 }, isLargeScreen && { fontSize: 18 }]}>
                   {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
                 </Text>
-                {!isDeactivated && userCount !== null && (
-                  <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
-                    {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                {isDeactivated ? (
+                  <Text style={[styles.subtext, { color: '#FEE2E2', fontWeight: '600' }]}>
+                    {i18n.language.startsWith('en') ? 'Unavailable' : 'Erişime Kapalı'}
                   </Text>
+                ) : (
+                  userCount !== null && (
+                    <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
+                      {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                    </Text>
+                  )
                 )}
               </View>
 
