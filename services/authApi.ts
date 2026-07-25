@@ -188,6 +188,24 @@ export const authApi = {
     }
   },
 
+  changePassword: async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const token = getToken();
+      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { success: false, message: data.message || data.error || i18n.t('errors.changePasswordFailed', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
+      }
+      return { success: true, message: data.message };
+    } catch (error: any) {
+      return { success: false, message: error?.message || 'Bir hata oluştu.' };
+    }
+  },
+
   // Exchanges a still-valid JWT for a fresh 30-day token.
   // Called silently on every app launch — zero UX impact.
   refresh: async (currentToken: string): Promise<LoginResponse | null> => {

@@ -54,6 +54,7 @@ export default function SettingsScreen() {
     const [isEditingAccount, setIsEditingAccount] = useState(false);
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
     const [editPassword, setEditPassword] = useState('');
     const [selectedStreet, setSelectedStreet] = useState('');
     const [buildingNo, setBuildingNo] = useState('');
@@ -82,6 +83,7 @@ export default function SettingsScreen() {
             setSelectedStreet('');
             setBuildingNo(existingAddress);
         }
+        setCurrentPassword('');
         setEditPassword('');
         setShowStreetPicker(false);
     };
@@ -370,15 +372,50 @@ export default function SettingsScreen() {
                                         <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'Address' : 'Adres'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={buildingNo} onChangeText={setBuildingNo} />
                                     )}
 
+                                    {/* Mevcut Şifre */}
+                                    <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'Current Password' : 'Mevcut Şifre'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry />
+
                                     {/* Yeni Şifre */}
                                     <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={currentLang.startsWith('en') ? 'New Password' : 'Yeni Şifre'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={editPassword} onChangeText={setEditPassword} secureTextEntry />
 
                                     {/* Save Button */}
                                     <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={async () => {
+                                        const isEn = currentLang.startsWith('en');
                                         if (!editName.trim()) {
-                                            Alert.alert(currentLang.startsWith('en') ? 'Error' : 'Hata', currentLang.startsWith('en') ? 'Full Name is required.' : 'Ad Soyad zorunludur.');
+                                            Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Full Name is required.' : 'Ad Soyad zorunludur.');
                                             return;
                                         }
+                                        
+                                        if (editPassword.trim()) {
+                                            if (!currentPassword.trim()) {
+                                                Alert.alert(
+                                                    isEn ? 'Error' : 'Hata',
+                                                    isEn ? 'Please enter your current password to set a new password.' : 'Yeni şifre belirlemek için lütfen mevcut şifrenizi girin.'
+                                                );
+                                                return;
+                                            }
+
+                                            setIsSaving(true);
+                                            try {
+                                                const pwdResult = await authApi.changePassword(currentPassword.trim(), editPassword.trim());
+                                                if (!pwdResult.success) {
+                                                    Alert.alert(
+                                                        isEn ? 'Error' : 'Hata',
+                                                        pwdResult.message || (isEn ? 'Current password is incorrect.' : 'Mevcut şifreniz hatalı.')
+                                                    );
+                                                    setIsSaving(false);
+                                                    return;
+                                                }
+                                            } catch {
+                                                Alert.alert(
+                                                    isEn ? 'Error' : 'Hata',
+                                                    isEn ? 'Failed to update password.' : 'Şifre güncellenemedi.'
+                                                );
+                                                setIsSaving(false);
+                                                return;
+                                            }
+                                        }
+
                                         const address = selectedStreet
                                             ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
                                             : buildingNo.trim();
@@ -386,7 +423,7 @@ export default function SettingsScreen() {
                                         try {
                                             const updated = await authApi.updateProfile(editName.trim(), address);
                                             if (!updated) {
-                                                Alert.alert(currentLang.startsWith('en') ? 'Error' : 'Hata', currentLang.startsWith('en') ? 'Failed to save.' : 'Kaydedilemedi.');
+                                                Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to save profile.' : 'Profil kaydedilemedi.');
                                                 return;
                                             }
                                             await updateProfile(updated as any);
