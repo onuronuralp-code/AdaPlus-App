@@ -305,7 +305,7 @@ export default function ProfileScreen() {
                     />
                 ) : null}
                 {isPoll && pollOpts && pollOpts.length > 0 ? (
-                    <View style={{ marginTop: 8, marginBottom: 8 }}>
+                    <View style={{ marginTop: 8, marginBottom: 4 }}>
                         {(() => {
                             const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
                             return pollOpts.map((option: any, optIdx: number) => {
@@ -344,9 +344,6 @@ export default function ProfileScreen() {
                                 );
                             });
                         })()}
-                        <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600', marginTop: 4 }}>
-                            Toplam {pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0)} oy
-                        </Text>
                     </View>
                 ) : null}
             </>
@@ -358,39 +355,52 @@ export default function ProfileScreen() {
         if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
         return (
             <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-                {posts.map(post => (
-                    <Swipeable key={post.id} renderRightActions={renderPostActions(post, false)} overshootRight={false}>
-                    <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}>
-                        {editingPostId === post.id ? (
-                            <View style={{ flex: 1 }}>
-                                <TextInput
-                                    style={[styles.editInput, isDark && { color: '#FFFFFF', backgroundColor: '#1A1A1A' }]}
-                                    value={editingContent}
-                                    onChangeText={setEditingContent}
-                                    multiline
-                                />
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
-                                    <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
-                                        <Text style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{t('common.cancel')}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
-                                        {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>{t('common.saveAction')}</Text>}
-                                    </TouchableOpacity>
+                {posts.map(post => {
+                    const isPoll = (post.postType as any) === 'POLL' || String(post.postType)?.toUpperCase() === 'POLL';
+                    const pollOpts = post.pollOptions || (post as any).options || (post as any).poll_options;
+                    const totalVotes = isPoll && pollOpts ? pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0) : 0;
+
+                    return (
+                        <Swipeable key={post.id} renderRightActions={renderPostActions(post, false)} overshootRight={false}>
+                        <View style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}>
+                            {editingPostId === post.id ? (
+                                <View style={{ flex: 1 }}>
+                                    <TextInput
+                                        style={[styles.editInput, isDark && { color: '#FFFFFF', backgroundColor: '#1A1A1A' }]}
+                                        value={editingContent}
+                                        onChangeText={setEditingContent}
+                                        multiline
+                                    />
+                                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+                                        <TouchableOpacity onPress={() => setEditingPostId(null)} style={{ marginRight: 16, padding: 4 }}>
+                                            <Text style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{t('common.cancel')}</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => handleSaveEdit(post.id, false)} disabled={isSavingEdit} style={{ padding: 4, opacity: isSavingEdit ? 0.4 : 1 }}>
+                                            {isSavingEdit ? <ActivityIndicator size="small" color="#10B981" /> : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>{t('common.saveAction')}</Text>}
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
-                            </View>
-                        ) : (
-                            <View>
-                                <Text style={[styles.postContent, { marginBottom: 4 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
-                                {renderPollAndImage(post)}
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                    <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
-                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
+                            ) : (
+                                <View>
+                                    <Text style={[styles.postContent, { marginBottom: 4 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
+                                    {renderPollAndImage(post)}
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                            <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
+                                        </View>
+                                        {isPoll && pollOpts && pollOpts.length > 0 ? (
+                                            <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600' }}>
+                                                Toplam {totalVotes} oy
+                                            </Text>
+                                        ) : null}
+                                    </View>
                                 </View>
-                            </View>
-                        )}
-                    </View>
-                    </Swipeable>
-                ))}
+                            )}
+                        </View>
+                        </Swipeable>
+                    );
+                })}
             </ScrollView>
         );
     };
@@ -618,27 +628,38 @@ export default function ProfileScreen() {
         if (likedPosts.length === 0) return renderEmpty('heart.fill', t('profile.emptyLikesTitle', { defaultValue: 'Beğeni Yok' }), t('profile.emptyLikesDesc', { defaultValue: 'Beğendiğiniz paylaşımlar burada görünecek.' }), '#EC4899');
         return (
             <ScrollView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-                {likedPosts.map(post => (
-                    <View 
-                        key={post.id} 
-                        style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}
-                    >
-                        <Text style={[styles.postContent, { marginBottom: 4 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
-                        {renderPollAndImage(post)}
-                        <View style={styles.postFooter}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
-                                <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
-                            </View>
-                            <View style={styles.statsRow}>
-                                <View style={styles.statItem}>
-                                    <IconSymbol name="heart.fill" size={14} color="#EC4899" />
-                                    <Text style={[styles.statText, isDark && { color: '#94A3B8' }]}>{post.likeCount}</Text>
+                {likedPosts.map(post => {
+                    const isPoll = (post.postType as any) === 'POLL' || String(post.postType)?.toUpperCase() === 'POLL';
+                    const pollOpts = post.pollOptions || (post as any).options || (post as any).poll_options;
+                    const totalVotes = isPoll && pollOpts ? pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0) : 0;
+
+                    return (
+                        <View 
+                            key={post.id} 
+                            style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}
+                        >
+                            <Text style={[styles.postContent, { marginBottom: 4 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
+                            {renderPollAndImage(post)}
+                            <View style={styles.postFooter}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                                    <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
+                                </View>
+                                <View style={styles.statsRow}>
+                                    {isPoll && pollOpts && pollOpts.length > 0 ? (
+                                        <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600', marginRight: 12 }}>
+                                            Toplam {totalVotes} oy
+                                        </Text>
+                                    ) : null}
+                                    <View style={styles.statItem}>
+                                        <IconSymbol name="heart.fill" size={14} color="#EC4899" />
+                                        <Text style={[styles.statText, isDark && { color: '#94A3B8' }]}>{post.likeCount}</Text>
+                                    </View>
                                 </View>
                             </View>
                         </View>
-                    </View>
-                ))}
+                    );
+                })}
             </ScrollView>
         );
     };
