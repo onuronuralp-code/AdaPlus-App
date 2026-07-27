@@ -781,7 +781,7 @@ export default function ForumScreen() {
                                             activeOpacity={ended ? 1 : 0.7}
                                             disabled={ended}
                                         >
-                                            <View style={[styles.pollProgressFill, { width: `${optPercent}%`, backgroundColor: isOptionVoted ? '#10B98140' : tagColor + '40' }]} />
+                                            <View style={[styles.pollProgressFill, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? '#10B98140' : tagColor + '40' }]} />
                                             <View style={styles.pollOptionTextRow}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                                     {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
@@ -1302,7 +1302,7 @@ export default function ForumScreen() {
                                                         activeOpacity={ended ? 1 : 0.7}
                                                         disabled={ended}
                                                     >
-                                                        <View style={[styles.pollProgressFill, { width: `${optPercent}%`, backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
+                                                        <View style={[styles.pollProgressFill, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? '#10B98140' : getTagColor(selectedPost.authorUserType) + '40' }]} />
                                                         <View style={styles.pollOptionTextRow}>
                                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                                                 {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}

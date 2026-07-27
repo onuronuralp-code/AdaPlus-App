@@ -334,7 +334,7 @@ export default function ProfileScreen() {
                                         onPress={() => handlePollVote(post.id, option.id)}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${optPercent}%`, backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.25)' : 'rgba(99, 102, 241, 0.15)' }} />
+                                        <View style={[{ position: 'absolute', top: 0, bottom: 0, left: 0 }, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.35)' : 'rgba(99, 102, 241, 0.15)' }]} />
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 1 }}>
                                             {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
                                             <Text style={[{ fontSize: 14, fontWeight: '600', color: isDark ? '#F8FAFC' : '#1E293B' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{optText}</Text>
