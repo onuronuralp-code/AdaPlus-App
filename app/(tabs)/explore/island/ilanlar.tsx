@@ -614,22 +614,22 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.description')}</Text>
-              <View style={{ position: 'relative' }}>
-                <TextInput
-                  style={[styles.adTitleInput, { height: 120, paddingBottom: 24, textAlignVertical: 'top' }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                  placeholder={t('ilanlar.descPlaceholder')}
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                  multiline
-                  scrollEnabled={false}
-                  value={adDesc}
-                  onChangeText={setAdDesc}
-                  maxLength={500}
-                />
-                <Text style={{ position: 'absolute', bottom: 10, right: 14, color: isDark ? '#64748B' : '#94A3B8', fontSize: 11, fontWeight: '600' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{t('ilanlar.description')}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: adDesc.length >= 500 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
                   {adDesc.length}/500
                 </Text>
               </View>
+              <TextInput
+                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
+                placeholder={t('ilanlar.descPlaceholder')}
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                multiline
+                scrollEnabled={false}
+                value={adDesc}
+                onChangeText={setAdDesc}
+                maxLength={500}
+              />
             </View>
 
             <View style={styles.inputSection}>

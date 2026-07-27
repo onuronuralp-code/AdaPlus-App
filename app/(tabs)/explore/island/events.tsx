@@ -683,24 +683,24 @@ export default function EventsScreen() {
                             onChangeText={setSocialLink}
                         />
 
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventDetails')}</Text>
-                        <View style={{ position: 'relative' }}>
-                            <TextInput 
-                                style={[styles.input, styles.textArea, { paddingBottom: 24 }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                                placeholder={t('events.detailsPlaceholder')}
-                                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                                value={newEventDetails}
-                                onChangeText={setNewEventDetails}
-                                multiline
-                                scrollEnabled={false}
-                                numberOfLines={4}
-                                textAlignVertical="top"
-                                maxLength={500}
-                            />
-                            <Text style={{ position: 'absolute', bottom: 10, right: 14, color: isDark ? '#64748B' : '#94A3B8', fontSize: 11, fontWeight: '600' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{t('events.eventDetails')}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: newEventDetails.length >= 500 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
                                 {newEventDetails.length}/500
                             </Text>
                         </View>
+                        <TextInput 
+                            style={[styles.input, styles.textArea, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
+                            placeholder={t('events.detailsPlaceholder')}
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                            value={newEventDetails}
+                            onChangeText={setNewEventDetails}
+                            multiline
+                            scrollEnabled={false}
+                            numberOfLines={4}
+                            textAlignVertical="top"
+                            maxLength={500}
+                        />
 
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{t('events.eventPhoto')}</Text>
