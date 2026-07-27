@@ -645,9 +645,11 @@ export default function IlanlarScreen() {
             </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>İLAN FOTOĞRAFLARI</Text>
+              <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>
+                {i18n.language.startsWith('en') ? 'LISTING PHOTOS' : 'İLAN FOTOĞRAFLARI'}
+              </Text>
               <Text style={{ fontSize: 12, fontWeight: '700', color: selectedImages.length >= 5 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
-                {selectedImages.length}/5 foto
+                {selectedImages.length}/5 {i18n.language.startsWith('en') ? 'photos' : 'foto'}
               </Text>
             </View>
 
