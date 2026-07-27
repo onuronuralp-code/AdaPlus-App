@@ -457,18 +457,19 @@ export default function EventsScreen() {
                                         style={[styles.eventImage, isGridView && { height: 140 }]}
                                     />
                                 )}
-                                {isGridView && (
-                                    <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(15, 23, 42, 0.75)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center', zIndex: 10 }}>
-                                        <IconSymbol name="person.2.fill" size={11} color="#FFFFFF" />
-                                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
-                                    </View>
-                                )}
+                                
+                                {/* Katılımcı Sayısı - Kartın Sağ Üst Köşesi */}
+                                <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0, 0, 0, 0.65)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, flexDirection: 'row', alignItems: 'center', zIndex: 10 }}>
+                                    <IconSymbol name="person.2.fill" size={12} color="#FFFFFF" />
+                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
+                                </View>
+
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
                                     <View style={[styles.titleRow, isGridView && { marginBottom: 4 }]}>
                                         <Text style={[styles.eventTitle, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{event.name}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <View style={{ flex: 1, paddingRight: 8 }}>
+                                        <View style={{ flex: 1 }}>
                                             {/* 1. Tarih (Date) */}
                                             <View style={[styles.eventDetailsRow, isGridView && { marginTop: 2, marginBottom: 0 }]}>
                                                 <IconSymbol name="calendar" size={14} color={isDark ? "#60A5FA" : "#3B82F6"} />
@@ -513,12 +514,6 @@ export default function EventsScreen() {
                                                 )}
                                             </View>
                                         </View>
-                                        {!isGridView && (event.rsvpCount || 0) >= 0 && (
-                                            <View style={[{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
-                                                <IconSymbol name="person.2.fill" size={12} color={isDark ? '#94A3B8' : '#64748B'} />
-                                                <Text style={[{ fontSize: 11, fontWeight: '700', color: '#475569', marginLeft: 4 }, isDark && { color: '#CBD5E1' }]}>{event.rsvpCount || 0}</Text>
-                                            </View>
-                                        )}
                                     </View>
                                 </View>
                             </TouchableOpacity>
