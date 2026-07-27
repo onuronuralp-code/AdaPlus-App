@@ -631,10 +631,15 @@ export default function MainMenuScreen() {
         paddingHorizontal: 20 
       }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 8 }, isDark && { color: '#F8FAFC' }]}>
+          <Text 
+            style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 8 }, isDark && { color: '#F8FAFC' }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
             {isLoggedIn && user
-              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}! 🌸`
-              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}! 🌸`}
+              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}!\u00A0🌸`
+              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}!\u00A0🌸`}
           </Text>
           {isLoggedIn ? (
             <TouchableOpacity 
