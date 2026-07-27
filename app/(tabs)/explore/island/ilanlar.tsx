@@ -615,17 +615,21 @@ export default function IlanlarScreen() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.description')}</Text>
-              <TextInput
-                style={[styles.adTitleInput, { height: 120, textAlignVertical: 'top' }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                placeholder={t('ilanlar.descPlaceholder')}
-                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                multiline
-                scrollEnabled={false}
-                value={adDesc}
-                onChangeText={setAdDesc}
-                maxLength={500}
-              />
-              <Text style={{ color: '#94A3B8', fontSize: 11, textAlign: 'right', marginTop: 4 }}>{adDesc.length}/500</Text>
+              <View style={{ position: 'relative' }}>
+                <TextInput
+                  style={[styles.adTitleInput, { height: 120, paddingBottom: 24, textAlignVertical: 'top' }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
+                  placeholder={t('ilanlar.descPlaceholder')}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                  multiline
+                  scrollEnabled={false}
+                  value={adDesc}
+                  onChangeText={setAdDesc}
+                  maxLength={500}
+                />
+                <Text style={{ position: 'absolute', bottom: 10, right: 14, color: isDark ? '#64748B' : '#94A3B8', fontSize: 11, fontWeight: '600' }}>
+                  {adDesc.length}/500
+                </Text>
+              </View>
             </View>
 
             <View style={styles.inputSection}>
