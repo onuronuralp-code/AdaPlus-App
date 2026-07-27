@@ -281,7 +281,10 @@ export default function ProfileScreen() {
         );
     };
 
+    const [votedPolls, setVotedPolls] = useState<Record<string, string>>({});
+
     const handlePollVote = async (postId: string, optionId: string) => {
+        setVotedPolls(prev => ({ ...prev, [postId]: optionId }));
         try {
             const updated = await voteOnPoll(postId, optionId);
             if (updated) {
@@ -309,7 +312,9 @@ export default function ProfileScreen() {
                         {(() => {
                             const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
                             return pollOpts.map((option: any, optIdx: number) => {
-                                const isOptionVoted = option.isVoted || option.voted;
+                                const isOptionVoted = option.isVoted || option.voted || option.is_voted || 
+                                    (post as any).userVotedOptionId === option.id || (post as any).votedOptionId === option.id || 
+                                    (post as any).voted_option_id === option.id || votedPolls[post.id] === option.id;
                                 const optText = option.text || option.optionText || option.title || '';
                                 const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
                                 return (
