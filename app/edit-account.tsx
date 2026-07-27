@@ -266,8 +266,8 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     darkInput: {
-        backgroundColor: '#1E1B4B',
-        borderColor: '#2E2A68',
+        backgroundColor: '#2C2C2E',
+        borderColor: '#3A3A3C',
         color: '#FFFFFF',
     },
     inputReadOnly: {

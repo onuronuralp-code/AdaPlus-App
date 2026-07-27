@@ -304,7 +304,7 @@ export default function SettingsScreen() {
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
                     <View style={{ width: '100%', maxWidth: 340, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20 }}>
-                        <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: isDark ? '#2E2A68' : '#EEF2FF', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                        <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: isDark ? '#2C2C2E' : '#EEF2FF', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                             <IconSymbol name="lock.fill" size={28} color="#6366F1" />
                         </View>
                         <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 6 }}>
@@ -315,7 +315,7 @@ export default function SettingsScreen() {
                         </Text>
                         
                         <TextInput
-                            style={{ width: '100%', height: 48, backgroundColor: isDark ? '#1E1B4B' : '#F8FAFC', borderWidth: 1, borderColor: passwordError ? '#EF4444' : (isDark ? '#2E2A68' : '#E2E8F0'), borderRadius: 12, paddingHorizontal: 16, fontSize: 15, color: isDark ? '#FFFFFF' : '#0F172A', marginBottom: passwordError ? 6 : 16 }}
+                            style={{ width: '100%', height: 48, backgroundColor: isDark ? '#2C2C2E' : '#F8FAFC', borderWidth: 1, borderColor: passwordError ? '#EF4444' : (isDark ? '#3A3A3C' : '#E2E8F0'), borderRadius: 12, paddingHorizontal: 16, fontSize: 15, color: isDark ? '#FFFFFF' : '#0F172A', marginBottom: passwordError ? 6 : 16 }}
                             placeholder={currentLang.startsWith('en') ? 'Current Password' : 'Mevcut Şifre'}
                             placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                             value={verifyPassword}
