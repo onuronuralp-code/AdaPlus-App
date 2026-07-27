@@ -58,25 +58,44 @@ const TodayOnIsland = () => {
   const isDark = theme === 'dark';
   const isLargeScreen = height > 900;
   
+  const { user } = useAuth();
   const { weather, loading: weatherLoading } = useWeather();
   const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string} | null>(null);
   const [ferryLoading, setFerryLoading] = useState(true);
-  
-
 
   useFocusEffect(
     useCallback(() => {
     let cancelled = false;
     
+    const getNormalizedIsland = (rawIsland?: string): string => {
+      if (!rawIsland) return "Büyükada";
+      const upper = rawIsland.toUpperCase();
+      if (upper.includes("BUYUK") || upper.includes("BÜYÜK")) return "Büyükada";
+      if (upper.includes("HEYBELI") || upper.includes("HEYBELİ")) return "Heybeliada";
+      if (upper.includes("BURGAZ")) return "Burgazada";
+      if (upper.includes("KINALI") || upper.includes("KİNALI")) return "Kınalıada";
+      return "Büyükada";
+    };
+
     const fetchFerry = async () => {
       try {
-        let dep = "Bostancı";
-        let dest = "Büyükada";
+        setFerryLoading(true);
+        let targetIsland = getNormalizedIsland((user as any)?.island);
+        const storedIsland = await AsyncStorage.getItem('selected_island');
+        if (storedIsland) {
+          targetIsland = getNormalizedIsland(storedIsland);
+        }
+
+        let mainPorts = ["Bostancı", "Kabataş", "Kadıköy"];
         const favRouteStr = await AsyncStorage.getItem('favorite_route');
         if (favRouteStr) {
-          const fav = JSON.parse(favRouteStr);
-          dep = fav.departure;
-          dest = fav.destination;
+          try {
+            const fav = JSON.parse(favRouteStr);
+            if (fav.departure && fav.destination) {
+              mainPorts = [fav.departure, ...mainPorts.filter(p => p !== fav.departure)];
+              targetIsland = fav.destination;
+            }
+          } catch {}
         }
 
         const dateObj = new Date();
@@ -84,40 +103,70 @@ const TodayOnIsland = () => {
         const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
         const dd = String(dateObj.getDate()).padStart(2, '0');
         const dateStr = `${yyyy}-${mm}-${dd}`;
-        const departures = await fetchDepartures(dep, dest, dateStr);
+        const nowMinutes = dateObj.getHours() * 60 + dateObj.getMinutes();
 
-        if (!cancelled) {
-          const nowMinutes = dateObj.getHours() * 60 + dateObj.getMinutes();
-          let upcoming = departures.filter(d => {
+        const routePromises = mainPorts.map(port => fetchDepartures(port, targetIsland, dateStr));
+        const results = await Promise.all(routePromises);
+
+        let allUpcoming: { from: string; to: string; time: string; provider?: string; diffMinutes: number }[] = [];
+
+        results.forEach((departures, idx) => {
+          const portName = mainPorts[idx];
+          departures.forEach(d => {
             const timeVal = getRouteTimeValue(d.time);
-            // Handle next-day ferries (00:00 - 03:00) when currently before midnight
+            let diff = timeVal - nowMinutes;
             if (timeVal < 180 && nowMinutes > 180) {
-                return timeVal + 1440 >= nowMinutes;
+              diff = (timeVal + 1440) - nowMinutes;
             }
-            return timeVal >= nowMinutes;
+            if (diff >= 0) {
+              allUpcoming.push({
+                from: d.from || portName,
+                to: d.to || targetIsland,
+                time: d.time,
+                provider: d.provider,
+                diffMinutes: diff,
+              });
+            }
           });
-          
-          upcoming.sort((a, b) => {
-            const valA = getRouteTimeValue(a.time) < 180 && nowMinutes > 180 ? getRouteTimeValue(a.time) + 1440 : getRouteTimeValue(a.time);
-            const valB = getRouteTimeValue(b.time) < 180 && nowMinutes > 180 ? getRouteTimeValue(b.time) + 1440 : getRouteTimeValue(b.time);
-            return valA - valB;
+        });
+
+        allUpcoming.sort((a, b) => a.diffMinutes - b.diffMinutes);
+
+        if (allUpcoming.length === 0) {
+          const tomorrow = new Date(dateObj);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const tYyyy = tomorrow.getFullYear();
+          const tMm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+          const tDd = String(tomorrow.getDate()).padStart(2, '0');
+          const tmrwStr = `${tYyyy}-${tMm}-${tDd}`;
+
+          const tmrwPromises = mainPorts.map(port => fetchDepartures(port, targetIsland, tmrwStr));
+          const tmrwResults = await Promise.all(tmrwPromises);
+
+          tmrwResults.forEach((departures, idx) => {
+            const portName = mainPorts[idx];
+            departures.forEach(d => {
+              const timeVal = getRouteTimeValue(d.time);
+              allUpcoming.push({
+                from: d.from || portName,
+                to: d.to || targetIsland,
+                time: d.time,
+                provider: d.provider,
+                diffMinutes: timeVal + 1440,
+              });
+            });
           });
 
-          if (upcoming.length === 0) {
-            const tomorrow = new Date(dateObj);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tYyyy = tomorrow.getFullYear();
-            const tMm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-            const tDd = String(tomorrow.getDate()).padStart(2, '0');
-            const tmrwStr = `${tYyyy}-${tMm}-${tDd}`;
-            const tmrwDepartures = await fetchDepartures(dep, dest, tmrwStr);
-            upcoming = tmrwDepartures;
-            upcoming.sort((a, b) => getRouteTimeValue(a.time) - getRouteTimeValue(b.time));
-          }
+          allUpcoming.sort((a, b) => a.diffMinutes - b.diffMinutes);
+        }
 
-          if (upcoming.length > 0) {
-            setNextFerry({ from: dep, to: dest, time: upcoming[0].time, provider: upcoming[0].provider });
-          }
+        if (!cancelled && allUpcoming.length > 0) {
+          setNextFerry({
+            from: allUpcoming[0].from,
+            to: allUpcoming[0].to,
+            time: allUpcoming[0].time,
+            provider: allUpcoming[0].provider,
+          });
         }
       } catch (err) {
         console.log("Failed to fetch next ferry", err);
@@ -128,7 +177,7 @@ const TodayOnIsland = () => {
     fetchFerry();
     
     return () => { cancelled = true; };
-  }, [])
+  }, [user])
   );
 
   return (
