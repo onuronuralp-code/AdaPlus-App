@@ -175,11 +175,14 @@ export default function ForumScreen() {
         setIsInviteModalVisible(true);
     };
 
+    const [votedPolls, setVotedPolls] = useState<Record<string, string>>({});
+
     const handlePollVote = async (postId: string, optionId: string) => {
         if (!isLoggedIn) {
             router.push('/login');
             return;
         }
+        setVotedPolls(prev => ({ ...prev, [postId]: optionId }));
         try {
             const updatedPost = await forumApi.voteOnPoll(postId, optionId);
             if (updatedPost) {
@@ -765,7 +768,9 @@ export default function ForumScreen() {
                             return (
                                 <View style={styles.renderedPollContainer}>
                                     {pollOpts.map((option: any, optIdx: number) => {
-                                        const isOptionVoted = option.isVoted || option.voted;
+                                        const isOptionVoted = option.isVoted || option.voted || option.is_voted || 
+                                             (item as any).userVotedOptionId === option.id || (item as any).votedOptionId === option.id || 
+                                             (item as any).voted_option_id === option.id || votedPolls[item.id] === option.id;
                                         const optText = option.text || option.optionText || option.title || '';
                                         const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
                                         return (
@@ -1286,7 +1291,9 @@ export default function ForumScreen() {
                                         return (
                                             <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
                                                 {pollOpts.map((option: any, optIdx: number) => {
-                                                    const isOptionVoted = option.isVoted || option.voted;
+                                                    const isOptionVoted = option.isVoted || option.voted || option.is_voted || 
+                                                        (selectedPost as any).userVotedOptionId === option.id || (selectedPost as any).votedOptionId === option.id || 
+                                                        (selectedPost as any).voted_option_id === option.id || votedPolls[selectedPost.id] === option.id;
                                                     const optText = option.text || option.optionText || option.title || '';
                                                     const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
                                                     return (
