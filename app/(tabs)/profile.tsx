@@ -9,7 +9,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/EmptyState';
-import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto, deletePost, updatePost, UpdatePostRequest } from '@/services/forumApi';
+import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto, deletePost, updatePost, UpdatePostRequest, voteOnPoll } from '@/services/forumApi';
 import { fetchMyListings, ListingDto, deleteListing } from '@/services/listingApi';
 import { fetchMyActivities, AppActivityDto, deleteActivity } from '@/services/api';
 import { fetchNotifications, markNotificationRead, NotificationDto, NotificationType } from '@/services/notificationApi';
@@ -281,6 +281,78 @@ export default function ProfileScreen() {
         );
     };
 
+    const handlePollVote = async (postId: string, optionId: string) => {
+        try {
+            const updated = await voteOnPoll(postId, optionId);
+            if (updated) {
+                setPosts(prev => prev.map(p => p.id === postId ? updated : p));
+                setLikedPosts(prev => prev.map(p => p.id === postId ? updated : p));
+            }
+        } catch {}
+    };
+
+    const renderPollAndImage = (post: PostDto) => {
+        const isPoll = (post.postType as any) === 'POLL' || String(post.postType)?.toUpperCase() === 'POLL';
+        const pollOpts = post.pollOptions || (post as any).options || (post as any).poll_options;
+
+        return (
+            <>
+                {post.imageUrl ? (
+                    <Image 
+                        source={{ uri: resolveImageUrl(post.imageUrl) }} 
+                        style={{ width: '100%', height: 180, borderRadius: 12, marginTop: 8, marginBottom: 8 }}
+                        resizeMode="cover" 
+                    />
+                ) : null}
+                {isPoll && pollOpts && pollOpts.length > 0 ? (
+                    <View style={{ marginTop: 8, marginBottom: 8 }}>
+                        {(() => {
+                            const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
+                            return pollOpts.map((option: any, optIdx: number) => {
+                                const isOptionVoted = option.isVoted || option.voted;
+                                const optText = option.text || option.optionText || option.title || '';
+                                const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
+                                return (
+                                    <TouchableOpacity
+                                        key={option.id || `opt-${optIdx}`}
+                                        style={[
+                                            {
+                                                padding: 12,
+                                                borderRadius: 10,
+                                                marginVertical: 4,
+                                                backgroundColor: isDark ? '#121212' : '#F8FAFC',
+                                                borderWidth: 1,
+                                                borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
+                                                flexDirection: 'row',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                overflow: 'hidden',
+                                                position: 'relative'
+                                            },
+                                            isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderColor: '#10B981' })
+                                        ]}
+                                        onPress={() => handlePollVote(post.id, option.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${optPercent}%`, backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.25)' : 'rgba(99, 102, 241, 0.15)' }} />
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 1 }}>
+                                            {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
+                                            <Text style={[{ fontSize: 14, fontWeight: '600', color: isDark ? '#F8FAFC' : '#1E293B' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{optText}</Text>
+                                        </View>
+                                        <Text style={[{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#64748B', zIndex: 1 }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
+                                    </TouchableOpacity>
+                                );
+                            });
+                        })()}
+                        <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600', marginTop: 4 }}>
+                            Toplam {pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0)} oy
+                        </Text>
+                    </View>
+                ) : null}
+            </>
+        );
+    };
+
     const renderPosts = () => {
         if (loadingPosts) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#6366F1" /></View>;
         if (posts.length === 0) return renderEmpty('bubble.left.and.bubble.right.fill', t('profile.emptyPostsTitle', { defaultValue: 'Paylaşım Yok' }), t('profile.emptyPostsDesc', { defaultValue: 'Toplulukla fikirlerini paylaşmaya başla!' }), '#6366F1');
@@ -308,7 +380,8 @@ export default function ProfileScreen() {
                             </View>
                         ) : (
                             <View>
-                                <Text style={[styles.postContent, { marginBottom: 12 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
+                                <Text style={[styles.postContent, { marginBottom: 4 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
+                                {renderPollAndImage(post)}
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                     <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
                                     <Text style={[styles.postTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '600' }]}>{timeAgo(post.createdAt)}</Text>
@@ -550,7 +623,8 @@ export default function ProfileScreen() {
                         key={post.id} 
                         style={[styles.postCard, { backgroundColor: isDark ? '#000000' : '#fff', borderBottomColor: isDark ? '#1A1A1A' : '#F1F5F9' }]}
                     >
-                        <Text style={[styles.postContent, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
+                        <Text style={[styles.postContent, { marginBottom: 4 }, isDark && { color: '#E2E8F0' }]}>{post.content}</Text>
+                        {renderPollAndImage(post)}
                         <View style={styles.postFooter}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                 <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
