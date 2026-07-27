@@ -177,12 +177,24 @@ export default function ForumScreen() {
 
     const [votedPolls, setVotedPolls] = useState<Record<string, string>>({});
 
+    useEffect(() => {
+        AsyncStorage.getItem('user_voted_polls').then(val => {
+            if (val) {
+                try { setVotedPolls(JSON.parse(val)); } catch {}
+            }
+        });
+    }, []);
+
     const handlePollVote = async (postId: string, optionId: string) => {
         if (!isLoggedIn) {
             router.push('/login');
             return;
         }
-        setVotedPolls(prev => ({ ...prev, [postId]: optionId }));
+        setVotedPolls(prev => {
+            const next = { ...prev, [postId]: optionId };
+            AsyncStorage.setItem('user_voted_polls', JSON.stringify(next)).catch(() => {});
+            return next;
+        });
         try {
             const updatedPost = await forumApi.voteOnPoll(postId, optionId);
             if (updatedPost) {

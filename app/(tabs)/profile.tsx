@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { s, vs, ms } from '@/utils/scale';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
@@ -283,8 +284,20 @@ export default function ProfileScreen() {
 
     const [votedPolls, setVotedPolls] = useState<Record<string, string>>({});
 
+    useEffect(() => {
+        AsyncStorage.getItem('user_voted_polls').then(val => {
+            if (val) {
+                try { setVotedPolls(JSON.parse(val)); } catch {}
+            }
+        });
+    }, []);
+
     const handlePollVote = async (postId: string, optionId: string) => {
-        setVotedPolls(prev => ({ ...prev, [postId]: optionId }));
+        setVotedPolls(prev => {
+            const next = { ...prev, [postId]: optionId };
+            AsyncStorage.setItem('user_voted_polls', JSON.stringify(next)).catch(() => {});
+            return next;
+        });
         try {
             const updated = await voteOnPoll(postId, optionId);
             if (updated) {
@@ -312,9 +325,11 @@ export default function ProfileScreen() {
                         {(() => {
                             const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
                             return pollOpts.map((option: any, optIdx: number) => {
-                                const isOptionVoted = option.isVoted || option.voted || option.is_voted || 
+                                const isOptionVoted = Boolean(
+                                    option.isVoted || option.voted || option.is_voted || option.selected ||
                                     (post as any).userVotedOptionId === option.id || (post as any).votedOptionId === option.id || 
-                                    (post as any).voted_option_id === option.id || votedPolls[post.id] === option.id;
+                                    (post as any).voted_option_id === option.id || votedPolls[post.id] === option.id
+                                );
                                 const optText = option.text || option.optionText || option.title || '';
                                 const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
                                 return (
@@ -326,7 +341,7 @@ export default function ProfileScreen() {
                                                 borderRadius: 10,
                                                 marginVertical: 4,
                                                 backgroundColor: isDark ? '#121212' : '#F8FAFC',
-                                                borderWidth: 1,
+                                                borderWidth: 1.5,
                                                 borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
                                                 flexDirection: 'row',
                                                 justifyContent: 'space-between',
@@ -334,17 +349,17 @@ export default function ProfileScreen() {
                                                 overflow: 'hidden',
                                                 position: 'relative'
                                             },
-                                            isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderColor: '#10B981' })
+                                            isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderColor: '#10B981' } : { backgroundColor: '#D1FAE5', borderColor: '#10B981' })
                                         ]}
                                         onPress={() => handlePollVote(post.id, option.id)}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={[{ position: 'absolute', top: 0, bottom: 0, left: 0 }, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.35)' : 'rgba(99, 102, 241, 0.15)' }]} />
+                                        <View style={[{ position: 'absolute', top: 0, bottom: 0, left: 0 }, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.45)' : 'rgba(99, 102, 241, 0.15)' }]} />
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 1 }}>
                                             {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
-                                            <Text style={[{ fontSize: 14, fontWeight: '600', color: isDark ? '#F8FAFC' : '#1E293B' }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{optText}</Text>
+                                            <Text style={[{ fontSize: 14, fontWeight: '600', color: isDark ? '#F8FAFC' : '#1E293B' }, isOptionVoted && { color: isDark ? '#34D399' : '#047857', fontWeight: '800' }]}>{optText}</Text>
                                         </View>
-                                        <Text style={[{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#64748B', zIndex: 1 }, isOptionVoted && { color: isDark ? '#34D399' : '#059669', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
+                                        <Text style={[{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#64748B', zIndex: 1 }, isOptionVoted && { color: isDark ? '#34D399' : '#047857', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
                                     </TouchableOpacity>
                                 );
                             });
