@@ -163,6 +163,14 @@ export default function IlanDetailScreen() {
               ))}
             </ScrollView>
             
+            {listing.imageUrls.length > 0 && (
+              <View style={{ position: 'absolute', top: 16, right: 16, backgroundColor: 'rgba(0, 0, 0, 0.65)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, zIndex: 10 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                  {activeSlide + 1}/{listing.imageUrls.length} foto
+                </Text>
+              </View>
+            )}
+
             {listing.imageUrls.length > 1 && (
               <View style={styles.paginationContainer}>
                 {listing.imageUrls.map((_, idx) => (
