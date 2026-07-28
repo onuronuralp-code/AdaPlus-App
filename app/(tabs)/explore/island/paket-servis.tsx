@@ -569,9 +569,11 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    height: '100%',
     fontSize: 14,
     color: '#0F172A',
     marginLeft: 8,
+    paddingVertical: 0,
   },
   islandRow: {
     flexDirection: 'row',
