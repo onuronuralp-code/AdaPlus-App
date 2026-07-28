@@ -42,6 +42,46 @@ interface DeliveryProvider {
 const PROVIDERS: DeliveryProvider[] = [
   {
     id: '1',
+    name: 'Kınalıada Su & İpragaz Servisi',
+    category: 'waterGas',
+    categoryLabel: 'Su & Tüp',
+    island: 'Kınalıada',
+    phone: '+905331112244',
+    whatsapp: '+905331112244',
+    description: 'Erikli, Pınar su ve İpragaz/Aygaz tüp kapıya teslimat servisi.',
+    workingHours: '08:30 - 20:00',
+    estimatedTime: '20 - 35 dk',
+    minOrder: '80 ₺',
+    badge: 'Aynı Gün Teslimat',
+  },
+  {
+    id: '2',
+    name: 'Kınalıada Ada Market & Bakkal',
+    category: 'market',
+    categoryLabel: 'Market & Bakkal',
+    island: 'Kınalıada',
+    phone: '+905332223355',
+    whatsapp: '+905332223355',
+    description: 'Günlük taze ekmek, süt, şarküteri ve market ihtiyaçları adrese teslimat.',
+    workingHours: '08:00 - 22:30',
+    estimatedTime: '15 - 30 dk',
+    minOrder: '60 ₺',
+    badge: 'Hızlı Servis',
+  },
+  {
+    id: '3',
+    name: 'Kınalıada PTT & Kargo Dağıtım Noktası',
+    category: 'cargo',
+    categoryLabel: 'Kargo & Paket',
+    island: 'Kınalıada',
+    phone: '+905334445566',
+    description: 'Kınalıada kargo ve paket teslim alım/dağıtım bilgilendirme hattı.',
+    workingHours: '09:00 - 17:00',
+    estimatedTime: 'Gün içi',
+    badge: 'Kargo Noktası',
+  },
+  {
+    id: '4',
     name: 'Ada Elektrikli Kurye & Paket',
     category: 'courier',
     categoryLabel: 'Ada İçi Kurye',
@@ -56,7 +96,21 @@ const PROVIDERS: DeliveryProvider[] = [
     isElectricVehicle: true,
   },
   {
-    id: '2',
+    id: '5',
+    name: 'Kınalıada Sahil Restoran & Paket',
+    category: 'food',
+    categoryLabel: 'Restoran & Kafe',
+    island: 'Kınalıada',
+    phone: '+905335556677',
+    whatsapp: '+905335556677',
+    description: 'Taze balık çeşitleri, meze, pide ve ızgara çeşitleri eve servis.',
+    workingHours: '11:00 - 23:30',
+    estimatedTime: '25 - 40 dk',
+    minOrder: '150 ₺',
+    badge: 'Sıcak Teslimat',
+  },
+  {
+    id: '6',
     name: 'Büyükada Su & İpragaz Servisi',
     category: 'waterGas',
     categoryLabel: 'Su & Tüp',
@@ -70,7 +124,7 @@ const PROVIDERS: DeliveryProvider[] = [
     badge: 'Aynı Gün Teslimat',
   },
   {
-    id: '3',
+    id: '7',
     name: 'Burgazada Ada Market & Şarküteri',
     category: 'market',
     categoryLabel: 'Market & Bakkal',
@@ -84,19 +138,7 @@ const PROVIDERS: DeliveryProvider[] = [
     badge: 'Hızlı Servis',
   },
   {
-    id: '4',
-    name: 'Kınalıada PTT & Kargo Dağıtım Noktası',
-    category: 'cargo',
-    categoryLabel: 'Kargo & Paket',
-    island: 'Kınalıada',
-    phone: '+905334445566',
-    description: 'Kınalıada kargo ve paket teslim alım/dağıtım bilgilendirme hattı.',
-    workingHours: '09:00 - 17:00',
-    estimatedTime: 'Gün içi',
-    badge: 'Kargo Noktası',
-  },
-  {
-    id: '5',
+    id: '8',
     name: 'Heybeliada Ada Fırın & Restoran Servis',
     category: 'food',
     categoryLabel: 'Restoran & Kafe',
@@ -109,21 +151,6 @@ const PROVIDERS: DeliveryProvider[] = [
     minOrder: '150 ₺',
     badge: 'Sıcak Teslimat',
   },
-  {
-    id: '6',
-    name: 'Büyükada Güven Kargo & Taşımacılık',
-    category: 'cargo',
-    categoryLabel: 'Kargo & Paket',
-    island: 'Büyükada',
-    phone: '+905312223344',
-    whatsapp: '+905312223344',
-    description: 'Anakara-Adalar arası vapur motor kargo karşılama ve adada adrese teslimat.',
-    workingHours: '08:30 - 18:30',
-    estimatedTime: 'Aynı Gün',
-    minOrder: '100 ₺',
-    badge: 'Vapur Teslimatı',
-    isElectricVehicle: true,
-  },
 ];
 
 export default function PaketServisScreen() {
@@ -133,10 +160,13 @@ export default function PaketServisScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { isLoggedIn } = useAuth();
+  const { islandId } = useLocalSearchParams<{ islandId?: string }>();
   const isEn = i18n.language.startsWith('en');
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedIsland, setSelectedIsland] = useState<string>('all');
+  const [selectedIsland, setSelectedIsland] = useState<string>(
+    islandId && islandId !== 'all' ? islandId : 'Kınalıada'
+  );
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Demand Survey Modal State
@@ -157,11 +187,10 @@ export default function PaketServisScreen() {
   ];
 
   const islandOptions = [
-    { key: 'all', label: isEn ? 'All Islands' : 'Tüm Adalar' },
-    { key: 'Büyükada', label: 'Büyükada' },
-    { key: 'Heybeliada', label: 'Heybeliada' },
-    { key: 'Burgazada', label: 'Burgazada' },
     { key: 'Kınalıada', label: 'Kınalıada' },
+    { key: 'Burgazada', label: 'Burgazada' },
+    { key: 'Heybeliada', label: 'Heybeliada' },
+    { key: 'Büyükada', label: 'Büyükada' },
   ];
 
   const filteredProviders = PROVIDERS.filter((provider) => {
