@@ -280,7 +280,7 @@ export default function VenueMenuScreen() {
       <Modal
         visible={!!selectedDetailItem}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setSelectedDetailItem(null)}
       >
         <View style={styles.modalOverlay}>
