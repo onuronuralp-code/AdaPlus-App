@@ -66,6 +66,8 @@ const MAPPING = {
   'heart.fill': 'favorite',
   'heart': 'favorite-border',
   'person.fill': 'person',
+  'star.fill': 'star',
+  'star': 'star-border',
   'person.badge.plus': 'person-add',
   'envelope.fill': 'mail',
   'ellipsis': 'more-horiz',

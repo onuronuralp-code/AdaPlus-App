@@ -264,16 +264,12 @@ export default function ProfileScreen() {
 
     const renderPostActions = (post: any, isReply: boolean) => (progress: any, dragX: any, swipeable?: any) => {
         const trans = dragX.interpolate({
-            inputRange: [-160, 0],
-            outputRange: [0, 160],
+            inputRange: [-80, 0],
+            outputRange: [0, 80],
             extrapolate: 'clamp',
         });
         return (
-            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 160, transform: [{ translateX: trans }] }}>
-                <GHTouchableOpacity onPress={() => { swipeable?.close(); setEditingPostId(post.id); setEditingContent(post.content); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                    <IconSymbol name="pencil" size={24} color="#FFF" />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' })}</Text>
-                </GHTouchableOpacity>
+            <Animated.View style={{ flexDirection: 'row', alignItems: 'stretch', width: 80, transform: [{ translateX: trans }] }}>
                 <GHTouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(post.id, isReply); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                     <IconSymbol name="trash.fill" size={24} color="#FFF" />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
@@ -777,10 +773,11 @@ export default function ProfileScreen() {
                                 <Text style={{ fontSize: 13, color: isDark ? '#CBD5E1' : '#64748B', marginTop: 1, marginBottom: 6 }}>{user.email}</Text>
                             )}
                             <View style={[styles.roleBadge, 
-                                user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: isDark ? '#451A03' : '#FEF9C3', borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 3, paddingHorizontal: 12, borderRadius: 8 } : 
+                                user?.userType === 'ISLAND_RESIDENT' ? { backgroundColor: isDark ? '#451A03' : '#FEF9C3', borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 3, paddingHorizontal: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4 } : 
                                 user?.userType === 'ADMIN' ? { backgroundColor: isDark ? '#1E3A8A' : '#BFDBFE' } : 
                                 { backgroundColor: isDark ? '#1C1C1E' : '#E2E8F0' }
                             ]}>
+                                {user?.userType === 'ISLAND_RESIDENT' && <IconSymbol name="star.fill" size={12} color="#F59E0B" />}
                                 <Text style={[styles.roleText, 
                                     user?.userType === 'ISLAND_RESIDENT' ? { color: '#F59E0B', fontWeight: '800', letterSpacing: 0.5 } : 
                                     user?.userType === 'ADMIN' ? { color: '#93C5FD' } : 

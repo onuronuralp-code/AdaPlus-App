@@ -622,7 +622,8 @@ export default function MainMenuScreen() {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 36) + (isLargeScreen ? 44 : 28) }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 36) + (isLargeScreen ? 44 : 28) }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false} keyboardShouldPersistTaps="handled">
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
@@ -645,7 +646,7 @@ export default function MainMenuScreen() {
             <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => router.push('/(tabs)/profile')}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start' }}
             >
               <IconSymbol name="person.2.fill" size={13} color={isDark ? '#818CF8' : '#6366F1'} />
               <Text style={{ fontSize: 12, color: isDark ? '#93C5FD' : '#4338CA', marginLeft: 6, fontWeight: '700' }}>
@@ -752,7 +753,7 @@ export default function MainMenuScreen() {
           <WalkthroughableView collapsable={false} style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#ffffff', borderRadius: 12, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 2, borderColor: isDark ? '#047857' : '#059669' }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#ffffff', borderRadius: 8, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 2, borderColor: isDark ? '#047857' : '#059669' }}>
               <IconSymbol name="envelope.fill" size={20} color={isDark ? '#34D399' : '#059669'} />
               <TextInput
                 ref={inviteInputRef}
@@ -768,7 +769,7 @@ export default function MainMenuScreen() {
                     );
                   }
                 }}
-                placeholder={isInviteFocused ? '' : ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' }))}
+                placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite Friends' : 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
                 placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
                 value={inviteEmail}
                 onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
@@ -787,7 +788,7 @@ export default function MainMenuScreen() {
             )}
           </View>
           <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 8, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
              onPress={() => {
                if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
                  setShowIslanderStepsModal(true);
@@ -1101,6 +1102,7 @@ export default function MainMenuScreen() {
       </View>
 
 </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
 
@@ -1149,10 +1151,14 @@ export default function MainMenuScreen() {
                 <View style={{ backgroundColor: isDark ? '#2A1215' : '#FEF2F2', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: isDark ? '#7F1D1D' : '#FECACA' }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                     <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" style={{ marginRight: 6 }} />
-                    <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FCA5A5' : '#991B1B' }}>Topluluk Duyurusu</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FCA5A5' : '#991B1B' }}>
+                      {i18n.language.startsWith('en') ? 'Community Announcement' : 'Topluluk Duyurusu'}
+                    </Text>
                   </View>
                   <Text style={{ fontSize: 14, color: isDark ? '#FEE2E2' : '#7F1D1D', lineHeight: 22 }}>
-                    Topluluğa lütfen sadece Adada yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.
+                    {i18n.language.startsWith('en')
+                      ? 'Please only invite people you know live on the Island to the community. For the safety and integrity of the AdaPlus community, we kindly ask you to adhere to this rule.'
+                      : 'Topluluğa lütfen sadece Adada yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.'}
                   </Text>
                 </View>
 
@@ -1173,7 +1179,7 @@ export default function MainMenuScreen() {
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                       <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FFFFFF' : '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
-                      <Text style={{ fontSize: 14, color: '#94A3B8' }}>{new Date(notif.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</Text>
+                      <Text style={{ fontSize: 14, color: '#94A3B8' }}>{new Date(notif.createdAt).toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'short' })}</Text>
                     </View>
                     <Text style={{ fontSize: 14, color: isDark ? '#CBD5E1' : '#475569', lineHeight: 24 }}>{notif.body}</Text>
                   </Pressable>
@@ -1199,7 +1205,9 @@ export default function MainMenuScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <IconSymbol name="pin.fill" size={16} color="#10B981" />
-                <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#34D399' : '#064E3B' }}>Adalı Olma Adımları</Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#34D399' : '#064E3B' }}>
+                  {i18n.language.startsWith('en') ? 'Steps to Become an Islander' : 'Adalı Olma Adımları'}
+                </Text>
               </View>
               <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} onPress={() => setShowIslanderStepsModal(false)} style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                 <IconSymbol name="xmark" size={14} color={isDark ? '#94A3B8' : '#64748B'} />
@@ -1208,10 +1216,21 @@ export default function MainMenuScreen() {
             
             <View style={{ backgroundColor: isDark ? '#064E3B' : '#F0FDF4', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: isDark ? '#047857' : '#BBF7D0' }}>
               <Text style={{ fontSize: 14, color: isDark ? '#A7F3D0' : '#065F46', lineHeight: 22 }}>
-                AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
-                {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
-                {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
-                {"\n\n"}"Adalılar" toplulukta fikirlerini özgürce paylaşabilir, diğer adalılarla iletişime geçebilir.
+                {i18n.language.startsWith('en') ? (
+                  <>
+                    Follow these steps to enjoy all the privileges of AdaPlus and achieve "Verified Islander" status:
+                    {"\n\n"}• Complete all the information in your profile.
+                    {"\n"}• Reach out via Contact or have an Islander invite you.
+                    {"\n\n"}"Islanders" can freely share their thoughts in the community and connect with other islanders.
+                  </>
+                ) : (
+                  <>
+                    AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
+                    {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
+                    {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
+                    {"\n\n"}"Adalılar" toplulukta fikirlerini özgürce paylaşabilir, diğer adalılarla iletişime geçebilir.
+                  </>
+                )}
               </Text>
             </View>
             
@@ -1219,7 +1238,9 @@ export default function MainMenuScreen() {
               onPress={() => { setShowIslanderStepsModal(false); navigateWithDebounce('/(tabs)/contact'); }} 
               style={{ backgroundColor: '#10B981', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
             >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Talep Gönder</Text>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+                {i18n.language.startsWith('en') ? 'Send Request' : 'Talep Gönder'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

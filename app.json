@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/adaplus-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": false,
@@ -43,9 +43,9 @@
           "image": "./assets/images/adaplus-logo.png",
           "imageWidth": 240,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#000000",
           "dark": {
-            "backgroundColor": "#FFFFFF"
+            "backgroundColor": "#000000"
           }
         }
       ],

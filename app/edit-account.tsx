@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -71,12 +71,26 @@ export default function EditAccountScreen() {
         }
     }, [user]);
 
-    const handleSave = async () => {
-        if (!editName.trim()) {
-            Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Full Name is required.' : 'Ad Soyad zorunludur.');
-            return;
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace('/settings');
         }
+    };
 
+    useEffect(() => {
+        const backAction = () => {
+            handleBack();
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+        return () => backHandler.remove();
+    }, [router]);
+
+    const handleSave = async () => {
+        if (isSaving) return;
         setIsSaving(true);
         try {
             if (editPassword.trim()) {
@@ -97,7 +111,7 @@ export default function EditAccountScreen() {
             Alert.alert(
                 isEn ? 'Success' : 'Başarılı',
                 isEn ? 'Account details updated successfully.' : 'Hesap bilgileriniz başarıyla güncellendi.',
-                [{ text: 'OK', onPress: () => router.back() }]
+                [{ text: 'OK', onPress: handleBack }]
             );
         } catch {
             Alert.alert(
@@ -111,11 +125,11 @@ export default function EditAccountScreen() {
 
     return (
         <SafeAreaView style={[styles.container, isDark && { backgroundColor: '#000000' }]} edges={['top', 'bottom']}>
-            <Stack.Screen options={{ headerShown: false }} />
+            <Stack.Screen options={{ headerShown: false, animation: 'none' }} />
             
             {/* Header */}
             <View style={[styles.header, isDark && { borderBottomColor: '#1C1C1E' }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <TouchableOpacity onPress={handleBack} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>

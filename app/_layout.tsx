@@ -120,31 +120,38 @@ const CustomTooltip = () => {
 
 function RootLayoutNav() {
   const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const bgColor = isDark ? "#000000" : "#FFFFFF";
+
   return (
-    <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-      <CopilotProvider 
-        backdropColor="rgba(0, 0, 0, 0.65)"
-        tooltipStyle={{ backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, paddingHorizontal: 0, paddingVertical: 0, margin: 0, left: 0, right: 0, borderRadius: 0, width: Dimensions.get('window').width, maxWidth: Dimensions.get('window').width }}
-        stepNumberComponent={() => null}
-        tooltipComponent={CustomTooltip}
-        animated={true}
-        labels={{ skip: 'Atla', previous: 'Önceki', next: 'İleri', finish: 'Bitir' }}
-        svgMaskPath={handDrawnSvgMaskPath} 
-        stopOnOutsideClick={false} 
-        androidStatusBarVisible 
-        arrowSize={0}
-      >
-        <Stack screenOptions={{ 
-          animation: "slide_from_right",
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true
-        }}>
+    <View style={{ flex: 1, backgroundColor: bgColor }}>
+      <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+        <CopilotProvider 
+          backdropColor="rgba(0, 0, 0, 0.65)"
+          tooltipStyle={{ backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, paddingHorizontal: 0, paddingVertical: 0, margin: 0, left: 0, right: 0, borderRadius: 0, width: Dimensions.get('window').width, maxWidth: Dimensions.get('window').width }}
+          stepNumberComponent={() => null}
+          tooltipComponent={CustomTooltip}
+          animated={true}
+          labels={{ skip: 'Atla', previous: 'Önceki', next: 'İleri', finish: 'Bitir' }}
+          svgMaskPath={handDrawnSvgMaskPath} 
+          stopOnOutsideClick={false} 
+          androidStatusBarVisible 
+          arrowSize={0}
+        >
+          <Stack screenOptions={{ 
+            animation: "slide_from_right",
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
+            contentStyle: { backgroundColor: bgColor }
+          }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="signup" options={{ headerShown: false }} />
           <Stack.Screen name="reset-password" options={{ headerShown: false }} />
           <Stack.Screen name="verify" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false, animation: "none" }} />
+          <Stack.Screen name="edit-account" options={{ headerShown: false, animation: "none" }} />
           <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
@@ -166,7 +173,8 @@ function RootLayoutNav() {
         <GlobalInvisiblePopup />
       </CopilotProvider>
     </ThemeProvider>
-  );
+  </View>
+);
 }
 
 export default function RootLayout() {
@@ -217,7 +225,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#000000" }}>
       <Provider store={store}>
         <NetworkProvider>
           <AuthProvider>

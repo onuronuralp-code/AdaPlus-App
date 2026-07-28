@@ -18,6 +18,9 @@ export enum UserType {
   ADMIN = "ADMIN",
   TOURIST = "TOURIST",
   ISLAND_RESIDENT = "ISLAND_RESIDENT",
+  BELEDIYE = "BELEDIYE",
+  ADALAR_BELEDIYESI = "ADALAR_BELEDIYESI",
+  MUHTAR = "MUHTAR",
 }
 
 export enum Island {

@@ -653,8 +653,16 @@ export default function IlanlarScreen() {
               </Text>
             </View>
 
-            {selectedImages.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            {selectedImages.length === 0 ? (
+              <TouchableOpacity 
+                style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]} 
+                onPress={pickImage}
+              >
+                <IconSymbol name="camera.fill" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+                <Text style={[styles.addPhotoText, isDark && { color: '#94A3B8' }]}>{t('listings.addPhoto')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 40, marginTop: 4 }}>
                 {selectedImages.map((uri, idx) => (
                   <View key={idx} style={[styles.imagePreviewContainer, { marginRight: 12, marginBottom: 0 }]}>
                     <Image source={{ uri }} style={styles.imagePreview} />
@@ -666,13 +674,16 @@ export default function IlanlarScreen() {
                     </TouchableOpacity>
                   </View>
                 ))}
+                {selectedImages.length < 5 && (
+                  <TouchableOpacity 
+                    style={[styles.addPhotoBtnSquare, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]} 
+                    onPress={pickImage}
+                  >
+                    <IconSymbol name="camera.fill" size={22} color={isDark ? '#94A3B8' : '#64748B'} />
+                    <Text style={[styles.addPhotoSquareText, isDark && { color: '#94A3B8' }]}>{t('listings.addPhoto')}</Text>
+                  </TouchableOpacity>
+                )}
               </ScrollView>
-            )}
-            {selectedImages.length < 5 && (
-              <TouchableOpacity style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]} onPress={pickImage}>
-                <IconSymbol name="camera.fill" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
-                <Text style={[styles.addPhotoText, isDark && { color: '#94A3B8' }]}>{t('listings.addPhoto')}</Text>
-              </TouchableOpacity>
             )}
           </KeyboardAwareScrollView>
         </Animated.View>
@@ -1157,6 +1168,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#64748B',
+  },
+  addPhotoBtnSquare: {
+    width: 100,
+    height: 100,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 4,
+  },
+  addPhotoSquareText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textAlign: 'center',
   },
   imagePreviewContainer: {
     width: 100,

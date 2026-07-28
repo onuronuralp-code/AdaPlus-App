@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -223,27 +223,36 @@ export function FerrySchedule() {
   const mainScrollRef = useRef<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Load initial route (from params or favorites)
-  useEffect(() => {
-    const loadInitial = async () => {
-      if (params.from && params.to) {
-        setDeparture(params.from as string);
-        setDestination(params.to as string);
-      } else {
-        try {
-          const fav = await AsyncStorage.getItem('favorite_route');
-          if (fav) {
-            const parsed = JSON.parse(fav);
-            setDeparture(parsed.departure);
-            setDestination(parsed.destination);
+  // Load initial route (from params, favorites, or default island)
+  useFocusEffect(
+    useCallback(() => {
+      const loadInitial = async () => {
+        if (params.from && params.to) {
+          setDeparture(params.from as string);
+          setDestination(params.to as string);
+        } else {
+          try {
+            const fav = await AsyncStorage.getItem('favorite_route');
+            if (fav) {
+              const parsed = JSON.parse(fav);
+              setDeparture(parsed.departure);
+              setDestination(parsed.destination);
+            } else {
+              const defIsland = await AsyncStorage.getItem('defaultIsland');
+              if (defIsland && ISLANDS.includes(defIsland)) {
+                setDestination(defIsland);
+              } else {
+                setDestination('Büyükada');
+              }
+            }
+          } catch (e) {
+            console.error("Failed to load initial island route", e);
           }
-        } catch (e) {
-          console.error("Failed to load favorite route", e);
         }
-      }
-    };
-    loadInitial();
-  }, [params.from, params.to]);
+      };
+      loadInitial();
+    }, [params.from, params.to])
+  );
 
   // Handle auto-selecting the specific ferry trip passed in params
   useEffect(() => {

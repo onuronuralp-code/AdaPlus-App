@@ -109,7 +109,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contact"
         options={{
-          title: t('common.tabContact', { defaultValue: 'İletişim' }),
+          title: t('common.tabContact', { defaultValue: i18n.language.startsWith('en') ? 'Contact' : 'İletişim' }),
           tabBarIcon: ({ color, focused }) => (
             <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="envelope.fill" color={color} />
           ),

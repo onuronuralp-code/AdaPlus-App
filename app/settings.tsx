@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform, ActivityIndicator, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { authApi, UserProfile } from '@/services/authApi';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/services/notificationService';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 
 const ISLAND_STREETS: Record<string, string[]> = {
     BUYUKADA: [
@@ -49,6 +50,30 @@ export default function SettingsScreen() {
         await AsyncStorage.setItem('userLanguage', lang);
         setCurrentLang(lang);
     };
+
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace('/(tabs)/profile');
+        }
+    };
+
+    useEffect(() => {
+        const backAction = () => {
+            if (showPasswordModal) {
+                setShowPasswordModal(false);
+                setVerifyPassword('');
+                setPasswordError('');
+                return true;
+            }
+            handleBack();
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+        return () => backHandler.remove();
+    }, [showPasswordModal, router]);
 
     // Edit Account Verification States
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -180,9 +205,9 @@ export default function SettingsScreen() {
 
     return (
         <SafeAreaView style={[styles.container, isDark && { backgroundColor: '#000000' }]} edges={['top', 'bottom']}>
-            <Stack.Screen options={{ headerShown: false }} />
+            <Stack.Screen options={{ headerShown: false, animation: 'none' }} />
             <View style={[styles.header, isDark && { borderBottomColor: '#1C1C1E' }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <TouchableOpacity onPress={handleBack} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.settings', { defaultValue: currentLang.startsWith('en') ? 'Settings' : 'Ayarlar' })}</Text>
