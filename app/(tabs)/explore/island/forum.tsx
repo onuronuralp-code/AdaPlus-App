@@ -1399,12 +1399,19 @@ export default function ForumScreen() {
                                                     </TouchableOpacity>
                                                     );
                                                 })}
-                                                {countdown && (
-                                                    <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge]}>
-                                                        <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
-                                                        <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
-                                                    </View>
-                                                )}
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                                                    <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
+                                                        {i18n.language.startsWith('en') 
+                                                            ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
+                                                            : `Toplam ${totalVotes} oy`}
+                                                    </Text>
+                                                    {countdown && (
+                                                        <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge, { marginTop: 0 }]}>
+                                                            <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                            <Text style={[styles.pollCountdownText, ended && styles.pollEndedText]}>{countdown}</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
                                             </View>
                                         );
                                     })()}

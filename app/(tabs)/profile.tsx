@@ -407,7 +407,9 @@ export default function ProfileScreen() {
                                         </View>
                                         {isPoll && pollOpts && pollOpts.length > 0 ? (
                                             <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600' }}>
-                                                Toplam {totalVotes} oy
+                                                {i18n.language.startsWith('en') 
+                                                    ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
+                                                    : `Toplam ${totalVotes} oy`}
                                             </Text>
                                         ) : null}
                                     </View>
@@ -664,7 +666,9 @@ export default function ProfileScreen() {
                                 <View style={styles.statsRow}>
                                     {isPoll && pollOpts && pollOpts.length > 0 ? (
                                         <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600', marginRight: 12 }}>
-                                            Toplam {totalVotes} oy
+                                            {i18n.language.startsWith('en') 
+                                                ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
+                                                : `Toplam ${totalVotes} oy`}
                                         </Text>
                                     ) : null}
                                     <View style={styles.statItem}>
