@@ -23,12 +23,20 @@ import LoginPromptModal from '@/components/LoginPromptModal';
 import { submitDeliveryVote, DeliveryDemandOption } from '@/services/demandApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+interface MenuItem {
+  name: string;
+  price: string;
+  category?: string;
+  description?: string;
+  badge?: string;
+}
+
 interface DeliveryProvider {
   id: string;
   name: string;
   category: 'market' | 'waterGas' | 'cargo' | 'food' | 'courier';
   categoryLabel: string;
-  island: string; // 'Büyükada' | 'Heybeliada' | 'Burgazada' | 'Kınalıada' | 'Tüm Adalar'
+  island: string;
   phone: string;
   whatsapp?: string;
   description: string;
@@ -37,6 +45,7 @@ interface DeliveryProvider {
   minOrder?: string;
   badge?: string;
   isElectricVehicle?: boolean;
+  menu?: MenuItem[];
 }
 
 const PROVIDERS: DeliveryProvider[] = [
@@ -108,6 +117,14 @@ const PROVIDERS: DeliveryProvider[] = [
     estimatedTime: '15 - 25 dk',
     minOrder: '70 ₺',
     badge: 'Taze & Sıcak',
+    menu: [
+      { name: 'Kıymalı Su Böreği (Porsiyon)', price: '110 ₺', category: 'Börekler', badge: 'Çok Satan' },
+      { name: 'Peynirli Su Böreği (Porsiyon)', price: '95 ₺', category: 'Börekler' },
+      { name: 'Kütüt Böreği (Pudra Şekerli)', price: '90 ₺', category: 'Börekler' },
+      { name: 'Patatesli Kuru Börek', price: '85 ₺', category: 'Börekler' },
+      { name: 'İzmir Boyoz', price: '45 ₺', category: 'Hamur İşleri' },
+      { name: 'Sıcak Demleme Çay', price: '30 ₺', category: 'İçecekler' },
+    ]
   },
   {
     id: '6',
@@ -122,6 +139,15 @@ const PROVIDERS: DeliveryProvider[] = [
     estimatedTime: '20 - 35 dk',
     minOrder: '120 ₺',
     badge: 'Ada Favorisi',
+    menu: [
+      { name: 'Maestro Özel Burger', price: '280 ₺', category: 'Burgerler', description: '200g dana köfte, karamelize soğan, cheddar, özel sos, patates kızartması', badge: 'Popüler' },
+      { name: 'Pizza Margherita', price: '240 ₺', category: 'Pizzalar', description: 'Taze mozzarella, fesleğen, domates sosu' },
+      { name: 'Pizza Quattro Formaggi', price: '290 ₺', category: 'Pizzalar', description: 'Gorgonzola, mozzarella, parmesan, roquefort', badge: 'Şefin Seçimi' },
+      { name: 'Penne Arrabbiata', price: '210 ₺', category: 'Makarnalar', description: 'Acılı domates sosu, sarımsak, taze fesleğen, parmesan' },
+      { name: 'Sezar Salata', price: '195 ₺', category: 'Salatalar', description: 'Izgara tavuk göğsü, kruton, sezar sos, parmesan' },
+      { name: 'Taze Sıkma Portakal Suyu', price: '75 ₺', category: 'İçecekler' },
+      { name: 'San Sebastian Cheesecake', price: '140 ₺', category: 'Tatlılar', badge: 'Taze' },
+    ]
   },
   {
     id: '7',
@@ -136,6 +162,13 @@ const PROVIDERS: DeliveryProvider[] = [
     estimatedTime: '15 - 30 dk',
     minOrder: '85 ₺',
     badge: '3. Nesil Kahve',
+    menu: [
+      { name: 'Flat White (Specialty Coffee)', price: '95 ₺', category: 'Kahveler', badge: '3. Nesil' },
+      { name: 'Iced Caramel Latte', price: '110 ₺', category: 'Soğuk Kahveler', badge: 'Popüler' },
+      { name: 'Tereyağlı Kruvasan', price: '90 ₺', category: 'Fırın & Tatlı' },
+      { name: 'Çikolatalı Babka', price: '120 ₺', category: 'Fırın & Tatlı' },
+      { name: 'Serpme Ada Kahvaltı Tabağı', price: '320 ₺', category: 'Kahvaltı' },
+    ]
   },
   {
     id: '8',
@@ -150,6 +183,12 @@ const PROVIDERS: DeliveryProvider[] = [
     estimatedTime: '20 - 30 dk',
     minOrder: '90 ₺',
     badge: 'Hızlı Paket',
+    menu: [
+      { name: 'Ayvalık Tostu', price: '160 ₺', category: 'Tostlar', badge: 'Popüler' },
+      { name: 'Kulüp Sandviç', price: '185 ₺', category: 'Sandviçler' },
+      { name: 'Soğuk Americano', price: '90 ₺', category: 'İçecekler' },
+      { name: 'Çıtır Patates Tabağı', price: '120 ₺', category: 'Atıştırmalıklar' },
+    ]
   },
   {
     id: '9',
@@ -164,6 +203,12 @@ const PROVIDERS: DeliveryProvider[] = [
     estimatedTime: '15 - 25 dk',
     minOrder: '75 ₺',
     badge: 'Tatlı & Kahve',
+    menu: [
+      { name: 'Belçika Çikolatalı Waffle', price: '190 ₺', category: 'Waffle & Pankek', badge: 'Popüler' },
+      { name: 'Meyveli Pankek Kulesi', price: '175 ₺', category: 'Waffle & Pankek' },
+      { name: 'Ev Yapımı Limonata', price: '75 ₺', category: 'İçecekler', badge: 'Taze' },
+      { name: 'Havuçlu Tarçınlı Kek', price: '95 ₺', category: 'Tatlılar' },
+    ]
   },
   {
     id: '10',
@@ -232,6 +277,9 @@ export default function PaketServisScreen() {
   const [isSubmittingVote, setIsSubmittingVote] = useState<boolean>(false);
   const [voteSubmittedSuccess, setVoteSubmittedSuccess] = useState<boolean>(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState<boolean>(false);
+  
+  // Venue Menu Modal State
+  const [selectedMenuProvider, setSelectedMenuProvider] = useState<DeliveryProvider | null>(null);
 
   const categories = [
     { key: 'all', label: isEn ? 'All' : 'Tümü', icon: 'square.grid.2x2.fill' },
@@ -475,6 +523,13 @@ export default function PaketServisScreen() {
 
               {/* Action Buttons */}
               <View style={styles.actionRow}>
+                {provider.menu && provider.menu.length > 0 && (
+                  <TouchableOpacity style={styles.menuButton} onPress={() => setSelectedMenuProvider(provider)}>
+                    <IconSymbol name="fork.knife" size={15} color="#FFFFFF" />
+                    <Text style={styles.actionBtnText}>{isEn ? 'View Menu' : 'Menüyü Gör'}</Text>
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity style={styles.callButton} onPress={() => handleCall(provider.phone)}>
                   <IconSymbol name="phone.fill" size={15} color="#FFFFFF" />
                   <Text style={styles.actionBtnText}>{t('deliveryService.actions.call', { defaultValue: isEn ? 'Call' : 'Ara' })}</Text>
@@ -585,12 +640,172 @@ export default function PaketServisScreen() {
         </View>
       </Modal>
 
+      {/* Venue Menu Modal */}
+      <Modal visible={!!selectedMenuProvider} transparent animationType="slide" onRequestClose={() => setSelectedMenuProvider(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.menuModalContent, isDark && styles.modalContentDark]}>
+            {selectedMenuProvider && (
+              <>
+                <View style={styles.menuHeader}>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <View style={styles.categoryBadge}>
+                        <Text style={styles.categoryBadgeText}>{selectedMenuProvider.categoryLabel}</Text>
+                      </View>
+                      <View style={[styles.islandBadge, isDark && styles.islandBadgeDark]}>
+                        <Text style={[styles.islandBadgeText, isDark && styles.islandBadgeTextDark]}>{selectedMenuProvider.island}</Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.menuTitle, isDark && styles.textLight]}>{selectedMenuProvider.name}</Text>
+                    <Text style={[styles.menuSubtitle, isDark && styles.textMutedDark]}>
+                      🕒 {selectedMenuProvider.workingHours} • 🛵 {selectedMenuProvider.estimatedTime}
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={styles.modalCloseIconBtn} onPress={() => setSelectedMenuProvider(null)}>
+                    <IconSymbol name="xmark" size={18} color={isDark ? '#F8FAFC' : '#0F172A'} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Menu Items List */}
+                <ScrollView style={{ maxHeight: 380, marginVertical: 14 }} showsVerticalScrollIndicator={false}>
+                  {selectedMenuProvider.menu && selectedMenuProvider.menu.map((item, idx) => (
+                    <View key={idx} style={[styles.menuItemCard, isDark && styles.menuItemCardDark]}>
+                      <View style={{ flex: 1, paddingRight: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <Text style={[styles.menuItemName, isDark && styles.textLight]}>{item.name}</Text>
+                          {item.badge && (
+                            <View style={styles.itemBadge}>
+                              <Text style={styles.itemBadgeText}>{item.badge}</Text>
+                            </View>
+                          )}
+                        </View>
+                        {item.description && (
+                          <Text style={[styles.menuItemDesc, isDark && styles.textMutedDark]}>{item.description}</Text>
+                        )}
+                        {item.category && (
+                          <Text style={styles.menuItemCategory}>{item.category}</Text>
+                        )}
+                      </View>
+                      <Text style={styles.menuItemPrice}>{item.price}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+
+                {/* Action Row at Bottom */}
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                  <TouchableOpacity style={styles.callButton} onPress={() => handleCall(selectedMenuProvider.phone)}>
+                    <IconSymbol name="phone.fill" size={15} color="#FFFFFF" />
+                    <Text style={styles.actionBtnText}>{t('deliveryService.actions.call', { defaultValue: isEn ? 'Call' : 'Ara' })}</Text>
+                  </TouchableOpacity>
+
+                  {selectedMenuProvider.whatsapp && (
+                    <TouchableOpacity style={styles.whatsappButton} onPress={() => handleWhatsApp(selectedMenuProvider.whatsapp!)}>
+                      <IconSymbol name="message.fill" size={15} color="#FFFFFF" />
+                      <Text style={styles.actionBtnText}>WhatsApp</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       <LoginPromptModal visible={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} onLogin={() => { setShowLoginPrompt(false); router.push('/(auth)/login' as any); }} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  menuButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#8B5CF6',
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  menuModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: '85%',
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  menuTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  menuSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 3,
+  },
+  modalCloseIconBtn: {
+    padding: 6,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+  },
+  menuItemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  menuItemCardDark: {
+    backgroundColor: '#0F172A',
+    borderColor: '#334155',
+  },
+  menuItemName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  menuItemDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  menuItemCategory: {
+    fontSize: 11,
+    color: '#8B5CF6',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  menuItemPrice: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  itemBadge: {
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  itemBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#7C3AED',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
