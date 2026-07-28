@@ -11,6 +11,7 @@ import {
   Modal,
   Pressable,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -561,7 +562,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     borderRadius: 12,
     paddingHorizontal: 12,
-    height: 42,
+    height: 44,
     marginBottom: 12,
   },
   searchContainerDark: {
@@ -569,11 +570,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    height: '100%',
     fontSize: 14,
     color: '#0F172A',
     marginLeft: 8,
-    paddingVertical: 0,
+    paddingTop: Platform.OS === 'ios' ? 8 : 0,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 0,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 0,
+    textAlignVertical: 'center',
   },
   islandRow: {
     flexDirection: 'row',
