@@ -225,7 +225,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#000000" }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <Provider store={store}>
         <NetworkProvider>
           <AuthProvider>
