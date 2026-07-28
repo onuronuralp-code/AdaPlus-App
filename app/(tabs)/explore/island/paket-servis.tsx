@@ -264,7 +264,7 @@ export default function PaketServisScreen() {
         </View>
 
         {/* Island Filters */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.islandRow} contentContainerStyle={{ paddingHorizontal: 4, gap: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.islandRow} contentContainerStyle={{ paddingHorizontal: 0, gap: 10 }}>
           {islandOptions.map((isl) => (
             <TouchableOpacity
               key={isl.key}
@@ -306,7 +306,7 @@ export default function PaketServisScreen() {
               >
                 <IconSymbol
                   name={cat.icon as any}
-                  size={18}
+                  size={17}
                   color={isActive ? '#FFFFFF' : isDark ? '#A7F3D0' : '#059669'}
                 />
                 <Text
@@ -611,9 +611,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   islandChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -651,9 +654,10 @@ const styles = StyleSheet.create({
   categoryTab: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 11,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: '#ECFDF5',
     borderWidth: 1,
@@ -668,7 +672,7 @@ const styles = StyleSheet.create({
     borderColor: '#059669',
   },
   categoryTabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#065F46',
   },
