@@ -425,5 +425,36 @@
             "topluluk": "Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.",
             "tarifeler": "Tüm vapur ve motor sefer saatlerini buradan öğrenebilirsin."
         }
+    },
+    "deliveryService": {
+        "title": "Paket Servis & Kurye",
+        "subtitle": "Adalara özel paket teslimat, market, su & tüp ve kargo hizmetleri",
+        "searchPlaceholder": "Servis veya firma ara...",
+        "allIslands": "Tüm Adalar",
+        "categories": {
+            "all": "Tümü",
+            "market": "Market & Bakkal",
+            "waterGas": "Su & Tüp",
+            "cargo": "Kargo & Paket",
+            "food": "Restoran & Kafe",
+            "courier": "Ada İçi Kurye"
+        },
+        "badges": {
+            "electric": "Elektrikli Araç Kuryesi",
+            "sameDay": "Aynı Gün Teslimat",
+            "fastDelivery": "Hızlı Servis",
+            "cargoPoint": "Ada Kargo Noktası"
+        },
+        "actions": {
+            "call": "Ara",
+            "whatsapp": "WhatsApp",
+            "voteDemand": "Talep Gönder"
+        },
+        "demandBannerTitle": "Adada Paket Servis İhtiyacınız mı Var?",
+        "demandBannerDesc": "Hangi paket servislerin adaya gelmesini istersiniz? Anketimize katılarak iletin!",
+        "voteButton": "Ankete Katıl",
+        "workingHours": "Çalışma Saatleri",
+        "minOrder": "Min. Sipariş",
+        "deliveryTime": "Ort. Teslimat"
     }
 }

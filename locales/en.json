@@ -427,5 +427,36 @@
             "topluluk": "Scroll here to chat with islanders and join discussions.",
             "tarifeler": "You can check all ferry and boat schedules here."
         }
+    },
+    "deliveryService": {
+        "title": "Delivery & Courier",
+        "subtitle": "Delivery, grocery, water & gas, and cargo services for the islands",
+        "searchPlaceholder": "Search service or provider...",
+        "allIslands": "All Islands",
+        "categories": {
+            "all": "All",
+            "market": "Supermarket & Grocery",
+            "waterGas": "Water & Gas",
+            "cargo": "Cargo & Parcel",
+            "food": "Restaurant & Dining",
+            "courier": "Island Courier"
+        },
+        "badges": {
+            "electric": "Electric Vehicle Courier",
+            "sameDay": "Same Day Delivery",
+            "fastDelivery": "Fast Service",
+            "cargoPoint": "Island Cargo Hub"
+        },
+        "actions": {
+            "call": "Call",
+            "whatsapp": "WhatsApp",
+            "voteDemand": "Submit Demand"
+        },
+        "demandBannerTitle": "Need a specific delivery service?",
+        "demandBannerDesc": "Which delivery service would you use most on the island? Let us know!",
+        "voteButton": "Vote Now",
+        "workingHours": "Working Hours",
+        "minOrder": "Min. Order",
+        "deliveryTime": "Est. Delivery"
     }
 }

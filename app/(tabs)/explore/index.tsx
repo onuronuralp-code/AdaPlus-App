@@ -1063,10 +1063,7 @@ export default function MainMenuScreen() {
                   if (!isLoggedIn) {
                     setShowLoginPrompt(true);
                   } else {
-                    setSurveySubmitted(hasCompletedSurvey);
-                    setSurveyOptions([]);
-                    setSurveyOtherText('');
-                    setShowSurvey(true);
+                    router.push({ pathname: '/(tabs)/explore/island/paket-servis', params: { islandId: selectedIsland } });
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
@@ -1265,7 +1262,7 @@ export default function MainMenuScreen() {
                   {i18n.language.startsWith('en') ? 'Thank You!' : 'Teşekkürler!'}
                 </Text>
                 <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 }, isDark && { color: '#CBD5E1' }]}>
-                  {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring electric vehicle services to the islands.' : 'Görüşleriniz alındı. Adalara elektrikli taşıt hizmetini getirmek için var gücümüzle çalışıyoruz.'}
+                  {i18n.language.startsWith('en') ? 'Your feedback has been received. We are working hard to bring delivery services to the islands.' : 'Görüşleriniz alındı. Adalara paket servis hizmetini getirmek için var gücümüzle çalışıyoruz.'}
                 </Text>
                 <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                   style={{ width: '100%', backgroundColor: '#10B981', borderRadius: 12, paddingVertical: 16, alignItems: 'center' }} 
@@ -1355,6 +1352,7 @@ export default function MainMenuScreen() {
       <LoginPromptModal 
         visible={showLoginPrompt} 
         onClose={() => setShowLoginPrompt(false)} 
+        onLogin={() => { setShowLoginPrompt(false); router.push('/(auth)/login' as any); }}
       />
 
       <Modal
