@@ -91,18 +91,17 @@ const PROVIDERS: DeliveryProvider[] = [
   },
   {
     id: '4',
-    name: 'Ada Elektrikli Kurye & Paket',
+    name: 'Ada İçi Kurye & Paket',
     category: 'courier',
     categoryLabel: 'Ada İçi Kurye',
     island: 'Tüm Adalar',
     phone: '+905301234567',
     whatsapp: '+905301234567',
-    description: 'Adalar içi elektrikli araç ile kapıdan kapıya hızlı paket ve evrak taşıma servisi.',
+    description: 'Adalar içi kapıdan kapıya hızlı paket ve evrak taşıma servisi.',
     workingHours: '08:30 - 21:00',
     estimatedTime: '20 - 35 dk',
     minOrder: '50 ₺',
-    badge: 'Elektrikli Araç',
-    isElectricVehicle: true,
+    badge: 'Hızlı Kurye',
   },
   {
     id: '5',
@@ -486,12 +485,6 @@ export default function PaketServisScreen() {
                     <View style={styles.categoryBadge}>
                       <Text style={styles.categoryBadgeText}>{provider.categoryLabel}</Text>
                     </View>
-                    {provider.isElectricVehicle && (
-                      <View style={styles.electricBadge}>
-                        <IconSymbol name="bolt.fill" size={10} color="#059669" />
-                        <Text style={styles.electricBadgeText}>{isEn ? 'Electric' : 'Elektrikli'}</Text>
-                      </View>
-                    )}
                   </View>
                   <Text style={[styles.providerName, isDark && styles.textLight]}>{provider.name}</Text>
                 </View>
