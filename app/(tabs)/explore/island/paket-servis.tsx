@@ -306,7 +306,7 @@ export default function PaketServisScreen() {
               >
                 <IconSymbol
                   name={cat.icon as any}
-                  size={16}
+                  size={18}
                   color={isActive ? '#FFFFFF' : isDark ? '#A7F3D0' : '#059669'}
                 />
                 <Text
@@ -611,9 +611,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   islandChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 22,
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     borderColor: '#059669',
   },
   islandChipText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     color: '#475569',
   },
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
   },
   categorySection: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
@@ -651,10 +651,10 @@ const styles = StyleSheet.create({
   categoryTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 14,
     backgroundColor: '#ECFDF5',
     borderWidth: 1,
     borderColor: '#A7F3D0',
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     borderColor: '#059669',
   },
   categoryTabText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
     color: '#065F46',
   },
