@@ -140,7 +140,7 @@ export default function PaketServisScreen() {
         </View>
 
         {/* Island Filters */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.islandRow} contentContainerStyle={{ paddingHorizontal: 0, gap: 10 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.islandRow, { marginHorizontal: -16 }]} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}>
           {islandOptions.map((isl) => (
             <TouchableOpacity
               key={isl.key}
