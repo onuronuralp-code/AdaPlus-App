@@ -9,10 +9,12 @@ import {
   Animated,
   Modal,
   PanResponder,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -30,11 +32,16 @@ export default function VenueMenuScreen() {
   const provider: DeliveryProvider | undefined = DELIVERY_PROVIDERS.find((p) => p.id === id);
 
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
-  const [cartItems, setCartItems] = useState<{ item: MenuItem; count: number }[]>([]);
+  const [cartItems, setCartItems] = useState<{ item: MenuItem; count: number; note?: string }[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
-  // Onboarding overlay state (defaults to true on first view)
+  // Onboarding overlay state
   const [showOnboarding, setShowOnboarding] = useState<boolean>(true);
+
+  // Selected Item for Detail Modal
+  const [selectedDetailItem, setSelectedDetailItem] = useState<MenuItem | null>(null);
+  const [detailQuantity, setDetailQuantity] = useState<number>(1);
+  const [detailNote, setDetailNote] = useState<string>('');
 
   // Animated hand position for onboarding gesture demo
   const handAnim = useRef(new Animated.Value(0)).current;
@@ -60,22 +67,35 @@ export default function VenueMenuScreen() {
     }
   }, [showOnboarding, handAnim]);
 
-  const handleAddToCart = (item: MenuItem) => {
+  const handleAddToCart = (item: MenuItem, quantity: number = 1, note?: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setCartItems((prev) => {
       const existing = prev.find((ci) => ci.item.name === item.name);
       if (existing) {
         return prev.map((ci) =>
-          ci.item.name === item.name ? { ...ci, count: ci.count + 1 } : ci
+          ci.item.name === item.name ? { ...ci, count: ci.count + quantity, note: note || ci.note } : ci
         );
       }
-      return [...prev, { item, count: 1 }];
+      return [...prev, { item, count: quantity, note }];
     });
 
-    setToastMessage(`🛒 ${item.name} sepete eklendi!`);
+    setToastMessage(`🛒 ${item.name} (${quantity} adet) sepete eklendi!`);
     setTimeout(() => {
       setToastMessage(null);
     }, 2500);
+  };
+
+  const openItemDetail = (item: MenuItem) => {
+    setSelectedDetailItem(item);
+    setDetailQuantity(1);
+    setDetailNote('');
+  };
+
+  const handleDetailAddToCart = () => {
+    if (selectedDetailItem) {
+      handleAddToCart(selectedDetailItem, detailQuantity, detailNote.trim() || undefined);
+      setSelectedDetailItem(null);
+    }
   };
 
   const totalCartCount = cartItems.reduce((sum, ci) => sum + ci.count, 0);
@@ -220,7 +240,7 @@ export default function VenueMenuScreen() {
 
           <View style={styles.swipeHintBadge}>
             <IconSymbol name="hand.draw" size={13} color="#8B5CF6" />
-            <Text style={styles.swipeHintBadgeText}>{isEn ? 'Swipe to add' : 'Kaydırarak Ekle'}</Text>
+            <Text style={styles.swipeHintBadgeText}>{isEn ? 'Swipe or tap' : 'Tıkla veya Kaydır'}</Text>
           </View>
         </View>
 
@@ -238,6 +258,7 @@ export default function VenueMenuScreen() {
               item={item}
               isDark={isDark}
               onAddToCart={handleAddToCart}
+              onPressItem={openItemDetail}
             />
           ))
         )}
@@ -255,6 +276,100 @@ export default function VenueMenuScreen() {
         </View>
       )}
 
+      {/* Item Detail Sheet Modal */}
+      <Modal
+        visible={!!selectedDetailItem}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectedDetailItem(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.detailSheetContent, isDark && styles.modalContentDark]}>
+            {selectedDetailItem && (
+              <>
+                <View style={styles.detailSheetHeader}>
+                  <View style={{ flex: 1, paddingRight: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      {selectedDetailItem.category && (
+                        <View style={styles.itemCategoryBadge}>
+                          <Text style={styles.itemCategoryBadgeText}>{selectedDetailItem.category}</Text>
+                        </View>
+                      )}
+                      {selectedDetailItem.badge && (
+                        <View style={styles.itemBadge}>
+                          <Text style={styles.itemBadgeText}>{selectedDetailItem.badge}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={[styles.detailTitle, isDark && styles.textLight]}>{selectedDetailItem.name}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setSelectedDetailItem(null)}>
+                    <IconSymbol name="xmark" size={18} color={isDark ? '#F8FAFC' : '#0F172A'} />
+                  </TouchableOpacity>
+                </View>
+
+                {selectedDetailItem.description && (
+                  <Text style={[styles.detailDesc, isDark && styles.textMutedDark]}>
+                    {selectedDetailItem.description}
+                  </Text>
+                )}
+
+                <View style={styles.detailPriceRow}>
+                  <Text style={styles.detailPriceLabel}>{isEn ? 'Unit Price:' : 'Birim Fiyat:'}</Text>
+                  <Text style={styles.detailPriceValue}>{selectedDetailItem.price}</Text>
+                </View>
+
+                {/* Quantity Controls */}
+                <View style={styles.quantityContainer}>
+                  <Text style={[styles.quantityLabel, isDark && styles.textLight]}>{isEn ? 'Quantity:' : 'Adet:'}</Text>
+                  <View style={styles.quantitySelector}>
+                    <TouchableOpacity
+                      style={styles.quantityBtn}
+                      onPress={() => setDetailQuantity((q) => Math.max(1, q - 1))}
+                    >
+                      <Text style={styles.quantityBtnText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.quantityText, isDark && styles.textLight]}>{detailQuantity}</Text>
+                    <TouchableOpacity
+                      style={styles.quantityBtn}
+                      onPress={() => setDetailQuantity((q) => q + 1)}
+                    >
+                      <Text style={styles.quantityBtnText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Special Request Note Input */}
+                <View style={{ marginTop: 14, marginBottom: 16 }}>
+                  <Text style={[styles.noteLabel, isDark && styles.textLight]}>
+                    {isEn ? 'Special Request / Note:' : 'Sipariş Notu (İsteğe Bağlı):'}
+                  </Text>
+                  <TextInput
+                    style={[styles.noteInput, isDark && styles.noteInputDark]}
+                    placeholder={isEn ? 'e.g. Extra sauce, no onions...' : 'Örn. Sos bol olsun, acısız olsun...'}
+                    placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                    value={detailNote}
+                    onChangeText={setDetailNote}
+                  />
+                </View>
+
+                {/* Add to Cart Submit Button */}
+                <TouchableOpacity
+                  style={styles.detailAddToCartBtn}
+                  onPress={handleDetailAddToCart}
+                  activeOpacity={0.85}
+                >
+                  <IconSymbol name="cart.fill.badge.plus" size={18} color="#FFFFFF" />
+                  <Text style={styles.detailAddToCartBtnText}>
+                    {isEn ? 'Add to Cart' : 'Sepete Ekle'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       {/* Onboarding Swipe Demo Modal */}
       <Modal
         visible={showOnboarding}
@@ -267,18 +382,18 @@ export default function VenueMenuScreen() {
             {/* Tooltip Header */}
             <View style={styles.onboardingHeader}>
               <View style={styles.onboardingBadge}>
-                <Text style={styles.onboardingBadgeText}>💡 SEPETE HIZLI EKLE</Text>
+                <Text style={styles.onboardingBadgeText}>💡 İNTERAKTİF MENÜ İPUCU</Text>
               </View>
             </View>
 
             <Text style={[styles.onboardingTitle, isDark && styles.textLight]}>
-              {isEn ? 'Swipe items to add to cart' : 'Kutuyu Sağa Kaydırarak Sepete Ekleyin'}
+              {isEn ? 'Tap for details or Swipe to Add' : 'Ürün Ekranını Açın veya Sağa Kaydırın'}
             </Text>
 
             <Text style={[styles.onboardingDesc, isDark && styles.textMutedDark]}>
               {isEn
-                ? 'Swipe any menu item box sideways to instantly add it to your cart.'
-                : 'Menüdeki lezzet kutularını sağa doğru kaydırarak anında sepetinize ekleyebilirsiniz.'}
+                ? 'Tap any item to see details and customize your order, or swipe sideways to quickly add it to your cart.'
+                : 'Detayları görmek için ürüne tıklayabilir veya sağa kaydırarak anında sepetinize ekleyebilirsiniz.'}
             </Text>
 
             {/* Simulated Animated Swipe Demo Area */}
@@ -333,15 +448,17 @@ export default function VenueMenuScreen() {
   );
 }
 
-{/* Swipeable Menu Card Component */}
+{/* Swipeable & Clickable Menu Card Component */}
 function SwipeableMenuCard({
   item,
   isDark,
   onAddToCart,
+  onPressItem,
 }: {
   item: MenuItem;
   isDark: boolean;
   onAddToCart: (item: MenuItem) => void;
+  onPressItem: (item: MenuItem) => void;
 }) {
   const pan = useRef(new Animated.ValueXY()).current;
   const [isAdded, setIsAdded] = useState(false);
@@ -388,7 +505,10 @@ function SwipeableMenuCard({
           { transform: [{ translateX: pan.x }] },
         ]}
       >
-        <View style={{ flex: 1, paddingRight: 10 }}>
+        <Pressable
+          style={{ flex: 1, paddingRight: 10 }}
+          onPress={() => onPressItem(item)}
+        >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
             <Text style={[styles.itemName, isDark && styles.textLight]}>{item.name}</Text>
             {item.badge && (
@@ -406,17 +526,25 @@ function SwipeableMenuCard({
             <Text style={[styles.itemDesc, isDark && styles.textMutedDark]}>{item.description}</Text>
           )}
           {item.category && <Text style={styles.itemCategoryTag}>{item.category}</Text>}
-        </View>
-        <View style={{ alignItems: 'flex-end', justifyContent: 'space-between', height: '100%' }}>
+        </Pressable>
+
+        <TouchableOpacity
+          style={{ alignItems: 'flex-end', justifyContent: 'space-between', height: '100%', minHeight: 48 }}
+          onPress={() => onPressItem(item)}
+          activeOpacity={0.8}
+        >
           <Text style={styles.itemPrice}>{item.price}</Text>
           <TouchableOpacity
             style={styles.addCartBtnSmall}
-            onPress={() => onAddToCart(item)}
+            onPress={(e) => {
+              e.stopPropagation();
+              onAddToCart(item);
+            }}
             activeOpacity={0.7}
           >
             <IconSymbol name="plus" size={13} color="#FFFFFF" />
           </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </Animated.View>
     </View>
   );
@@ -647,6 +775,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#7C3AED',
   },
+  itemCategoryBadge: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  itemCategoryBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#059669',
+  },
   addedBadge: {
     backgroundColor: '#D1FAE5',
     paddingHorizontal: 6,
@@ -722,6 +861,139 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'flex-end',
+  },
+  detailSheetContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalContentDark: {
+    backgroundColor: '#1E293B',
+  },
+  detailSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  detailTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  modalCloseBtn: {
+    padding: 6,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+  },
+  detailDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+  detailPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
+    marginVertical: 4,
+  },
+  detailPriceLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  detailPriceValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  quantityLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  quantitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  quantityBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quantityBtnText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  noteLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 6,
+  },
+  noteInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  noteInputDark: {
+    backgroundColor: '#0F172A',
+    borderColor: '#334155',
+    color: '#F8FAFC',
+  },
+  detailAddToCartBtn: {
+    backgroundColor: '#059669',
+    paddingVertical: 14,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  detailAddToCartBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
   },
   onboardingOverlay: {
     flex: 1,
