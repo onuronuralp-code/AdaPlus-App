@@ -5,24 +5,53 @@ if (!process.env.EXPO_PUBLIC_API_URL) {
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
 const FETCH_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 2;
 
-export const fetchWithTimeout = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  
-  // Create new init object with no-cache headers to prevent iOS/Android from aggressively caching GET requests
-  const newInit: RequestInit = {
-    ...init,
-    headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        ...(init?.headers || {})
-    },
-    signal: controller.signal 
-  };
-  
-  return fetch(input, newInit).finally(() => clearTimeout(id));
+export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  let lastError: any = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    try {
+      const newInit: RequestInit = {
+        ...init,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          ...(init?.headers || {})
+        },
+        signal: controller.signal
+      };
+
+      const response = await fetch(input, newInit);
+      clearTimeout(id);
+
+      // Retry on transient 5xx server gateway errors
+      if ((response.status === 502 || response.status === 503 || response.status === 504) && attempt < MAX_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, 600 * (attempt + 1)));
+        continue;
+      }
+
+      return response;
+    } catch (err: any) {
+      clearTimeout(id);
+      lastError = err;
+
+      const method = (init?.method || 'GET').toUpperCase();
+      const isAbortOrNetworkErr = err.name === 'AbortError' || err.message?.toLowerCase().includes('network') || err.message?.toLowerCase().includes('fetch');
+
+      if (attempt < MAX_RETRIES && (method === 'GET' || isAbortOrNetworkErr)) {
+        await new Promise(resolve => setTimeout(resolve, 600 * (attempt + 1)));
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  throw lastError || new Error('Network request failed');
 };
 
 /**
@@ -31,18 +60,8 @@ export const fetchWithTimeout = (input: RequestInfo | URL, init?: RequestInit): 
  */
 export const authFetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
   const { handleUnauthorized } = await import('../context/AuthContext');
-  
-  const newInit: RequestInit = {
-    ...init,
-    headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        ...(init?.headers || {})
-    }
-  };
 
-  const response = await fetch(input, newInit);
+  const response = await fetchWithTimeout(input, init);
   if (response.status === 401) {
     handleUnauthorized();
   }
