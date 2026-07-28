@@ -433,13 +433,10 @@ export default function PaketServisScreen() {
             <View key={provider.id} style={[styles.providerCard, isDark && styles.providerCardDark]}>
               {/* Card Top */}
               <View style={styles.cardHeader}>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                     <View style={styles.categoryBadge}>
                       <Text style={styles.categoryBadgeText}>{provider.categoryLabel}</Text>
-                    </View>
-                    <View style={[styles.islandBadge, isDark && styles.islandBadgeDark]}>
-                      <Text style={[styles.islandBadgeText, isDark && styles.islandBadgeTextDark]}>{provider.island}</Text>
                     </View>
                     {provider.isElectricVehicle && (
                       <View style={styles.electricBadge}>
@@ -449,6 +446,10 @@ export default function PaketServisScreen() {
                     )}
                   </View>
                   <Text style={[styles.providerName, isDark && styles.textLight]}>{provider.name}</Text>
+                </View>
+
+                <View style={[styles.islandBadge, isDark && styles.islandBadgeDark, { alignSelf: 'flex-start' }]}>
+                  <Text style={[styles.islandBadgeText, isDark && styles.islandBadgeTextDark]}>{provider.island}</Text>
                 </View>
               </View>
 
