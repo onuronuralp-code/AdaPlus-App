@@ -295,7 +295,7 @@ export default function PaketServisScreen() {
                     onPress={() => router.push({ pathname: '/(tabs)/explore/island/menu/[id]', params: { id: provider.id } })}
                   >
                     <IconSymbol name="fork.knife" size={15} color="#FFFFFF" />
-                    <Text style={styles.actionBtnText}>{isEn ? 'View Menu' : 'Menüyü Gör'}</Text>
+                    <Text style={styles.actionBtnText}>{isEn ? 'Order Now' : 'Sipariş Ver'}</Text>
                   </TouchableOpacity>
                 )}
 
