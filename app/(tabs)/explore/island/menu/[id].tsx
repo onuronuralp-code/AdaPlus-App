@@ -163,7 +163,7 @@ export default function VenueMenuScreen() {
       {/* Menu List */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
       >
         <Text style={[styles.sectionHeading, isDark && styles.textLight]}>
           {selectedCategoryFilter === 'all' ? (isEn ? 'Full Menu' : 'Menü İçi Lezzetler') : selectedCategoryFilter}
@@ -200,21 +200,6 @@ export default function VenueMenuScreen() {
           ))
         )}
       </ScrollView>
-
-      {/* Sticky Bottom Order Bar */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }, isDark && styles.bottomBarDark]}>
-        <TouchableOpacity style={styles.callButton} onPress={handleCall} activeOpacity={0.8}>
-          <IconSymbol name="phone.fill" size={16} color="#FFFFFF" />
-          <Text style={styles.bottomBtnText}>{t('deliveryService.actions.call', { defaultValue: isEn ? 'Call' : 'Hemen Ara' })}</Text>
-        </TouchableOpacity>
-
-        {provider.whatsapp && (
-          <TouchableOpacity style={styles.whatsappButton} onPress={handleWhatsApp} activeOpacity={0.8}>
-            <IconSymbol name="message.fill" size={16} color="#FFFFFF" />
-            <Text style={styles.bottomBtnText}>WhatsApp Sipariş</Text>
-          </TouchableOpacity>
-        )}
-      </View>
     </View>
   );
 }
