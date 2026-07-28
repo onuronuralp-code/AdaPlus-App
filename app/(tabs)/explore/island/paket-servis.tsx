@@ -140,7 +140,7 @@ export default function PaketServisScreen() {
         </View>
 
         {/* Island Filters */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.islandRow, { marginHorizontal: -16 }]} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.islandRow} contentContainerStyle={{ paddingHorizontal: 0, gap: 10 }}>
           {islandOptions.map((isl) => (
             <TouchableOpacity
               key={isl.key}
@@ -250,23 +250,30 @@ export default function PaketServisScreen() {
           </View>
         ) : (
           filteredProviders.map((provider) => (
-            <View key={provider.id} style={[styles.providerCard, isDark && styles.providerCardDark]}>
+            <TouchableOpacity
+              key={provider.id}
+              activeOpacity={0.88}
+              onPress={() => {
+                if (provider.menu && provider.menu.length > 0) {
+                  router.push({ pathname: '/(tabs)/explore/island/menu/[id]', params: { id: provider.id } });
+                } else {
+                  handleCall(provider.phone);
+                }
+              }}
+              style={[styles.providerCard, isDark && styles.providerCardDark]}
+            >
               {/* Card Top */}
               <View style={styles.cardHeader}>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryBadgeText}>{provider.categoryLabel}</Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.providerName, isDark && styles.textLight]}>{provider.name}</Text>
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryBadgeText}>{provider.categoryLabel}</Text>
                 </View>
 
-                <View style={[styles.islandBadge, isDark && styles.islandBadgeDark, { alignSelf: 'flex-start' }]}>
+                <View style={[styles.islandBadge, isDark && styles.islandBadgeDark]}>
                   <Text style={[styles.islandBadgeText, isDark && styles.islandBadgeTextDark]}>{provider.island}</Text>
                 </View>
               </View>
 
+              <Text style={[styles.providerName, isDark && styles.textLight, { marginBottom: 6 }]}>{provider.name}</Text>
               <Text style={[styles.providerDesc, isDark && styles.textMutedDark]}>{provider.description}</Text>
 
               {/* Meta Info Row */}
@@ -311,7 +318,7 @@ export default function PaketServisScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>
@@ -727,6 +734,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
