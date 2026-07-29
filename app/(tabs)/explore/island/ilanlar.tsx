@@ -355,12 +355,11 @@ export default function IlanlarScreen() {
       imageUrls: imageUrls
     };
 
-    const resultListing = editingListingId 
+    const resultListing = editingListingId
       ? await listingApi.updateListing(editingListingId, request)
       : await listingApi.createListing(request);
-      
-    // Her koşulda ekrana başarı mesajı düşmesi istendiği için hata fırlatmayı kaldırıyoruz:
-    // if (!resultListing) throw new Error('operation failed');
+
+    if (!resultListing) throw new Error('operation failed');
 
     resetAndCloseModal();
     setTimeout(() => {
