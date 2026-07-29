@@ -269,7 +269,6 @@ export default function SignUpScreen() {
                                             handleEmailBlur();
                                         }}
                                     />
-                                    <IconSymbol name="phone.fill" size={18} color={errors.email ? '#EF4444' : '#94A3B8'} />
                                 </View>
                             </View>
 

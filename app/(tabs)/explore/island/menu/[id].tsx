@@ -266,7 +266,7 @@ export default function VenueMenuScreen() {
 
       {/* Toast Notification Banner */}
       {toastMessage && (
-        <View style={[styles.toastContainer, { bottom: insets.bottom + 20 }]}>
+        <View style={[styles.toastContainer, { bottom: 12 }]}>
           <Text style={styles.toastText}>{toastMessage}</Text>
           {totalCartCount > 0 && (
             <View style={styles.cartCountBadge}>
@@ -528,22 +528,19 @@ function SwipeableMenuCard({
           {item.category && <Text style={styles.itemCategoryTag}>{item.category}</Text>}
         </Pressable>
 
-        <TouchableOpacity
-          style={{ alignItems: 'flex-end', justifyContent: 'space-between', height: '100%', minHeight: 48 }}
-          onPress={() => onPressItem(item)}
-          activeOpacity={0.8}
-        >
+        <Pressable onPress={() => onPressItem(item)} style={{ alignSelf: 'flex-start', paddingLeft: 8 }}>
           <Text style={styles.itemPrice}>{item.price}</Text>
-          <TouchableOpacity
-            style={styles.addCartBtnSmall}
-            onPress={(e) => {
-              e.stopPropagation();
-              onAddToCart(item);
-            }}
-            activeOpacity={0.7}
-          >
-            <IconSymbol name="plus" size={13} color="#FFFFFF" />
-          </TouchableOpacity>
+        </Pressable>
+
+        <TouchableOpacity
+          style={[styles.addCartBtnSmall, { position: 'absolute', right: 12, bottom: 10 }]}
+          onPress={(e) => {
+            e.stopPropagation();
+            onAddToCart(item);
+          }}
+          activeOpacity={0.7}
+        >
+          <IconSymbol name="plus" size={10} color="#FFFFFF" />
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -799,12 +796,12 @@ const styles = StyleSheet.create({
   },
   addCartBtnSmall: {
     backgroundColor: '#059669',
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
+    marginTop: 4,
   },
   toastContainer: {
     position: 'absolute',

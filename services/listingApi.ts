@@ -52,10 +52,10 @@ export const fetchListings = async (
   category?: ListingCategory,
 ): Promise<ListingDto[]> => {
   try {
-    const url = new URL(LISTING_API_BASE);
-    if (category) url.searchParams.append("category", category);
+    let url = LISTING_API_BASE;
+    if (category) url += `?category=${encodeURIComponent(category)}`;
 
-    const response = await fetchWithTimeout(url.toString());
+    const response = await fetchWithTimeout(url);
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
     const data = await response.json();
@@ -68,7 +68,9 @@ export const fetchListings = async (
     return [];
   } catch (error) {
     console.log("Failed to fetch listings:", error);
-    triggerNetworkError();
+    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
+      triggerNetworkError();
+    }
     return [];
   }
 };

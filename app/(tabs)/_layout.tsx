@@ -91,6 +91,12 @@ export default function TabLayout() {
             <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="safari" color={color} />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/explore');
+          },
+        })}
       />
       <Tabs.Screen
         name="home"

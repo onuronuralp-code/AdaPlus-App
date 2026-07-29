@@ -17,6 +17,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as listingApi from '@/services/listingApi';
 import { ListingDto, ListingCategory } from '@/services/listingApi';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -25,6 +26,7 @@ import i18n from '@/utils/i18n';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { resolveImageUrl } from '@/services/config';
+import { translateText } from '@/utils/translate';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isIphone16 = Platform.OS === 'ios' && SCREEN_HEIGHT >= 852;
@@ -46,7 +48,8 @@ export default function IlanDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   
@@ -55,6 +58,27 @@ export default function IlanDetailScreen() {
   const [loadError, setLoadError] = React.useState(false);
   const [loadingContact, setLoadingContact] = React.useState(false);
   const [activeSlide, setActiveSlide] = React.useState(0);
+  const [translatedTitle, setTranslatedTitle] = React.useState<string | null>(null);
+  const [translatedDesc, setTranslatedDesc] = React.useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = React.useState(false);
+
+  const handleToggleTranslation = async () => {
+    if (!listing) return;
+    if (translatedDesc || translatedTitle) {
+      setTranslatedTitle(null);
+      setTranslatedDesc(null);
+      return;
+    }
+    setIsTranslating(true);
+    const targetLang = 'en';
+    const [tTitle, tDesc] = await Promise.all([
+      listing.title ? translateText(listing.title, targetLang) : Promise.resolve(null),
+      listing.description ? translateText(listing.description, targetLang) : Promise.resolve(null)
+    ]);
+    if (tTitle && tTitle !== listing.title) setTranslatedTitle(tTitle);
+    if (tDesc) setTranslatedDesc(tDesc);
+    setIsTranslating(false);
+  };
 
   React.useEffect(() => {
     if (id) {
@@ -187,7 +211,7 @@ export default function IlanDetailScreen() {
             <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
           </View>
 
-          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{listing.title}</Text>
+          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{translatedTitle || listing.title}</Text>
           {listing.price > 0 && (
             <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 8 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
@@ -196,8 +220,26 @@ export default function IlanDetailScreen() {
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
-          <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }]}>{t('ilanlar.descriptionLabel', { defaultValue: 'Açıklama' })}</Text>
-          <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>{listing.description}</Text>
+          <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }]}>{t('ilanlar.descriptionLabel', { defaultValue: isEn ? 'Description' : 'Açıklama' })}</Text>
+          <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>{translatedDesc || listing.description}</Text>
+          {listing.description && listing.description.trim().length > 3 && (
+            <TouchableOpacity 
+              onPress={handleToggleTranslation}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, alignSelf: 'flex-start' }}
+              activeOpacity={0.7}
+            >
+              {isTranslating ? (
+                <ActivityIndicator size="small" color="#3B82F6" />
+              ) : (
+                <>
+                  <IconSymbol name="globe" size={14} color="#3B82F6" />
+                  <Text style={{ fontSize: 13, color: '#3B82F6', fontWeight: '700' }}>
+                    {translatedDesc ? (isEn ? 'See Original' : 'Orijinalini Gör') : 'Translate to English'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
@@ -207,56 +249,66 @@ export default function IlanDetailScreen() {
                 <IconSymbol name="mappin.and.ellipse" size={16} color={isDark ? "#94A3B8" : "#64748B"} />
               </View>
               <View>
-                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.locationLabel', { defaultValue: 'KONUM' })}</Text>
+                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.locationLabel', { defaultValue: isEn ? 'LOCATION' : 'KONUM' })}</Text>
                 <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{listing.island}</Text>
               </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.infoItem}
-              activeOpacity={listing.contactInfo ? 0.6 : 1}
-              onPress={() => {
-                if (!listing.contactInfo) return;
-                
-                const contact = listing.contactInfo.trim();
-                const isEmail = contact.includes('@');
-                const isPhone = /^\+?[0-9\s\-().]{7,20}$/.test(contact);
+            {(() => {
+              const c = (listing.contactInfo || '').trim().toLowerCase();
+              const isInsta = c.includes('instagram.com') || c.includes('instagr.am') || c.startsWith('@') || c.startsWith('ig:') || c.includes('insta');
+              const isEmail = !isInsta && c.includes('@');
+              const isPhone = !isInsta && !isEmail;
 
-                if (isEmail) {
-                  Linking.openURL(`mailto:${contact}`).catch(() => {
-                    Alert.alert('Hata', 'E-posta uygulaması açılamadı.');
-                  });
-                } else if (isPhone) {
-                  Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
-                    Alert.alert('Arama Yapılamadı', `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
-                  });
-                } else {
-                  // Fallback: try tel anyway
-                  Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {});
-                }
-              }}
-            >
-              <View style={[styles.infoIcon, isDark ? { backgroundColor: '#064E3B' } : (listing.contactInfo && { backgroundColor: '#ECFDF5' })]}>
-                <IconSymbol 
-                  name={listing.contactInfo?.includes('@') ? "envelope.fill" : "phone.fill"} 
-                  size={16} 
-                  color={listing.contactInfo ? (isDark ? '#34D399' : '#10B981') : '#64748B'} 
-                />
-              </View>
-              <View>
-                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.contactLabel', { defaultValue: 'İLETİŞİM' })}</Text>
-                <Text style={[styles.infoValue, listing.contactInfo && { color: isDark ? '#34D399' : '#10B981' }, isDark && !listing.contactInfo && { color: '#CBD5E1' }]}>
-                  {listing.contactInfo || t('ilanlar.notShared', { defaultValue: 'Paylaşılmamış' })}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              return (
+                <TouchableOpacity
+                  style={styles.infoItem}
+                  activeOpacity={listing.contactInfo ? 0.6 : 1}
+                  onPress={() => {
+                    if (!listing.contactInfo) return;
+                    const contact = listing.contactInfo.trim();
+                    if (isInsta) {
+                      const handle = contact.replace(/^@/, '').replace(/^ig:/i, '').trim();
+                      const url = handle.startsWith('http') ? handle : `https://www.instagram.com/${handle}/`;
+                      Linking.openURL(url).catch(() => {
+                        Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to open Instagram.' : 'Instagram uygulaması açılamadı.');
+                      });
+                    } else if (isEmail) {
+                      Linking.openURL(`mailto:${contact}`).catch(() => {
+                        Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to open email client.' : 'E-posta uygulaması açılamadı.');
+                      });
+                    } else if (isPhone) {
+                      Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
+                        Alert.alert(isEn ? 'Call Failed' : 'Arama Yapılamadı', isEn ? `Calling is not supported on this device.\n\nNumber: ${contact}` : `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
+                      });
+                    }
+                  }}
+                >
+                  <View style={[styles.infoIcon, isDark ? { backgroundColor: '#1C1C1E' } : (listing.contactInfo && { backgroundColor: isInsta ? '#FCE7F3' : (isEmail ? '#EFF6FF' : '#ECFDF5') })]}>
+                    {isInsta ? (
+                      <MaterialCommunityIcons name="instagram" size={18} color="#E1306C" />
+                    ) : isEmail ? (
+                      <IconSymbol name="envelope.fill" size={16} color={isDark ? '#60A5FA' : '#3B82F6'} />
+                    ) : (
+                      <IconSymbol name="phone.fill" size={16} color={isDark ? '#34D399' : '#10B981'} />
+                    )}
+                  </View>
+                  <View>
+                    <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.contactLabel', { defaultValue: isEn ? 'CONTACT' : 'İLETİŞİM' })}</Text>
+                    <Text style={[styles.infoValue, listing.contactInfo && { color: isInsta ? '#E1306C' : (isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981')) }, isDark && !listing.contactInfo && { color: '#CBD5E1' }]}>
+                      {listing.contactInfo || t('ilanlar.notShared', { defaultValue: isEn ? 'Not shared' : 'Paylaşılmamış' })}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })()}
           </View>
 
           {/* Safety Warning */}
           <View style={[styles.warningCard, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
             <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#F59E0B" />
             <Text style={[styles.warningText, isDark && { color: '#CBD5E1' }]}>
-              {t('ilanlar.safetyWarning', { defaultValue: 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz. Oluşabilecek mağduriyetler AdaPlus sorumluluk alanının dışındadır.' })}
+              {t('ilanlar.safetyWarning', { defaultValue: isEn ? 'For your safety, we recommend making payments in person and never sending a deposit before inspecting the item. AdaPlus is not responsible for any potential issues.' : 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz. Oluşabilecek mağduriyetler AdaPlus sorumluluk alanının dışındadır.' })}
             </Text>
           </View>
         </View>

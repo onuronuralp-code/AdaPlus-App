@@ -23,6 +23,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { translateText } from '@/utils/translate';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isIphone16 = Platform.OS === 'ios' && SCREEN_HEIGHT >= 852;
@@ -51,6 +53,21 @@ export default function EventDetailScreen() {
     const [rsvpCount, setRsvpCount] = useState(0);
     const [rsvpLoading, setRsvpLoading] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+    const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
+    const [isTranslating, setIsTranslating] = useState(false);
+
+    const handleToggleTranslation = async () => {
+        if (!activity?.description) return;
+        if (translatedDesc) {
+            setTranslatedDesc(null);
+            return;
+        }
+        setIsTranslating(true);
+        const targetLang = i18n.language.startsWith('en') ? 'en' : 'tr';
+        const translated = await translateText(activity.description, targetLang);
+        setTranslatedDesc(translated);
+        setIsTranslating(false);
+    };
     const lastTapRef = useRef<number>(0);
 
     useEffect(() => {
@@ -237,7 +254,27 @@ export default function EventDetailScreen() {
                     <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{activity.name}</Text>
 
                     {/* Description */}
-                    <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }, isDark && { color: '#CBD5E1' }]}>{activity.description}</Text>
+                    <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }, isDark && { color: '#CBD5E1' }]}>
+                        {translatedDesc || activity.description}
+                    </Text>
+                    {activity.description && activity.description.trim().length > 3 && (
+                        <TouchableOpacity 
+                            onPress={handleToggleTranslation}
+                            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4, marginBottom: 12, alignSelf: 'flex-start' }}
+                            activeOpacity={0.7}
+                        >
+                            {isTranslating ? (
+                                <ActivityIndicator size="small" color="#3B82F6" />
+                            ) : (
+                                <>
+                                    <IconSymbol name="globe" size={14} color="#3B82F6" />
+                                    <Text style={{ fontSize: 13, color: '#3B82F6', fontWeight: '700' }}>
+                                        {translatedDesc ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör') : 'Translate to English'}
+                                    </Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    )}
 
                     <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
@@ -293,54 +330,76 @@ export default function EventDetailScreen() {
                         <View style={{ flex: 1 }}>
                             <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.organizerLabel')}</Text>
                             <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{activity.organizerName}</Text>
-                            {activity.organizerContact && (
-                                <TouchableOpacity 
-                                    activeOpacity={0.6}
-                                    onPress={() => {
-                                        const contact = activity.organizerContact!.trim();
-                                        const isEmail = contact.includes('@');
-                                        const isPhone = /^\+?[0-9\s\-().]{7,20}$/.test(contact);
-
-                                        if (isEmail) {
-                                            Linking.openURL(`mailto:${contact}`).catch(() => {
-                                                Alert.alert('Hata', 'E-posta uygulaması açılamadı.');
-                                            });
-                                        } else if (isPhone) {
-                                            Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
-                                                Alert.alert('Arama Yapılamadı', `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
-                                            });
-                                        } else {
-                                            Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {});
-                                        }
-                                    }}
-                                >
-                                    <Text style={[styles.contactText, { color: '#3B82F6', textDecorationLine: 'underline', marginTop: 4 }]}>{activity.organizerContact}</Text>
-                                </TouchableOpacity>
-                            )}
                         </View>
                     </View>
 
+                    {/* Separate Phone / Email Contact Card */}
+                    {activity.organizerContact && (() => {
+                        const c = activity.organizerContact.trim().toLowerCase();
+                        const isInsta = c.includes('instagram.com') || c.includes('instagr.am') || c.startsWith('@') || c.startsWith('ig:') || c.includes('insta');
+                        if (isInsta) return null;
+
+                        const isEmail = c.includes('@');
+
+                        return (
+                            <TouchableOpacity
+                                style={[styles.infoItem, { marginTop: 20 }]}
+                                activeOpacity={0.7}
+                                onPress={() => {
+                                    const contact = activity.organizerContact!.trim();
+                                    if (isEmail) {
+                                        Linking.openURL(`mailto:${contact}`).catch(() => Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to open mail app.' : 'E-posta uygulaması açılamadı.'));
+                                    } else {
+                                        Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => Alert.alert(i18n.language.startsWith('en') ? 'Call Failed' : 'Arama Yapılamadı', i18n.language.startsWith('en') ? 'Calling is not supported on this device.' : `Bu cihazda arama desteklenmiyor olabilir.\n\nNumara: ${contact}`));
+                                    }
+                                }}
+                            >
+                                <View style={[styles.infoIcon, isDark ? { backgroundColor: '#1C1C1E' } : { backgroundColor: isEmail ? '#EFF6FF' : '#ECFDF5' }]}>
+                                    <IconSymbol 
+                                        name={isEmail ? "envelope.fill" : "phone.fill"} 
+                                        size={20} 
+                                        color={isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981')} 
+                                    />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>
+                                        {isEmail ? (i18n.language.startsWith('en') ? 'EMAIL' : 'E-MAİL') : (i18n.language.startsWith('en') ? 'PHONE' : 'TELEFON')}
+                                    </Text>
+                                    <Text style={[styles.infoValue, { color: isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981') }]}>
+                                        {activity.organizerContact}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })()}
+
                     {/* Instagram */}
                     {activity.instagramLink && (
-                        <View style={[styles.infoItem, { marginTop: 20 }]}>
-                            <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                <IconSymbol name="link" size={20} color={isDark ? "#94A3B8" : "#64748B"} />
+                        <TouchableOpacity
+                            style={[styles.infoItem, { marginTop: 20 }]}
+                            onPress={() => {
+                                if (!activity.instagramLink) return;
+                                const targetUrl = normalizeInstagramUrl(activity.instagramLink);
+                                Linking.openURL(targetUrl).catch(() => {
+                                    Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to open link.' : 'Bağlantı açılamadı.');
+                                });
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.infoIcon, isDark ? { backgroundColor: '#1C1C1E' } : { backgroundColor: '#FCE7F3' }]}>
+                                <MaterialCommunityIcons name="instagram" size={20} color="#E1306C" />
                             </View>
-                            <TouchableOpacity
-                                style={{ flex: 1 }}
-                                onPress={() => safeOpenUrl(activity.instagramLink ? normalizeInstagramUrl(activity.instagramLink) : undefined)}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.socialMediaLabel', { defaultValue: 'SOSYAL MEDYA' })}</Text>
-                                <Text style={[styles.infoValue, { color: '#3B82F6' }]} numberOfLines={1}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.socialMediaLabel', { defaultValue: 'INSTAGRAM' })}</Text>
+                                <Text style={[styles.infoValue, { color: '#E1306C' }]} numberOfLines={1}>
                                     {activity.instagramLink}
                                 </Text>
-                            </TouchableOpacity>
-                        </View>
+                            </View>
+                        </TouchableOpacity>
                     )}
 
                     <TouchableOpacity 
-                        style={[styles.rsvpButton, going && (isDark ? { backgroundColor: '#1E3A8A', borderWidth: 1, borderColor: '#3B82F6' } : styles.rsvpButtonActive), { marginTop: 32, marginBottom: 8 }]} 
+                        style={[styles.rsvpButton, going && (isDark ? { backgroundColor: '#1E3A8A', borderWidth: 1, borderColor: '#3B82F6' } : styles.rsvpButtonActive), { marginTop: 20, marginBottom: 8 }]} 
                         onPress={handleRsvp}
                         disabled={rsvpLoading}
                     >

@@ -3,7 +3,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
@@ -122,6 +122,25 @@ function RootLayoutNav() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const bgColor = isDark ? "#000000" : "#FFFFFF";
+  const pathname = usePathname();
+
+  // Check version on every page navigation
+  useEffect(() => {
+    const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
+    fetchAppVersion()
+      .then(({ minimumVersion, latestVersion }) => {
+        console.log(`[Version:Nav] path=${pathname} current=${currentVersion} minimum=${minimumVersion}`);
+        if (requiresUpdate(currentVersion, minimumVersion)) {
+          Alert.alert(
+            "Güncelleme Gerekli",
+            "AdaPlus'ı kullanmaya devam etmek için uygulamayı güncellemelisin.",
+            [{ text: "App Store'da Güncelle", onPress: () => Linking.openURL(APP_STORE_URL) }],
+            { cancelable: false }
+          );
+        }
+      })
+      .catch(() => {});
+  }, [pathname]);
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -181,33 +200,7 @@ export default function RootLayout() {
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
   const [updateRequired, setUpdateRequired] = useState(true);
 
-  useEffect(() => {
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        const title = notification.request.content.title ?? "Bildirim";
-        const body = notification.request.content.body ?? "";
-        Alert.alert(title, body);
-      },
-    );
-
-    const showUpdateAlert = () => {
-      Alert.alert(
-        "Güncelleme Gerekli",
-        "AdaPlus'ı kullanmaya devam etmek için uygulamayı güncellemelisin.",
-        [
-          {
-            text: "App Store'da Güncelle",
-            onPress: () => {
-              Linking.openURL(APP_STORE_URL);
-              // Kullanıcı uygulamaya geri dönerse alerti tekrar göster
-              setTimeout(showUpdateAlert, 1000);
-            },
-          },
-        ],
-        { cancelable: false }
-      );
-    };
-
+  const checkVersion = useRef(() => {
     const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
     fetchAppVersion()
       .then(({ minimumVersion, latestVersion }) => {
@@ -220,8 +213,47 @@ export default function RootLayout() {
         console.warn('[Version] fetchAppVersion failed:', e);
         // Network error — don't block the app
       });
+  }).current;
 
-    return () => notificationListener.current?.remove();
+  const showUpdateAlert = () => {
+    Alert.alert(
+      "Güncelleme Gerekli",
+      "AdaPlus'ı kullanmaya devam etmek için uygulamayı güncellemelisin.",
+      [
+        {
+          text: "App Store'da Güncelle",
+          onPress: () => {
+            Linking.openURL(APP_STORE_URL);
+            // Kullanıcı uygulamaya geri dönerse alerti tekrar göster
+            setTimeout(showUpdateAlert, 1000);
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  useEffect(() => {
+    notificationListener.current = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        const title = notification.request.content.title ?? "Bildirim";
+        const body = notification.request.content.body ?? "";
+        Alert.alert(title, body);
+      },
+    );
+
+    // Initial version check
+    checkVersion();
+
+    // Poll every 30 seconds
+    const pollingInterval = setInterval(() => {
+      checkVersion();
+    }, 30_000);
+
+    return () => {
+      notificationListener.current?.remove();
+      clearInterval(pollingInterval);
+    };
   }, []);
 
   return (

@@ -69,9 +69,9 @@ export default function ProfileScreen() {
     const [editingContent, setEditingContent] = useState('');
     const [isSavingEdit, setIsSavingEdit] = useState(false);
 
-    // Check for 5 invites milestone
+    // Check for 3 invites milestone
     useEffect(() => {
-        if (isLoggedIn && user && (user as any)?.invitedUsersCount === 5) {
+        if (isLoggedIn && user && (user as any)?.invitedUsersCount === 3) {
             // Ideally we'd check if we already showed it (e.g. from AsyncStorage), 
             // but for now, we trigger it once when the count is exactly 5.
             setShowCelebration(true);
@@ -249,6 +249,33 @@ export default function ProfileScreen() {
         }
     };
 
+    const isPollEnded = (post: any) => {
+        if (!post) return false;
+        if (typeof post === 'string') {
+            return new Date(post).getTime() < Date.now();
+        }
+        const endsAt = post.pollEndsAt || post.poll_ends_at || post.expiresAt;
+        if (post.isEnded || post.ended) return true;
+        if (!endsAt) return false;
+        return new Date(endsAt).getTime() < Date.now();
+    };
+
+    const getPollCountdown = (post: any) => {
+        if (!post) return null;
+        const endsAt = typeof post === 'string' ? post : (post.pollEndsAt || post.poll_ends_at || post.expiresAt);
+        if (typeof post === 'object' && (post.isEnded || post.ended)) return i18n.language.startsWith('en') ? 'Poll ended' : 'Süre doldu';
+        if (!endsAt) return null;
+        const diff = new Date(endsAt).getTime() - Date.now();
+        if (diff <= 0) return i18n.language.startsWith('en') ? 'Poll ended' : 'Süre doldu';
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        if (hours > 24) {
+            const days = Math.floor(hours / 24);
+            return i18n.language.startsWith('en') ? `${days}d left` : `${days} gün kaldı`;
+        }
+        return i18n.language.startsWith('en') ? `${hours}h ${mins}m left` : `${hours}sa ${mins}dk kaldı`;
+    };
+
     const renderEmpty = (icon: string, title: string, subtitle: string, color?: string) => (
         <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
             <EmptyState 
@@ -288,17 +315,59 @@ export default function ProfileScreen() {
         });
     }, []);
 
-    const handlePollVote = async (postId: string, optionId: string) => {
+    const handlePollVote = async (post: any, optionId: string) => {
+        if (isPollEnded(post)) {
+            Alert.alert(
+                t('common.info', { defaultValue: 'Bilgi' }),
+                t('forum.pollEndedWarning', { defaultValue: 'Bu anketin süresi dolduğu için oy kullanamazsınız.' })
+            );
+            return;
+        }
+        const postId = typeof post === 'string' ? post : post.id;
+        const currentVotedOptionId = votedPolls[postId];
+
+        const updatePostPoll = (p: PostDto) => {
+            if (p.id !== postId) return p;
+            const pollOpts = p.pollOptions || (p as any).options || (p as any).poll_options || [];
+            const updatedOpts = pollOpts.map((opt: any) => {
+                let count = opt.voteCount || opt.votes || 0;
+                if (currentVotedOptionId && opt.id === currentVotedOptionId) {
+                    count = Math.max(0, count - 1);
+                }
+                if (opt.id === optionId) {
+                    count = count + 1;
+                }
+                return {
+                    ...opt,
+                    voteCount: count,
+                    votes: count,
+                    isVoted: opt.id === optionId,
+                    voted: opt.id === optionId,
+                };
+            });
+            return {
+                ...p,
+                userVotedOptionId: optionId,
+                pollOptions: updatedOpts,
+                options: updatedOpts,
+            };
+        };
+
         setVotedPolls(prev => {
             const next = { ...prev, [postId]: optionId };
             AsyncStorage.setItem('user_voted_polls', JSON.stringify(next)).catch(() => {});
             return next;
         });
+
+        setPosts(prev => prev.map(updatePostPoll));
+        setLikedPosts(prev => prev.map(updatePostPoll));
+
         try {
             const updated = await voteOnPoll(postId, optionId);
             if (updated) {
-                setPosts(prev => prev.map(p => p.id === postId ? updated : p));
-                setLikedPosts(prev => prev.map(p => p.id === postId ? updated : p));
+                const finalPost = updatePostPoll(updated);
+                setPosts(prev => prev.map(p => p.id === postId ? finalPost : p));
+                setLikedPosts(prev => prev.map(p => p.id === postId ? finalPost : p));
             }
         } catch {}
     };
@@ -319,46 +388,65 @@ export default function ProfileScreen() {
                 {isPoll && pollOpts && pollOpts.length > 0 ? (
                     <View style={{ marginTop: 8, marginBottom: 4 }}>
                         {(() => {
+                            const ended = isPollEnded(post);
+                            const countdown = getPollCountdown(post);
                             const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
-                            return pollOpts.map((option: any, optIdx: number) => {
-                                const isOptionVoted = Boolean(
-                                    option.isVoted || option.voted || option.is_voted || option.selected ||
-                                    (post as any).userVotedOptionId === option.id || (post as any).votedOptionId === option.id || 
-                                    (post as any).voted_option_id === option.id || votedPolls[post.id] === option.id
-                                );
-                                const optText = option.text || option.optionText || option.title || '';
-                                const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
-                                return (
-                                    <TouchableOpacity
-                                        key={option.id || `opt-${optIdx}`}
-                                        style={[
-                                            {
-                                                padding: 12,
-                                                borderRadius: 10,
-                                                marginVertical: 4,
-                                                backgroundColor: isDark ? '#121212' : '#F8FAFC',
-                                                borderWidth: 1.5,
-                                                borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
-                                                flexDirection: 'row',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                overflow: 'hidden',
-                                                position: 'relative'
-                                            },
-                                            isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderColor: '#10B981' } : { backgroundColor: '#D1FAE5', borderColor: '#10B981' })
-                                        ]}
-                                        onPress={() => handlePollVote(post.id, option.id)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <View style={[{ position: 'absolute', top: 0, bottom: 0, left: 0 }, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.45)' : 'rgba(99, 102, 241, 0.15)' }]} />
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 1 }}>
-                                            {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
-                                            <Text style={[{ fontSize: 14, fontWeight: '600', color: isDark ? '#F8FAFC' : '#1E293B' }, isOptionVoted && { color: isDark ? '#34D399' : '#047857', fontWeight: '800' }]}>{optText}</Text>
+                            return (
+                                <View>
+                                    {pollOpts.map((option: any, optIdx: number) => {
+                                        const optVotes = Number(option.voteCount || option.votes || option.count || 0);
+                                        const userVotedId = votedPolls[post.id] || (post as any).votedOptionId || (post as any).voted_option_id || (post as any).userVotedOptionId;
+                                        const isOptionVoted = Boolean(
+                                            optVotes > 0 &&
+                                            (userVotedId 
+                                                ? (option.id && String(option.id) === String(userVotedId))
+                                                : (option.isVoted || option.voted || option.is_voted || option.selected))
+                                        );
+                                        const optText = option.text || option.optionText || option.title || '';
+                                        const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0);
+                                        return (
+                                            <TouchableOpacity
+                                                key={option.id || `opt-${optIdx}`}
+                                                style={[
+                                                    {
+                                                        padding: 12,
+                                                        borderRadius: 10,
+                                                        marginVertical: 4,
+                                                        backgroundColor: isDark ? '#121212' : '#F8FAFC',
+                                                        borderWidth: 1.5,
+                                                        borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
+                                                        flexDirection: 'row',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        overflow: 'hidden',
+                                                        position: 'relative'
+                                                    },
+                                                    ended && { opacity: 0.5 },
+                                                    isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderColor: '#10B981' } : { backgroundColor: '#D1FAE5', borderColor: '#10B981' })
+                                                ]}
+                                                onPress={() => handlePollVote(post, option.id)}
+                                                activeOpacity={ended ? 1 : 0.7}
+                                                disabled={ended}
+                                            >
+                                                <View style={[{ position: 'absolute', top: 0, bottom: 0, left: 0 }, Math.round(optPercent) >= 100 ? { right: 0 } : { width: `${optPercent}%` }, { backgroundColor: isOptionVoted ? 'rgba(16, 185, 129, 0.45)' : 'rgba(99, 102, 241, 0.15)' }]} />
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 1 }}>
+                                                    {isOptionVoted && <IconSymbol name="checkmark.circle.fill" size={16} color={isDark ? "#34D399" : "#059669"} />}
+                                                    <Text style={[{ fontSize: 14, fontWeight: '600', color: isDark ? '#F8FAFC' : '#1E293B' }, isOptionVoted && { color: isDark ? '#34D399' : '#047857', fontWeight: '800' }]}>{optText}</Text>
+                                                </View>
+                                                <Text style={[{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#64748B', zIndex: 1 }, isOptionVoted && { color: isDark ? '#34D399' : '#047857', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                    {countdown ? (
+                                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: ended ? (isDark ? '#451A1A' : '#FEE2E2') : (isDark ? '#453010' : '#FEF3C7'), paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                                                <IconSymbol name={ended ? "checkmark.circle.fill" : "clock.fill"} size={11} color={ended ? "#EF4444" : "#F59E0B"} />
+                                                <Text style={{ fontSize: 11, fontWeight: '700', color: ended ? "#EF4444" : "#D97706" }}>{countdown}</Text>
+                                            </View>
                                         </View>
-                                        <Text style={[{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#64748B', zIndex: 1 }, isOptionVoted && { color: isDark ? '#34D399' : '#047857', fontWeight: '800' }]}>{Math.round(optPercent)}%</Text>
-                                    </TouchableOpacity>
-                                );
-                            });
+                                    ) : null}
+                                </View>
+                            );
                         })()}
                     </View>
                 ) : null}
@@ -408,8 +496,8 @@ export default function ProfileScreen() {
                                         {isPoll && pollOpts && pollOpts.length > 0 ? (
                                             <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600' }}>
                                                 {i18n.language.startsWith('en') 
-                                                    ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
-                                                    : `Toplam ${totalVotes} oy`}
+                                                    ? `Total vote: ${totalVotes}` 
+                                                    : `Toplam oy: ${totalVotes}`}
                                             </Text>
                                         ) : null}
                                     </View>
@@ -665,16 +753,12 @@ export default function ProfileScreen() {
                                 </View>
                                 <View style={styles.statsRow}>
                                     {isPoll && pollOpts && pollOpts.length > 0 ? (
-                                        <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600', marginRight: 12 }}>
+                                        <Text style={{ fontSize: 12, color: isDark ? '#94A3B8' : '#64748B', fontWeight: '600' }}>
                                             {i18n.language.startsWith('en') 
-                                                ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
-                                                : `Toplam ${totalVotes} oy`}
+                                                ? `Total vote: ${totalVotes}` 
+                                                : `Toplam oy: ${totalVotes}`}
                                         </Text>
                                     ) : null}
-                                    <View style={styles.statItem}>
-                                        <IconSymbol name="heart.fill" size={14} color="#EC4899" />
-                                        <Text style={[styles.statText, isDark && { color: '#94A3B8' }]}>{post.likeCount}</Text>
-                                    </View>
                                 </View>
                             </View>
                         </View>
@@ -791,7 +875,36 @@ export default function ProfileScreen() {
                                 </Text>
                             </View>
 
-                            {true && (
+                                {/* Kotalar Kartı */}
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                    {/* İlan Kotası */}
+                                    <View>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <IconSymbol name="tag.fill" size={13} color="#10B981" />
+                                                <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#475569', marginLeft: 6, fontWeight: '700' }}>
+                                                    {t('profile.listingQuota', { defaultValue: i18n.language.startsWith('en') ? 'Listing Publishing Quota' : 'İlan Yayınlama Kotası' })}
+                                                </Text>
+                                            </View>
+                                            <Text style={{ fontSize: 12, fontWeight: '800', color: '#10B981' }}>
+                                                {listings.filter(l => l.active !== false).length} / 5
+                                            </Text>
+                                        </View>
+                                        <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#064E3B' : '#D1FAE5', borderRadius: 3, overflow: 'hidden' }}>
+                                            <View style={{ 
+                                                width: `${Math.min(((listings.filter(l => l.active !== false).length) / 5) * 100, 100)}%`, 
+                                                height: '100%', 
+                                                backgroundColor: '#10B981', 
+                                                borderRadius: 3 
+                                            }} />
+                                        </View>
+                                        <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
+                                            {t('profile.remainingQuota', { count: Math.max(0, 5 - listings.filter(l => l.active !== false).length), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, 5 - listings.filter(l => l.active !== false).length)}` : `Kalan Hakkın: ${Math.max(0, 5 - listings.filter(l => l.active !== false).length)}` })}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Davet Edilen Adalılar Kartı */}
                                 <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -806,25 +919,16 @@ export default function ProfileScreen() {
                                     </View>
                                     <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#1E1E38' : '#E0E7FF', borderRadius: 3, overflow: 'hidden' }}>
                                         <View style={{ 
-                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
+                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 3) * 100, 100)}%`, 
                                             height: '100%', 
                                             backgroundColor: '#6366F1', 
                                             borderRadius: 3 
                                         }} />
                                     </View>
                                     <Text style={{ fontSize: 10, color: isDark ? '#CBD5E1' : '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
-                                        {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
+                                        {i18n.language.startsWith('en') ? 'Target: 3' : 'Hedef: 3'}
                                     </Text>
-                                    {/* MOCK CELEBRATION TRIGGER BUTTON */}
-                                    <TouchableOpacity 
-                                        onPress={() => setShowCelebration(true)}
-                                        style={{ marginTop: 6, width: '100%', alignItems: 'center', backgroundColor: isDark ? '#065F46' : '#10B981', paddingVertical: 8, borderRadius: 10 }}>
-                                        <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '800' }}>
-                                            {i18n.language.startsWith('en') ? 'Test Celebration 🚀' : 'Kutlamayı Test Et 🚀'}
-                                        </Text>
-                                    </TouchableOpacity>
                                 </View>
-                            )}
                         </View>
                     </View>
 

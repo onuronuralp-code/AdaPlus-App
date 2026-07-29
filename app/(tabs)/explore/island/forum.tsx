@@ -27,6 +27,8 @@ import { resolveImageUrl } from '@/services/config';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 
+import { translateText } from '@/utils/translate';
+
 const ENABLE_PHOTO_UPLOAD = true; // Feature flag for photo upload in community posts
 
 export default function ForumScreen() {
@@ -87,21 +89,73 @@ export default function ForumScreen() {
         // writeModalSlideAnim is now handled in Modal's onShow to ensure native view is ready
     }, [isWriteModalVisible]);
 
+    const [isSwipeOnboardingVisible, setIsSwipeOnboardingVisible] = useState(false);
+    const onboardingSwipeAnim = useRef(new Animated.Value(0)).current;
+
     useEffect(() => {
-        const checkFirstVisit = async () => {
+        if (isSwipeOnboardingVisible) {
+            onboardingSwipeAnim.setValue(0);
+            const loopAnim = Animated.loop(
+                Animated.sequence([
+                    Animated.delay(400),
+                    Animated.timing(onboardingSwipeAnim, {
+                        toValue: -88,
+                        duration: 900,
+                        useNativeDriver: true,
+                    }),
+                    Animated.delay(900),
+                    Animated.timing(onboardingSwipeAnim, {
+                        toValue: 0,
+                        duration: 700,
+                        useNativeDriver: true,
+                    }),
+                ])
+            );
+            loopAnim.start();
+            return () => loopAnim.stop();
+        }
+    }, [isSwipeOnboardingVisible]);
+
+    useEffect(() => {
+        const checkSwipeOnboarding = async () => {
             try {
-                const hasVisited = await AsyncStorage.getItem('hasVisitedCommunity');
-                if (!hasVisited) {
+                const hasSeen = await AsyncStorage.getItem('hasSeenSwipeOnboarding');
+                if (!hasSeen) {
+                    setTimeout(() => {
+                        setIsSwipeOnboardingVisible(true);
+                    }, 1200);
+                }
+            } catch (error) {
+                console.error("Error reading swipe onboarding status", error);
+            }
+        };
+        checkSwipeOnboarding();
+    }, []);
+
+    const dismissSwipeOnboarding = async () => {
+        setIsSwipeOnboardingVisible(false);
+        try {
+            await AsyncStorage.setItem('hasSeenSwipeOnboarding', 'true');
+        } catch {}
+    };
+
+    useEffect(() => {
+        const checkRulesVisit = async () => {
+            try {
+                const lastShown = await AsyncStorage.getItem('lastCommunityRulesShownTimestamp');
+                const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+                const now = Date.now();
+                if (!lastShown || (now - Number(lastShown)) >= SEVEN_DAYS_MS) {
                     setTimeout(() => {
                         setIsRulesModalVisible(true);
                     }, 500);
-                    await AsyncStorage.setItem('hasVisitedCommunity', 'true');
+                    await AsyncStorage.setItem('lastCommunityRulesShownTimestamp', now.toString());
                 }
             } catch (error) {
-                console.error("Error reading first visit status", error);
+                console.error("Error reading rules visit status", error);
             }
         };
-        checkFirstVisit();
+        checkRulesVisit();
     }, []);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
@@ -124,6 +178,32 @@ export default function ForumScreen() {
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
     const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
+    const [reportConfirmState, setReportConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
+    const [translatedPosts, setTranslatedPosts] = useState<Record<string, { text: string; isTranslated: boolean; loading: boolean }>>({});
+
+    const handleToggleTranslation = async (postId: string, text: string) => {
+        const current = translatedPosts[postId];
+        if (current?.isTranslated) {
+            setTranslatedPosts(prev => ({
+                ...prev,
+                [postId]: { ...prev[postId], isTranslated: false }
+            }));
+            return;
+        }
+
+        setTranslatedPosts(prev => ({
+            ...prev,
+            [postId]: { text: current?.text || '', isTranslated: false, loading: true }
+        }));
+
+        const targetLang = i18n.language.startsWith('tr') ? 'en' : 'tr';
+        const translated = await translateText(text, targetLang);
+
+        setTranslatedPosts(prev => ({
+            ...prev,
+            [postId]: { text: translated, isTranslated: true, loading: false }
+        }));
+    };
     const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
     const [inviteContactInput, setInviteContactInput] = useState('');
 
@@ -209,30 +289,72 @@ export default function ForumScreen() {
             );
             return;
         }
+
+        const prevOptId = votedPolls[postId] || (targetPost as any)?.votedOptionId || (targetPost as any)?.userVotedOptionId;
+        if (prevOptId === optionId) return;
+
+        // 1. Optimistic VotedPolls state update
         setVotedPolls(prev => {
             const next = { ...prev, [postId]: optionId };
             AsyncStorage.setItem('user_voted_polls', JSON.stringify(next)).catch(() => {});
             return next;
         });
+
+        // 2. Optimistic Post Options & Vote Count update (Instant 0ms UI transition)
+        const updateOptimisticPost = (p: PostDto): PostDto => {
+            if (p.id !== postId) return p;
+            const pollOpts = p.pollOptions || (p as any).options || (p as any).poll_options;
+            if (!pollOpts) return p;
+
+            const newOpts = pollOpts.map((opt: any) => {
+                let count = Number(opt.voteCount || opt.votes || opt.count || 0);
+                if (prevOptId && String(opt.id) === String(prevOptId)) {
+                    count = Math.max(0, count - 1);
+                }
+                if (String(opt.id) === String(optionId)) {
+                    count = count + 1;
+                }
+                return { 
+                    ...opt, 
+                    voteCount: count, 
+                    votes: count, 
+                    isVoted: String(opt.id) === String(optionId), 
+                    voted: String(opt.id) === String(optionId) 
+                };
+            });
+
+            const totalVotes = newOpts.reduce((sum: number, opt: any) => sum + opt.voteCount, 0);
+            const calculatedOpts = newOpts.map((opt: any) => ({
+                ...opt,
+                percentage: totalVotes > 0 ? Math.round((opt.voteCount / totalVotes) * 100) : 0
+            }));
+
+            return {
+                ...p,
+                pollOptions: calculatedOpts,
+                options: calculatedOpts,
+                votedOptionId: optionId,
+                userVotedOptionId: optionId,
+            } as any;
+        };
+
+        setPosts(prevPosts => prevPosts.map(updateOptimisticPost));
+        if (selectedPost && selectedPost.id === postId) {
+            setSelectedPost((prev: PostDto | null) => prev ? updateOptimisticPost(prev) : null);
+        }
+
+        // 3. Background API sync
         try {
             const updatedPost = await forumApi.voteOnPoll(postId, optionId);
             if (updatedPost) {
-                // Ensure the voted option is marked as voted immediately
-                if (updatedPost.pollOptions) {
-                    updatedPost.pollOptions = updatedPost.pollOptions.map(opt => 
-                        opt.id === optionId ? { ...opt, isVoted: true, voted: true } : { ...opt, isVoted: false, voted: false }
-                    );
-                }
-                // Update main list
-                setPosts(posts.map(p => p.id === postId ? updatedPost : p));
-                // Update detail view if open
+                const finalPost = updateOptimisticPost(updatedPost);
+                setPosts(prevPosts => prevPosts.map(p => p.id === postId ? finalPost : p));
                 if (selectedPost && selectedPost.id === postId) {
-                    setSelectedPost(updatedPost);
+                    setSelectedPost(finalPost);
                 }
             }
         } catch (error) {
             console.error('Failed to vote:', error);
-            Alert.alert('Error', 'Anket oylaması başarısız oldu.');
         }
     };
 
@@ -366,6 +488,47 @@ export default function ForumScreen() {
             color: '#64748B',
             icon: null
         };
+    };
+
+    const getUserAvatarColor = (userId?: string | null, userName?: string | null, isAnonymous?: boolean) => {
+        if (isAnonymous) return '#64748B';
+        const name = (userName || '').trim().toLowerCase();
+        if (name === 'anonim' || name === 'anonymous' || name === 'gizli kullanıcı' || name === 'gizli kullanici') {
+            return '#64748B'; // Slate Gray for Anonymous
+        }
+        const seed = (userId || userName || 'user').toString();
+        const AVATAR_PALETTE = [
+            '#3B82F6', // Royal Blue
+            '#10B981', // Emerald Green
+            '#8B5CF6', // Purple
+            '#F59E0B', // Amber Gold
+            '#EC4899', // Hot Pink
+            '#06B6D4', // Cyan
+            '#EF4444', // Red
+            '#6366F1', // Indigo
+            '#14B8A6', // Teal
+            '#F97316', // Vibrant Orange
+            '#D946EF', // Fuchsia
+            '#84CC16', // Lime Green
+            '#FB7185', // Coral Rose
+            '#0284C7', // Deep Sky Blue
+            '#A855F7', // Bright Violet
+            '#F43F5E', // Rose Red
+            '#0EA5E9', // Electric Blue
+            '#EAB308', // Golden Yellow
+            '#059669', // Dark Emerald
+            '#7C3AED', // Deep Purple
+            '#D97706', // Dark Amber
+            '#2563EB', // Sapphire Blue
+            '#C084FC', // Soft Purple
+            '#38BDF8', // Soft Sky Blue
+        ];
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % AVATAR_PALETTE.length;
+        return AVATAR_PALETTE[index];
     };
 
     const getTagColor = (userType?: UserType | string) => {
@@ -558,7 +721,7 @@ export default function ForumScreen() {
                     anonymous: isAnonymous,
                     pollOptions: filterOpts,
                     imageUrl: imageUrl,
-                    pollDurationHours: newPostType === 'poll' ? pollDurationHours : undefined,
+                    pollDurationHours: (newPostType === 'poll' && pollDurationHours > 0) ? pollDurationHours : undefined,
                 };
 
                 const createdPost = await forumApi.createPost(createReq);
@@ -693,45 +856,21 @@ export default function ForumScreen() {
         }
     };
 
-    const handleReport = (id: string) => {
-        const performReport = async () => {
-            try {
-                await forumApi.reportPost(id, "User reported via mobile app");
-                setTimeout(() => {
-                    Alert.alert(t('common.success', { defaultValue: 'Başarılı' }), t('forum.reportSuccess', { defaultValue: 'Şikayetiniz alındı. Teşekkürler.' }));
-                }, 300);
-            } catch (error: any) {
-                setTimeout(() => {
-                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Şikayet edilirken bir sorun oluştu.');
-                }, 300);
-            }
-        };
-
-        if (Platform.OS === 'ios') {
-            ActionSheetIOS.showActionSheetWithOptions(
-                {
-                    options: [t('common.cancel', { defaultValue: 'İptal' }), t('common.report', { defaultValue: 'Bildir' })],
-                    destructiveButtonIndex: 1,
-                    cancelButtonIndex: 0,
-                    title: t('forum.reportTitle', { defaultValue: 'Gönderiyi Bildir' }),
-                    message: t('forum.reportDesc', { defaultValue: 'Bu gönderiyi şikayet etmek istediğinize emin misiniz?' })
-                },
-                (buttonIndex) => {
-                    if (buttonIndex === 1) {
-                        performReport();
-                    }
-                }
-            );
-        } else {
-            Alert.alert(
-                t('forum.reportTitle', { defaultValue: 'Gönderiyi Bildir' }),
-                t('forum.reportDesc', { defaultValue: 'Bu gönderiyi şikayet etmek istediğinize emin misiniz?' }),
-                [
-                    { text: t('common.cancel', { defaultValue: 'İptal' }), style: 'cancel' },
-                    { text: t('common.report', { defaultValue: 'Bildir' }), style: 'destructive', onPress: performReport }
-                ]
-            );
+    const performReport = async (id: string) => {
+        try {
+            await forumApi.reportPost(id, "User reported via mobile app");
+            setTimeout(() => {
+                Alert.alert(t('common.success', { defaultValue: 'Başarılı' }), t('forum.reportSuccess', { defaultValue: 'Şikayetiniz alındı. Teşekkürler.' }));
+            }, 300);
+        } catch (error: any) {
+            setTimeout(() => {
+                Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Şikayet edilirken bir sorun oluştu.');
+            }, 300);
         }
+    };
+
+    const handleReport = (id: string) => {
+        setReportConfirmState({ visible: true, id });
     };
 
     const isPollEnded = (pollEndsAt?: string): boolean => {
@@ -740,15 +879,16 @@ export default function ForumScreen() {
     };
 
     const getPollCountdown = (pollEndsAt?: string): string | null => {
-        if (!pollEndsAt) return null;
-        const diff = new Date(pollEndsAt).getTime() - Date.now();
         const isEn = i18n.language.startsWith('en');
+        if (!pollEndsAt) return isEn ? 'Unlimited' : 'Süresiz';
+        const diff = new Date(pollEndsAt).getTime() - Date.now();
         if (diff <= 0) return isEn ? 'Poll Ended' : 'Anket Sona Erdi';
         const totalMinutes = Math.floor(diff / 60000);
         if (totalMinutes < 60) return isEn ? `${totalMinutes}m left` : `${totalMinutes} dk kaldı`;
         const hours = Math.floor(diff / 3600000);
         if (hours < 24) return isEn ? `${hours}h left` : `${hours} saat kaldı`;
         const days = Math.floor(hours / 24);
+        if (days > 365) return isEn ? 'Unlimited' : 'Süresiz';
         return isEn ? `${days}d left` : `${days} gün kaldı`;
     };
 
@@ -762,18 +902,27 @@ export default function ForumScreen() {
         const roleName = roleInfo.name;
 
         const renderRightActions = (progress: any, dragX: any, swipeable?: any) => {
-            if (item.authorId !== user?.id) return null;
-
             return (
                 <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                    <TouchableOpacity 
-                        style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
-                        activeOpacity={0.7}
-                        onPress={() => { swipeable?.close(); handleDeletePost(item.id); }}
-                    >
-                        <IconSymbol name="trash.fill" size={24} color="#FFF" />
-                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                    </TouchableOpacity>
+                    {isMyPost ? (
+                        <TouchableOpacity 
+                            style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
+                            activeOpacity={0.7}
+                            onPress={() => { swipeable?.close(); handleDeletePost(item.id); }}
+                        >
+                            <IconSymbol name="trash.fill" size={22} color="#FFF" />
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity 
+                            style={{ height: '100%', backgroundColor: '#F59E0B', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
+                            activeOpacity={0.7}
+                            onPress={() => { swipeable?.close(); handleReport(item.id); }}
+                        >
+                            <IconSymbol name="exclamationmark.triangle.fill" size={22} color="#FFF" />
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>Report</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             );
         };
@@ -798,7 +947,13 @@ export default function ForumScreen() {
                 >
                     <View style={styles.bubbleHeader}>
                         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                            <Text style={[styles.authorName, { color: isMyPost ? (isDark ? '#60A5FA' : '#2563EB') : tagColor }]}>~ {authorName}</Text>
+                            {(() => {
+                                const isAnon = Boolean((item as any).isAnonymous || (item as any).anonymous || authorName?.toLowerCase() === 'anonim' || authorName?.toLowerCase() === 'anonymous');
+                                const postAuthorColor = isAnon ? '#64748B' : (isMyPost ? (isDark ? '#60A5FA' : '#2563EB') : getUserAvatarColor(item.authorId || item.authorName, item.authorName, isAnon));
+                                return (
+                                    <Text style={[styles.authorName, { color: postAuthorColor }]}>~ {authorName}</Text>
+                                );
+                            })()}
                             <View style={[styles.roleBadge, { backgroundColor: roleInfo.color + '15', borderColor: roleInfo.color + '30' }]}>
                                 {roleInfo.icon ? (
                                     <IconSymbol name={roleInfo.icon as any} size={10} color={roleInfo.color} />
@@ -819,7 +974,29 @@ export default function ForumScreen() {
                     </View>
 
                     <View style={styles.postCardBody}>
-                        <Text style={[styles.contentText, isDark && { color: '#F8FAFC' }]}>{item.content}</Text>
+                        <Text style={[styles.contentText, isDark && { color: '#F8FAFC' }]}>
+                            {translatedPosts[item.id]?.isTranslated ? translatedPosts[item.id].text : item.content}
+                        </Text>
+                        {item.content && item.content.trim().length > 3 && (
+                            <TouchableOpacity 
+                                onPress={() => handleToggleTranslation(item.id, item.content)}
+                                style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, marginBottom: 4, alignSelf: 'flex-start' }}
+                                activeOpacity={0.7}
+                            >
+                                {translatedPosts[item.id]?.loading ? (
+                                    <ActivityIndicator size="small" color="#3B82F6" />
+                                ) : (
+                                    <>
+                                        <IconSymbol name="globe" size={13} color="#3B82F6" />
+                                        <Text style={{ fontSize: 12, color: '#3B82F6', fontWeight: '700' }}>
+                                            {translatedPosts[item.id]?.isTranslated 
+                                                ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör') 
+                                                : (i18n.language.startsWith('en') ? 'Translate to English' : 'İngilizceye Çevir')}
+                                        </Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        )}
                         {(() => {
                             const isPoll = (item.postType as any) === PostType.POLL || (item.postType as any) === 'POLL' || String(item.postType)?.toUpperCase() === 'POLL';
                             const pollOpts = item.pollOptions || (item as any).options || (item as any).poll_options;
@@ -832,11 +1009,16 @@ export default function ForumScreen() {
                             return (
                                 <View style={styles.renderedPollContainer}>
                                     {pollOpts.map((option: any, optIdx: number) => {
-                                        const isOptionVoted = option.isVoted || option.voted || option.is_voted || 
-                                             (item as any).userVotedOptionId === option.id || (item as any).votedOptionId === option.id || 
-                                             (item as any).voted_option_id === option.id || votedPolls[item.id] === option.id;
+                                        const optVotes = Number(option.voteCount || option.votes || option.count || 0);
+                                        const userVotedId = votedPolls[item.id] || (item as any).votedOptionId || (item as any).voted_option_id || (item as any).userVotedOptionId;
+                                        const isOptionVoted = Boolean(
+                                            optVotes > 0 &&
+                                            (userVotedId 
+                                                ? (option.id && String(option.id) === String(userVotedId))
+                                                : (option.isVoted || option.voted || option.is_voted || option.selected))
+                                        );
                                         const optText = option.text || option.optionText || option.title || '';
-                                        const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
+                                        const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0);
                                         return (
                                         <TouchableOpacity
                                             key={option.id || `opt-${optIdx}`}
@@ -864,8 +1046,8 @@ export default function ForumScreen() {
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                                         <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
                                             {i18n.language.startsWith('en') 
-                                                ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
-                                                : `Toplam ${totalVotes} oy`}
+                                                ? `Total vote: ${totalVotes}` 
+                                                : `Toplam oy: ${totalVotes}`}
                                         </Text>
                                         {countdown && (
                                             <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge, { marginTop: 0 }]}>
@@ -935,9 +1117,18 @@ export default function ForumScreen() {
                 <View style={styles.headerTitles}>
                     <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.community')}</Text>
                 </View>
-                <TouchableOpacity onPress={handleInviteFriends} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-                    <IconSymbol name="person.badge.plus" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <TouchableOpacity 
+                        onPress={() => setIsSwipeOnboardingVisible(true)} 
+                        style={{ width: 38, height: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: isDark ? '#1E293B' : '#EFF6FF', borderRadius: 19, borderWidth: 1, borderColor: '#3B82F640' }}
+                        activeOpacity={0.7}
+                    >
+                        <IconSymbol name="hand.point.left.fill" size={18} color="#3B82F6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleInviteFriends} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                        <IconSymbol name="person.badge.plus" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+                    </TouchableOpacity>
+                </View>
             </View>
             {!isLoggedIn ? (
                 <View style={[{ flex: 1, justifyContent: 'center', paddingHorizontal: 20 }, isDark && { backgroundColor: '#000000' }]}>
@@ -1155,7 +1346,9 @@ export default function ForumScreen() {
                         {newPostType !== 'poll' && ENABLE_PHOTO_UPLOAD && (
                             <View style={styles.formSection}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>FOTOĞRAFLAR</Text>
+                                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>
+                                        {i18n.language.startsWith('en') ? 'PHOTOS' : 'FOTOĞRAFLAR'}
+                                    </Text>
                                     <Text style={{ fontSize: 12, fontWeight: '700', color: selectedImages.length >= 3 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
                                         {selectedImages.length}/3
                                     </Text>
@@ -1229,7 +1422,9 @@ export default function ForumScreen() {
                                         style={{ marginTop: 10, alignSelf: 'flex-start', paddingVertical: 5 }}
                                         onPress={() => setPollOptions([...pollOptions, ''])}
                                     >
-                                        <Text style={{ color: '#3B82F6', fontWeight: '700', fontSize: 15 }}>+ Yeni Seçenek Ekle</Text>
+                                        <Text style={{ color: '#3B82F6', fontWeight: '700', fontSize: 15 }}>
+                                            {i18n.language.startsWith('en') ? '+ Add Option' : '+ Yeni Seçenek Ekle'}
+                                        </Text>
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -1237,9 +1432,10 @@ export default function ForumScreen() {
                                 <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.pollDuration')}</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
                                     {[
-                                        { value: 24, label: '1 Gün' },
-                                        { value: 72, label: '3 Gün' },
-                                        { value: 168, label: '7 Gün' },
+                                        { value: 24, label: i18n.language.startsWith('en') ? '1 Day' : '1 Gün' },
+                                        { value: 72, label: i18n.language.startsWith('en') ? '3 Days' : '3 Gün' },
+                                        { value: 168, label: i18n.language.startsWith('en') ? '7 Days' : '7 Gün' },
+                                        { value: 0, label: i18n.language.startsWith('en') ? 'Unlimited' : 'Süresiz' },
                                     ].map(opt => (
                                         <TouchableOpacity
                                             key={opt.value}
@@ -1321,43 +1517,94 @@ export default function ForumScreen() {
                                 <View style={[styles.detailPostContainer, isDark && { backgroundColor: '#000000', borderBottomColor: '#1F2937' }]}>
                                     <View style={styles.postCardHeader}>
                                         <View style={styles.postAuthorInfo}>
-                                            <LinearGradient 
-                                                colors={[getTagColor(selectedPost.authorUserType), getTagColor(selectedPost.authorUserType) + '80']} 
-                                                style={styles.avatar}
-                                            >
-                                                <IconSymbol name="person.fill" size={24} color="#fff" />
-                                            </LinearGradient>
-                                            <View style={{ flex: 1 }}>
-                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                                    <Text style={[styles.authorName, selectedPost.authorId === user?.id && { color: isDark ? '#60A5FA' : '#2563EB' }, selectedPost.authorId !== user?.id && isDark && { color: '#FFFFFF' }]}>
-                                                        ~ {selectedPost.authorId === user?.id 
-                                                            ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
-                                                            : (selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' }))}
-                                                    </Text>
-                                                    <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
-                                                        {getRoleInfo(selectedPost.authorUserType).icon ? (
-                                                            <IconSymbol name={getRoleInfo(selectedPost.authorUserType).icon as any} size={10} color={getTagColor(selectedPost.authorUserType)} />
-                                                        ) : (
-                                                            <View style={[styles.roleDot, { backgroundColor: getTagColor(selectedPost.authorUserType) }]} />
-                                                        )}
-                                                        <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>
-                                                            {getRoleInfo(selectedPost.authorUserType).name}
-                                                        </Text>
-                                                    </View>
-                                                </View>
-                                                <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{formatTime(selectedPost.createdAt)}</Text>
-                                            </View>
-                                            {selectedPost.authorId !== user?.id && (
-                                                <TouchableOpacity 
-                                                    style={[styles.reportIconButton, { alignSelf: 'center', marginLeft: 10 }]}
-                                                    onPress={() => handleReport(selectedPost.id)}
-                                                >
-                                                    <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#EF4444" />
-                                                </TouchableOpacity>
-                                            )}
+                                             {(() => {
+                                                 const isDetailAnon = Boolean((selectedPost as any).isAnonymous || (selectedPost as any).anonymous || selectedPost.authorName?.toLowerCase() === 'anonim' || selectedPost.authorName?.toLowerCase() === 'anonymous');
+                                                 const detailAuthorColor = isDetailAnon ? '#64748B' : (selectedPost.authorId === user?.id 
+                                                     ? (isDark ? '#60A5FA' : '#2563EB')
+                                                     : getUserAvatarColor(selectedPost.authorId || (selectedPost as any).author?.id || selectedPost.authorName, selectedPost.authorName, isDetailAnon));
+                                                 return (
+                                                     <>
+                                                         <LinearGradient 
+                                                             colors={[detailAuthorColor, detailAuthorColor + '80']} 
+                                                             style={styles.avatar}
+                                                         >
+                                                             <IconSymbol name="person.fill" size={24} color="#fff" />
+                                                         </LinearGradient>
+                                                         <View style={{ flex: 1 }}>
+                                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                                                 <Text style={[styles.authorName, { color: detailAuthorColor }]}>
+                                                                     ~ {selectedPost.authorId === user?.id 
+                                                                         ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
+                                                                         : (selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' }))}
+                                                                 </Text>
+                                                                 <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
+                                                                     {getRoleInfo(selectedPost.authorUserType).icon ? (
+                                                                         <IconSymbol name={getRoleInfo(selectedPost.authorUserType).icon as any} size={10} color={getTagColor(selectedPost.authorUserType)} />
+                                                                     ) : (
+                                                                         <View style={[styles.roleDot, { backgroundColor: getTagColor(selectedPost.authorUserType) }]} />
+                                                                     )}
+                                                                     <Text style={[styles.roleText, { color: getTagColor(selectedPost.authorUserType) }]}>
+                                                                         {getRoleInfo(selectedPost.authorUserType).name}
+                                                                     </Text>
+                                                                 </View>
+                                                             </View>
+                                                             <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{formatTime(selectedPost.createdAt)}</Text>
+                                                         </View>
+                                                     </>
+                                                 );
+                                             })()}
+                                            {(selectedPost.authorId === user?.id || (selectedPost as any).author?.id === user?.id) ? (
+                                                 <TouchableOpacity 
+                                                     style={[
+                                                         { alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4 },
+                                                         isDark 
+                                                             ? { backgroundColor: '#EF4444' } 
+                                                             : { backgroundColor: '#EF444415', borderWidth: 1, borderColor: '#EF444430' }
+                                                     ]}
+                                                     onPress={() => handleDeletePost(selectedPost.id)}
+                                                 >
+                                                     <IconSymbol name="trash.fill" size={14} color={isDark ? "#FFFFFF" : "#EF4444"} />
+                                                     <Text style={[{ fontSize: 12, fontWeight: '700' }, isDark ? { color: '#FFFFFF' } : { color: '#EF4444' }]}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                 </TouchableOpacity>
+                                             ) : (
+                                                 <TouchableOpacity 
+                                                     style={[
+                                                         { alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4 },
+                                                         isDark 
+                                                             ? { backgroundColor: '#D97706' } 
+                                                             : { backgroundColor: '#F59E0B15', borderWidth: 1, borderColor: '#F59E0B30' }
+                                                     ]}
+                                                     onPress={() => handleReport(selectedPost.id)}
+                                                 >
+                                                     <IconSymbol name="exclamationmark.triangle.fill" size={14} color={isDark ? "#FFFFFF" : "#F59E0B"} />
+                                                     <Text style={[{ fontSize: 12, fontWeight: '700' }, isDark ? { color: '#FFFFFF' } : { color: '#F59E0B' }]}>{t('common.report', { defaultValue: 'Report' })}</Text>
+                                                 </TouchableOpacity>
+                                             )}
                                         </View>
                                     </View>
-                                    <Text style={[styles.detailContentText, isDark && { color: '#F1F5F9' }]}>{selectedPost.content}</Text>
+                                    <Text style={[styles.detailContentText, isDark && { color: '#F1F5F9' }]}>
+                                        {translatedPosts[selectedPost.id]?.isTranslated ? translatedPosts[selectedPost.id].text : selectedPost.content}
+                                    </Text>
+                                    {selectedPost.content && selectedPost.content.trim().length > 3 && (
+                                        <TouchableOpacity 
+                                            onPress={() => handleToggleTranslation(selectedPost.id, selectedPost.content)}
+                                            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8, marginBottom: 8, alignSelf: 'flex-start' }}
+                                            activeOpacity={0.7}
+                                        >
+                                            {translatedPosts[selectedPost.id]?.loading ? (
+                                                <ActivityIndicator size="small" color="#3B82F6" />
+                                            ) : (
+                                                <>
+                                                    <IconSymbol name="globe" size={14} color="#3B82F6" />
+                                                    <Text style={{ fontSize: 13, color: '#3B82F6', fontWeight: '700' }}>
+                                                        {translatedPosts[selectedPost.id]?.isTranslated 
+                                                            ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör') 
+                                                            : 'Translate to English'}
+                                                    </Text>
+                                                </>
+                                            )}
+                                        </TouchableOpacity>
+                                    )}
                                     {(() => {
                                         const isPoll = (selectedPost.postType as any) === PostType.POLL || (selectedPost.postType as any) === 'POLL' || String(selectedPost.postType)?.toUpperCase() === 'POLL';
                                         const pollOpts = selectedPost.pollOptions || (selectedPost as any).options || (selectedPost as any).poll_options;
@@ -1370,9 +1617,10 @@ export default function ForumScreen() {
                                         return (
                                             <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
                                                 {pollOpts.map((option: any, optIdx: number) => {
-                                                    const isOptionVoted = option.isVoted || option.voted || option.is_voted || 
-                                                        (selectedPost as any).userVotedOptionId === option.id || (selectedPost as any).votedOptionId === option.id || 
-                                                        (selectedPost as any).voted_option_id === option.id || votedPolls[selectedPost.id] === option.id;
+                                                    const userVotedId = votedPolls[selectedPost.id] || (selectedPost as any).votedOptionId || (selectedPost as any).voted_option_id || (selectedPost as any).userVotedOptionId;
+                                                    const isOptionVoted = userVotedId 
+                                                        ? Boolean(option.id && String(option.id) === String(userVotedId))
+                                                        : Boolean(option.isVoted || option.voted || option.is_voted || option.selected);
                                                     const optText = option.text || option.optionText || option.title || '';
                                                     const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
                                                     return (
@@ -1402,8 +1650,8 @@ export default function ForumScreen() {
                                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                                                     <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
                                                         {i18n.language.startsWith('en') 
-                                                            ? `${totalVotes} ${totalVotes === 1 ? 'total vote' : 'total votes'}` 
-                                                            : `Toplam ${totalVotes} oy`}
+                                                            ? `Total vote: ${totalVotes}` 
+                                                            : `Toplam oy: ${totalVotes}`}
                                                     </Text>
                                                     {countdown && (
                                                         <View style={[styles.pollCountdownBadge, ended && styles.pollEndedBadge, { marginTop: 0 }]}>
@@ -1441,14 +1689,6 @@ export default function ForumScreen() {
                                                 </Text>
                                             </TouchableOpacity>
                                         </View>
-                                        {selectedPost.authorId === user?.id && (
-                                            <View style={{ flexDirection: 'row', gap: 8 }}>
-                                                <TouchableOpacity onPress={() => handleDeletePost(selectedPost.id)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EF4444', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
-                                                    <IconSymbol name="trash.fill" size={14} color="#FFFFFF" />
-                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        )}
                                     </View>
                                 </View>
                             )}
@@ -1470,7 +1710,7 @@ export default function ForumScreen() {
                                             <Swipeable renderRightActions={renderRightActions}>
                                                 <View style={{ backgroundColor: isDark ? '#000000' : '#FFF', paddingLeft: 4, borderLeftWidth: 2, borderLeftColor: isDark ? '#27272A' : '#F1F5F9' }}>
                                                     <View style={styles.replyHeader}>
-                                                        <View style={[styles.replyAvatar, { backgroundColor: getTagColor(reply.authorUserType) }]}>
+                                                        <View style={[styles.replyAvatar, { backgroundColor: getUserAvatarColor(reply.authorId || reply.authorName, reply.authorName) }]}>
                                                             <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>
                                                                 {(reply.authorName || '?').charAt(0).toUpperCase()}
                                                             </Text>
@@ -1529,30 +1769,8 @@ export default function ForumScreen() {
                             <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
                         </TouchableOpacity>
                     </View>
-                    {deleteConfirmState.visible && (
-                        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 9999, elevation: 9999 }]}>
-                            <View style={[{ width: '85%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
-                                <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A1A' }]}>
-                                    <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#EF4444" />
-                                </View>
-                                <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Sil</Text>
-                                <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Silmek istediğinize emin misiniz?</Text>
-                                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                                    <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                        <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => {
-                                        const id = deleteConfirmState.id;
-                                        setDeleteConfirmState({ visible: false, id: null });
-                                        if (id) performDelete(id);
-                                    }} style={{ flex: 1, backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 16 }}>
-                                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Sil</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                    )}
                     </KeyboardAvoidingView>
+
                 </View>
             </Modal>
             <Modal
@@ -1753,7 +1971,7 @@ export default function ForumScreen() {
                             {i18n.language.startsWith('en') ? (
                                 <>
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Respect & Courtesy</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Always be respectful and polite to community members. Insults, profanity, hate speech, or discriminatory language are strictly prohibited. AdaPlus is not responsible for any grievances that may occur.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Always be respectful and polite to community members. Insults, profanity, hate speech, or discriminatory language are strictly prohibited. Individuals are responsible for their own posts. AdaPlus is not responsible for any grievances that may occur.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam & Advertising</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Posting irrelevant, repetitive messages or unauthorized commercial advertising is prohibited. Please only share relevant topics.</Text>
@@ -1770,7 +1988,7 @@ export default function ForumScreen() {
                             ) : (
                                 <>
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır. Oluşabilecek mağduriyetlerden AdaPlus sorumlu değildir.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır. Kişiler paylaşımlarından sorumludur. Oluşabilecek mağduriyetlerden AdaPlus sorumlu değildir.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam ve Reklam</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>İlgisiz, tekrarlayan mesajlar atmak veya ticari amaçlı izinsiz reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
@@ -1787,6 +2005,125 @@ export default function ForumScreen() {
                             )}
                         </View>
                     </ScrollView>
+                </View>
+            </Modal>
+
+            {/* Swipe Onboarding Modal */}
+            <Modal
+                visible={isSwipeOnboardingVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={dismissSwipeOnboarding}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                    <View style={[{ width: '100%', maxWidth: 360, backgroundColor: '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 10 }, isDark && { backgroundColor: '#18181B', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                        
+                        {/* Icon */}
+                        <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
+                            <IconSymbol name="hand.point.left.fill" size={32} color="#3B82F6" />
+                        </View>
+
+                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 8 }, isDark && { color: '#F8FAFC' }]}>
+                            {i18n.language.startsWith('en') ? 'Swipe for Actions' : 'Gönderileri Sola Kaydırın'}
+                        </Text>
+                        
+                        <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }, isDark && { color: '#94A3B8' }]}>
+                            {i18n.language.startsWith('en') 
+                                ? 'Swipe any post to the left to quickly access delete and report actions.' 
+                                : 'Gönderilere sola kaydırma hareketi yaparak silme veya bildirme işlemlerini kolayca gerçekleştirebilirsiniz.'}
+                        </Text>
+
+                        {/* Interactive Swipe Preview Card with real continuous animation */}
+                        <View style={[{ width: '100%', height: 68, backgroundColor: '#F8FAFC', borderRadius: 16, marginBottom: 24, borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden', justifyContent: 'center' }, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]}>
+                            {/* Action Buttons Revealed underneath */}
+                            <View style={{ position: 'absolute', right: 0, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', height: '100%' }}>
+                                <View style={{ backgroundColor: '#EF4444', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
+                                    <IconSymbol name="trash.fill" size={16} color="#FFF" />
+                                </View>
+                                <View style={{ backgroundColor: '#F59E0B', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
+                                    <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#FFF" />
+                                </View>
+                            </View>
+
+                            {/* Sliding Front Card */}
+                            <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#FFFFFF', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', transform: [{ translateX: onboardingSwipeAnim }] }, isDark && { backgroundColor: '#1E1E24' }]}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                    <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#3B82F620', justifyContent: 'center', alignItems: 'center' }}>
+                                        <IconSymbol name="person.fill" size={18} color="#3B82F6" />
+                                    </View>
+                                    <View>
+                                        <Text style={[{ fontSize: 13, fontWeight: '700', color: '#1E293B' }, isDark && { color: '#F8FAFC' }]}>
+                                            {i18n.language.startsWith('en') ? 'Example Post' : 'Örnek Gönderi'}
+                                        </Text>
+                                        <Text style={{ fontSize: 11, color: '#94A3B8' }}>
+                                            {i18n.language.startsWith('en') ? 'Swipe left ←' : 'Sola kaydırın ←'}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <IconSymbol name="hand.point.left.fill" size={20} color="#3B82F6" />
+                            </Animated.View>
+                        </View>
+
+                        {/* Action Button */}
+                        <TouchableOpacity
+                            onPress={dismissSwipeOnboarding}
+                            style={{ width: '100%', backgroundColor: '#3B82F6', paddingVertical: 14, borderRadius: 16, alignItems: 'center', shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>
+                                {i18n.language.startsWith('en') ? 'Got It!' : 'Anladım'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Top-Level Transparent Confirm Modals */}
+            <Modal transparent visible={deleteConfirmState.visible} animationType="fade" onRequestClose={() => setDeleteConfirmState({ visible: false, id: null })}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                        <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A1A' }]}>
+                            <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#EF4444" />
+                        </View>
+                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Sil</Text>
+                        <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Silmek istediğinize emin misiniz?</Text>
+                        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                            <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => {
+                                const id = deleteConfirmState.id;
+                                setDeleteConfirmState({ visible: false, id: null });
+                                if (id) performDelete(id);
+                            }} style={{ flex: 1, backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 16 }}>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Sil</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal transparent visible={reportConfirmState.visible} animationType="fade" onRequestClose={() => setReportConfirmState({ visible: false, id: null })}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                        <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF3C7', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A03' }]}>
+                            <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#F59E0B" />
+                        </View>
+                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Report</Text>
+                        <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Bu gönderiyi şikayet etmek istediğinize emin misiniz?</Text>
+                        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                            <TouchableOpacity onPress={() => setReportConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => {
+                                const id = reportConfirmState.id;
+                                setReportConfirmState({ visible: false, id: null });
+                                if (id) performReport(id);
+                            }} style={{ flex: 1, backgroundColor: '#F59E0B', paddingVertical: 14, borderRadius: 16 }}>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Report</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             </Modal>
         </View>

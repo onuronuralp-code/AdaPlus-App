@@ -233,7 +233,7 @@ export const voteOnPoll = async (
   optionId: string,
 ): Promise<PostDto | null> => {
   try {
-    const response = await fetchWithAuth(
+    let response = await fetchWithAuth(
       `${FORUM_API_BASE}/polls/${pollId}/vote`,
       {
         method: "POST",
@@ -241,7 +241,36 @@ export const voteOnPoll = async (
         body: JSON.stringify({ optionId }),
       },
     );
-    return await response.json();
+    if (!response.ok) {
+      response = await fetchWithAuth(
+        `${FORUM_API_BASE}/posts/${pollId}/vote`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ optionId }),
+        },
+      );
+    }
+    if (!response.ok) {
+      response = await fetchWithAuth(
+        `${FORUM_API_BASE}/polls/options/${optionId}/vote`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+    if (!response.ok) {
+      response = await fetchWithAuth(
+        `${FORUM_API_BASE}/posts/polls/${pollId}/options/${optionId}/vote`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+    if (!response.ok) return null;
+    return await response.json().catch(() => null);
   } catch (error) {
     console.log("Failed to vote on poll:", error);
     return null;

@@ -1,21 +1,31 @@
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Platform, NativeModules } from 'react-native';
 import { API_BASE_URL } from './config';
 import { getToken } from '@/utils/tokenStorage';
 
-let Notifications: any = null;
-try {
-  // expo-notifications crashes in Expo Go on Android SDK 53+ — skip it there.
-  // iOS (Expo Go and standalone builds) works fine.
-  if (Platform.OS !== 'android') {
-    Notifications = require('expo-notifications');
+function getNotificationsModule() {
+  try {
+    // Expo Go does not include legacy PushNotificationIOS / RCTPushNotificationManager native modules.
+    // Requiring expo-notifications in Expo Go or simulator without native build throws an Invariant Violation.
+    const isExpoGo =
+      Constants.appOwnership === 'expo' ||
+      (Constants as any).executionEnvironment === 'storeClient' ||
+      !!(Constants as any).expoVersion ||
+      !!(Constants as any).manifest ||
+      !NativeModules.PushNotificationManager;
+
+    if (isExpoGo) {
+      return null;
+    }
+    return require('expo-notifications');
+  } catch {
+    return null;
   }
-} catch (e) {
-  console.warn('[Notifications] expo-notifications not available:', e);
 }
 
 export async function registerForPushNotifications(): Promise<void> {
   try {
+    const Notifications = getNotificationsModule();
     if (!Notifications) return;
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
@@ -28,8 +38,6 @@ export async function registerForPushNotifications(): Promise<void> {
       return;
     }
 
-    // getExpoPushTokenAsync returns an "ExponentPushToken[...]" that works in
-    // Expo Go on both iOS and Android. Expo's servers handle APNs/FCM delivery.
     const projectId =
       Constants.expoConfig?.extra?.eas?.projectId ?? 'f842f1f6-7573-43a1-a1a9-58b9e270eff6';
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
@@ -51,13 +59,13 @@ export async function registerForPushNotifications(): Promise<void> {
       console.warn('[Notifications] Token registration failed:', res.status);
     }
   } catch (error) {
-    // Expected on iOS Simulator — push notifications are not supported there
     console.log('[Notifications] Could not register push token:', error);
   }
 }
 
 export async function unregisterPushNotifications(): Promise<void> {
   try {
+    const Notifications = getNotificationsModule();
     if (!Notifications) return;
     const projectId =
       Constants.expoConfig?.extra?.eas?.projectId ?? 'f842f1f6-7573-43a1-a1a9-58b9e270eff6';

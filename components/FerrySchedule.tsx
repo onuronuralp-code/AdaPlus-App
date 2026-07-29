@@ -235,15 +235,11 @@ export function FerrySchedule() {
             const fav = await AsyncStorage.getItem('favorite_route');
             if (fav) {
               const parsed = JSON.parse(fav);
-              setDeparture(parsed.departure);
-              setDestination(parsed.destination);
+              setDeparture(parsed.departure || "Unselected");
+              setDestination(parsed.destination || "Unselected");
             } else {
-              const defIsland = await AsyncStorage.getItem('defaultIsland');
-              if (defIsland && ISLANDS.includes(defIsland)) {
-                setDestination(defIsland);
-              } else {
-                setDestination('Büyükada');
-              }
+              setDeparture("Unselected");
+              setDestination("Unselected");
             }
           } catch (e) {
             console.error("Failed to load initial island route", e);
@@ -287,7 +283,15 @@ export function FerrySchedule() {
   }, [departure, destination]);
 
   const handleToggleFavorite = async () => {
-    if (departure === "Unselected" || destination === "Unselected") return;
+    if (departure === "Unselected" || destination === "Unselected") {
+      Alert.alert(
+        i18n.language === 'tr' ? 'Favori Rota' : 'Favorite Route',
+        i18n.language === 'tr' 
+          ? 'Rotayı favorilere eklemek için lütfen kalkış ve varış noktalarını seçiniz.' 
+          : 'Please select both departure and destination to add this route to favorites.'
+      );
+      return;
+    }
     try {
       if (isFavorite) {
         await AsyncStorage.removeItem('favorite_route');
@@ -468,15 +472,13 @@ export function FerrySchedule() {
         </View>
 
         <View style={[styles.largeRouteCard, isDark && { backgroundColor: '#121212', borderColor: '#222222' }]}>
-          {departure !== "Unselected" && destination !== "Unselected" && (
-            <TouchableOpacity 
-              onPress={handleToggleFavorite} 
-              activeOpacity={0.7}
-              style={{ position: 'absolute', top: 12, right: 16, zIndex: 10, padding: 8 }}
-            >
-              <IconSymbol name={isFavorite ? "star.fill" : "star"} size={22} color={isFavorite ? "#EAB308" : "#94A3B8"} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity 
+            onPress={handleToggleFavorite} 
+            activeOpacity={0.7}
+            style={{ position: 'absolute', top: 12, right: 16, zIndex: 10, padding: 8 }}
+          >
+            <IconSymbol name={isFavorite ? "star.fill" : "star"} size={22} color={isFavorite ? "#EAB308" : (isDark ? "#64748B" : "#94A3B8")} />
+          </TouchableOpacity>
           <View style={styles.routeRow}>
             <View style={styles.routeCol}>
               <Text style={[styles.largeLabel, isDark && { color: '#94A3B8' }]}>{t("common.from")}</Text>
@@ -1264,15 +1266,15 @@ function TripDetailPopup({
 
       const timeUntilDeparture = departureDate.getTime() - Date.now();
 
-      // Check if departure is less than 30 minutes away
-      if (timeUntilDeparture < 30 * 60 * 1000) {
+      // Check if departure is less than 15 minutes away
+      if (timeUntilDeparture < 15 * 60 * 1000) {
         onClose();
         setTimeout(() => {
           Alert.alert(
             i18n.language === "tr" ? "Yetersiz Süre" : "Not Enough Time",
             i18n.language === "tr"
-              ? "Seferin kalkmasına 30 dakikadan az kaldığı için hatırlatıcı ayarlanamaz."
-              : "A reminder cannot be set because there is less than 30 minutes left until departure."
+              ? "Seferin kalkmasına 15 dakikadan az kaldığı için hatırlatıcı ayarlanamaz."
+              : "A reminder cannot be set because there is less than 15 minutes left until departure."
           );
         }, 400);
         return;

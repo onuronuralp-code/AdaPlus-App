@@ -119,8 +119,13 @@ export const authApi = {
         body: JSON.stringify({ ...contactField, password }),
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || data.error || i18n.t('errors.loginFailed'));
+      if (!response.ok) {
+        let msg = data.message || data.error || i18n.t('errors.loginFailed');
+        if (typeof msg === 'string' && (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('invalid'))) {
+          msg = i18n.t('auth.invalidCredentials', { defaultValue: 'Geçersiz e-posta/telefon veya şifre.' });
+        }
+        throw new Error(msg);
+      }
       return data;
     } catch (error) {
       return wrapNetworkError(error);
@@ -152,13 +157,14 @@ export const authApi = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: sanitizeContact(email) }),
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          data.message ||
-            data.error ||
-            i18n.t('errors.forgotPasswordFailed'),
-        );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.error || data.success === false || data.userNotFound || data.exists === false || data.userExists === false) {
+        let msg = data.message || data.error || i18n.t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' });
+        if (typeof msg === 'string' && (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('bulunamadı') || msg.toLowerCase().includes('user') || msg.toLowerCase().includes('exist') || response.status === 404 || response.status === 400)) {
+          msg = i18n.t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' });
+        }
+        throw new Error(msg);
+      }
       return data;
     } catch (error) {
       return wrapNetworkError(error);
@@ -245,13 +251,16 @@ export const authApi = {
     }
   },
 
-  updateProfile: async (fullName: string, address: string): Promise<UserProfile | null> => {
+  updateProfile: async (fullName: string, address: string, email?: string, phone?: string): Promise<UserProfile | null> => {
     try {
       const token = getToken();
+      const body: any = { fullName, address };
+      if (email) body.email = email;
+      if (phone) body.phone = phone;
       const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ fullName, address }),
+        body: JSON.stringify(body),
       });
       if (!response.ok) return null;
       return response.json();

@@ -58,7 +58,7 @@ export default function SplashScreen() {
         Animated.delay(2000),
         Animated.parallel([
           Animated.timing(logoTranslateY, {
-            toValue: 0,
+            toValue: -30,
             duration: 900,
             useNativeDriver: true,
             easing: Easing.out(Easing.cubic)
@@ -82,11 +82,11 @@ export default function SplashScreen() {
       <View style={styles.center}>
         <Animated.Image
           source={require("../assets/images/adaplus-logo.png")}
-          style={{ width: logoW, height: logoW, resizeMode: "contain", transform: [{ translateY: logoTranslateY }] }}
+          style={{ width: logoW, height: logoW, resizeMode: "contain", transform: [{ translateY: logoTranslateY }], marginTop: -20 }}
           accessibilityLabel="AdaPlus"
         />
 
-        <Animated.View style={{ marginTop: 30, alignItems: 'center', opacity: contentOpacity, width: '100%' }}>
+        <Animated.View style={{ marginTop: 16, alignItems: 'center', opacity: contentOpacity, width: '100%' }}>
           <Text style={{ fontSize: 28, fontFamily: "Poppins_800ExtraBold", color: NAVY, marginBottom: 6 }}>
             {i18n.language.startsWith('en') ? 'Welcome!' : 'Hoş Geldin!'}
           </Text>

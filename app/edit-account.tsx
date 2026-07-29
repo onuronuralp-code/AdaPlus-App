@@ -40,6 +40,7 @@ export default function EditAccountScreen() {
 
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
+    const [editPhone, setEditPhone] = useState('');
     const [editPassword, setEditPassword] = useState('');
     const [selectedStreet, setSelectedStreet] = useState('');
     const [buildingNo, setBuildingNo] = useState('');
@@ -58,6 +59,7 @@ export default function EditAccountScreen() {
         if (user) {
             setEditName(user.fullName ?? '');
             setEditEmail(user.email ?? '');
+            setEditPhone((user as any)?.phone ?? '');
             const existingAddress = (user as any)?.address ?? '';
             const islandStreets = userIsland ? (ISLAND_STREETS[userIsland] ?? []) : Object.values(ISLAND_STREETS).flat();
             const matchedStreet = islandStreets.find(s => existingAddress.startsWith(s));
@@ -101,7 +103,7 @@ export default function EditAccountScreen() {
                 ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
                 : buildingNo.trim();
 
-            const updated = await authApi.updateProfile(editName.trim(), address);
+            const updated = await authApi.updateProfile(editName.trim(), address, editEmail.trim(), editPhone.trim());
             if (!updated) {
                 Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to save profile.' : 'Profil kaydedilemedi.');
                 setIsSaving(false);
@@ -141,21 +143,38 @@ export default function EditAccountScreen() {
             <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 <View style={[styles.card, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }]}>
                     
-                    {/* Ad Soyad — read-only */}
+                    {/* Ad Soyad */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Full Name' : 'Ad Soyad'}</Text>
-                    <TextInput style={[styles.input, isDark && styles.darkInput, styles.inputReadOnly, isDark && styles.darkInputReadOnly]} value={editName} editable={false} />
+                    <TextInput 
+                        style={[styles.input, isDark && styles.darkInput]} 
+                        value={editName} 
+                        onChangeText={setEditName}
+                        placeholder={isEn ? 'Full Name' : 'Ad Soyad'}
+                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
+                    />
 
-                    {/* E-mail — read-only */}
+                    {/* E-mail */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>E-mail</Text>
-                    <TextInput style={[styles.input, isDark && styles.darkInput, styles.inputReadOnly, isDark && styles.darkInputReadOnly]} placeholder="E-mail" placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} value={editEmail} editable={false} />
+                    <TextInput 
+                        style={[styles.input, isDark && styles.darkInput]} 
+                        placeholder="E-mail" 
+                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} 
+                        value={editEmail} 
+                        onChangeText={setEditEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
 
-                    {/* Telefon — read-only if present */}
-                    {(user as any)?.phone ? (
-                        <>
-                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Phone' : 'Telefon'}</Text>
-                            <TextInput style={[styles.input, isDark && styles.darkInput, styles.inputReadOnly, isDark && styles.darkInputReadOnly]} placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} value={(user as any).phone} editable={false} />
-                        </>
-                    ) : null}
+                    {/* Telefon */}
+                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Phone' : 'Telefon'}</Text>
+                    <TextInput 
+                        style={[styles.input, isDark && styles.darkInput]} 
+                        placeholder={isEn ? 'Phone Number' : 'Telefon Numarası'} 
+                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} 
+                        value={editPhone} 
+                        onChangeText={setEditPhone}
+                        keyboardType="phone-pad"
+                    />
 
                     {/* Address Section */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Address' : 'Adres'}</Text>

@@ -80,20 +80,37 @@ const TodayOnIsland = () => {
     const fetchFerry = async () => {
       try {
         setFerryLoading(true);
-        let targetIsland = getNormalizedIsland((user as any)?.island);
-        const storedIsland = await AsyncStorage.getItem('selected_island');
-        if (storedIsland) {
-          targetIsland = getNormalizedIsland(storedIsland);
+        let targetIsland = "Büyükada";
+        const defIsland = await AsyncStorage.getItem('defaultIsland');
+        if (defIsland) {
+          targetIsland = getNormalizedIsland(defIsland);
+        } else if ((user as any)?.island) {
+          targetIsland = getNormalizedIsland((user as any)?.island);
+        } else {
+          const storedIsland = await AsyncStorage.getItem('selected_island');
+          if (storedIsland) {
+            targetIsland = getNormalizedIsland(storedIsland);
+          }
         }
+
+        const isIslandName = (name: string): boolean => {
+          const upper = name.toUpperCase();
+          return upper.includes("BUYUK") || upper.includes("BÜYÜK") ||
+                 upper.includes("HEYBELI") || upper.includes("HEYBELİ") ||
+                 upper.includes("BURGAZ") ||
+                 upper.includes("KINALI") || upper.includes("KİNALI");
+        };
 
         let mainPorts = ["Bostancı", "Kabataş", "Kadıköy"];
         const favRouteStr = await AsyncStorage.getItem('favorite_route');
         if (favRouteStr) {
           try {
             const fav = JSON.parse(favRouteStr);
-            if (fav.departure && fav.destination) {
+            if (fav.departure && fav.destination && isIslandName(fav.destination)) {
               mainPorts = [fav.departure, ...mainPorts.filter(p => p !== fav.departure)];
-              targetIsland = fav.destination;
+              if (!defIsland) {
+                targetIsland = getNormalizedIsland(fav.destination);
+              }
             }
           } catch {}
         }
@@ -113,19 +130,24 @@ const TodayOnIsland = () => {
         results.forEach((departures, idx) => {
           const portName = mainPorts[idx];
           departures.forEach(d => {
-            const timeVal = getRouteTimeValue(d.time);
-            let diff = timeVal - nowMinutes;
-            if (timeVal < 180 && nowMinutes > 180) {
-              diff = (timeVal + 1440) - nowMinutes;
-            }
-            if (diff >= 0) {
-              allUpcoming.push({
-                from: d.from || portName,
-                to: d.to || targetIsland,
-                time: d.time,
-                provider: d.provider,
-                diffMinutes: diff,
-              });
+            const dest = d.to || targetIsland;
+            const depFrom = d.from || portName;
+            // Only include routes that arrive at or depart from targetIsland
+            if (dest.toLowerCase().includes(targetIsland.toLowerCase()) || depFrom.toLowerCase().includes(targetIsland.toLowerCase())) {
+              const timeVal = getRouteTimeValue(d.time);
+              let diff = timeVal - nowMinutes;
+              if (timeVal < 180 && nowMinutes > 180) {
+                diff = (timeVal + 1440) - nowMinutes;
+              }
+              if (diff >= 0) {
+                allUpcoming.push({
+                  from: depFrom,
+                  to: dest,
+                  time: d.time,
+                  provider: d.provider,
+                  diffMinutes: diff,
+                });
+              }
             }
           });
         });
@@ -146,14 +168,18 @@ const TodayOnIsland = () => {
           tmrwResults.forEach((departures, idx) => {
             const portName = mainPorts[idx];
             departures.forEach(d => {
-              const timeVal = getRouteTimeValue(d.time);
-              allUpcoming.push({
-                from: d.from || portName,
-                to: d.to || targetIsland,
-                time: d.time,
-                provider: d.provider,
-                diffMinutes: timeVal + 1440,
-              });
+              const dest = d.to || targetIsland;
+              const depFrom = d.from || portName;
+              if (dest.toLowerCase().includes(targetIsland.toLowerCase()) || depFrom.toLowerCase().includes(targetIsland.toLowerCase())) {
+                const timeVal = getRouteTimeValue(d.time);
+                allUpcoming.push({
+                  from: depFrom,
+                  to: dest,
+                  time: d.time,
+                  provider: d.provider,
+                  diffMinutes: timeVal + 1440,
+                });
+              }
             });
           });
 
@@ -321,16 +347,16 @@ export default function MainMenuScreen() {
 
   useEffect(() => {
     const checkCelebration = async () => {
-      // 1. Invite 5 celebration
-      if (user && (user as any).invitedUsersCount >= 5) {
-        const hasSeen = await AsyncStorage.getItem('has_seen_invite_celebration_5');
+      // 1. Invite 3 celebration
+      if (user && (user as any).invitedUsersCount >= 3) {
+        const hasSeen = await AsyncStorage.getItem('has_seen_invite_celebration_3');
         if (hasSeen !== 'true') {
           setCelebrationContent({
             title: "Tebrikler!",
-            description: "5 kişiyi davet ettin ve Adalı rozetini kazandın!"
+            description: "3 kişiyi davet ettin ve Adalı rozetini kazandın!"
           });
           setShowCelebrationModal(true);
-          await AsyncStorage.setItem('has_seen_invite_celebration_5', 'true');
+          await AsyncStorage.setItem('has_seen_invite_celebration_3', 'true');
           return;
         }
       }
@@ -654,14 +680,14 @@ export default function MainMenuScreen() {
               </Text>
               <View style={{ width: 60, height: 6, backgroundColor: isDark ? '#312E81' : '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
                 <View style={{ 
-                    width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
+                    width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 3) * 100, 100)}%`, 
                     height: '100%', 
                     backgroundColor: '#6366F1', 
                     borderRadius: 3 
                 }} />
               </View>
               <Text style={{ fontSize: 11, color: isDark ? '#818CF8' : '#6366F1', fontWeight: '800' }}>
-                {(user as any)?.invitedUsersCount || 0}/5
+                {(user as any)?.invitedUsersCount || 0}/3
               </Text>
             </TouchableOpacity>
           ) : (
@@ -769,7 +795,7 @@ export default function MainMenuScreen() {
                     );
                   }
                 }}
-                placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite Friends' : 'Arkadaşını Davet Et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
+                placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite via E-mail or Phone' : 'E-posta veya telefon ile davet et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
                 placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
                 value={inviteEmail}
                 onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
@@ -1082,7 +1108,7 @@ export default function MainMenuScreen() {
         </View>
 
         {/* 5. Topluluk Banner */}
-        <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Scroll here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için burayı kaydır.' })} order={6} name="topluluk">
+        <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Tap here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için buraya dokun.' })} order={6} name="topluluk">
           <WalkthroughableView collapsable={false} style={{ width: '100%' }}>
             <SwipeButton 
               isLoggedIn={isLoggedIn} 
@@ -1216,14 +1242,14 @@ export default function MainMenuScreen() {
                 {i18n.language.startsWith('en') ? (
                   <>
                     Follow these steps to enjoy all the privileges of AdaPlus and achieve "Verified Islander" status:
-                    {"\n\n"}• Complete all the information in your profile.
+                    {"\n\n"}• Sign up for the application.
                     {"\n"}• Reach out via Contact or have an Islander invite you.
                     {"\n\n"}"Islanders" can freely share their thoughts in the community and connect with other islanders.
                   </>
                 ) : (
                   <>
                     AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
-                    {"\n\n"}• Profilindeki bilgileri eksiksiz doldur.
+                    {"\n\n"}• Uygulamaya kayıt ol.
                     {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
                     {"\n\n"}"Adalılar" toplulukta fikirlerini özgürce paylaşabilir, diğer adalılarla iletişime geçebilir.
                   </>

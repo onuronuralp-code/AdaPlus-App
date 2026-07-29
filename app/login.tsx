@@ -90,7 +90,10 @@ export default function LoginScreen() {
             await setAuthLogin(response.user, response.token);
             router.replace('/(tabs)/explore');
         } catch (error: any) {
-            const msg = error.message || 'Giriş yapılamadı.';
+            let msg = error.message || 'Giriş yapılamadı.';
+            if (typeof msg === 'string' && (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('invalid'))) {
+                msg = t('auth.invalidCredentials', { defaultValue: 'Geçersiz e-posta/telefon veya şifre.' });
+            }
             if (msg.toLowerCase().includes('verified') || msg.toLowerCase().includes('doğrulan')) {
                 Alert.alert('Doğrulama Gerekli', 'E-postanız henüz doğrulanmamış.', [
                     { text: 'İptal', style: 'cancel' },
@@ -114,10 +117,17 @@ export default function LoginScreen() {
 
         setLoading(true);
         try {
-            await authApi.forgotPassword(email.trim());
+            const res = await authApi.forgotPassword(email.trim());
+            if (res && ((res as any).userExists === false || (res as any).exists === false || (res as any).success === false)) {
+                throw new Error(t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' }));
+            }
             router.push({ pathname: '/reset-password', params: { email: email.trim() } });
         } catch (error: any) {
-            setErrorModalMsg(error.message || 'Bağlantı gönderilemedi.');
+            let msg = error?.message || t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' });
+            if (typeof msg !== 'string' || msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('hata')) {
+                msg = t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' });
+            }
+            setErrorModalMsg(msg);
             setErrorModalVisible(true);
         } finally {
             setLoading(false);
@@ -152,7 +162,7 @@ export default function LoginScreen() {
 
                 <View style={[styles.branding, { paddingTop: insets.top - vs(10), paddingBottom: vs(20) }]}>
                     <View style={styles.logoCircle}>
-                        <IconSymbol name="person.fill" size={ms(36)} color="#fff" />
+                        <IconSymbol name={isForgotPassword ? "lock.fill" : "person.fill"} size={ms(36)} color="#fff" />
                     </View>
                     <Text style={styles.welcomeTitle}>{isForgotPassword ? t('auth.resetTitle') : t('auth.loginTitle')}</Text>
                     <Text style={styles.welcomeSubtitle}>
@@ -183,7 +193,6 @@ export default function LoginScreen() {
                                     handleEmailBlur();
                                 }}
                             />
-                            <IconSymbol name="phone.fill" size={ms(18)} color={errors.email ? '#EF4444' : '#94A3B8'} />
                         </View>
                     </View>
 
@@ -228,13 +237,15 @@ export default function LoginScreen() {
                         {loading ? (
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
-                            <Text style={styles.primaryButtonText}>{isForgotPassword ? t('common.next') : t('auth.loginButton')}</Text>
+                            <Text style={styles.primaryButtonText}>{isForgotPassword ? t('auth.sendCode', { defaultValue: 'Kodu Gönder' }) : t('auth.loginButton')}</Text>
                         )}
                     </TouchableOpacity>
 
                     {isForgotPassword ? (
                         <TouchableOpacity style={{ marginTop: vs(24), alignItems: 'center' }} onPress={() => setIsForgotPassword(false)}>
-                            <Text style={{ color: '#64748B', fontWeight: 'bold' }}>{t('auth.backToLogin')}</Text>
+                            <View style={{ borderBottomWidth: 1.5, borderBottomColor: '#64748B', paddingBottom: s(3) }}>
+                                <Text style={{ color: '#64748B', fontWeight: 'bold' }}>{t('auth.backToLogin')}</Text>
+                            </View>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity 
@@ -285,7 +296,7 @@ const styles = StyleSheet.create({
     inputGroup: { marginBottom: vs(10) },
     inputLabel: { fontSize: ms(11), fontWeight: '800', color: '#415A77', marginBottom: vs(8), letterSpacing: 1 },
     inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: s(12), paddingHorizontal: s(16), paddingVertical: vs(14), borderWidth: 1, borderColor: '#E2E8F0' },
-    input: { flex: 1, marginLeft: s(12), fontSize: ms(16), color: '#0D1B2A', fontWeight: '500' },
+    input: { flex: 1, marginLeft: s(10), fontSize: ms(14), color: '#0D1B2A', fontWeight: '500' },
     forgotText: { fontSize: ms(11), fontWeight: '800', color: '#10B981', marginBottom: vs(8) },
     primaryButton: { backgroundColor: '#10B981', borderRadius: s(12), paddingVertical: vs(14), alignItems: 'center', justifyContent: 'center', marginTop: vs(10), shadowColor: '#10B981', shadowOffset: { width: 0, height: vs(8) }, shadowOpacity: 0.25, shadowRadius: s(15), elevation: 8 },
     primaryButtonText: { color: '#fff', fontSize: ms(17), fontWeight: 'bold' },
