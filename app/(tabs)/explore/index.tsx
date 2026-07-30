@@ -649,14 +649,15 @@ export default function MainMenuScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 36) + (isLargeScreen ? 44 : 28) }} showsVerticalScrollIndicator={false} scrollEnabled={true} bounces={true} keyboardShouldPersistTaps="handled">
-      <View style={[styles.welcomeContainer, { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start', 
-        paddingTop: insets.top + (isIphone11 ? 16 : 12), 
-        paddingHorizontal: 20 
-      }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} scrollEnabled={true} pagingEnabled={true} decelerationRate="fast" snapToAlignment="start" bounces={false} keyboardShouldPersistTaps="handled">
+            <View style={{ minHeight: height - insets.top - (isLargeScreen ? 90 : 70), justifyContent: 'space-between' }}>
+              <View style={[styles.welcomeContainer, { 
+                flexDirection: 'row', 
+                justifyContent: 'space-between', 
+                alignItems: 'flex-start', 
+                paddingTop: insets.top + (isIphone11 ? 16 : 12), 
+                paddingHorizontal: 20 
+              }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
           <Text 
             style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 8 }, isDark && { color: '#F8FAFC' }]}
@@ -1123,52 +1124,56 @@ export default function MainMenuScreen() {
           </WalkthroughableView>
         </CopilotStep>
       </View>
-
-      {/* 6. Ada Hizmetleri (Island Services - Separate Section) */}
-      <View style={{ paddingHorizontal: 20, marginTop: 20, marginBottom: 8 }}>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
-          {i18n.language.startsWith('en') ? '🏝️ Island Services' : '🏝️ Ada Hizmetleri'}
-        </Text>
-        <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 4, fontWeight: '500' }}>
-          {i18n.language.startsWith('en') ? 'Find local service providers on your island' : 'Adandaki yerel hizmet sağlayıcılarını bul'}
-        </Text>
       </View>
+      {/* End of Page 1 */}
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 10, marginBottom: 28 }}>
-        {[
-          { icon: '🔧', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
-          { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
-          { icon: '⚡', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
-          { icon: '🌐', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
-          { icon: '🧹', label: i18n.language.startsWith('en') ? 'Cleaning' : 'Temizlik', color: '#EC4899', bg: isDark ? '#831843' : '#FDF2F8' },
-          { icon: '🚛', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
-          { icon: '🎨', label: i18n.language.startsWith('en') ? 'Painter' : 'Boyacı', color: '#F97316', bg: isDark ? '#7C2D12' : '#FFF7ED' },
-          { icon: '🌿', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#22C55E', bg: isDark ? '#14532D' : '#F0FDF4' },
-        ].map((service, idx) => (
-          <TouchableOpacity
-            key={idx}
-            activeOpacity={0.7}
-            style={{
-              width: (width - 62) / 4,
-              alignItems: 'center',
-              paddingVertical: 14,
-              backgroundColor: service.bg,
-              borderRadius: 16,
-              borderWidth: isDark ? 1 : 0,
-              borderColor: isDark ? '#1C1C1E' : 'transparent',
-            }}
-          >
-            <Text style={{ fontSize: 26, marginBottom: 6 }}>{service.icon}</Text>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', textAlign: 'center' }} numberOfLines={1}>
-              {service.label}
-            </Text>
-            <View style={{ marginTop: 4, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
-              <Text style={{ fontSize: 8, fontWeight: '700', color: isDark ? '#94A3B8' : '#94A3B8' }}>
-                {i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}
+      {/* Page 2: Ada Hizmetleri (Island Services - Snap Page 2) */}
+      <View style={{ minHeight: height - insets.top - (isLargeScreen ? 90 : 70), paddingTop: insets.top + 20, paddingBottom: Math.max(insets.bottom, 24) + 60 }}>
+        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+          <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
+            {i18n.language.startsWith('en') ? '🏝️ Island Services' : '🏝️ Ada Hizmetleri'}
+          </Text>
+          <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 4, fontWeight: '500' }}>
+            {i18n.language.startsWith('en') ? 'Find local service providers on your island' : 'Adandaki yerel hizmet sağlayıcılarını bul'}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 10, marginBottom: 28 }}>
+          {[
+            { icon: '🔧', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
+            { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
+            { icon: '⚡', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
+            { icon: '🌐', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
+            { icon: '🧹', label: i18n.language.startsWith('en') ? 'Cleaning' : 'Temizlik', color: '#EC4899', bg: isDark ? '#831843' : '#FDF2F8' },
+            { icon: '🚛', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
+            { icon: '🎨', label: i18n.language.startsWith('en') ? 'Painter' : 'Boyacı', color: '#F97316', bg: isDark ? '#7C2D12' : '#FFF7ED' },
+            { icon: '🌿', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#22C55E', bg: isDark ? '#14532D' : '#F0FDF4' },
+          ].map((service, idx) => (
+            <TouchableOpacity
+              key={idx}
+              activeOpacity={0.7}
+              style={{
+                width: (width - 62) / 4,
+                alignItems: 'center',
+                paddingVertical: 14,
+                backgroundColor: service.bg,
+                borderRadius: 16,
+                borderWidth: isDark ? 1 : 0,
+                borderColor: isDark ? '#1C1C1E' : 'transparent',
+              }}
+            >
+              <Text style={{ fontSize: 26, marginBottom: 6 }}>{service.icon}</Text>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', textAlign: 'center' }} numberOfLines={1}>
+                {service.label}
               </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+              <View style={{ marginTop: 4, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
+                <Text style={{ fontSize: 8, fontWeight: '700', color: isDark ? '#94A3B8' : '#94A3B8' }}>
+                  {i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
 </ScrollView>
