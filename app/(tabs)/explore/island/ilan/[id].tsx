@@ -134,13 +134,24 @@ export default function IlanDetailScreen() {
   
   const frontendCat = backendToFrontend[listing.category] || 'emlak';
   const cfg = CATEGORY_CONFIG[frontendCat];
+  
+  const EN_CATEGORY_LABELS: Record<IlanCategory, string> = {
+    all: 'ALL',
+    emlak: 'Real Estate',
+    esya: 'Items',
+    tasit: 'Vehicle',
+    service: 'Services',
+    job: 'Job Listing',
+    lost: 'Lost & Found',
+    pet: 'Pets',
+  };
+
+  const isEnActive = Boolean(translatedDesc || translatedTitle) || isEn;
 
   const timeAgo = formatDistanceToNowStrict(new Date(listing.createdAt), { 
     addSuffix: true, 
-    locale: i18n.language.startsWith('tr') ? tr : enUS 
+    locale: isEnActive ? enUS : tr 
   });
-
-  const isEnActive = Boolean(translatedDesc || translatedTitle) || isEn;
 
   return (
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
@@ -208,7 +219,7 @@ export default function IlanDetailScreen() {
         <View style={[styles.content, { marginTop: 0 }, isDark && { backgroundColor: '#000000' }]}>
           <View style={styles.categoryRow}>
             <View style={[styles.categoryBadge, { backgroundColor: isDark ? '#1C1C1E' : cfg.bg }]}>
-              <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{t(`ilanlar.category.${frontendCat}`, { defaultValue: cfg.label })}</Text>
+              <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{isEnActive ? EN_CATEGORY_LABELS[frontendCat] : t(`ilanlar.category.${frontendCat}`, { defaultValue: cfg.label })}</Text>
             </View>
             {listing.description && listing.description.trim().length > 3 && (
               <TouchableOpacity 
@@ -222,7 +233,7 @@ export default function IlanDetailScreen() {
                   <>
                     <IconSymbol name="globe" size={13} color="#3B82F6" />
                     <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                      {translatedDesc ? (isEn ? 'Show Original (TR)' : 'Türkçeye çevir') : (isEn ? 'Translate to English' : 'İngilizceye çevir')}
+                      {translatedDesc ? 'Show Original (TR)' : 'Translate to English'}
                     </Text>
                   </>
                 )}
@@ -275,15 +286,15 @@ export default function IlanDetailScreen() {
                       const handle = contact.replace(/^@/, '').replace(/^ig:/i, '').trim();
                       const url = handle.startsWith('http') ? handle : `https://www.instagram.com/${handle}/`;
                       Linking.openURL(url).catch(() => {
-                        Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to open Instagram.' : 'Instagram uygulaması açılamadı.');
+                        Alert.alert(isEnActive ? 'Error' : 'Hata', isEnActive ? 'Failed to open Instagram.' : 'Instagram uygulaması açılamadı.');
                       });
                     } else if (isEmail) {
                       Linking.openURL(`mailto:${contact}`).catch(() => {
-                        Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to open email client.' : 'E-posta uygulaması açılamadı.');
+                        Alert.alert(isEnActive ? 'Error' : 'Hata', isEnActive ? 'Failed to open email client.' : 'E-posta uygulaması açılamadı.');
                       });
                     } else if (isPhone) {
                       Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => {
-                        Alert.alert(isEn ? 'Call Failed' : 'Arama Yapılamadı', isEn ? `Calling is not supported on this device.\n\nNumber: ${contact}` : `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
+                        Alert.alert(isEnActive ? 'Call Failed' : 'Arama Yapılamadı', isEnActive ? `Calling is not supported on this device.\n\nNumber: ${contact}` : `Bu cihazda arama desteklenmiyor olabilir (simülatör veya tablet vb.).\n\nNumara: ${contact}`);
                       });
                     }
                   }}
@@ -300,7 +311,7 @@ export default function IlanDetailScreen() {
                   <View>
                     <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'CONTACT' : 'İLETİŞİM'}</Text>
                     <Text style={[styles.infoValue, listing.contactInfo && { color: isInsta ? '#E1306C' : (isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981')) }, isDark && !listing.contactInfo && { color: '#CBD5E1' }]}>
-                      {listing.contactInfo || t('ilanlar.notShared', { defaultValue: isEn ? 'Not shared' : 'Paylaşılmamış' })}
+                      {listing.contactInfo || (isEnActive ? 'Not shared' : 'Paylaşılmamış')}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -312,7 +323,7 @@ export default function IlanDetailScreen() {
           <View style={[styles.warningCard, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}>
             <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#F59E0B" />
             <Text style={[styles.warningText, isDark && { color: '#CBD5E1' }]}>
-              {t('ilanlar.safetyWarning', { defaultValue: isEn ? 'For your safety, we recommend making payments in person and never sending a deposit before inspecting the item. AdaPlus is not responsible for any potential issues.' : 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz. Oluşabilecek mağduriyetler AdaPlus sorumluluk alanının dışındadır.' })}
+              {isEnActive ? 'For your safety, we recommend making payments in person and never sending a deposit before inspecting the item. AdaPlus is not responsible for any potential issues.' : 'Güvenliğiniz için ödemelerinizi yüz yüze yapmanızı ve ürünü görmeden kapora göndermemenizi öneririz. Oluşabilecek mağduriyetler AdaPlus sorumluluk alanının dışındadır.'}
             </Text>
           </View>
         </View>

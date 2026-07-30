@@ -777,11 +777,11 @@ export default function MainMenuScreen() {
 
 
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
-      <View style={{ paddingHorizontal: 12, marginBottom: 8 }}>
+      <View style={{ paddingHorizontal: 12, marginBottom: 9 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 14, paddingHorizontal: 14, height: 54, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 8, paddingHorizontal: 14, height: 54, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
                 <IconSymbol name="envelope.fill" size={19} color={isDark ? '#34D399' : '#059669'} />
                 <TextInput
                   ref={inviteInputRef}
@@ -817,7 +817,7 @@ export default function MainMenuScreen() {
 
               <Pressable
                 android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-                style={{ width: 54, height: 54, backgroundColor: '#059669', borderRadius: 14, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+                style={{ width: 54, height: 54, backgroundColor: '#059669', borderRadius: 8, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
                 onPress={() => {
                   if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
                     setShowIslanderStepsModal(true);
@@ -1136,7 +1136,7 @@ export default function MainMenuScreen() {
       {/* Page 2: Banner Area & Lokal Servisler (Snap Page 2) */}
       <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 16 }}>
         {/* Top Banner Area (Fills upper space completely) */}
-        <View style={{ paddingTop: 8, paddingHorizontal: 16, flex: 1, marginBottom: 14 }}>
+        <View style={{ paddingTop: 16, paddingHorizontal: 12, flex: 1, marginBottom: 14 }}>
           <LinearGradient
             colors={isDark ? ['#1E293B', '#0F172A'] : ['#2563EB', '#1D4ED8']}
             start={{ x: 0, y: 0 }}
@@ -1218,12 +1218,12 @@ export default function MainMenuScreen() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14 }}>
           {[
-            { icon: '🔧', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
-            { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
-            { icon: '⚡', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
-            { icon: '🌐', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
-            { icon: '🚛', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
-            { icon: '🌿', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#22C55E', bg: isDark ? '#14532D' : '#F0FDF4' },
+            { iconSymbol: 'wrench.and.screwdriver.fill', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
+            { iconSymbol: 'scissors', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
+            { iconSymbol: 'bolt.fill', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
+            { iconSymbol: 'globe', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
+            { iconSymbol: 'shippingbox.fill', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
+            { iconSymbol: 'leaf.fill', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#14532D' : '#F0FDF4' },
           ].map((service, idx) => (
             <TouchableOpacity
               key={idx}
@@ -1232,21 +1232,37 @@ export default function MainMenuScreen() {
                 width: (width - 46) / 2,
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingVertical: isLargeScreen ? 28 : (isSmallScreen ? 20 : 24),
-                paddingHorizontal: 16,
+                paddingVertical: isLargeScreen ? 24 : (isSmallScreen ? 16 : 20),
+                paddingHorizontal: 14,
                 backgroundColor: service.bg,
-                borderRadius: 22,
+                borderRadius: 20,
                 borderWidth: isDark ? 1 : 0,
                 borderColor: isDark ? '#1C1C1E' : 'transparent',
               }}
             >
-              <Text style={{ fontSize: 34, marginRight: 12 }}>{service.icon}</Text>
+              <View style={{
+                width: 42,
+                height: 42,
+                borderRadius: 12,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#FFFFFF',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 10,
+                elevation: isDark ? 0 : 2,
+                shadowColor: service.color,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 4,
+              }}>
+                <IconSymbol name={service.iconSymbol as any} size={22} color={service.color} />
+              </View>
+
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155' }} numberOfLines={1}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155' }} numberOfLines={1}>
                   {service.label}
                 </Text>
-                <View style={{ marginTop: 4, alignSelf: 'flex-start', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
-                  <Text style={{ fontSize: 9, fontWeight: '700', color: '#94A3B8' }}>
+                <View style={{ marginTop: 3, alignSelf: 'flex-start', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
+                  <Text style={{ fontSize: 8.5, fontWeight: '700', color: '#94A3B8' }}>
                     {i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}
                   </Text>
                 </View>

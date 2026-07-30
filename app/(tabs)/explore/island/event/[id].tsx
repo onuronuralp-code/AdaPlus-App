@@ -53,19 +53,25 @@ export default function EventDetailScreen() {
     const [rsvpCount, setRsvpCount] = useState(0);
     const [rsvpLoading, setRsvpLoading] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+    const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
     const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);
 
     const handleToggleTranslation = async () => {
-        if (!activity?.description) return;
-        if (translatedDesc) {
+        if (!activity) return;
+        if (translatedDesc || translatedTitle) {
+            setTranslatedTitle(null);
             setTranslatedDesc(null);
             return;
         }
         setIsTranslating(true);
-        const targetLang = i18n.language.startsWith('en') ? 'en' : 'tr';
-        const translated = await translateText(activity.description, targetLang);
-        setTranslatedDesc(translated);
+        const targetLang = 'en';
+        const [tTitle, tDesc] = await Promise.all([
+            activity.name ? translateText(activity.name, targetLang) : Promise.resolve(null),
+            activity.description ? translateText(activity.description, targetLang) : Promise.resolve(null)
+        ]);
+        if (tTitle && tTitle !== activity.name) setTranslatedTitle(tTitle);
+        if (tDesc) setTranslatedDesc(tDesc);
         setIsTranslating(false);
     };
     const lastTapRef = useRef<number>(0);
@@ -198,7 +204,7 @@ export default function EventDetailScreen() {
     const heroUri = resolveImageUrl(activity.imageUrl) ||
         'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80';
 
-    const isEnActive = Boolean(translatedDesc) || i18n.language.startsWith('en');
+    const isEnActive = Boolean(translatedDesc || translatedTitle) || i18n.language.startsWith('en');
 
     return (
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
@@ -265,7 +271,7 @@ export default function EventDetailScreen() {
                                     <>
                                         <IconSymbol name="globe" size={13} color="#3B82F6" />
                                         <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                                            {translatedDesc ? (i18n.language.startsWith('en') ? 'Show Original (TR)' : 'Türkçeye çevir') : (i18n.language.startsWith('en') ? 'Translate to English' : 'İngilizceye çevir')}
+                                            {(translatedDesc || translatedTitle) ? 'Show Original (TR)' : 'Translate to English'}
                                         </Text>
                                     </>
                                 )}
@@ -273,7 +279,7 @@ export default function EventDetailScreen() {
                         )}
                     </View>
 
-                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{activity.name}</Text>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{translatedTitle || activity.name}</Text>
 
                     {/* Description */}
                     <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }, isDark && { color: '#CBD5E1' }]}>
