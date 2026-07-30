@@ -1129,9 +1129,78 @@ export default function MainMenuScreen() {
       </View>
       {/* End of Page 1 */}
 
-      {/* Page 2: Ada Hizmetleri (Island Services - Snap Page 2) */}
-      <View style={{ height: pageHeight, justifyContent: 'flex-end', paddingBottom: 20 }}>
-        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+      {/* Page 2: Banner Area & Lokal Servisler (Snap Page 2) */}
+      <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 16 }}>
+        {/* Top Banner Area */}
+        <View style={{ paddingTop: 10, paddingHorizontal: 16, flex: 1, justifyContent: 'center' }}>
+          <LinearGradient
+            colors={isDark ? ['#1E293B', '#0F172A'] : ['#2563EB', '#1D4ED8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 24,
+              padding: 20,
+              paddingVertical: isLargeScreen ? 22 : 18,
+              justifyContent: 'space-between',
+              shadowColor: '#2563EB',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 10,
+              elevation: 5,
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            <View style={{ position: 'absolute', right: -20, top: -20, width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+            <View style={{ position: 'absolute', right: 30, bottom: -35, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+
+            <View>
+              <View style={{ alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
+                  {i18n.language.startsWith('en') ? '✨ LOCAL NETWORK' : '✨ YEREL HİZMET AĞI'}
+                </Text>
+              </View>
+
+              <Text style={{ fontSize: isLargeScreen ? 19 : 17, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3, lineHeight: 23 }}>
+                {i18n.language.startsWith('en') ? 'Are You a Local Service Provider?' : 'Adada Hizmet mi Veriyorsun?'}
+              </Text>
+              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 4, lineHeight: 16, fontWeight: '500' }}>
+                {i18n.language.startsWith('en') ? 'List your business on AdaPlus and reach islanders directly.' : 'Uzmanlığını adalı komşularınla paylaş, hizmetini hemen öne çıkar.'}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                Alert.alert(
+                  i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında Hizmetinizde',
+                  i18n.language.startsWith('en') ? 'Local service provider registration will be available soon.' : 'Yerel hizmet sağlayıcı başvuru formu çok yakında aktif olacaktır.'
+                );
+              }}
+              style={{
+                marginTop: 12,
+                alignSelf: 'flex-start',
+                backgroundColor: '#FFFFFF',
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#1D4ED8' }}>
+                {i18n.language.startsWith('en') ? 'Join Provider Network' : 'Hizmet Sağlayıcı Ol'}
+              </Text>
+              <IconSymbol name="chevron.right" size={12} color="#1D4ED8" />
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+
+        {/* Lokal Servisler Title & Grid */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <MaterialCommunityIcons name="toolbox" size={24} color="#F97316" />
             <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
