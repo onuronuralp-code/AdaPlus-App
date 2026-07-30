@@ -282,7 +282,7 @@
         "inviteSendFailed": "Davetiye gönderilemedi.",
         "inviteSend": "Gönder",
         "myQuotas": "Kotalarım",
-        "listingQuota": "İlan Yayınlama Kotası",
+        "listingQuota": "Aylık İlan Yayınlama Kotası",
         "eventQuota": "Etkinlik Oluşturma Kotası",
         "remainingQuota": "Kalan Hakkın: {{count}}",
         "tabs": {

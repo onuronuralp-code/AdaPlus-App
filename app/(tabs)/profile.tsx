@@ -883,7 +883,7 @@ export default function ProfileScreen() {
                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                 <IconSymbol name="tag.fill" size={13} color="#10B981" />
                                                 <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#475569', marginLeft: 6, fontWeight: '700' }}>
-                                                    {t('profile.listingQuota', { defaultValue: i18n.language.startsWith('en') ? 'Listing Publishing Quota' : 'İlan Yayınlama Kotası' })}
+                                                    {t('profile.listingQuota', { defaultValue: i18n.language.startsWith('en') ? 'Monthly Listing Publishing Quota' : 'Aylık İlan Yayınlama Kotası' })}
                                                 </Text>
                                             </View>
                                             <Text style={{ fontSize: 12, fontWeight: '800', color: '#10B981' }}>

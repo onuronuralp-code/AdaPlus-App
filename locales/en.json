@@ -282,7 +282,7 @@
         "inviteSendFailed": "Could not send the invitation.",
         "inviteSend": "Send",
         "myQuotas": "My Quotas",
-        "listingQuota": "Listing Publishing Quota",
+        "listingQuota": "Monthly Listing Publishing Quota",
         "eventQuota": "Event Creation Quota",
         "remainingQuota": "Remaining Quota: {{count}}",
         "deleteAccountTitle": "Delete Account",
