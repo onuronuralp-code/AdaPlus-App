@@ -1139,7 +1139,7 @@ export default function MainMenuScreen() {
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12, marginBottom: 28 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14, marginBottom: 28 }}>
           {[
             { icon: '🔧', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
             { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
@@ -1154,24 +1154,24 @@ export default function MainMenuScreen() {
               key={idx}
               activeOpacity={0.7}
               style={{
-                width: (width - 44) / 2,
+                width: (width - 46) / 2,
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingVertical: isLargeScreen ? 16 : 14,
-                paddingHorizontal: 14,
+                paddingVertical: isLargeScreen ? 28 : (isSmallScreen ? 20 : 24),
+                paddingHorizontal: 16,
                 backgroundColor: service.bg,
-                borderRadius: 18,
+                borderRadius: 22,
                 borderWidth: isDark ? 1 : 0,
                 borderColor: isDark ? '#1C1C1E' : 'transparent',
               }}
             >
-              <Text style={{ fontSize: 28, marginRight: 10 }}>{service.icon}</Text>
+              <Text style={{ fontSize: 34, marginRight: 12 }}>{service.icon}</Text>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155' }} numberOfLines={1}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155' }} numberOfLines={1}>
                   {service.label}
                 </Text>
-                <View style={{ marginTop: 3, alignSelf: 'flex-start', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
-                  <Text style={{ fontSize: 8, fontWeight: '700', color: '#94A3B8' }}>
+                <View style={{ marginTop: 4, alignSelf: 'flex-start', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
+                  <Text style={{ fontSize: 9, fontWeight: '700', color: '#94A3B8' }}>
                     {i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}
                   </Text>
                 </View>
