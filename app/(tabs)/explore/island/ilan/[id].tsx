@@ -229,13 +229,13 @@ export default function IlanDetailScreen() {
           </View>
 
           <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{translatedTitle || listing.title}</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 6 }}>
             {listing.price > 0 ? (
               <View style={{ backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
               </View>
             ) : <View />}
-            <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
+            <Text style={[styles.timeText, isDark && { color: '#94A3B8' }, { marginBottom: 4 }]}>{timeAgo}</Text>
           </View>
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
