@@ -7,7 +7,7 @@ export default function ExploreLayout() {
             gestureEnabled: true,
             fullScreenGestureEnabled: true 
         }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
             <Stack.Screen name="island/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="island/restaurant" options={{ headerShown: false }} />
             <Stack.Screen name="island/transportation" options={{ headerShown: false }} />
