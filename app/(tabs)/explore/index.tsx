@@ -649,7 +649,7 @@ export default function MainMenuScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingBottom: Math.max(insets.bottom, 36) + (isLargeScreen ? 44 : 28) }} showsVerticalScrollIndicator={false} scrollEnabled={false} bounces={false} keyboardShouldPersistTaps="handled">
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 36) + (isLargeScreen ? 44 : 28) }} showsVerticalScrollIndicator={false} scrollEnabled={true} bounces={true} keyboardShouldPersistTaps="handled">
       <View style={[styles.welcomeContainer, { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
