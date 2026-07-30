@@ -311,15 +311,28 @@ export default function EventDetailScreen() {
 
                     {/* Location */}
                     {activity.eventPlace && (
-                        <View style={[styles.infoItem, { marginTop: 20 }]}>
-                            <View style={[styles.infoIcon, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                <IconSymbol name="mappin.and.ellipse" size={20} color={isDark ? "#94A3B8" : "#64748B"} />
+                        <TouchableOpacity
+                            style={[styles.infoItem, { marginTop: 20 }]}
+                            activeOpacity={0.7}
+                            onPress={() => {
+                                if (!activity.eventPlace) return;
+                                const query = encodeURIComponent(`${activity.eventPlace}${activity.island ? `, ${activity.island}` : ''}`);
+                                const url = Platform.OS === 'ios'
+                                    ? `https://maps.apple.com/?q=${query}`
+                                    : `https://www.google.com/maps/search/?api=1&query=${query}`;
+                                Linking.openURL(url).catch(() => {
+                                    Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to open maps.' : 'Harita uygulaması açılamadı.');
+                                });
+                            }}
+                        >
+                            <View style={[styles.infoIcon, isDark ? { backgroundColor: '#1C1C1E' } : { backgroundColor: '#EFF6FF' }]}>
+                                <IconSymbol name="mappin.and.ellipse" size={20} color={isDark ? "#60A5FA" : "#3B82F6"} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.locationLabel')}</Text>
-                                <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{activity.eventPlace}</Text>
+                                <Text style={[styles.infoValue, { color: isDark ? '#60A5FA' : '#3B82F6', textDecorationLine: 'underline' }]}>{activity.eventPlace}</Text>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     )}
 
                     {/* Organizer */}

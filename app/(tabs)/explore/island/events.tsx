@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions, Linking } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -503,12 +503,25 @@ export default function EventsScreen() {
                                                     }
                                                     
                                                     return (
-                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                            <IconSymbol name="mappin.circle.fill" size={14} color={isDark ? '#94A3B8' : '#94A3B8'} />
-                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#CBD5E1' : '#64748B', fontWeight: '600' }]} numberOfLines={1}>
+                                                        <TouchableOpacity 
+                                                            activeOpacity={0.7}
+                                                            style={{ flexDirection: 'row', alignItems: 'center' }}
+                                                            onPress={(e) => {
+                                                                e.stopPropagation();
+                                                                const place = event.eventPlace || islandName;
+                                                                if (!place) return;
+                                                                const query = encodeURIComponent(`${place}${islandName ? `, ${islandName}` : ''}`);
+                                                                const url = Platform.OS === 'ios'
+                                                                    ? `https://maps.apple.com/?q=${query}`
+                                                                    : `https://www.google.com/maps/search/?api=1&query=${query}`;
+                                                                Linking.openURL(url).catch(() => {});
+                                                            }}
+                                                        >
+                                                            <IconSymbol name="mappin.circle.fill" size={14} color={isDark ? '#60A5FA' : '#3B82F6'} />
+                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600', textDecorationLine: 'underline' }]} numberOfLines={1}>
                                                                 {locationText}
                                                             </Text>
-                                                        </View>
+                                                        </TouchableOpacity>
                                                     );
                                                 })()}
 
