@@ -208,7 +208,7 @@ const TodayOnIsland = () => {
   );
 
   return (
-    <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
+    <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
       {/* Weather Badge */}
       <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, borderWidth: 2, borderColor: isDark ? '#F97316' : '#FED7AA' }}>
         <IconSymbol 
@@ -777,7 +777,7 @@ export default function MainMenuScreen() {
 
 
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 2 }}>
+      <View style={{ paddingHorizontal: 12, marginBottom: 2 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
@@ -838,7 +838,7 @@ export default function MainMenuScreen() {
       </View>
 
       {/* Weather & Ferry Banner */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 6 }}>
+      <View style={{ paddingHorizontal: 12, marginBottom: 2 }}>
         <TodayOnIsland />
       </View>
 
