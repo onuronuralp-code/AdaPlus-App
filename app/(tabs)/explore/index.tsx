@@ -1132,7 +1132,7 @@ export default function MainMenuScreen() {
       <View style={{ height: pageHeight, paddingTop: 12 }}>
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
-            {i18n.language.startsWith('en') ? '🏝️ Island Services' : '🏝️ Ada Hizmetleri'}
+            {i18n.language.startsWith('en') ? '🏝️ Local Services' : '🏝️ Lokal Servisler'}
           </Text>
           <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 4, fontWeight: '500' }}>
             {i18n.language.startsWith('en') ? 'Find local service providers on your island' : 'Adandaki yerel hizmet sağlayıcılarını bul'}
