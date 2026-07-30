@@ -1122,6 +1122,54 @@ export default function MainMenuScreen() {
             />
           </WalkthroughableView>
         </CopilotStep>
+
+        {/* 6. Ada Hizmetleri (Island Services) */}
+        <View style={{ paddingHorizontal: 20, marginTop: 24, marginBottom: 8 }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
+            {i18n.language.startsWith('en') ? '🏝️ Island Services' : '🏝️ Ada Hizmetleri'}
+          </Text>
+          <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 4, fontWeight: '500' }}>
+            {i18n.language.startsWith('en') ? 'Find local service providers on your island' : 'Adandaki yerel hizmet sağlayıcıları bul'}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 10, marginBottom: 24 }}>
+          {[
+            { icon: '🔧', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
+            { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
+            { icon: '⚡', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
+            { icon: '🌐', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
+            { icon: '🧹', label: i18n.language.startsWith('en') ? 'Cleaning' : 'Temizlik', color: '#EC4899', bg: isDark ? '#831843' : '#FDF2F8' },
+            { icon: '🚛', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
+            { icon: '🎨', label: i18n.language.startsWith('en') ? 'Painter' : 'Boyacı', color: '#F97316', bg: isDark ? '#7C2D12' : '#FFF7ED' },
+            { icon: '🌿', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#22C55E', bg: isDark ? '#14532D' : '#F0FDF4' },
+          ].map((service, idx) => (
+            <TouchableOpacity
+              key={idx}
+              activeOpacity={0.7}
+              style={{
+                width: (width - 62) / 4,
+                alignItems: 'center',
+                paddingVertical: 14,
+                backgroundColor: service.bg,
+                borderRadius: 16,
+                borderWidth: isDark ? 1 : 0,
+                borderColor: isDark ? '#1C1C1E' : 'transparent',
+              }}
+            >
+              <Text style={{ fontSize: 26, marginBottom: 6 }}>{service.icon}</Text>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', textAlign: 'center' }} numberOfLines={1}>
+                {service.label}
+              </Text>
+              <View style={{ marginTop: 4, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
+                <Text style={{ fontSize: 8, fontWeight: '700', color: isDark ? '#94A3B8' : '#94A3B8' }}>
+                  {i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
       </View>
 
 </ScrollView>
