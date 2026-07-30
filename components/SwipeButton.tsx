@@ -119,8 +119,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
       <Pressable
         style={({ pressed }) => [
           styles.container, 
-          isSmallScreen && { height: 66, borderRadius: 16, paddingLeft: 6, paddingRight: 12 },
-          isLargeScreen && { height: 82, borderRadius: 20, paddingLeft: 10, paddingRight: 16 },
+          isSmallScreen && { height: 58, borderRadius: 14, paddingLeft: 6, paddingRight: 10 },
+          isLargeScreen && { height: 76, borderRadius: 18, paddingLeft: 8, paddingRight: 14 },
           isDeactivated
             ? { backgroundColor: '#D32F2F', borderColor: '#B71C1C', shadowColor: '#FF0000' }
             : { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
@@ -142,13 +142,13 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
               {/* Icon + live dot */}
               <View style={[
                   styles.iconContainer, 
-                  isSmallScreen && { width: 44, height: 44, borderRadius: 12 },
-                  isLargeScreen && { width: 64, height: 64, borderRadius: 18 },
+                  isSmallScreen && { width: 40, height: 40, borderRadius: 10 },
+                  isLargeScreen && { width: 56, height: 56, borderRadius: 15 },
                   { backgroundColor: isDeactivated ? '#9A0007' : (pressed ? '#047857' : '#059669') }
               ]}>
                 <IconSymbol
                   name="bubble.left.and.bubble.right.fill"
-                  size={isSmallScreen ? 22 : (isLargeScreen ? 32 : 27)}
+                  size={isSmallScreen ? 20 : (isLargeScreen ? 28 : 24)}
                   color="#FFFFFF"
                 />
                 <Animated.View style={[
@@ -160,7 +160,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
               {/* Text block */}
               <View style={styles.textBlock}>
-                <Text style={[styles.text, isSmallScreen && { fontSize: 15 }, isLargeScreen && { fontSize: 19 }]}>
+                <Text style={[styles.text, isSmallScreen && { fontSize: 14 }, isLargeScreen && { fontSize: 17.5 }]}>
                   {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
                 </Text>
                 {isDeactivated ? (
@@ -179,12 +179,12 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
               {/* Cascading arrows or warning indicator */}
               <View style={styles.arrows}>
                 {isDeactivated ? (
-                  <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#FEE2E2" />
+                  <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#FEE2E2" />
                 ) : (
                   <>
-                    <IconSymbol name="chevron.right" size={13} color="rgba(255, 255, 255, 0.4)" />
-                    <IconSymbol name="chevron.right" size={15} color="rgba(255, 255, 255, 0.7)" />
-                    <IconSymbol name="chevron.right" size={isLargeScreen ? 22 : 19} color="#FFFFFF" />
+                    <IconSymbol name="chevron.right" size={11} color="rgba(255, 255, 255, 0.4)" />
+                    <IconSymbol name="chevron.right" size={13} color="rgba(255, 255, 255, 0.7)" />
+                    <IconSymbol name="chevron.right" size={isLargeScreen ? 19 : 16} color="#FFFFFF" />
                   </>
                 )}
               </View>
@@ -198,12 +198,12 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
 const styles = StyleSheet.create({
   container: {
-    height: 76,
-    borderRadius: 18,
+    height: 68,
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1.5,
-    paddingLeft: 8,
-    paddingRight: 14,
+    paddingLeft: 7,
+    paddingRight: 12,
     justifyContent: 'center',
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
@@ -216,39 +216,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   liveDot: {
     position: 'absolute',
-    top: 7,
-    right: 7,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    top: 6,
+    right: 6,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
     backgroundColor: '#4ADE80',
     borderWidth: 1.5,
     borderColor: '#ECFDF5',
   },
   textBlock: {
     flex: 1,
-    marginLeft: 14,
-    marginRight: 8,
+    marginLeft: 12,
+    marginRight: 6,
     paddingBottom: 2,
   },
   text: {
     fontWeight: '800',
-    fontSize: 16.5,
+    fontSize: 15.5,
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
   subtext: {
-    fontSize: 13.5,
+    fontSize: 12.5,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 1,
   },
   arrows: {
     flexDirection: 'row',
