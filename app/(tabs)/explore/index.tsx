@@ -624,7 +624,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? Math.min(height * 0.22, 175) : Math.min(Math.max(height * 0.26, 195), 260);
+  const heroHeight = isSmallScreen ? Math.min(height * 0.28, 220) : Math.min(Math.max(height * 0.33, 255), 320);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -781,11 +781,11 @@ export default function MainMenuScreen() {
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 10, paddingHorizontal: 12, height: 44, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
-                <IconSymbol name="envelope.fill" size={16} color={isDark ? '#34D399' : '#059669'} />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 12, paddingHorizontal: 14, height: 50, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
+                <IconSymbol name="envelope.fill" size={18} color={isDark ? '#34D399' : '#059669'} />
                 <TextInput
                   ref={inviteInputRef}
-                  style={{ flex: 1, fontSize: 13, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 8, paddingVertical: 0 }}
+                  style={{ flex: 1, fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 10, paddingVertical: 0 }}
                   onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
                   onBlur={() => {
                     setIsInviteFocused(false);
@@ -817,7 +817,7 @@ export default function MainMenuScreen() {
 
               <Pressable
                 android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-                style={{ width: 44, height: 44, backgroundColor: '#059669', borderRadius: 10, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+                style={{ width: 50, height: 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
                 onPress={() => {
                   if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
                     setShowIslanderStepsModal(true);
@@ -827,7 +827,7 @@ export default function MainMenuScreen() {
                 }}
                 disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
               >
-                {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={18} color="#FFF" />}
+                {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={20} color="#FFF" />}
               </Pressable>
             </View>
           </WalkthroughableView>
@@ -1002,8 +1002,8 @@ export default function MainMenuScreen() {
         shadowRadius: 8,
         borderWidth: 1,
         borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
-        marginTop: isLargeScreen ? 16 : (isSmallScreen ? 8 : 12),
-        marginBottom: isLargeScreen ? 14 : (isSmallScreen ? 8 : 12),
+        marginTop: 2,
+        marginBottom: isLargeScreen ? 14 : (isSmallScreen ? 6 : 8),
         gap: isLargeScreen ? 14 : 10
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
@@ -1022,9 +1022,9 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 76 : (isSmallScreen ? 54 : 64), aspectRatio: 1, borderRadius: isLargeScreen ? 20 : 16, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="calendar" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
+                <IconSymbol name="calendar" size={isLargeScreen ? 34 : (isSmallScreen ? 24 : 27)} color="#FFFFFF" />
                 {unseenEventsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
@@ -1050,9 +1050,9 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 76 : (isSmallScreen ? 54 : 64), aspectRatio: 1, borderRadius: isLargeScreen ? 20 : 16, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="tag.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
+                <IconSymbol name="tag.fill" size={isLargeScreen ? 34 : (isSmallScreen ? 24 : 27)} color="#FFFFFF" />
                 {unseenListingsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
@@ -1073,9 +1073,9 @@ export default function MainMenuScreen() {
                 activeOpacity={0.8}
                 onPress={() => setShowAdaAiModal(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 76 : (isSmallScreen ? 54 : 64), aspectRatio: 1, borderRadius: isLargeScreen ? 20 : 16, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
+                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 34 : (isSmallScreen ? 24 : 27)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
@@ -1100,9 +1100,9 @@ export default function MainMenuScreen() {
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 72 : (isSmallScreen ? 50 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : (isSmallScreen ? 14 : 15), backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 76 : (isSmallScreen ? 54 : 64), aspectRatio: 1, borderRadius: isLargeScreen ? 20 : 16, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="bag.fill" size={isLargeScreen ? 32 : (isSmallScreen ? 22 : 25)} color="#FFFFFF" />
+                <IconSymbol name="bag.fill" size={isLargeScreen ? 34 : (isSmallScreen ? 24 : 27)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
