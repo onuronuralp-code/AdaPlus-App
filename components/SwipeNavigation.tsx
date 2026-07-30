@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
+import Animated, { runOnJS } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
@@ -25,9 +25,13 @@ export function SwipeNavigation({ children, leftRoute, rightRoute, downRoute }: 
     router.navigate(route as any);
   };
 
+  // Only enable gesture activation for directions that actually have a route defined
+  const minLeft = rightRoute ? -30 : -99999;
+  const maxRight = leftRoute ? 30 : 99999;
+
   const pan = Gesture.Pan()
-    .activeOffsetX([-30, 30])
-    .activeOffsetY([-30, 30])
+    .activeOffsetX([minLeft, maxRight])
+    .activeOffsetY(downRoute ? [-30, 30] : [-99999, 99999])
     .onEnd((e) => {
       if (Math.abs(e.translationX) > Math.abs(e.translationY)) {
         if (e.translationX < -50 && rightRoute) {
