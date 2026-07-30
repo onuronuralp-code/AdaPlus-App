@@ -58,7 +58,7 @@ const TodayOnIsland = () => {
   const isDark = theme === 'dark';
   const isLargeScreen = height > 900;
   
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const { weather, loading: weatherLoading } = useWeather();
   const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string} | null>(null);
   const [ferryLoading, setFerryLoading] = useState(true);
@@ -68,29 +68,29 @@ const TodayOnIsland = () => {
     let cancelled = false;
     
     const getNormalizedIsland = (rawIsland?: string): string => {
-      if (!rawIsland) return "Büyükada";
+      if (!rawIsland) return isLoggedIn ? "Büyükada" : "Kınalıada";
       const upper = rawIsland.toUpperCase();
       if (upper.includes("BUYUK") || upper.includes("BÜYÜK")) return "Büyükada";
       if (upper.includes("HEYBELI") || upper.includes("HEYBELİ")) return "Heybeliada";
       if (upper.includes("BURGAZ")) return "Burgazada";
       if (upper.includes("KINALI") || upper.includes("KİNALI")) return "Kınalıada";
-      return "Büyükada";
+      return isLoggedIn ? "Büyükada" : "Kınalıada";
     };
 
     const fetchFerry = async () => {
       try {
         setFerryLoading(true);
-        let targetIsland = "Büyükada";
-        const defIsland = await AsyncStorage.getItem('defaultIsland');
-        if (defIsland) {
-          targetIsland = getNormalizedIsland(defIsland);
-        } else if ((user as any)?.island) {
+        let targetIsland = isLoggedIn ? "Büyükada" : "Kınalıada";
+        let defIsland: string | null = null;
+        if (isLoggedIn && (user as any)?.island) {
           targetIsland = getNormalizedIsland((user as any)?.island);
-        } else {
-          const storedIsland = await AsyncStorage.getItem('selected_island');
-          if (storedIsland) {
-            targetIsland = getNormalizedIsland(storedIsland);
+        } else if (isLoggedIn) {
+          defIsland = await AsyncStorage.getItem('defaultIsland');
+          if (defIsland) {
+            targetIsland = getNormalizedIsland(defIsland);
           }
+        } else {
+          targetIsland = "Kınalıada";
         }
 
         const isIslandName = (name: string): boolean => {
@@ -293,14 +293,14 @@ export default function MainMenuScreen() {
   };
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [selectedIsland, setSelectedIsland] = useState("Büyükada");
+  const { isLoggedIn, user } = useAuth();
+  const [selectedIsland, setSelectedIsland] = useState(isLoggedIn && (user as any)?.island ? ((user as any).island === 'KINALIADA' ? 'Kınalıada' : (user as any).island === 'BURGAZADA' ? 'Burgazada' : (user as any).island === 'HEYBELIADA' ? 'Heybeliada' : 'Büyükada') : 'Kınalıada');
   const isSmallScreen = height < 820;
   const isLargeScreen = height > 900;
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
   const menuButtonWidth = (width - 56) / 3.5;
   const [showIslandPicker, setShowIslandPicker] = useState(false);
-  const { isLoggedIn, user } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
