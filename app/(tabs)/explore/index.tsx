@@ -642,7 +642,7 @@ export default function MainMenuScreen() {
 
 
   return (
-    <SwipeNavigation rightRoute="/(tabs)/home" downRoute="/(tabs)/home">
+    <SwipeNavigation rightRoute="/(tabs)/home">
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
