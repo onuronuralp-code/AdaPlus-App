@@ -300,6 +300,7 @@ export default function MainMenuScreen() {
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
   const menuButtonWidth = (width - 56) / 3.5;
+  const pageHeight = height - insets.bottom - (Platform.OS === 'ios' ? 65 : 50);
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -649,8 +650,8 @@ export default function MainMenuScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} scrollEnabled={true} pagingEnabled={true} decelerationRate="fast" snapToAlignment="start" bounces={false} keyboardShouldPersistTaps="handled">
-            <View style={{ minHeight: height - insets.top - (isLargeScreen ? 90 : 70), justifyContent: 'space-between' }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} scrollEnabled={true} snapToInterval={pageHeight} decelerationRate="fast" snapToAlignment="start" bounces={false} keyboardShouldPersistTaps="handled">
+            <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 10 }}>
               <View style={[styles.welcomeContainer, { 
                 flexDirection: 'row', 
                 justifyContent: 'space-between', 
@@ -1128,7 +1129,7 @@ export default function MainMenuScreen() {
       {/* End of Page 1 */}
 
       {/* Page 2: Ada Hizmetleri (Island Services - Snap Page 2) */}
-      <View style={{ minHeight: height - insets.top - (isLargeScreen ? 90 : 70), paddingTop: insets.top + 20, paddingBottom: Math.max(insets.bottom, 24) + 60 }}>
+      <View style={{ height: pageHeight, paddingTop: insets.top + 16 }}>
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
             {i18n.language.startsWith('en') ? '🏝️ Island Services' : '🏝️ Ada Hizmetleri'}
