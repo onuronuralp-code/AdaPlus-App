@@ -168,7 +168,7 @@ function RootLayoutNav() {
           <Stack.Screen name="signup" options={{ headerShown: false }} />
           <Stack.Screen name="reset-password" options={{ headerShown: false }} />
           <Stack.Screen name="verify" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="settings" options={{ headerShown: false, animation: "none" }} />
           <Stack.Screen name="edit-account" options={{ headerShown: false, animation: "none" }} />
           <Stack.Screen
