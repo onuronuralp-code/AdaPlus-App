@@ -776,65 +776,8 @@ export default function MainMenuScreen() {
       </View>
 
 
-      {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-        <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
-          <WalkthroughableView collapsable={false} style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#ffffff', borderRadius: 8, paddingHorizontal: 16, height: isLargeScreen ? 60 : 50, elevation: 2, borderWidth: 2, borderColor: isDark ? '#047857' : '#059669' }}>
-              <IconSymbol name="envelope.fill" size={20} color={isDark ? '#34D399' : '#059669'} />
-              <TextInput
-                ref={inviteInputRef}
-                style={{ flex: 1, fontSize: isLargeScreen ? 14 : 14, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 12 }}
-                onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
-                onBlur={() => {
-                  setIsInviteFocused(false);
-                  const email = inviteEmail.trim();
-                  if (email && !EMAIL_REGEX.test(email)) {
-                    Alert.alert(
-                      t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
-                      i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
-                    );
-                  }
-                }}
-                placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite via E-mail or Phone' : 'E-posta veya telefon ile davet et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
-                placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
-                value={inviteEmail}
-                onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
-                onSubmitEditing={handleSendInvite}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN'}
-              />
-            </View>
-
-            {!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && (
-              <Pressable 
-                style={StyleSheet.absoluteFillObject} 
-                onPress={() => setShowIslanderStepsModal(true)} 
-              />
-            )}
-          </View>
-          <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-             style={{ width: isLargeScreen ? 60 : 50, height: isLargeScreen ? 60 : 50, backgroundColor: '#059669', borderRadius: 8, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
-             onPress={() => {
-               if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
-                 setShowIslanderStepsModal(true);
-               } else {
-                 handleSendInvite();
-               }
-             }}
-             disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
-          >
-             {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={20} color="#FFF" />}
-          </Pressable>
-        </View>
-          </WalkthroughableView>
-        </CopilotStep>
-        {!!inviteEmailError && (
-          <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 6, marginLeft: 4 }}>{inviteEmailError}</Text>
-        )}
+      {/* Weather & Ferry Banner */}
+      <View style={{ paddingHorizontal: 20, marginVertical: 4 }}>
         <TodayOnIsland />
       </View>
 
