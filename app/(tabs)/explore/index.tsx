@@ -777,7 +777,7 @@ export default function MainMenuScreen() {
 
 
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
-      <View style={{ paddingHorizontal: 12, marginBottom: 2 }}>
+      <View style={{ paddingHorizontal: 12, marginBottom: 8 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
@@ -838,7 +838,7 @@ export default function MainMenuScreen() {
       </View>
 
       {/* Weather & Ferry Banner */}
-      <View style={{ paddingHorizontal: 12, marginBottom: 2 }}>
+      <View style={{ paddingHorizontal: 12, marginBottom: 10 }}>
         <TodayOnIsland />
       </View>
 
