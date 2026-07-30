@@ -208,20 +208,6 @@ export default function IlanDetailScreen() {
             <View style={[styles.categoryBadge, { backgroundColor: isDark ? '#1C1C1E' : cfg.bg }]}>
               <Text style={[styles.categoryBadgeText, { color: cfg.color }]}>{t(`ilanlar.category.${frontendCat}`, { defaultValue: cfg.label })}</Text>
             </View>
-            <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
-          </View>
-
-          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{translatedTitle || listing.title}</Text>
-          {listing.price > 0 && (
-            <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 8 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
-            </View>
-          )}
-
-          <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
-
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }, { marginBottom: 0 }]}>{t('ilanlar.descriptionLabel', { defaultValue: isEn ? 'Description' : 'Açıklama' })}</Text>
             {listing.description && listing.description.trim().length > 3 && (
               <TouchableOpacity 
                 onPress={handleToggleTranslation}
@@ -240,6 +226,20 @@ export default function IlanDetailScreen() {
                 )}
               </TouchableOpacity>
             )}
+          </View>
+
+          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{translatedTitle || listing.title}</Text>
+          {listing.price > 0 && (
+            <View style={{ alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 8 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>{listing.price.toLocaleString('tr-TR')} ₺</Text>
+            </View>
+          )}
+
+          <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }, { marginBottom: 0 }]}>{t('ilanlar.descriptionLabel', { defaultValue: isEn ? 'Description' : 'Açıklama' })}</Text>
+            <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{timeAgo}</Text>
           </View>
           <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>{translatedDesc || listing.description}</Text>
 
