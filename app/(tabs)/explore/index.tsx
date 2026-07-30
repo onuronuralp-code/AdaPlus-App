@@ -1130,10 +1130,10 @@ export default function MainMenuScreen() {
       {/* End of Page 1 */}
 
       {/* Page 2: Ada Hizmetleri (Island Services - Snap Page 2) */}
-      <View style={{ height: pageHeight, paddingTop: 12 }}>
+      <View style={{ height: pageHeight, justifyContent: 'flex-end', paddingBottom: 20 }}>
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <MaterialCommunityIcons name="island" size={24} color={isDark ? '#60A5FA' : '#2563EB'} />
+            <MaterialCommunityIcons name="toolbox" size={24} color="#F97316" />
             <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
               {i18n.language.startsWith('en') ? 'Local Services' : 'Lokal Servisler'}
             </Text>
@@ -1143,7 +1143,7 @@ export default function MainMenuScreen() {
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14, marginBottom: 28 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14 }}>
           {[
             { icon: '🔧', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
             { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
