@@ -140,6 +140,8 @@ export default function IlanDetailScreen() {
     locale: i18n.language.startsWith('tr') ? tr : enUS 
   });
 
+  const isEnActive = Boolean(translatedDesc || translatedTitle) || isEn;
+
   return (
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       {/* Header Overlay */}
@@ -220,7 +222,7 @@ export default function IlanDetailScreen() {
                   <>
                     <IconSymbol name="globe" size={13} color="#3B82F6" />
                     <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                      {translatedDesc ? 'Türkçeye çevir' : 'Translate to English'}
+                      {translatedDesc ? (isEn ? 'Show Original (TR)' : 'Türkçeye çevir') : (isEn ? 'Translate to English' : 'İngilizceye çevir')}
                     </Text>
                   </>
                 )}
@@ -240,7 +242,7 @@ export default function IlanDetailScreen() {
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
-          <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }]}>{t('ilanlar.descriptionLabel', { defaultValue: isEn ? 'Description' : 'Açıklama' })}</Text>
+          <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }]}>{isEnActive ? 'Description' : 'Açıklama'}</Text>
           <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>{translatedDesc || listing.description}</Text>
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
@@ -251,7 +253,7 @@ export default function IlanDetailScreen() {
                 <IconSymbol name="mappin.and.ellipse" size={16} color={isDark ? "#94A3B8" : "#64748B"} />
               </View>
               <View>
-                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.locationLabel', { defaultValue: isEn ? 'LOCATION' : 'KONUM' })}</Text>
+                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'LOCATION' : 'KONUM'}</Text>
                 <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{listing.island}</Text>
               </View>
             </View>
@@ -296,7 +298,7 @@ export default function IlanDetailScreen() {
                     )}
                   </View>
                   <View>
-                    <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.contactLabel', { defaultValue: isEn ? 'CONTACT' : 'İLETİŞİM' })}</Text>
+                    <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'CONTACT' : 'İLETİŞİM'}</Text>
                     <Text style={[styles.infoValue, listing.contactInfo && { color: isInsta ? '#E1306C' : (isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981')) }, isDark && !listing.contactInfo && { color: '#CBD5E1' }]}>
                       {listing.contactInfo || t('ilanlar.notShared', { defaultValue: isEn ? 'Not shared' : 'Paylaşılmamış' })}
                     </Text>

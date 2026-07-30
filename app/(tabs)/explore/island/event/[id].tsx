@@ -198,6 +198,8 @@ export default function EventDetailScreen() {
     const heroUri = resolveImageUrl(activity.imageUrl) ||
         'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80';
 
+    const isEnActive = Boolean(translatedDesc) || i18n.language.startsWith('en');
+
     return (
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
             {/* Floating back + share buttons */}
@@ -242,12 +244,12 @@ export default function EventDetailScreen() {
                     <View style={[styles.metaRow, { justifyContent: 'space-between' }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
                             <View style={[styles.badge, isDark && { backgroundColor: '#1E3A8A' }]}>
-                                <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{t('events.badge')}</Text>
+                                <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{isEnActive ? 'EVENT' : 'ETKİNLİK'}</Text>
                             </View>
                             {rsvpCount > 0 && (
                                 <View style={[styles.attendeePill, isDark && { backgroundColor: '#1C1C1E' }]}>
                                     <IconSymbol name="person.2.fill" size={13} color="#3B82F6" />
-                                    <Text style={[styles.attendeeText, isDark && { color: '#60A5FA' }]}>{rsvpCount} {t('events.attendeesCount', { defaultValue: 'katılımcı' })}</Text>
+                                    <Text style={[styles.attendeeText, isDark && { color: '#60A5FA' }]}>{rsvpCount} {isEnActive ? 'attendees' : 'katılımcı'}</Text>
                                 </View>
                             )}
                         </View>
@@ -263,7 +265,7 @@ export default function EventDetailScreen() {
                                     <>
                                         <IconSymbol name="globe" size={13} color="#3B82F6" />
                                         <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                                            {translatedDesc ? 'Türkçeye çevir' : 'Translate to English'}
+                                            {translatedDesc ? (i18n.language.startsWith('en') ? 'Show Original (TR)' : 'Türkçeye çevir') : (i18n.language.startsWith('en') ? 'Translate to English' : 'İngilizceye çevir')}
                                         </Text>
                                     </>
                                 )}
@@ -286,14 +288,14 @@ export default function EventDetailScreen() {
                             <IconSymbol name="calendar" size={20} color="#3B82F6" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.dateLabel', { defaultValue: i18n.language.startsWith('en') ? 'START TIME' : 'BAŞLANGIÇ' })}</Text>
+                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'START TIME' : 'BAŞLANGIÇ'}</Text>
                             {(() => {
                                 const parseDateAndTime = (ds?: string) => {
                                     if (!ds) return { date: '', time: '' };
                                     const d = new Date(ds);
                                     return {
-                                        date: d.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
-                                        time: d.toLocaleTimeString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+                                        date: d.toLocaleDateString(isEnActive ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+                                        time: d.toLocaleTimeString(isEnActive ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })
                                     };
                                 };
                                 const start = parseDateAndTime(activity.startDate);
@@ -323,7 +325,7 @@ export default function EventDetailScreen() {
                                     ? `https://maps.apple.com/?q=${query}`
                                     : `https://www.google.com/maps/search/?api=1&query=${query}`;
                                 Linking.openURL(url).catch(() => {
-                                    Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to open maps.' : 'Harita uygulaması açılamadı.');
+                                    Alert.alert(isEnActive ? 'Error' : 'Hata', isEnActive ? 'Failed to open maps.' : 'Harita uygulaması açılamadı.');
                                 });
                             }}
                         >
@@ -331,7 +333,7 @@ export default function EventDetailScreen() {
                                 <IconSymbol name="mappin.and.ellipse" size={20} color={isDark ? "#60A5FA" : "#3B82F6"} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.locationLabel')}</Text>
+                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'LOCATION' : 'KONUM'}</Text>
                                 <Text style={[styles.infoValue, { color: isDark ? '#60A5FA' : '#3B82F6', textDecorationLine: 'underline' }]}>{activity.eventPlace}</Text>
                             </View>
                         </TouchableOpacity>
@@ -343,7 +345,7 @@ export default function EventDetailScreen() {
                             <IconSymbol name="person.fill" size={20} color={isDark ? "#94A3B8" : "#64748B"} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.organizerLabel')}</Text>
+                            <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'ORGANIZER' : 'ORGANİZATÖR'}</Text>
                             <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{activity.organizerName}</Text>
                         </View>
                     </View>
@@ -363,9 +365,9 @@ export default function EventDetailScreen() {
                                 onPress={() => {
                                     const contact = activity.organizerContact!.trim();
                                     if (isEmail) {
-                                        Linking.openURL(`mailto:${contact}`).catch(() => Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to open mail app.' : 'E-posta uygulaması açılamadı.'));
+                                        Linking.openURL(`mailto:${contact}`).catch(() => Alert.alert(isEnActive ? 'Error' : 'Hata', isEnActive ? 'Failed to open mail app.' : 'E-posta uygulaması açılamadı.'));
                                     } else {
-                                        Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => Alert.alert(i18n.language.startsWith('en') ? 'Call Failed' : 'Arama Yapılamadı', i18n.language.startsWith('en') ? 'Calling is not supported on this device.' : `Bu cihazda arama desteklenmiyor olabilir.\n\nNumara: ${contact}`));
+                                        Linking.openURL(`tel:${contact.replace(/[^\d+]/g, '')}`).catch(() => Alert.alert(isEnActive ? 'Call Failed' : 'Arama Yapılamadı', isEnActive ? 'Calling is not supported on this device.' : `Bu cihazda arama desteklenmiyor olabilir.\n\nNumara: ${contact}`));
                                     }
                                 }}
                             >
@@ -378,7 +380,7 @@ export default function EventDetailScreen() {
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>
-                                        {isEmail ? (i18n.language.startsWith('en') ? 'EMAIL' : 'E-MAİL') : (i18n.language.startsWith('en') ? 'PHONE' : 'TELEFON')}
+                                        {isEmail ? (isEnActive ? 'EMAIL' : 'E-MAİL') : (isEnActive ? 'PHONE' : 'TELEFON')}
                                     </Text>
                                     <Text style={[styles.infoValue, { color: isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981') }]}>
                                         {activity.organizerContact}
@@ -396,7 +398,7 @@ export default function EventDetailScreen() {
                                 if (!activity.instagramLink) return;
                                 const targetUrl = normalizeInstagramUrl(activity.instagramLink);
                                 Linking.openURL(targetUrl).catch(() => {
-                                    Alert.alert(i18n.language.startsWith('en') ? 'Error' : 'Hata', i18n.language.startsWith('en') ? 'Failed to open link.' : 'Bağlantı açılamadı.');
+                                    Alert.alert(isEnActive ? 'Error' : 'Hata', isEnActive ? 'Failed to open link.' : 'Bağlantı açılamadı.');
                                 });
                             }}
                             activeOpacity={0.7}
@@ -405,7 +407,7 @@ export default function EventDetailScreen() {
                                 <MaterialCommunityIcons name="instagram" size={20} color="#E1306C" />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{t('events.socialMediaLabel', { defaultValue: 'INSTAGRAM' })}</Text>
+                                <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'INSTAGRAM' : 'INSTAGRAM'}</Text>
                                 <Text style={[styles.infoValue, { color: '#E1306C' }]} numberOfLines={1}>
                                     {activity.instagramLink}
                                 </Text>
@@ -424,7 +426,7 @@ export default function EventDetailScreen() {
                             <>
                                 <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
                                 <Text style={[styles.rsvpButtonText, going && (isDark ? { color: '#60A5FA' } : styles.rsvpButtonTextActive)]}>
-                                    {going ? t('events.going', { defaultValue: i18n.language.startsWith('en') ? "I'm Attending" : 'Katılıyorum' }) : t('events.join', { defaultValue: i18n.language.startsWith('en') ? "I'll Attend" : 'Katılacağım' })}
+                                    {going ? (isEnActive ? 'Attending' : 'Katılıyorum') : (isEnActive ? "I'll Attend" : 'Katılacağım')}
                                 </Text>
                             </>
                         )}
