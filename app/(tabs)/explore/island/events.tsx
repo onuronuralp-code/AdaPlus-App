@@ -492,7 +492,7 @@ export default function EventsScreen() {
                                             </View>
 
                                             {/* 2. Lokasyon & Organizasyon (Yan Yana) */}
-                                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: isGridView ? 2 : 4 }}>
+                                            <View style={{ gap: 4, marginTop: isGridView ? 2 : 4 }}>
                                                 {(() => {
                                                     const islandName = getIslandName(event);
                                                     if (!islandName && !event.eventPlace) return null;
