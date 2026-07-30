@@ -239,15 +239,35 @@ export default function EventDetailScreen() {
             >
                 <View style={[styles.content, { marginTop: 0 }, isDark && { backgroundColor: '#000000' }]}>
                     {/* Badge + date */}
-                    <View style={styles.metaRow}>
-                        <View style={[styles.badge, isDark && { backgroundColor: '#1E3A8A' }]}>
-                            <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{t('events.badge')}</Text>
-                        </View>
-                        {rsvpCount > 0 && (
-                            <View style={[styles.attendeePill, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                <IconSymbol name="person.2.fill" size={13} color="#3B82F6" />
-                                <Text style={[styles.attendeeText, isDark && { color: '#60A5FA' }]}>{rsvpCount} {t('events.attendeesCount', { defaultValue: 'katılımcı' })}</Text>
+                    <View style={[styles.metaRow, { justifyContent: 'space-between' }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+                            <View style={[styles.badge, isDark && { backgroundColor: '#1E3A8A' }]}>
+                                <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{t('events.badge')}</Text>
                             </View>
+                            {rsvpCount > 0 && (
+                                <View style={[styles.attendeePill, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                    <IconSymbol name="person.2.fill" size={13} color="#3B82F6" />
+                                    <Text style={[styles.attendeeText, isDark && { color: '#60A5FA' }]}>{rsvpCount} {t('events.attendeesCount', { defaultValue: 'katılımcı' })}</Text>
+                                </View>
+                            )}
+                        </View>
+                        {activity.description && activity.description.trim().length > 3 && (
+                            <TouchableOpacity 
+                                onPress={handleToggleTranslation}
+                                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: isDark ? '#1E293B' : '#F0F7FF', borderRadius: 12 }}
+                                activeOpacity={0.7}
+                            >
+                                {isTranslating ? (
+                                    <ActivityIndicator size="small" color="#3B82F6" />
+                                ) : (
+                                    <>
+                                        <IconSymbol name="globe" size={13} color="#3B82F6" />
+                                        <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
+                                            {translatedDesc ? (i18n.language.startsWith('en') ? 'Original' : 'Orijinal') : (i18n.language.startsWith('en') ? 'Translate' : 'Çevir')}
+                                        </Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
                         )}
                     </View>
 
@@ -257,24 +277,6 @@ export default function EventDetailScreen() {
                     <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }, isDark && { color: '#CBD5E1' }]}>
                         {translatedDesc || activity.description}
                     </Text>
-                    {activity.description && activity.description.trim().length > 3 && (
-                        <TouchableOpacity 
-                            onPress={handleToggleTranslation}
-                            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4, marginBottom: 12, alignSelf: 'flex-start' }}
-                            activeOpacity={0.7}
-                        >
-                            {isTranslating ? (
-                                <ActivityIndicator size="small" color="#3B82F6" />
-                            ) : (
-                                <>
-                                    <IconSymbol name="globe" size={14} color="#3B82F6" />
-                                    <Text style={{ fontSize: 13, color: '#3B82F6', fontWeight: '700' }}>
-                                        {translatedDesc ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör') : 'Translate to English'}
-                                    </Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    )}
 
                     <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
