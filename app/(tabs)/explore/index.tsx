@@ -1135,16 +1135,16 @@ export default function MainMenuScreen() {
 
       {/* Page 2: Banner Area & Lokal Servisler (Snap Page 2) */}
       <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 16 }}>
-        {/* Top Banner Area */}
-        <View style={{ paddingTop: 10, paddingHorizontal: 16, flex: 1, justifyContent: 'center' }}>
+        {/* Top Banner Area (Fills upper space completely) */}
+        <View style={{ paddingTop: 8, paddingHorizontal: 16, flex: 1, marginBottom: 14 }}>
           <LinearGradient
             colors={isDark ? ['#1E293B', '#0F172A'] : ['#2563EB', '#1D4ED8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
+              flex: 1,
               borderRadius: 24,
-              padding: 20,
-              paddingVertical: isLargeScreen ? 22 : 18,
+              padding: 22,
               justifyContent: 'space-between',
               shadowColor: '#2563EB',
               shadowOffset: { width: 0, height: 6 },
