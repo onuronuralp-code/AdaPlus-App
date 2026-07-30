@@ -1022,9 +1022,9 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 80 : (isSmallScreen ? 58 : 68), aspectRatio: 1, borderRadius: isLargeScreen ? 22 : 18, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="calendar" size={isLargeScreen ? 36 : (isSmallScreen ? 25 : 29)} color="#FFFFFF" />
+                <IconSymbol name="calendar" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 {unseenEventsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
@@ -1050,9 +1050,9 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 80 : (isSmallScreen ? 58 : 68), aspectRatio: 1, borderRadius: isLargeScreen ? 22 : 18, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="tag.fill" size={isLargeScreen ? 36 : (isSmallScreen ? 25 : 29)} color="#FFFFFF" />
+                <IconSymbol name="tag.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 {unseenListingsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
@@ -1073,9 +1073,9 @@ export default function MainMenuScreen() {
                 activeOpacity={0.8}
                 onPress={() => setShowAdaAiModal(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 80 : (isSmallScreen ? 58 : 68), aspectRatio: 1, borderRadius: isLargeScreen ? 22 : 18, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 36 : (isSmallScreen ? 25 : 29)} color="#FFFFFF" />
+                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
@@ -1100,9 +1100,9 @@ export default function MainMenuScreen() {
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 80 : (isSmallScreen ? 58 : 68), aspectRatio: 1, borderRadius: isLargeScreen ? 22 : 18, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="bag.fill" size={isLargeScreen ? 36 : (isSmallScreen ? 25 : 29)} color="#FFFFFF" />
+                <IconSymbol name="bag.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>

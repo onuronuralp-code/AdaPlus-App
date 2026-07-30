@@ -119,8 +119,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
       <Pressable
         style={({ pressed }) => [
           styles.container, 
-          isSmallScreen && { height: 60, borderRadius: 14, paddingHorizontal: 10 },
-          isLargeScreen && { height: 74, borderRadius: 18 },
+          isSmallScreen && { height: 66, borderRadius: 16, paddingHorizontal: 12 },
+          isLargeScreen && { height: 82, borderRadius: 20 },
           isDeactivated
             ? { backgroundColor: '#D32F2F', borderColor: '#B71C1C', shadowColor: '#FF0000' }
             : { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
@@ -142,13 +142,13 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
               {/* Icon + live dot */}
               <View style={[
                   styles.iconContainer, 
-                  isSmallScreen && { width: 40, height: 40, borderRadius: 10 },
-                  isLargeScreen && { width: 60, height: 60, borderRadius: 16 },
+                  isSmallScreen && { width: 44, height: 44, borderRadius: 12 },
+                  isLargeScreen && { width: 64, height: 64, borderRadius: 18 },
                   { backgroundColor: isDeactivated ? '#9A0007' : (pressed ? '#047857' : '#059669') }
               ]}>
                 <IconSymbol
                   name="bubble.left.and.bubble.right.fill"
-                  size={isSmallScreen ? 20 : (isLargeScreen ? 30 : 24)}
+                  size={isSmallScreen ? 22 : (isLargeScreen ? 32 : 27)}
                   color="#FFFFFF"
                 />
                 <Animated.View style={[
@@ -160,7 +160,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
               {/* Text block */}
               <View style={styles.textBlock}>
-                <Text style={[styles.text, isSmallScreen && { fontSize: 14 }, isLargeScreen && { fontSize: 18 }]}>
+                <Text style={[styles.text, isSmallScreen && { fontSize: 15 }, isLargeScreen && { fontSize: 19 }]}>
                   {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
                 </Text>
                 {isDeactivated ? (
@@ -182,9 +182,9 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                   <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#FEE2E2" />
                 ) : (
                   <>
-                    <IconSymbol name="chevron.right" size={12} color="rgba(255, 255, 255, 0.4)" />
-                    <IconSymbol name="chevron.right" size={14} color="rgba(255, 255, 255, 0.7)" />
-                    <IconSymbol name="chevron.right" size={isLargeScreen ? 20 : 17} color="#FFFFFF" />
+                    <IconSymbol name="chevron.right" size={13} color="rgba(255, 255, 255, 0.4)" />
+                    <IconSymbol name="chevron.right" size={15} color="rgba(255, 255, 255, 0.7)" />
+                    <IconSymbol name="chevron.right" size={isLargeScreen ? 22 : 19} color="#FFFFFF" />
                   </>
                 )}
               </View>
@@ -198,11 +198,11 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
 const styles = StyleSheet.create({
   container: {
-    height: 72,
-    borderRadius: 16,
+    height: 76,
+    borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1.5,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     justifyContent: 'center',
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
@@ -215,9 +215,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -234,18 +234,18 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
     marginRight: 8,
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   text: {
     fontWeight: '800',
-    fontSize: 15,
+    fontSize: 16.5,
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
   subtext: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: '600',
     marginTop: 2,
   },
