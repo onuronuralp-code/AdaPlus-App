@@ -21,6 +21,7 @@ const playNote = async (noteModule: any) => {
   }
 };
 
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { AbstractPattern } from '@/components/AbstractPattern';
 import { SwipeButton } from '@/components/SwipeButton';
@@ -1131,9 +1132,12 @@ export default function MainMenuScreen() {
       {/* Page 2: Ada Hizmetleri (Island Services - Snap Page 2) */}
       <View style={{ height: pageHeight, paddingTop: 12 }}>
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-          <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
-            {i18n.language.startsWith('en') ? '🏝️ Local Services' : '🏝️ Lokal Servisler'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <MaterialCommunityIcons name="island" size={24} color={isDark ? '#60A5FA' : '#2563EB'} />
+            <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
+              {i18n.language.startsWith('en') ? 'Local Services' : 'Lokal Servisler'}
+            </Text>
+          </View>
           <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 4, fontWeight: '500' }}>
             {i18n.language.startsWith('en') ? 'Find local service providers on your island' : 'Adandaki yerel hizmet sağlayıcılarını bul'}
           </Text>
