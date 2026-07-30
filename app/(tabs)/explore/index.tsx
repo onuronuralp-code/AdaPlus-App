@@ -624,7 +624,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? Math.min(height * 0.25, 210) : Math.min(Math.max(height * 0.31, 230), 340);
+  const heroHeight = isSmallScreen ? Math.min(height * 0.22, 175) : Math.min(Math.max(height * 0.26, 195), 260);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -776,8 +776,69 @@ export default function MainMenuScreen() {
       </View>
 
 
+      {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 6 }}>
+        <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
+          <WalkthroughableView collapsable={false}>
+            <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 10, paddingHorizontal: 12, height: 44, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
+                <IconSymbol name="envelope.fill" size={16} color={isDark ? '#34D399' : '#059669'} />
+                <TextInput
+                  ref={inviteInputRef}
+                  style={{ flex: 1, fontSize: 13, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 8, paddingVertical: 0 }}
+                  onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
+                  onBlur={() => {
+                    setIsInviteFocused(false);
+                    const email = inviteEmail.trim();
+                    if (email && !EMAIL_REGEX.test(email)) {
+                      Alert.alert(
+                        t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
+                        i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
+                      );
+                    }
+                  }}
+                  placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite via E-mail or Phone' : 'E-posta veya telefon ile davet et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
+                  placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
+                  value={inviteEmail}
+                  onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
+                  onSubmitEditing={handleSendInvite}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  editable={user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN'}
+                />
+              </View>
+
+              {!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && (
+                <Pressable 
+                  style={StyleSheet.absoluteFillObject} 
+                  onPress={() => setShowIslanderStepsModal(true)} 
+                />
+              )}
+
+              <Pressable
+                android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
+                style={{ width: 44, height: 44, backgroundColor: '#059669', borderRadius: 10, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+                onPress={() => {
+                  if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
+                    setShowIslanderStepsModal(true);
+                  } else {
+                    handleSendInvite();
+                  }
+                }}
+                disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
+              >
+                {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={18} color="#FFF" />}
+              </Pressable>
+            </View>
+          </WalkthroughableView>
+        </CopilotStep>
+        {!!inviteEmailError && (
+          <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4, marginLeft: 4 }}>{inviteEmailError}</Text>
+        )}
+      </View>
+
       {/* Weather & Ferry Banner */}
-      <View style={{ paddingHorizontal: 20, marginVertical: 4 }}>
+      <View style={{ paddingHorizontal: 20, marginBottom: 6 }}>
         <TodayOnIsland />
       </View>
 
