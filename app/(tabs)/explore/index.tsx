@@ -777,15 +777,15 @@ export default function MainMenuScreen() {
 
 
       {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 6 }}>
+      <View style={{ paddingHorizontal: 20, marginBottom: 2 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 12, paddingHorizontal: 14, height: 50, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
-                <IconSymbol name="envelope.fill" size={18} color={isDark ? '#34D399' : '#059669'} />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 14, paddingHorizontal: 14, height: 54, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
+                <IconSymbol name="envelope.fill" size={19} color={isDark ? '#34D399' : '#059669'} />
                 <TextInput
                   ref={inviteInputRef}
-                  style={{ flex: 1, fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 10, paddingVertical: 0 }}
+                  style={{ flex: 1, fontSize: 14.5, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 10, paddingVertical: 0 }}
                   onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
                   onBlur={() => {
                     setIsInviteFocused(false);
@@ -817,7 +817,7 @@ export default function MainMenuScreen() {
 
               <Pressable
                 android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-                style={{ width: 50, height: 50, backgroundColor: '#059669', borderRadius: 12, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+                style={{ width: 54, height: 54, backgroundColor: '#059669', borderRadius: 14, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
                 onPress={() => {
                   if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
                     setShowIslanderStepsModal(true);
@@ -827,7 +827,7 @@ export default function MainMenuScreen() {
                 }}
                 disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
               >
-                {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={20} color="#FFF" />}
+                {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={21} color="#FFF" />}
               </Pressable>
             </View>
           </WalkthroughableView>
