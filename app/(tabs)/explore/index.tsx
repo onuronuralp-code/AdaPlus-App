@@ -624,7 +624,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? Math.min(height * 0.27, 210) : Math.min(Math.max(height * 0.31, 245), 290);
+  const heroHeight = isSmallScreen ? Math.min(height * 0.30, 235) : Math.min(Math.max(height * 0.35, 275), 330);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
