@@ -119,8 +119,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
       <Pressable
         style={({ pressed }) => [
           styles.container, 
-          isSmallScreen && { height: 66, borderRadius: 16, paddingHorizontal: 12 },
-          isLargeScreen && { height: 82, borderRadius: 20 },
+          isSmallScreen && { height: 66, borderRadius: 16, paddingLeft: 6, paddingRight: 12 },
+          isLargeScreen && { height: 82, borderRadius: 20, paddingLeft: 10, paddingRight: 16 },
           isDeactivated
             ? { backgroundColor: '#D32F2F', borderColor: '#B71C1C', shadowColor: '#FF0000' }
             : { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
@@ -202,7 +202,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1.5,
-    paddingHorizontal: 14,
+    paddingLeft: 8,
+    paddingRight: 14,
     justifyContent: 'center',
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
