@@ -1149,9 +1149,7 @@ export default function MainMenuScreen() {
             { icon: '💇', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
             { icon: '⚡', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
             { icon: '🌐', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
-            { icon: '🧹', label: i18n.language.startsWith('en') ? 'Cleaning' : 'Temizlik', color: '#EC4899', bg: isDark ? '#831843' : '#FDF2F8' },
             { icon: '🚛', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
-            { icon: '🎨', label: i18n.language.startsWith('en') ? 'Painter' : 'Boyacı', color: '#F97316', bg: isDark ? '#7C2D12' : '#FFF7ED' },
             { icon: '🌿', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#22C55E', bg: isDark ? '#14532D' : '#F0FDF4' },
           ].map((service, idx) => (
             <TouchableOpacity
