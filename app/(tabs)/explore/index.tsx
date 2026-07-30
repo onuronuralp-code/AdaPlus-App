@@ -624,7 +624,7 @@ export default function MainMenuScreen() {
     const index = Math.round(scrollPosition / width);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? Math.min(height * 0.28, 220) : Math.min(Math.max(height * 0.33, 255), 320);
+  const heroHeight = isSmallScreen ? Math.min(height * 0.24, 185) : Math.min(Math.max(height * 0.28, 215), 260);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -1002,7 +1002,7 @@ export default function MainMenuScreen() {
         shadowRadius: 8,
         borderWidth: 1,
         borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
-        marginTop: 2,
+        marginTop: 10,
         marginBottom: isLargeScreen ? 14 : (isSmallScreen ? 6 : 8),
         gap: isLargeScreen ? 14 : 10
       }}>
