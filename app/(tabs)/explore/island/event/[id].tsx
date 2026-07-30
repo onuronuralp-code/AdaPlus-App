@@ -263,7 +263,7 @@ export default function EventDetailScreen() {
                                     <>
                                         <IconSymbol name="globe" size={13} color="#3B82F6" />
                                         <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                                            {translatedDesc ? (i18n.language.startsWith('en') ? 'Original' : 'Orijinal') : (i18n.language.startsWith('en') ? 'Translate' : 'Çevir')}
+                                            {translatedDesc ? 'Türkçeye çevir' : 'Translate to English'}
                                         </Text>
                                     </>
                                 )}

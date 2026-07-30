@@ -234,7 +234,7 @@ export default function IlanDetailScreen() {
                   <>
                     <IconSymbol name="globe" size={13} color="#3B82F6" />
                     <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                      {translatedDesc ? (isEn ? 'Original' : 'Orijinal') : (isEn ? 'Translate' : 'Çevir')}
+                      {translatedDesc ? 'Türkçeye çevir' : 'Translate to English'}
                     </Text>
                   </>
                 )}
