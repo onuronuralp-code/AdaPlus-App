@@ -220,26 +220,28 @@ export default function IlanDetailScreen() {
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
-          <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }]}>{t('ilanlar.descriptionLabel', { defaultValue: isEn ? 'Description' : 'Açıklama' })}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[styles.sectionTitle, isDark && { color: '#FFFFFF' }, { marginBottom: 0 }]}>{t('ilanlar.descriptionLabel', { defaultValue: isEn ? 'Description' : 'Açıklama' })}</Text>
+            {listing.description && listing.description.trim().length > 3 && (
+              <TouchableOpacity 
+                onPress={handleToggleTranslation}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: isDark ? '#1E293B' : '#F0F7FF', borderRadius: 12 }}
+                activeOpacity={0.7}
+              >
+                {isTranslating ? (
+                  <ActivityIndicator size="small" color="#3B82F6" />
+                ) : (
+                  <>
+                    <IconSymbol name="globe" size={13} color="#3B82F6" />
+                    <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
+                      {translatedDesc ? (isEn ? 'Original' : 'Orijinal') : (isEn ? 'Translate' : 'Çevir')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
           <Text style={[styles.description, isDark && { color: '#CBD5E1' }]}>{translatedDesc || listing.description}</Text>
-          {listing.description && listing.description.trim().length > 3 && (
-            <TouchableOpacity 
-              onPress={handleToggleTranslation}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, alignSelf: 'flex-start' }}
-              activeOpacity={0.7}
-            >
-              {isTranslating ? (
-                <ActivityIndicator size="small" color="#3B82F6" />
-              ) : (
-                <>
-                  <IconSymbol name="globe" size={14} color="#3B82F6" />
-                  <Text style={{ fontSize: 13, color: '#3B82F6', fontWeight: '700' }}>
-                    {translatedDesc ? (isEn ? 'See Original' : 'Orijinalini Gör') : 'Translate to English'}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
 
           <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
 
