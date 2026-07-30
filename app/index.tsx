@@ -44,7 +44,7 @@ export default function SplashScreen() {
 
   useEffect(() => {
     if (!fontsLoaded) return;
-    
+
     if (isLoggedIn) {
       const timer = setTimeout(() => {
         ExpoSplashScreen.hideAsync();
@@ -98,7 +98,7 @@ export default function SplashScreen() {
 
           {/* Language Toggle */}
           <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 6, marginBottom: 48 }}>
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.8}
               style={{ paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('tr') ? 2 : 0 }}
               onPress={() => {
@@ -108,8 +108,8 @@ export default function SplashScreen() {
             >
               <Text style={{ fontSize: 16, fontWeight: '800', color: i18n.language.startsWith('tr') ? NAVY : '#94A3B8' }}>Türkçe</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               activeOpacity={0.8}
               style={{ paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('en') ? 2 : 0 }}
               onPress={() => {
@@ -123,7 +123,7 @@ export default function SplashScreen() {
 
           {/* Action Buttons */}
           <View style={{ width: '100%', alignItems: 'center', gap: 12 }}>
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -136,7 +136,7 @@ export default function SplashScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

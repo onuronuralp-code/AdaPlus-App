@@ -300,7 +300,7 @@ export default function MainMenuScreen() {
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
   const menuButtonWidth = (width - 56) / 3.5;
-  const pageHeight = height - insets.bottom - (Platform.OS === 'ios' ? 65 : 50);
+  const pageHeight = height - insets.top - insets.bottom - (Platform.OS === 'ios' ? 65 : 50);
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -644,7 +644,7 @@ export default function MainMenuScreen() {
 
   return (
     <SwipeNavigation rightRoute="/(tabs)/home">
-    <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
+    <View style={[styles.container, { paddingTop: insets.top }, isDark && { backgroundColor: '#000000' }]}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -656,7 +656,7 @@ export default function MainMenuScreen() {
                 flexDirection: 'row', 
                 justifyContent: 'space-between', 
                 alignItems: 'flex-start', 
-                paddingTop: insets.top + (isIphone11 ? 16 : 12), 
+                paddingTop: isIphone11 ? 12 : 6, 
                 paddingHorizontal: 20 
               }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
@@ -1129,7 +1129,7 @@ export default function MainMenuScreen() {
       {/* End of Page 1 */}
 
       {/* Page 2: Ada Hizmetleri (Island Services - Snap Page 2) */}
-      <View style={{ height: pageHeight, paddingTop: insets.top + 16 }}>
+      <View style={{ height: pageHeight, paddingTop: 12 }}>
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
             {i18n.language.startsWith('en') ? '🏝️ Island Services' : '🏝️ Ada Hizmetleri'}
