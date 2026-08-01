@@ -122,8 +122,8 @@ export default function ResetPasswordScreen() {
                                 />
                                 <Text style={[styles.infoBannerText, token ? styles.infoBannerTextReady : styles.infoBannerTextWaiting]}>
                                     {token
-                                        ? 'Bağlantı doğrulandı. Yeni şifrenizi girin.'
-                                        : 'E-postanızdaki sıfırlama bağlantısına tıklayın.'}
+                                        ? t('auth.resetLinkVerified', { defaultValue: 'Bağlantı doğrulandı. Yeni şifrenizi girin.' })
+                                        : t('auth.resetLinkWaiting', { defaultValue: 'E-postanızdaki sıfırlama bağlantısına tıklayın.' })}
                                 </Text>
                             </View>
 

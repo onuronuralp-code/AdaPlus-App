@@ -121,7 +121,13 @@ export default function LoginScreen() {
             if (res && ((res as any).userExists === false || (res as any).exists === false || (res as any).success === false)) {
                 throw new Error(t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' }));
             }
-            router.push({ pathname: '/reset-password', params: { email: email.trim() } });
+            // Don't navigate to /reset-password here — that screen is only reachable
+            // via the emailed deep link, which carries the reset token as a param.
+            setIsForgotPassword(false);
+            Alert.alert(
+                t('common.success', { defaultValue: 'Başarılı' }),
+                t('auth.resetLinkSent', { defaultValue: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen e-postanızdaki bağlantıya tıklayın.' })
+            );
         } catch (error: any) {
             let msg = error?.message || t('auth.userNotFound', { defaultValue: 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.' });
             if (typeof msg !== 'string' || msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('hata')) {
@@ -237,7 +243,7 @@ export default function LoginScreen() {
                         {loading ? (
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
-                            <Text style={styles.primaryButtonText}>{isForgotPassword ? t('auth.sendCode', { defaultValue: 'Kodu Gönder' }) : t('auth.loginButton')}</Text>
+                            <Text style={styles.primaryButtonText}>{isForgotPassword ? t('auth.sendCode', { defaultValue: 'Bağlantı Gönder' }) : t('auth.loginButton')}</Text>
                         )}
                     </TouchableOpacity>
 
