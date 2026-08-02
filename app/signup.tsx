@@ -42,6 +42,7 @@ export default function SignUpScreen() {
             }
         });
     }, [inviteToken]);
+    const [existingPhone, setExistingPhone] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -153,7 +154,7 @@ export default function SignUpScreen() {
                 formattedBirthDate,
                 (selectedIsland && selectedIsland !== 'Adalı değilim') ? selectedIsland : undefined,
                 inviteToken ?? undefined,
-                undefined,
+                existingPhone.trim() || undefined,
             );
             router.push({ pathname: '/verify', params: { contact: actualContact, type: 'email', isInvited: inviteToken ? 'true' : 'false' } });
 
@@ -272,7 +273,27 @@ export default function SignUpScreen() {
                                 </View>
                             </View>
 
-
+                            {!!inviteToken && (
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.inputLabel}>
+                                        {t('auth.existingPhoneLabel', { defaultValue: 'TELEFON NUMARANIZ VAR MI? (Opsiyonel)' })}
+                                    </Text>
+                                    <View style={styles.inputWrapper}>
+                                        <IconSymbol name="phone.fill" size={18} color="#94A3B8" />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder={t('auth.existingPhonePlaceholder', { defaultValue: 'Zaten telefonla bir hesabınız varsa girin' })}
+                                            placeholderTextColor="#94A3B8"
+                                            keyboardType="phone-pad"
+                                            value={existingPhone}
+                                            onChangeText={setExistingPhone}
+                                        />
+                                    </View>
+                                    <Text style={styles.hintText}>
+                                        {t('auth.existingPhoneHint', { defaultValue: 'Telefon numaranızla zaten kayıtlıysanız, hesabınızın birden fazla oluşmasını önlemek için buraya girin.' })}
+                                    </Text>
+                                </View>
+                            )}
 
                             {/* Şifre */}
                             <View style={styles.inputGroup}>
@@ -530,6 +551,12 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         color: '#94A3B8',
         letterSpacing: 0,
+    },
+    hintText: {
+        fontSize: ms(11),
+        color: '#94A3B8',
+        marginTop: vs(6),
+        lineHeight: ms(15),
     },
     inputWrapper: {
         flexDirection: 'row',

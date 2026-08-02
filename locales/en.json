@@ -144,6 +144,9 @@
         "loginSubtitle": "Log in to your account and see what's happening in the community.",
         "emailLabel": "E-MAIL OR PHONE NUMBER",
         "emailPlaceholder": "Enter email or phone number",
+        "existingPhoneLabel": "DO YOU ALREADY HAVE A PHONE NUMBER? (Optional)",
+        "existingPhonePlaceholder": "Enter it if you already have an account by phone",
+        "existingPhoneHint": "If you're already registered with a phone number, enter it here to avoid creating a duplicate account.",
         "passwordLabel": "PASSWORD",
         "passwordPlaceholder": "At least 8 characters",
         "forgotPassword": "Forgot Password?",
@@ -187,6 +190,19 @@
             "passwordMismatch": "Passwords do not match."
         }
     },
+    "phoneVerify": {
+        "title": "Phone Verification Required",
+        "phoneSubtitle": "You need to verify your phone number to post in the forum.",
+        "codeSubtitle": "Enter the 6-digit code sent to your phone.",
+        "phonePlaceholder": "05XX XXX XX XX",
+        "phoneRequired": "Please enter your phone number.",
+        "codeRequired": "Please enter the 6-digit code.",
+        "sendCode": "Send Code",
+        "sendFailed": "Could not send code. Please try again.",
+        "verify": "Verify",
+        "verifyFailed": "Verification failed. Please try again.",
+        "changeNumber": "Change number"
+    },
     "errors": {
         "networkError": "Could not connect to server. Please check your internet connection.",
         "signupFailed": "An error occurred during sign up.",
@@ -201,7 +217,9 @@
         "listingsLoadFailed": "Could not load listings. Please try again.",
         "photoUploadFailed": "Could not upload photo. Continue without photo?",
         "listingCreateFailed": "Could not create listing. Please try again.",
-        "contentPolicyViolation": "Your post doesn't meet our community guidelines. Please edit and try again."
+        "contentPolicyViolation": "Your post doesn't meet our community guidelines. Please edit and try again.",
+        "phoneVerificationRequired": "You need to verify your phone number to post in the forum.",
+        "islandResidentRequired": "Only verified Islanders can post in the community."
     },
     "contact": {
         "errNameEmpty": "Full name cannot be empty.",

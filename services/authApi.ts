@@ -33,6 +33,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   phone?: string;
+  phoneVerified?: boolean;
   role: string;
   userType: string;
   emailVerified: boolean;
@@ -267,6 +268,33 @@ export const authApi = {
     } catch {
       return null;
     }
+  },
+
+  sendPhoneOtp: async (phone: string): Promise<void> => {
+    const token = getToken();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me/phone/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ phone }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || `Request failed (${response.status})`);
+    }
+  },
+
+  verifyPhone: async (phone: string, code: string): Promise<UserProfile> => {
+    const token = getToken();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me/phone/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ phone, code }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || `Request failed (${response.status})`);
+    }
+    return response.json();
   },
 
   deleteAccount: async (): Promise<boolean> => {

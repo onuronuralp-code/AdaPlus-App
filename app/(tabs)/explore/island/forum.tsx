@@ -20,6 +20,7 @@ import * as mediaApi from '@/services/mediaApi';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import LoginPromptModal from '@/components/LoginPromptModal';
+import VerifyPhoneModal from '@/components/VerifyPhoneModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EmptyState } from '@/components/EmptyState';
 import { resolveImageUrl } from '@/services/config';
@@ -35,9 +36,32 @@ export default function ForumScreen() {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { isLoggedIn, user } = useAuth();
+    const { isLoggedIn, user, updateProfile } = useAuth();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const [showVerifyPhoneModal, setShowVerifyPhoneModal] = useState(false);
+
+    // Gate: only ISLAND_RESIDENT/ADMIN can post at all, and residents additionally
+    // need a verified phone on file (accountability for forum moderation). Admins
+    // bypass the phone check, matching the backend rule in PostService.createPost.
+    const requireForumPostingAccess = (): boolean => {
+        const isAdmin = user?.userType === 'ADMIN' || user?.role === 'ADMIN';
+        const isIslander = isAdmin || user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'RESIDENT';
+        if (!isIslander) {
+            Alert.alert(
+                t('forum.islanderOnlyTitle', { defaultValue: i18n.language.startsWith('en') ? 'Islanders Only' : 'Sadece Adalılar' }),
+                t('forum.islanderOnlyDesc', { defaultValue: i18n.language.startsWith('en')
+                    ? 'Only verified Islanders can create posts in the community.'
+                    : 'Toplulukta gönderi paylaşabilmek için "Onaylı Adalı" olmanız gerekmektedir.' })
+            );
+            return false;
+        }
+        if (!isAdmin && !user?.phoneVerified) {
+            setShowVerifyPhoneModal(true);
+            return false;
+        }
+        return true;
+    };
 
     React.useEffect(() => {
         if (!isLoggedIn || (user && user.userType !== 'ISLAND_RESIDENT' && user.userType !== 'ADMIN' && user.role !== 'ADMIN')) {
@@ -364,7 +388,8 @@ export default function ForumScreen() {
             return;
         }
         if (!newReplyContent.trim() || !selectedPost) return;
-        
+        if (!editingReplyId && !requireForumPostingAccess()) return;
+
         try {
             if (editingReplyId) {
                 const request: forumApi.UpdatePostRequest = {
@@ -1222,16 +1247,7 @@ export default function ForumScreen() {
                                 setShowLoginPrompt(true);
                                 return;
                             }
-                            const isIslander = user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'RESIDENT' || user?.userType === 'ADMIN' || user?.role === 'ADMIN';
-                            if (!isIslander) {
-                                Alert.alert(
-                                    t('forum.islanderOnlyTitle', { defaultValue: i18n.language.startsWith('en') ? 'Islanders Only' : 'Sadece Adalılar' }),
-                                    t('forum.islanderOnlyDesc', { defaultValue: i18n.language.startsWith('en') 
-                                        ? 'Only verified Islanders can create posts in the community.' 
-                                        : 'Toplulukta gönderi paylaşabilmek için "Onaylı Adalı" olmanız gerekmektedir.' })
-                                );
-                                return;
-                            }
+                            if (!requireForumPostingAccess()) return;
                             setIsWriteModalVisible(true);
                         }}
                         activeOpacity={0.85}
@@ -1883,6 +1899,15 @@ export default function ForumScreen() {
                     router.push('/login');
                 }}
                 message={t('auth.loginToPost', { defaultValue: 'Paylaşım yapmak için giriş yapmalısınız.' })}
+            />
+            <VerifyPhoneModal
+                visible={showVerifyPhoneModal}
+                onClose={() => setShowVerifyPhoneModal(false)}
+                initialPhone={user?.phone}
+                onVerified={(updatedUser) => {
+                    updateProfile(updatedUser);
+                    setShowVerifyPhoneModal(false);
+                }}
             />
 
             <Modal

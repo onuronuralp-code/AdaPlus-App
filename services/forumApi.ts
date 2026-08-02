@@ -80,6 +80,15 @@ export interface CreatePostRequest {
 
 const FORUM_API_BASE = `${API_BASE_URL}/api/v1/forum`;
 
+// Translates known backend rejection reasons for creating/editing forum posts into
+// friendly messages. Falls back to the raw message (or a generic one) otherwise.
+const forumErrorMessage = (body: any, status: number): string => {
+  if (body.message === 'content_policy_violation') return i18n.t('errors.contentPolicyViolation');
+  if (body.message === 'phone_verification_required') return i18n.t('errors.phoneVerificationRequired');
+  if (body.message === 'island_resident_required') return i18n.t('errors.islandResidentRequired');
+  return body.message || `${i18n.t('errors.requestFailed')} (${status})`;
+};
+
 // Helper for fetch with auth if needed
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
@@ -156,10 +165,7 @@ export const createPost = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    if (body.message === 'content_policy_violation') {
-      throw new Error(i18n.t('errors.contentPolicyViolation'));
-    }
-    throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
+    throw new Error(forumErrorMessage(body, response.status));
   }
   return response.json();
 };
@@ -184,10 +190,7 @@ export const updatePost = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    if (body.message === 'content_policy_violation') {
-      throw new Error(i18n.t('errors.contentPolicyViolation'));
-    }
-    throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
+    throw new Error(forumErrorMessage(body, response.status));
   }
   return response.json();
 };
@@ -305,10 +308,7 @@ export const postReply = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    if (body.message === 'content_policy_violation') {
-      throw new Error(i18n.t('errors.contentPolicyViolation'));
-    }
-    throw new Error(body.message || `${i18n.t('errors.requestFailed')} (${response.status})`);
+    throw new Error(forumErrorMessage(body, response.status));
   }
   return response.json();
 };

@@ -144,6 +144,9 @@
         "loginSubtitle": "Hesabına giriş yap ve toplulukta neler olup bittiğini takip et.",
         "emailLabel": "E-POSTA ADRESİ VEYA TELEFON NUMARASI",
         "emailPlaceholder": "E-posta adresi veya telefon numarası girin",
+        "existingPhoneLabel": "TELEFON NUMARANIZ VAR MI? (Opsiyonel)",
+        "existingPhonePlaceholder": "Zaten telefonla bir hesabınız varsa girin",
+        "existingPhoneHint": "Telefon numaranızla zaten kayıtlıysanız, hesabınızın birden fazla oluşmasını önlemek için buraya girin.",
         "passwordLabel": "ŞİFRE",
         "passwordPlaceholder": "En az 8 karakter",
         "forgotPassword": "Şifremi Unuttum?",
@@ -187,6 +190,19 @@
             "passwordMismatch": "Şifreler eşleşmiyor."
         }
     },
+    "phoneVerify": {
+        "title": "Telefon Doğrulama Gerekli",
+        "phoneSubtitle": "Forumda paylaşım yapabilmek için telefon numaranızı doğrulamanız gerekiyor.",
+        "codeSubtitle": "Telefonunuza gönderilen 6 haneli kodu girin.",
+        "phonePlaceholder": "05XX XXX XX XX",
+        "phoneRequired": "Lütfen telefon numaranızı girin.",
+        "codeRequired": "Lütfen 6 haneli kodu girin.",
+        "sendCode": "Kodu Gönder",
+        "sendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
+        "verify": "Doğrula",
+        "verifyFailed": "Doğrulama başarısız. Lütfen tekrar deneyin.",
+        "changeNumber": "Numarayı değiştir"
+    },
     "errors": {
         "networkError": "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.",
         "signupFailed": "Kayıt sırasında bir hata oluştu.",
@@ -201,7 +217,9 @@
         "listingsLoadFailed": "İlanlar yüklenemedi. Lütfen tekrar deneyin.",
         "photoUploadFailed": "Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?",
         "listingCreateFailed": "İlan oluşturulamadı. Lütfen tekrar deneyin.",
-        "contentPolicyViolation": "İçeriğiniz topluluk kurallarıyla uyuşmuyor. Lütfen düzenleyip tekrar deneyin."
+        "contentPolicyViolation": "İçeriğiniz topluluk kurallarıyla uyuşmuyor. Lütfen düzenleyip tekrar deneyin.",
+        "phoneVerificationRequired": "Forumda paylaşım yapabilmek için telefon numaranızı doğrulamanız gerekiyor.",
+        "islandResidentRequired": "Toplulukta gönderi paylaşabilmek için \"Onaylı Adalı\" olmanız gerekmektedir."
     },
     "contact": {
         "errNameEmpty": "Ad Soyad alanı boş bırakılamaz.",
