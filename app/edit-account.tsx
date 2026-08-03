@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { authApi } from '@/services/authApi';
+import VerifyPhoneModal from '@/components/VerifyPhoneModal';
 
 const ISLAND_STREETS: Record<string, string[]> = {
     BUYUKADA: [
@@ -41,11 +42,16 @@ export default function EditAccountScreen() {
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
     const [editPhone, setEditPhone] = useState('');
-    const [editPassword, setEditPassword] = useState('');
     const [selectedStreet, setSelectedStreet] = useState('');
     const [buildingNo, setBuildingNo] = useState('');
     const [showStreetPicker, setShowStreetPicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [showVerifyPhoneModal, setShowVerifyPhoneModal] = useState(false);
+
+    // Whichever contact method the account was created with is fixed — only the
+    // other one can be added later, to avoid ambiguity over the account's primary identity.
+    const emailEditable = !user?.email;
+    const phoneEditable = !(user as any)?.phone;
 
     const ISLAND_KEY_MAP: Record<string, string> = {
         'Büyükada': 'BUYUKADA', 'Heybeliada': 'HEYBELIADA',
@@ -93,32 +99,39 @@ export default function EditAccountScreen() {
 
     const handleSave = async () => {
         if (isSaving) return;
+
+        // Phone is a separate, OTP-verified flow (so phoneVerified is only ever true for a
+        // number the user actually proved they own) — it isn't part of the plain field save.
+        if (phoneEditable && editPhone.trim()) {
+            setShowVerifyPhoneModal(true);
+            return;
+        }
+
+        await saveProfileFields();
+    };
+
+    const saveProfileFields = async () => {
         setIsSaving(true);
         try {
-            if (editPassword.trim()) {
-                await authApi.changePassword('', editPassword.trim()).catch(() => {});
-            }
-
             const address = selectedStreet
                 ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
                 : buildingNo.trim();
 
-            const updated = await authApi.updateProfile(editName.trim(), address, editEmail.trim(), editPhone.trim());
-            if (!updated) {
-                Alert.alert(isEn ? 'Error' : 'Hata', isEn ? 'Failed to save profile.' : 'Profil kaydedilemedi.');
-                setIsSaving(false);
-                return;
-            }
+            const updated = await authApi.updateProfile(
+                editName.trim(),
+                address,
+                emailEditable ? editEmail.trim() : undefined,
+            );
             await updateProfile(updated as any);
             Alert.alert(
                 isEn ? 'Success' : 'Başarılı',
                 isEn ? 'Account details updated successfully.' : 'Hesap bilgileriniz başarıyla güncellendi.',
                 [{ text: 'OK', onPress: handleBack }]
             );
-        } catch {
+        } catch (error: any) {
             Alert.alert(
                 isEn ? 'Error' : 'Hata',
-                isEn ? 'Failed to update account.' : 'Hesap bilgileri güncellenemedi.'
+                error?.message || (isEn ? 'Failed to update account.' : 'Hesap bilgileri güncellenemedi.')
             );
         } finally {
             setIsSaving(false);
@@ -143,38 +156,43 @@ export default function EditAccountScreen() {
             <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 <View style={[styles.card, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }]}>
                     
-                    {/* Ad Soyad */}
+                    {/* Ad Soyad — fixed at signup, not editable here */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Full Name' : 'Ad Soyad'}</Text>
-                    <TextInput 
-                        style={[styles.input, isDark && styles.darkInput]} 
-                        value={editName} 
-                        onChangeText={setEditName}
-                        placeholder={isEn ? 'Full Name' : 'Ad Soyad'}
-                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
+                    <TextInput
+                        style={[styles.input, isDark && styles.darkInput, isDark ? styles.darkInputReadOnly : styles.inputReadOnly]}
+                        value={editName}
+                        editable={false}
                     />
 
-                    {/* E-mail */}
+                    {/* E-mail — editable only if the account doesn't have one yet (e.g. signed up by phone) */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>E-mail</Text>
-                    <TextInput 
-                        style={[styles.input, isDark && styles.darkInput]} 
-                        placeholder="E-mail" 
-                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} 
-                        value={editEmail} 
+                    <TextInput
+                        style={[styles.input, isDark && styles.darkInput, !emailEditable && (isDark ? styles.darkInputReadOnly : styles.inputReadOnly)]}
+                        placeholder={emailEditable ? (isEn ? 'Add an email address' : 'E-posta adresi ekleyin') : 'E-mail'}
+                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
+                        value={editEmail}
                         onChangeText={setEditEmail}
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        editable={emailEditable}
                     />
 
-                    {/* Telefon */}
+                    {/* Telefon — editable only if the account doesn't have one yet (e.g. signed up by email) */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Phone' : 'Telefon'}</Text>
-                    <TextInput 
-                        style={[styles.input, isDark && styles.darkInput]} 
-                        placeholder={isEn ? 'Phone Number' : 'Telefon Numarası'} 
-                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'} 
-                        value={editPhone} 
+                    <TextInput
+                        style={[styles.input, isDark && styles.darkInput, !phoneEditable && (isDark ? styles.darkInputReadOnly : styles.inputReadOnly)]}
+                        placeholder={phoneEditable ? (isEn ? 'Add a phone number' : 'Telefon numarası ekleyin') : (isEn ? 'Phone Number' : 'Telefon Numarası')}
+                        placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
+                        value={editPhone}
                         onChangeText={setEditPhone}
                         keyboardType="phone-pad"
+                        editable={phoneEditable}
                     />
+                    {phoneEditable && !!editPhone.trim() && (
+                        <Text style={styles.hintText}>
+                            {isEn ? 'Saving will send a verification code to this number.' : 'Kaydettiğinizde bu numaraya bir doğrulama kodu gönderilecek.'}
+                        </Text>
+                    )}
 
                     {/* Address Section */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Address' : 'Adres'}</Text>
@@ -223,10 +241,6 @@ export default function EditAccountScreen() {
                         <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'Address' : 'Adres'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={buildingNo} onChangeText={setBuildingNo} />
                     )}
 
-                    {/* Yeni Şifre */}
-                    <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginTop: 8 }]}>{isEn ? 'New Password' : 'Yeni Şifre'}</Text>
-                    <TextInput style={[styles.input, isDark && styles.darkInput]} placeholder={isEn ? 'New Password' : 'Yeni Şifre'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={editPassword} onChangeText={setEditPassword} secureTextEntry />
-
                     {/* Save Button */}
                     <TouchableOpacity style={[styles.saveButton, isSaving && { opacity: 0.6 }]} disabled={isSaving} onPress={handleSave}>
                         {isSaving ? (
@@ -238,6 +252,16 @@ export default function EditAccountScreen() {
 
                 </View>
             </ScrollView>
+            <VerifyPhoneModal
+                visible={showVerifyPhoneModal}
+                initialPhone={editPhone}
+                onClose={() => setShowVerifyPhoneModal(false)}
+                onVerified={async (updatedUser) => {
+                    setShowVerifyPhoneModal(false);
+                    await updateProfile(updatedUser);
+                    await saveProfileFields();
+                }}
+            />
         </SafeAreaView>
     );
 }
@@ -306,6 +330,13 @@ const styles = StyleSheet.create({
     inputReadOnly: {
         backgroundColor: '#F1F5F9',
         color: '#94A3B8',
+    },
+    hintText: {
+        fontSize: 12,
+        color: '#94A3B8',
+        marginTop: -8,
+        marginBottom: 12,
+        lineHeight: 16,
     },
     darkInputReadOnly: {
         backgroundColor: '#18181B',

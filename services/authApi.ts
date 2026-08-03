@@ -208,24 +208,6 @@ export const authApi = {
     }
   },
 
-  changePassword: async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> => {
-    try {
-      const token = getToken();
-      const response = await fetchWithTimeout(`${AUTH_BASE_URL}/change-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-      if (!response.ok) {
-        return { success: false, message: i18n.t('errors.changePasswordFailed', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
-      }
-      const data = await response.json();
-      return { success: true, message: data.message };
-    } catch {
-      return { success: false, message: i18n.t('errors.changePasswordFailed', { defaultValue: 'Mevcut şifreniz hatalı.' }) };
-    }
-  },
-
   // Exchanges a still-valid JWT for a fresh 30-day token.
   // Called silently on every app launch — zero UX impact.
   refresh: async (currentToken: string): Promise<LoginResponse | null> => {
@@ -252,22 +234,20 @@ export const authApi = {
     }
   },
 
-  updateProfile: async (fullName: string, address: string, email?: string, phone?: string): Promise<UserProfile | null> => {
-    try {
-      const token = getToken();
-      const body: any = { fullName, address };
-      if (email) body.email = email;
-      if (phone) body.phone = phone;
-      const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) return null;
-      return response.json();
-    } catch {
-      return null;
+  updateProfile: async (fullName: string, address: string, email?: string): Promise<UserProfile | null> => {
+    const token = getToken();
+    const body: any = { fullName, address };
+    if (email) body.email = email;
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      throw new Error(errBody.message || `Request failed (${response.status})`);
     }
+    return response.json();
   },
 
   sendPhoneOtp: async (phone: string): Promise<void> => {
