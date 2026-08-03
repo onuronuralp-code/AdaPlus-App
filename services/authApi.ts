@@ -56,6 +56,7 @@ export const authApi = {
     island?: string,
     inviteToken?: string,
     additionalPhone?: string,
+    existingPhoneOtp?: string,
   ): Promise<{ message: string }> => {
     try {
       const sanitized = sanitizeContact(contact);
@@ -74,6 +75,7 @@ export const authApi = {
           ...(birthDate ? { birthDate } : {}),
           ...(island ? { island } : {}),
           ...(inviteToken ? { inviteToken } : {}),
+          ...(existingPhoneOtp ? { existingPhoneOtp } : {}),
         }),
       });
       const data = await response.json();
@@ -231,6 +233,21 @@ export const authApi = {
       return data.email ?? null;
     } catch {
       return null;
+    }
+  },
+
+  // Public — sends an OTP to prove ownership of a phone number typed into the
+  // "already have a phone account?" field on invite-signup, before it's submitted
+  // alongside the main signup request.
+  sendExistingPhoneOtp: async (phone: string): Promise<void> => {
+    const response = await fetchWithTimeout(`${AUTH_BASE_URL}/existing-phone/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: normalizePhone(phone) }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || `Request failed (${response.status})`);
     }
   },
 

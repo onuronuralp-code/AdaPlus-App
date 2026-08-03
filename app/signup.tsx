@@ -43,6 +43,10 @@ export default function SignUpScreen() {
         });
     }, [inviteToken]);
     const [existingPhone, setExistingPhone] = useState('');
+    const [existingPhoneOtp, setExistingPhoneOtp] = useState('');
+    const [existingPhoneOtpSent, setExistingPhoneOtpSent] = useState(false);
+    const [sendingExistingPhoneOtp, setSendingExistingPhoneOtp] = useState(false);
+    const [existingPhoneError, setExistingPhoneError] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -126,6 +130,28 @@ export default function SignUpScreen() {
 
     // ── Submit ────────────────────────────────────────────────────────────────
 
+    const handleSendExistingPhoneOtp = async () => {
+        if (!existingPhone.trim() || sendingExistingPhoneOtp) return;
+        setExistingPhoneError('');
+        setSendingExistingPhoneOtp(true);
+        try {
+            await authApi.sendExistingPhoneOtp(existingPhone.trim());
+            setExistingPhoneOtpSent(true);
+        } catch (e: any) {
+            setExistingPhoneError(e?.message || t('auth.errors.sendCodeFailed', { defaultValue: 'Kod gönderilemedi. Lütfen tekrar deneyin.' }));
+        } finally {
+            setSendingExistingPhoneOtp(false);
+        }
+    };
+
+    const handleExistingPhoneChange = (val: string) => {
+        setExistingPhone(val);
+        // A changed number invalidates whatever code was sent to the old one.
+        setExistingPhoneOtpSent(false);
+        setExistingPhoneOtp('');
+        setExistingPhoneError('');
+    };
+
     const handleSubmit = async () => {
         if (loading) return;
         const nameError = validateName(name);
@@ -134,6 +160,10 @@ export default function SignUpScreen() {
         setTouched({ name: true, email: true, password: true });
         setErrors({ name: nameError, email: emailError, password: passwordError });
         if (nameError || emailError || passwordError) return;
+        if (existingPhone.trim() && (!existingPhoneOtpSent || existingPhoneOtp.trim().length !== 6)) {
+            setExistingPhoneError(t('auth.errors.existingPhoneOtpRequired', { defaultValue: 'Lütfen telefon numaranızı doğrulayın.' }));
+            return;
+        }
         setKvkkVisible(true);
     };
 
@@ -155,6 +185,7 @@ export default function SignUpScreen() {
                 (selectedIsland && selectedIsland !== 'Adalı değilim') ? selectedIsland : undefined,
                 inviteToken ?? undefined,
                 existingPhone.trim() || undefined,
+                existingPhoneOtp.trim() || undefined,
             );
             router.push({ pathname: '/verify', params: { contact: actualContact, type: 'email', isInvited: inviteToken ? 'true' : 'false' } });
 
@@ -286,12 +317,55 @@ export default function SignUpScreen() {
                                             placeholderTextColor="#94A3B8"
                                             keyboardType="phone-pad"
                                             value={existingPhone}
-                                            onChangeText={setExistingPhone}
+                                            onChangeText={handleExistingPhoneChange}
+                                            editable={!existingPhoneOtpSent}
                                         />
                                     </View>
                                     <Text style={styles.hintText}>
                                         {t('auth.existingPhoneHint', { defaultValue: 'Telefon numaranızla zaten kayıtlıysanız, hesabınızın birden fazla oluşmasını önlemek için buraya girin.' })}
                                     </Text>
+
+                                    {!!existingPhone.trim() && !existingPhoneOtpSent && (
+                                        <TouchableOpacity
+                                            style={[styles.sendCodeButton, sendingExistingPhoneOtp && { opacity: 0.6 }]}
+                                            onPress={handleSendExistingPhoneOtp}
+                                            disabled={sendingExistingPhoneOtp}
+                                        >
+                                            {sendingExistingPhoneOtp ? (
+                                                <ActivityIndicator color="#3B82F6" size="small" />
+                                            ) : (
+                                                <Text style={styles.sendCodeButtonText}>
+                                                    {t('auth.sendExistingPhoneCode', { defaultValue: 'Numarayı Doğrula' })}
+                                                </Text>
+                                            )}
+                                        </TouchableOpacity>
+                                    )}
+
+                                    {existingPhoneOtpSent && (
+                                        <View style={{ marginTop: 8 }}>
+                                            <View style={styles.inputWrapper}>
+                                                <IconSymbol name="checkmark.circle.fill" size={18} color="#10B981" />
+                                                <TextInput
+                                                    style={styles.input}
+                                                    placeholder={t('auth.existingPhoneCodePlaceholder', { defaultValue: '6 haneli kod' })}
+                                                    placeholderTextColor="#94A3B8"
+                                                    keyboardType="number-pad"
+                                                    maxLength={6}
+                                                    value={existingPhoneOtp}
+                                                    onChangeText={setExistingPhoneOtp}
+                                                />
+                                            </View>
+                                            <TouchableOpacity onPress={handleSendExistingPhoneOtp} disabled={sendingExistingPhoneOtp}>
+                                                <Text style={styles.resendText}>
+                                                    {t('auth.resendCode', { defaultValue: 'Kodu tekrar gönder' })}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+
+                                    {!!existingPhoneError && (
+                                        <Text style={styles.existingPhoneErrorText}>{existingPhoneError}</Text>
+                                    )}
                                 </View>
                             )}
 
@@ -557,6 +631,31 @@ const styles = StyleSheet.create({
         color: '#94A3B8',
         marginTop: vs(6),
         lineHeight: ms(15),
+    },
+    sendCodeButton: {
+        marginTop: vs(8),
+        alignSelf: 'flex-start',
+        paddingVertical: vs(6),
+        paddingHorizontal: s(12),
+        borderRadius: s(8),
+        backgroundColor: '#EFF6FF',
+    },
+    sendCodeButtonText: {
+        color: '#3B82F6',
+        fontSize: ms(12),
+        fontWeight: '700',
+    },
+    resendText: {
+        color: '#3B82F6',
+        fontSize: ms(12),
+        fontWeight: '700',
+        marginTop: vs(8),
+    },
+    existingPhoneErrorText: {
+        color: '#EF4444',
+        fontSize: ms(11),
+        fontWeight: '600',
+        marginTop: vs(6),
     },
     inputWrapper: {
         flexDirection: 'row',

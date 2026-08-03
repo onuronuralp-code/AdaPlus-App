@@ -147,6 +147,9 @@
         "existingPhoneLabel": "TELEFON NUMARANIZ VAR MI? (Opsiyonel)",
         "existingPhonePlaceholder": "Zaten telefonla bir hesabınız varsa girin",
         "existingPhoneHint": "Telefon numaranızla zaten kayıtlıysanız, hesabınızın birden fazla oluşmasını önlemek için buraya girin.",
+        "sendExistingPhoneCode": "Numarayı Doğrula",
+        "existingPhoneCodePlaceholder": "6 haneli kod",
+        "resendCode": "Kodu tekrar gönder",
         "passwordLabel": "ŞİFRE",
         "passwordPlaceholder": "En az 8 karakter",
         "forgotPassword": "Şifremi Unuttum?",
@@ -187,7 +190,9 @@
             "nameInvalid": "İsim yalnızca harf içermelidir.",
             "nameShort": "Lütfen ad ve soyadınızı giriniz.",
             "tokenRequired": "Sıfırlama kodu gereklidir.",
-            "passwordMismatch": "Şifreler eşleşmiyor."
+            "passwordMismatch": "Şifreler eşleşmiyor.",
+            "sendCodeFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
+            "existingPhoneOtpRequired": "Lütfen telefon numaranızı doğrulayın."
         }
     },
     "phoneVerify": {

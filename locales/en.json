@@ -147,6 +147,9 @@
         "existingPhoneLabel": "DO YOU ALREADY HAVE A PHONE NUMBER? (Optional)",
         "existingPhonePlaceholder": "Enter it if you already have an account by phone",
         "existingPhoneHint": "If you're already registered with a phone number, enter it here to avoid creating a duplicate account.",
+        "sendExistingPhoneCode": "Verify Number",
+        "existingPhoneCodePlaceholder": "6-digit code",
+        "resendCode": "Resend code",
         "passwordLabel": "PASSWORD",
         "passwordPlaceholder": "At least 8 characters",
         "forgotPassword": "Forgot Password?",
@@ -187,7 +190,9 @@
             "nameInvalid": "Name must only contain letters.",
             "nameShort": "Please enter your full name (at least 2 words).",
             "tokenRequired": "Reset code is required.",
-            "passwordMismatch": "Passwords do not match."
+            "passwordMismatch": "Passwords do not match.",
+            "sendCodeFailed": "Could not send code. Please try again.",
+            "existingPhoneOtpRequired": "Please verify your phone number."
         }
     },
     "phoneVerify": {
