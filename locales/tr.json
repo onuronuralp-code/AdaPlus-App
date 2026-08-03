@@ -203,6 +203,19 @@
         "verifyFailed": "Doğrulama başarısız. Lütfen tekrar deneyin.",
         "changeNumber": "Numarayı değiştir"
     },
+    "emailVerify": {
+        "title": "E-posta Doğrulama",
+        "emailSubtitle": "Hesabınıza eklemek istediğiniz e-posta adresini doğrulayın.",
+        "codeSubtitle": "E-postanıza gönderilen 6 haneli kodu girin.",
+        "emailPlaceholder": "ornek@email.com",
+        "emailRequired": "Lütfen e-posta adresinizi girin.",
+        "codeRequired": "Lütfen 6 haneli kodu girin.",
+        "sendCode": "Kodu Gönder",
+        "sendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
+        "verify": "Doğrula",
+        "verifyFailed": "Doğrulama başarısız. Lütfen tekrar deneyin.",
+        "changeEmail": "E-postayı değiştir"
+    },
     "errors": {
         "networkError": "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.",
         "signupFailed": "Kayıt sırasında bir hata oluştu.",

@@ -203,6 +203,19 @@
         "verifyFailed": "Verification failed. Please try again.",
         "changeNumber": "Change number"
     },
+    "emailVerify": {
+        "title": "Email Verification",
+        "emailSubtitle": "Verify the email address you'd like to add to your account.",
+        "codeSubtitle": "Enter the 6-digit code sent to your email.",
+        "emailPlaceholder": "example@email.com",
+        "emailRequired": "Please enter your email address.",
+        "codeRequired": "Please enter the 6-digit code.",
+        "sendCode": "Send Code",
+        "sendFailed": "Could not send code. Please try again.",
+        "verify": "Verify",
+        "verifyFailed": "Verification failed. Please try again.",
+        "changeEmail": "Change email"
+    },
     "errors": {
         "networkError": "Could not connect to server. Please check your internet connection.",
         "signupFailed": "An error occurred during sign up.",

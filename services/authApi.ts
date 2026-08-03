@@ -234,10 +234,9 @@ export const authApi = {
     }
   },
 
-  updateProfile: async (fullName: string, address: string, email?: string): Promise<UserProfile | null> => {
+  updateProfile: async (fullName: string, address: string): Promise<UserProfile | null> => {
     const token = getToken();
-    const body: any = { fullName, address };
-    if (email) body.email = email;
+    const body = { fullName, address };
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -269,6 +268,33 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ phone, code }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || `Request failed (${response.status})`);
+    }
+    return response.json();
+  },
+
+  sendEmailOtp: async (email: string): Promise<void> => {
+    const token = getToken();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me/email/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || `Request failed (${response.status})`);
+    }
+  },
+
+  verifyEmail: async (email: string, code: string): Promise<UserProfile> => {
+    const token = getToken();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/me/email/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email, code }),
     });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));

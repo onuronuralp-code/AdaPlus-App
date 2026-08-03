@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { authApi } from '@/services/authApi';
 import VerifyPhoneModal from '@/components/VerifyPhoneModal';
+import VerifyEmailModal from '@/components/VerifyEmailModal';
 
 const ISLAND_STREETS: Record<string, string[]> = {
     BUYUKADA: [
@@ -47,6 +48,7 @@ export default function EditAccountScreen() {
     const [showStreetPicker, setShowStreetPicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showVerifyPhoneModal, setShowVerifyPhoneModal] = useState(false);
+    const [showVerifyEmailModal, setShowVerifyEmailModal] = useState(false);
 
     // Whichever contact method the account was created with is fixed — only the
     // other one can be added later, to avoid ambiguity over the account's primary identity.
@@ -100,10 +102,15 @@ export default function EditAccountScreen() {
     const handleSave = async () => {
         if (isSaving) return;
 
-        // Phone is a separate, OTP-verified flow (so phoneVerified is only ever true for a
-        // number the user actually proved they own) — it isn't part of the plain field save.
+        // Phone and email are separate OTP-verified flows (so phoneVerified/email are only
+        // ever set for a value the user actually proved they own) — neither is part of the
+        // plain field save.
         if (phoneEditable && editPhone.trim()) {
             setShowVerifyPhoneModal(true);
+            return;
+        }
+        if (emailEditable && editEmail.trim()) {
+            setShowVerifyEmailModal(true);
             return;
         }
 
@@ -117,11 +124,7 @@ export default function EditAccountScreen() {
                 ? `${selectedStreet}${buildingNo.trim() ? ' ' + buildingNo.trim() : ''}`
                 : buildingNo.trim();
 
-            const updated = await authApi.updateProfile(
-                editName.trim(),
-                address,
-                emailEditable ? editEmail.trim() : undefined,
-            );
+            const updated = await authApi.updateProfile(editName.trim(), address);
             await updateProfile(updated as any);
             Alert.alert(
                 isEn ? 'Success' : 'Başarılı',
@@ -176,6 +179,11 @@ export default function EditAccountScreen() {
                         autoCapitalize="none"
                         editable={emailEditable}
                     />
+                    {emailEditable && !!editEmail.trim() && (
+                        <Text style={styles.hintText}>
+                            {isEn ? 'Saving will send a verification code to this address.' : 'Kaydettiğinizde bu adrese bir doğrulama kodu gönderilecek.'}
+                        </Text>
+                    )}
 
                     {/* Telefon — editable only if the account doesn't have one yet (e.g. signed up by email) */}
                     <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{isEn ? 'Phone' : 'Telefon'}</Text>
@@ -258,6 +266,16 @@ export default function EditAccountScreen() {
                 onClose={() => setShowVerifyPhoneModal(false)}
                 onVerified={async (updatedUser) => {
                     setShowVerifyPhoneModal(false);
+                    await updateProfile(updatedUser);
+                    await saveProfileFields();
+                }}
+            />
+            <VerifyEmailModal
+                visible={showVerifyEmailModal}
+                initialEmail={editEmail}
+                onClose={() => setShowVerifyEmailModal(false)}
+                onVerified={async (updatedUser) => {
+                    setShowVerifyEmailModal(false);
                     await updateProfile(updatedUser);
                     await saveProfileFields();
                 }}
