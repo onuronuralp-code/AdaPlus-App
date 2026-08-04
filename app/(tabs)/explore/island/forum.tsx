@@ -204,6 +204,9 @@ export default function ForumScreen() {
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
     const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
+    useEffect(() => {
+        console.log('[forum] deleteConfirmState changed', deleteConfirmState);
+    }, [deleteConfirmState]);
     const [reportConfirmState, setReportConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
     const [translatedPosts, setTranslatedPosts] = useState<Record<string, { text: string; isTranslated: boolean; loading: boolean }>>({});
 
@@ -798,8 +801,10 @@ export default function ForumScreen() {
     };
 
     const performDelete = async (postId: string) => {
+        console.log('[forum] performDelete entered', { postId });
         try {
             await forumApi.deletePost(postId);
+            console.log('[forum] performDelete: backend delete resolved', { postId });
             setPosts(posts.filter(p => p.id !== postId));
             if (selectedPost && selectedPost.id === postId) {
                 setIsDetailModalVisible(false);
@@ -810,6 +815,7 @@ export default function ForumScreen() {
                 }
             }
         } catch (error: any) {
+            console.log('[forum] performDelete caught error', error);
             setTimeout(() => {
                 Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
             }, 300);
@@ -817,9 +823,11 @@ export default function ForumScreen() {
     };
 
     const handleDeletePost = (postId: string) => {
+        console.log('[forum] handleDeletePost entered', { postId, isDetailModalVisible });
         if (!postId) return;
 
         if (isDetailModalVisible) {
+            console.log('[forum] setting deleteConfirmState visible');
             setDeleteConfirmState({ visible: true, id: postId });
             return;
         }
@@ -1724,9 +1732,12 @@ export default function ForumScreen() {
                                 {replies.length > 0 ? (
                                     replies.map(reply => {
                                         const renderRightActions = (progress: any, dragX: any, swipeable?: any) => {
-                                            if (reply.authorId !== user?.id) return null;
+                                            if (reply.authorId !== user?.id) {
+                                                console.log('[forum] reply swipe action hidden — not owner', { replyAuthorId: reply.authorId, userId: user?.id });
+                                                return null;
+                                            }
                                             return (
-                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                <TouchableOpacity onPress={() => { console.log('[forum] reply delete tapped', { replyId: reply.id, isDetailModalVisible }); swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                                                     <IconSymbol name="trash.fill" size={20} color="#FFF" />
                                                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                                                 </TouchableOpacity>
@@ -2134,6 +2145,7 @@ export default function ForumScreen() {
                                 <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => {
+                                console.log('[forum] delete-confirm modal Sil tapped', { id: deleteConfirmState.id });
                                 const id = deleteConfirmState.id;
                                 setDeleteConfirmState({ visible: false, id: null });
                                 if (id) performDelete(id);
