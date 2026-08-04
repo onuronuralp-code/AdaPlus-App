@@ -75,17 +75,22 @@ export const fetchListings = async (
   }
 };
 
+// Throws with the backend's actual message (e.g. "Bu ay 5 ilan limitine ulaştınız.")
+// on a validation/limit rejection, so the caller can show it as-is instead of a generic
+// failure alert. Only a genuine network failure (no response at all) triggers the
+// connection-error toast and resolves to null.
 export const createListing = async (
   request: SaveListingRequest,
 ): Promise<ListingDto | null> => {
-  try {
-    const token = getToken();
-    if (!token) {
-      console.warn("No JWT token found. Aborting listing creation.");
-      return null;
-    }
+  const token = getToken();
+  if (!token) {
+    console.warn("No JWT token found. Aborting listing creation.");
+    return null;
+  }
 
-    const response = await fetchWithTimeout(LISTING_API_BASE, {
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(LISTING_API_BASE, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,16 +98,17 @@ export const createListing = async (
       },
       body: JSON.stringify(request),
     });
-
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
   } catch (error) {
     console.log("Failed to create listing:", error);
-    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
-      triggerNetworkError();
-    }
+    triggerNetworkError();
     return null;
   }
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || `API Error: ${response.status}`);
+  }
+  return await response.json();
 };
 
 export const getListing = async (id: string): Promise<ListingDto | null> => {
@@ -120,26 +126,28 @@ export const updateListing = async (
   id: string,
   request: SaveListingRequest,
 ): Promise<ListingDto | null> => {
+  const token = getToken();
+  let response: Response;
   try {
-    const token = getToken();
-    const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`, {
+    response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         ...(token ? { "Authorization": `Bearer ${token}` } : {})
       },
       body: JSON.stringify(request),
     });
-
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
   } catch (error) {
     console.log("Failed to update listing:", error);
-    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
-      triggerNetworkError();
-    }
+    triggerNetworkError();
     return null;
   }
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || `API Error: ${response.status}`);
+  }
+  return await response.json();
 };
 
 export const fetchMyListings = async (): Promise<ListingDto[]> => {

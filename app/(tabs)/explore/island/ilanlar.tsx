@@ -326,13 +326,21 @@ export default function IlanlarScreen() {
       }
       await submitListing(uploadedUrls);
     } catch (e: any) {
-      if (e?.message !== 'invalid contact' && e?.message !== 'invalid price') {
+      const msg: string | undefined = e?.message;
+      // 'invalid contact'/'invalid price' already showed their own alert inline;
+      // 'network_error_shown' means listingApi already showed the connection-error toast.
+      const alreadyHandled = msg === 'invalid contact' || msg === 'invalid price' || msg === 'network_error_shown';
+      if (!alreadyHandled) {
         setTimeout(() => {
           Alert.alert(
             t('common.error', { defaultValue: 'Hata' }),
-            editingListingId
-              ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
-              : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
+            // Prefer the backend's actual reason (e.g. monthly limit reached) over a
+            // generic message, so the user knows *why* it failed, not just that it did.
+            msg && msg.trim().length > 0
+              ? msg
+              : editingListingId
+                ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
+                : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
           );
         }, 100);
       }
@@ -369,7 +377,10 @@ export default function IlanlarScreen() {
       ? await listingApi.updateListing(editingListingId, request)
       : await listingApi.createListing(request);
 
-    if (!resultListing) throw new Error('operation failed');
+    // A validation/limit rejection throws with a real message from listingApi and is
+    // handled by the catch above. A null result here means a network-level failure,
+    // for which listingApi already showed the connection-error toast — don't duplicate it.
+    if (!resultListing) throw new Error('network_error_shown');
 
     resetAndCloseModal();
     setTimeout(() => {
