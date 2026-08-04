@@ -778,6 +778,17 @@ export default function ProfileScreen() {
         }
     };
 
+    // Mirrors ListingService's monthly-limit check on the backend exactly: count of all
+    // listings (any status — the backend doesn't exclude inactive/rejected ones either)
+    // created since the start of the current calendar month. Previously this counted every
+    // active listing ever, with no date filtering at all, so it never reflected the actual
+    // monthly reset and stayed pinned at "5/5" forever once a user hit the limit once.
+    const LISTING_MONTHLY_LIMIT = 5;
+    const startOfThisMonth = new Date();
+    startOfThisMonth.setDate(1);
+    startOfThisMonth.setHours(0, 0, 0, 0);
+    const listingsThisMonth = listings.filter(l => new Date(l.createdAt) >= startOfThisMonth).length;
+
     return (
         <SwipeNavigation leftRoute="/(tabs)/contact">
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
@@ -887,19 +898,19 @@ export default function ProfileScreen() {
                                                 </Text>
                                             </View>
                                             <Text style={{ fontSize: 12, fontWeight: '800', color: '#10B981' }}>
-                                                {listings.filter(l => l.active !== false).length} / 5
+                                                {listingsThisMonth} / {LISTING_MONTHLY_LIMIT}
                                             </Text>
                                         </View>
                                         <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#064E3B' : '#D1FAE5', borderRadius: 3, overflow: 'hidden' }}>
-                                            <View style={{ 
-                                                width: `${Math.min(((listings.filter(l => l.active !== false).length) / 5) * 100, 100)}%`, 
-                                                height: '100%', 
-                                                backgroundColor: '#10B981', 
-                                                borderRadius: 3 
+                                            <View style={{
+                                                width: `${Math.min((listingsThisMonth / LISTING_MONTHLY_LIMIT) * 100, 100)}%`,
+                                                height: '100%',
+                                                backgroundColor: '#10B981',
+                                                borderRadius: 3
                                             }} />
                                         </View>
                                         <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
-                                            {t('profile.remainingQuota', { count: Math.max(0, 5 - listings.filter(l => l.active !== false).length), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, 5 - listings.filter(l => l.active !== false).length)}` : `Kalan Hakkın: ${Math.max(0, 5 - listings.filter(l => l.active !== false).length)}` })}
+                                            {t('profile.remainingQuota', { count: Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` : `Kalan Hakkın: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` })}
                                         </Text>
                                     </View>
                                 </View>
