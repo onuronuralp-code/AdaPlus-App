@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
+import { getNotificationsModule } from "@/services/notificationService";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -1235,10 +1235,24 @@ function TripDetailPopup({
         return;
       }
 
-      const { status: permStatus } = await Notifications.getPermissionsAsync();
+      const NotificationsModule = getNotificationsModule();
+      if (!NotificationsModule) {
+        onClose();
+        setTimeout(() => {
+          Alert.alert(
+            i18n.language === "tr" ? "Desteklenmiyor" : "Not Supported",
+            i18n.language === "tr"
+              ? "Bu özellik Expo Go'da desteklenmiyor. Lütfen geliştirme derlemesini kullanın."
+              : "This feature isn't supported in Expo Go. Please use a development build.",
+          );
+        }, 400);
+        return;
+      }
+
+      const { status: permStatus } = await NotificationsModule.getPermissionsAsync();
       let finalStatus = permStatus;
       if (permStatus !== "granted") {
-        const { status: asked } = await Notifications.requestPermissionsAsync();
+        const { status: asked } = await NotificationsModule.requestPermissionsAsync();
         finalStatus = asked;
       }
       if (finalStatus !== "granted") {
@@ -1304,7 +1318,7 @@ function TripDetailPopup({
             ? `${minutesBefore / 60} saat`
             : `${minutesBefore / 60} hour${minutesBefore > 60 ? "s" : ""}`;
 
-      await Notifications.scheduleNotificationAsync({
+      await NotificationsModule.scheduleNotificationAsync({
         content: {
           title:
             i18n.language === "tr"
@@ -1317,7 +1331,7 @@ function TripDetailPopup({
           sound: true,
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          type: NotificationsModule.SchedulableTriggerInputTypes.DATE,
           date: alarmDate,
         },
       });
