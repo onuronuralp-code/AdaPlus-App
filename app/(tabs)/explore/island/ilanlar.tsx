@@ -303,10 +303,31 @@ export default function IlanlarScreen() {
 
   const handlePublish = async () => {
     Keyboard.dismiss();
-    if (isPublishDisabled || isPublishingRef.current) {
-      if (!isPublishingRef.current) {
-        Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
-      }
+    // Previously this silently did nothing when isPublishingRef was stuck true (e.g. a
+    // prior attempt that hung) — the button looked tappable but every tap was a silent
+    // no-op with zero feedback, and closing the modal doesn't reset this ref since the
+    // screen itself stays mounted. Always alert now, with a real way out.
+    if (isPublishingRef.current) {
+      Alert.alert(
+        i18n.language.startsWith('en') ? 'Please Wait' : 'Lütfen Bekleyin',
+        i18n.language.startsWith('en')
+          ? 'Your previous request is still processing.'
+          : 'Önceki isteğiniz hâlâ işleniyor.',
+        [
+          { text: i18n.language.startsWith('en') ? 'OK' : 'Tamam', style: 'cancel' },
+          {
+            text: i18n.language.startsWith('en') ? 'Reset & Retry' : 'Sıfırla ve Tekrar Dene',
+            onPress: () => {
+              isPublishingRef.current = false;
+              setIsUploading(false);
+            },
+          },
+        ]
+      );
+      return;
+    }
+    if (isPublishDisabled) {
+      Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
       return;
     }
 
@@ -532,10 +553,9 @@ export default function IlanlarScreen() {
               <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>{editingListingId ? t('common.editListing') : t('ilanlar.newAd')}</Text>
             </View>
             <View style={{ flex: 1.5, alignItems: 'flex-end', justifyContent: 'center' }}>
-              <TouchableOpacity 
-                style={[styles.publishButton, isPublishDisabled && (isDark ? { backgroundColor: '#27272A' } : styles.publishButtonDisabled)]} 
+              <TouchableOpacity
+                style={[styles.publishButton, isPublishDisabled && (isDark ? { backgroundColor: '#27272A' } : styles.publishButtonDisabled)]}
                 onPress={handlePublish}
-                disabled={isPublishDisabled}
               >
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
