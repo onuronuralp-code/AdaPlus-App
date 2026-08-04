@@ -10,6 +10,30 @@ type AlertState = {
   buttons?: AlertButton[];
 };
 
+// Module-level (not component-state) so the override survives regardless of any single
+// GlobalAlert instance's mount/unmount lifecycle. Previously the override was installed
+// and torn down inside a useEffect tied to one component instance — if that instance ever
+// unmounted and remounted (Fast Refresh, React StrictMode's dev-mode double-invoke, a
+// parent re-render), the override could end up pointing at a dead instance's setState,
+// silently swallowing every Alert.alert call app-wide with no error at all.
+const originalAlert = RNAlert.alert;
+let showAlertImpl: ((state: AlertState) => void) | null = null;
+
+RNAlert.alert = (title, message, buttons) => {
+  if (showAlertImpl) {
+    showAlertImpl({
+      visible: true,
+      title,
+      message,
+      buttons: buttons && buttons.length > 0 ? buttons : [{ text: 'Tamam' }],
+    });
+  } else {
+    // No live renderer registered — fall back to the real native alert rather than
+    // silently doing nothing.
+    originalAlert(title, message, buttons);
+  }
+};
+
 export function GlobalAlert() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -20,21 +44,13 @@ export function GlobalAlert() {
   });
 
   useEffect(() => {
-    const originalAlert = RNAlert.alert;
-
-    // Override the global Alert.alert
-    RNAlert.alert = (title, message, buttons) => {
-      setAlertState({
-        visible: true,
-        title,
-        message,
-        buttons: buttons && buttons.length > 0 ? buttons : [{ text: 'Tamam' }],
-      });
-    };
-
+    showAlertImpl = setAlertState;
     return () => {
-      // Restore original if component unmounts
-      RNAlert.alert = originalAlert;
+      // Only clear if we're still the registered instance — an out-of-order unmount
+      // from a stale instance must not clobber a newer instance's registration.
+      if (showAlertImpl === setAlertState) {
+        showAlertImpl = null;
+      }
     };
   }, []);
 
