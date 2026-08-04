@@ -425,8 +425,12 @@ export default function ForumScreen() {
                     };
                     setReplies([...replies, completeReply]);
                     setNewReplyContent('');
-                    // Update main posts list to reflect new comment count
-                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: p.replyCount + 1 } : p));
+                    // Update both the feed list's copy of this post AND the separate
+                    // selectedPost state the detail modal's header count reads from — same
+                    // mismatch as the delete path had.
+                    const incremented = selectedPost.replyCount + 1;
+                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: incremented } : p));
+                    setSelectedPost({ ...selectedPost, replyCount: incremented });
                 }
             }
         } catch (error: any) {
