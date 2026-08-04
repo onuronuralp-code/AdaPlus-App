@@ -302,6 +302,7 @@ export default function IlanlarScreen() {
   const isPublishingRef = useRef(false);
 
   const handlePublish = async () => {
+    console.log('[ilanlar] handlePublish fired', { isPublishDisabled, isPublishing: isPublishingRef.current });
     Keyboard.dismiss();
     // Previously this silently did nothing when isPublishingRef was stuck true (e.g. a
     // prior attempt that hung) — the button looked tappable but every tap was a silent
