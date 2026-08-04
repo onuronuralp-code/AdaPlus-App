@@ -273,7 +273,7 @@
         "postType": "GÖNDERİ TİPİ",
         "pollTitle": "ANKET BAŞLIĞI",
         "yourMessage": "MESAJINIZ",
-        "pollPlaceholder": "Oylama sorunuzu buraya yazın...",
+        "pollPlaceholder": "Oylama sorunuzu buraya yazın... (en az 10 karakter)",
         "whatsOnYourMind": "Neler anlatmak istersin?",
         "addPhoto": "Fotoğraf Ekle (Opsiyonel)",
         "addPhotoSimple": "Fotoğraf Ekle",

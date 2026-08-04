@@ -3,7 +3,7 @@ import {
   Poppins_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/poppins";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useRef } from "react";
 import {
@@ -29,6 +29,7 @@ const SEA = "#2F84C8";
 
 export default function SplashScreen() {
   const router = useRouter();
+  const pathname = usePathname();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
@@ -48,7 +49,12 @@ export default function SplashScreen() {
     if (isLoggedIn) {
       const timer = setTimeout(() => {
         ExpoSplashScreen.hideAsync();
-        router.replace("/(tabs)/explore");
+        // A cold-start deep link (e.g. a password reset email link) may already have
+        // navigated away from "/" by the time this fires — don't clobber it by forcing
+        // the user back to Explore. Only redirect if we're still actually on this screen.
+        if (pathname === '/') {
+          router.replace("/(tabs)/explore");
+        }
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -71,7 +77,7 @@ export default function SplashScreen() {
         ])
       ]).start();
     });
-  }, [fontsLoaded, isLoggedIn]);
+  }, [fontsLoaded, isLoggedIn, pathname]);
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 

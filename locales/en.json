@@ -273,7 +273,7 @@
         "postType": "POST TYPE",
         "pollTitle": "POLL TITLE",
         "yourMessage": "YOUR MESSAGE",
-        "pollPlaceholder": "Write your poll question here...",
+        "pollPlaceholder": "Write your poll question here... (at least 10 characters)",
         "whatsOnYourMind": "What would you like to share?",
         "addPhoto": "Add Photo (Optional)",
         "addPhotoSimple": "Add Photo",

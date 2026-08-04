@@ -677,7 +677,11 @@ export default function ForumScreen() {
     const MIN_POST_LENGTH = 10;
     const MAX_POST_LENGTH = 500;
     const trimmedPostContent = newPostContent.trim();
-    const postContentTooShort = newPostType !== 'poll' && trimmedPostContent.length > 0 && trimmedPostContent.length < MIN_POST_LENGTH;
+    // Applies to the poll question too, not just regular post content — it has the same
+    // MIN_POST_LENGTH requirement (see isPublishActive below), but previously got no
+    // feedback explaining why the publish button stayed disabled.
+    const currentPostContentLength = newPostType === 'poll' ? pollQuestion.trim().length : trimmedPostContent.length;
+    const postContentTooShort = currentPostContentLength > 0 && currentPostContentLength < MIN_POST_LENGTH;
     const isPublishActive = (
       newPostType === 'poll'
         ? (pollQuestion.trim().length >= MIN_POST_LENGTH && pollOptions.filter(o => o.trim()).length >= 2)
@@ -1376,7 +1380,7 @@ export default function ForumScreen() {
                             />
                             {postContentTooShort && (
                                 <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>
-                                    En az {MIN_POST_LENGTH} karakter gerekli ({trimmedPostContent.length}/{MIN_POST_LENGTH})
+                                    En az {MIN_POST_LENGTH} karakter gerekli ({currentPostContentLength}/{MIN_POST_LENGTH})
                                 </Text>
                             )}
                         </View>
