@@ -10,16 +10,25 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, Dimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import * as Notifications from "expo-notifications";
+import type * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { fetchAppVersion, requiresUpdate } from "@/services/appVersionApi";
+import { getNotificationsModule } from "@/services/notificationService";
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
 import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
 
+// expo-notifications isn't supported in Expo Go (removed since SDK 53) — importing or
+// touching it there throws "Your JavaScript code tried to access a native module that
+// doesn't exist" via the legacy PushNotificationIOS shim. getNotificationsModule()
+// already detects Expo Go and returns null there, so this stays a no-op instead of
+// crashing whenever something (e.g. backgrounding the app to open a link, then
+// returning) causes this module to actually be evaluated.
+const NotificationsModule = getNotificationsModule();
+
 // Show push notifications as alerts even when the app is in the foreground.
 // Without this handler, Expo drops all incoming notifications silently.
-Notifications.setNotificationHandler({
+NotificationsModule?.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldShowBanner: true,
@@ -239,8 +248,8 @@ export default function RootLayout() {
   };
 
   useEffect(() => {
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
+    notificationListener.current = NotificationsModule?.addNotificationReceivedListener(
+      (notification: any) => {
         const title = notification.request.content.title ?? "Bildirim";
         const body = notification.request.content.body ?? "";
         Alert.alert(title, body);

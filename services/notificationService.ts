@@ -3,7 +3,7 @@ import { Platform, NativeModules } from 'react-native';
 import { API_BASE_URL } from './config';
 import { getToken } from '@/utils/tokenStorage';
 
-function getNotificationsModule() {
+export function getNotificationsModule() {
   try {
     // Expo Go does not include legacy PushNotificationIOS / RCTPushNotificationManager native modules.
     // Requiring expo-notifications in Expo Go or simulator without native build throws an Invariant Violation.
