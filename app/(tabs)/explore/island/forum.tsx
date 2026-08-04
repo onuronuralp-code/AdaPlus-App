@@ -204,9 +204,6 @@ export default function ForumScreen() {
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
     const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
-    useEffect(() => {
-        console.log('[forum] deleteConfirmState changed', deleteConfirmState);
-    }, [deleteConfirmState]);
     const [reportConfirmState, setReportConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
     const [translatedPosts, setTranslatedPosts] = useState<Record<string, { text: string; isTranslated: boolean; loading: boolean }>>({});
 
@@ -801,21 +798,24 @@ export default function ForumScreen() {
     };
 
     const performDelete = async (postId: string) => {
-        console.log('[forum] performDelete entered', { postId });
         try {
             await forumApi.deletePost(postId);
-            console.log('[forum] performDelete: backend delete resolved', { postId });
             setPosts(posts.filter(p => p.id !== postId));
             if (selectedPost && selectedPost.id === postId) {
                 setIsDetailModalVisible(false);
             } else {
                 setReplies(replies.filter(r => r.id !== postId));
                 if (selectedPost) {
-                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: Math.max(0, p.replyCount - 1) } : p));
+                    // Update both the feed list's copy of this post AND the separate
+                    // selectedPost state the detail modal's header count reads from —
+                    // they're two different state objects, so updating only one left the
+                    // comment count badge stuck at its pre-delete value.
+                    const decremented = Math.max(0, selectedPost.replyCount - 1);
+                    setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, replyCount: decremented } : p));
+                    setSelectedPost({ ...selectedPost, replyCount: decremented });
                 }
             }
         } catch (error: any) {
-            console.log('[forum] performDelete caught error', error);
             setTimeout(() => {
                 Alert.alert(t('common.error', { defaultValue: 'Hata' }), error?.message || 'Silinirken bir hata oluştu.');
             }, 300);
@@ -823,11 +823,9 @@ export default function ForumScreen() {
     };
 
     const handleDeletePost = (postId: string) => {
-        console.log('[forum] handleDeletePost entered', { postId, isDetailModalVisible });
         if (!postId) return;
 
         if (isDetailModalVisible) {
-            console.log('[forum] setting deleteConfirmState visible');
             setDeleteConfirmState({ visible: true, id: postId });
             return;
         }
@@ -1732,12 +1730,9 @@ export default function ForumScreen() {
                                 {replies.length > 0 ? (
                                     replies.map(reply => {
                                         const renderRightActions = (progress: any, dragX: any, swipeable?: any) => {
-                                            if (reply.authorId !== user?.id) {
-                                                console.log('[forum] reply swipe action hidden — not owner', { replyAuthorId: reply.authorId, userId: user?.id });
-                                                return null;
-                                            }
+                                            if (reply.authorId !== user?.id) return null;
                                             return (
-                                                <TouchableOpacity onPress={() => { console.log('[forum] reply delete tapped', { replyId: reply.id, isDetailModalVisible }); swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                                                     <IconSymbol name="trash.fill" size={20} color="#FFF" />
                                                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                                                 </TouchableOpacity>
