@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, fetchWithTimeout } from './config';
 
 export interface AppVersionInfo {
   minimumVersion: string;
@@ -6,7 +6,7 @@ export interface AppVersionInfo {
 }
 
 export async function fetchAppVersion(): Promise<AppVersionInfo> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/app/version`);
+  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/app/version`);
   if (!response.ok) throw new Error('Version check failed');
   return response.json();
 }

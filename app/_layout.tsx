@@ -3,7 +3,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, usePathname } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
@@ -122,25 +122,11 @@ function RootLayoutNav() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const bgColor = isDark ? "#000000" : "#FFFFFF";
-  const pathname = usePathname();
 
-  // Check version on every page navigation
-  useEffect(() => {
-    const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
-    fetchAppVersion()
-      .then(({ minimumVersion, latestVersion }) => {
-        console.log(`[Version:Nav] path=${pathname} current=${currentVersion} minimum=${minimumVersion}`);
-        if (requiresUpdate(currentVersion, minimumVersion)) {
-          Alert.alert(
-            "Güncelleme Gerekli",
-            "AdaPlus'ı kullanmaya devam etmek için uygulamayı güncellemelisin.",
-            [{ text: "App Store'da Güncelle", onPress: () => Linking.openURL(APP_STORE_URL) }],
-            { cancelable: false }
-          );
-        }
-      })
-      .catch(() => {});
-  }, [pathname]);
+  // Version checking lives solely in RootLayout's 30s poll now — this used to also fire
+  // an independent, uncoordinated check (with its own non-cancelable Alert) on every
+  // single navigation, which could pile up alongside the poll and, if ever triggered,
+  // stack blocking alerts with no way to dismiss the app back to a usable state.
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -200,7 +186,16 @@ export default function RootLayout() {
   const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
   const [updateRequired, setUpdateRequired] = useState(true);
 
+  // Guards against a second overlapping check (e.g. the 30s poll firing again before a
+  // slow prior request settled) from stacking a duplicate non-cancelable alert on top of
+  // an existing one — that combination can leave the app with no visible/tappable way
+  // back to a usable state.
+  const isCheckingVersion = useRef(false);
+  const isShowingUpdateAlert = useRef(false);
+
   const checkVersion = useRef(() => {
+    if (isCheckingVersion.current) return;
+    isCheckingVersion.current = true;
     const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
     fetchAppVersion()
       .then(({ minimumVersion, latestVersion }) => {
@@ -212,10 +207,15 @@ export default function RootLayout() {
       .catch((e) => {
         console.warn('[Version] fetchAppVersion failed:', e);
         // Network error — don't block the app
+      })
+      .finally(() => {
+        isCheckingVersion.current = false;
       });
   }).current;
 
   const showUpdateAlert = () => {
+    if (isShowingUpdateAlert.current) return;
+    isShowingUpdateAlert.current = true;
     Alert.alert(
       "Güncelleme Gerekli",
       "AdaPlus'ı kullanmaya devam etmek için uygulamayı güncellemelisin.",
@@ -225,7 +225,10 @@ export default function RootLayout() {
           onPress: () => {
             Linking.openURL(APP_STORE_URL);
             // Kullanıcı uygulamaya geri dönerse alerti tekrar göster
-            setTimeout(showUpdateAlert, 1000);
+            setTimeout(() => {
+              isShowingUpdateAlert.current = false;
+              showUpdateAlert();
+            }, 1000);
           },
         },
       ],
