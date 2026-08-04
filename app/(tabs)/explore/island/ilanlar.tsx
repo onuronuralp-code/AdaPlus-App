@@ -41,6 +41,16 @@ import { resolveImageUrl } from '@/services/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// user.phone is stored E.164-normalized (+905XXXXXXXXX), but the backend's contactInfo
+// field expects the local 11-digit dialing format (05XXXXXXXXX) — convert before
+// auto-filling so it actually passes validation.
+const toLocalPhone = (phone?: string | null): string => {
+  if (phone && phone.startsWith('+90') && phone.length === 13) {
+    return '0' + phone.slice(3);
+  }
+  return phone || '';
+};
+
 // İlan türleri
 type IlanCategory = 'all' | 'emlak' | 'esya' | 'tasit' | 'service' | 'lost' | 'job' | 'pet';
 
@@ -476,7 +486,7 @@ export default function IlanlarScreen() {
             if (!isLoggedIn) {
                 setShowLoginPrompt(true);
             } else {
-                setAdContact(user?.phone || user?.email || '');
+                setAdContact(toLocalPhone(user?.phone) || user?.email || '');
                 setAdSeller(user?.fullName || user?.email || '');
                 setIsAdModalVisible(true);
             }
