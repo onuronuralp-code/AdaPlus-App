@@ -12,7 +12,18 @@ export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestI
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    // Races the fetch against an independent timer instead of relying solely on
+    // AbortController — some RN/Expo fetch implementations don't reliably reject the
+    // fetch promise when the signal aborts, which would otherwise let a stalled
+    // connection hang forever with nothing to ever resolve or reject it.
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        controller.abort();
+        reject(new Error('Request timed out'));
+      }, FETCH_TIMEOUT_MS);
+    });
 
     try {
       const newInit: RequestInit = {
@@ -26,8 +37,8 @@ export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestI
         signal: controller.signal
       };
 
-      const response = await fetch(input, newInit);
-      clearTimeout(id);
+      const response = await Promise.race([fetch(input, newInit), timeoutPromise]);
+      clearTimeout(timeoutId);
 
       // Retry on transient 5xx server gateway errors
       if ((response.status === 502 || response.status === 503 || response.status === 504) && attempt < MAX_RETRIES) {
@@ -37,11 +48,12 @@ export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestI
 
       return response;
     } catch (err: any) {
-      clearTimeout(id);
+      clearTimeout(timeoutId);
       lastError = err;
 
       const method = (init?.method || 'GET').toUpperCase();
-      const isAbortOrNetworkErr = err.name === 'AbortError' || err.message?.toLowerCase().includes('network') || err.message?.toLowerCase().includes('fetch');
+      const msg = err.message?.toLowerCase() || '';
+      const isAbortOrNetworkErr = err.name === 'AbortError' || msg.includes('network') || msg.includes('fetch') || msg.includes('timed out');
 
       if (attempt < MAX_RETRIES && (method === 'GET' || isAbortOrNetworkErr)) {
         await new Promise(resolve => setTimeout(resolve, 600 * (attempt + 1)));

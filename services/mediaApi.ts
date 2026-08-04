@@ -1,5 +1,5 @@
 import { triggerNetworkError } from './api';
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, fetchWithTimeout } from './config';
 import { getToken } from '@/utils/tokenStorage';
 
 const MEDIA_API_BASE = `${API_BASE_URL}/api/v1/media`;
@@ -19,7 +19,7 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
     });
 
     const token = getToken();
-    const response = await fetch(`${MEDIA_API_BASE}/upload`, {
+    const response = await fetchWithTimeout(`${MEDIA_API_BASE}/upload`, {
       method: 'POST',
       body: formData,
       headers: {
