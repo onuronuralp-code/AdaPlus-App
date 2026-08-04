@@ -676,6 +676,7 @@ export default function ForumScreen() {
 
     const MIN_POST_LENGTH = 10;
     const MAX_POST_LENGTH = 500;
+    const POLL_QUESTION_MAX_LENGTH = 200;
     const trimmedPostContent = newPostContent.trim();
     // Applies to the poll question too, not just regular post content — it has the same
     // MIN_POST_LENGTH requirement (see isPublishActive below), but previously got no
@@ -1361,18 +1362,16 @@ export default function ForumScreen() {
                         <View style={styles.formSection}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                 <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
-                                {newPostType !== 'poll' && (
-                                    <Text style={{ color: newPostContent.length >= MAX_POST_LENGTH ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B'), fontSize: 12, fontWeight: '700' }}>
-                                        {newPostContent.length}/{MAX_POST_LENGTH}
-                                    </Text>
-                                )}
+                                <Text style={{ color: currentPostContentLength >= (newPostType === 'poll' ? POLL_QUESTION_MAX_LENGTH : MAX_POST_LENGTH) ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B'), fontSize: 12, fontWeight: '700' }}>
+                                    {currentPostContentLength}/{newPostType === 'poll' ? POLL_QUESTION_MAX_LENGTH : MAX_POST_LENGTH}
+                                </Text>
                             </View>
                             <TextInput
                                 style={[styles.premiumTextInput, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }, newPostType === 'poll' && { minHeight: 60, height: undefined, paddingVertical: 16, paddingHorizontal: 16, textAlign: 'left', lineHeight: 20 }]}
                                 placeholder={newPostType === 'poll' ? t('forum.pollPlaceholder') : t('forum.whatsOnYourMind')}
                                 placeholderTextColor={isDark ? '#64748B' : '#CBD5E1'}
                                 multiline={newPostType !== 'poll'}
-                                maxLength={newPostType === 'poll' ? 200 : MAX_POST_LENGTH}
+                                maxLength={newPostType === 'poll' ? POLL_QUESTION_MAX_LENGTH : MAX_POST_LENGTH}
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
                                 onChangeText={newPostType === 'poll' ? setPollQuestion : setNewPostContent}
                                 ref={postInputRef}
