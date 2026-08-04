@@ -50,6 +50,7 @@
         "success": "Başarılı",
         "cancel": "İptal",
         "delete": "Sil",
+        "report": "Bildir",
         "edit": "Düzenle",
         "deleteConfirm": "Silmek istediğinize emin misiniz?",
         "deleteFailed": "Silinemedi.",

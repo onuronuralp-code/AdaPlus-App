@@ -197,6 +197,8 @@ export default function ForumScreen() {
     const [isUploading, setIsUploading] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [newReplyContent, setNewReplyContent] = useState('');
+    const [isSendingReply, setIsSendingReply] = useState(false);
+    const isSendingReplyRef = useRef(false);
     const [pollDurationHours, setPollDurationHours] = useState(24);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
@@ -389,6 +391,12 @@ export default function ForumScreen() {
         }
         if (!newReplyContent.trim() || !selectedPost) return;
         if (!editingReplyId && !requireForumPostingAccess()) return;
+        // The button's disabled state only ever reflected whether the text field was
+        // empty, not whether a send was already in flight — tapping twice quickly (before
+        // the first request cleared the field) sent the same comment twice.
+        if (isSendingReplyRef.current) return;
+        isSendingReplyRef.current = true;
+        setIsSendingReply(true);
 
         try {
             if (editingReplyId) {
@@ -423,6 +431,9 @@ export default function ForumScreen() {
             }
         } catch (error: any) {
             Alert.alert('Yanıt Gönderilemedi', error?.message || 'Bir hata oluştu.');
+        } finally {
+            isSendingReplyRef.current = false;
+            setIsSendingReply(false);
         }
     };
 
@@ -945,7 +956,7 @@ export default function ForumScreen() {
                             onPress={() => { swipeable?.close(); handleReport(item.id); }}
                         >
                             <IconSymbol name="exclamationmark.triangle.fill" size={22} color="#FFF" />
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>Report</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -1593,7 +1604,7 @@ export default function ForumScreen() {
                                                      onPress={() => handleReport(selectedPost.id)}
                                                  >
                                                      <IconSymbol name="exclamationmark.triangle.fill" size={14} color={isDark ? "#FFFFFF" : "#F59E0B"} />
-                                                     <Text style={[{ fontSize: 12, fontWeight: '700' }, isDark ? { color: '#FFFFFF' } : { color: '#F59E0B' }]}>{t('common.report', { defaultValue: 'Report' })}</Text>
+                                                     <Text style={[{ fontSize: 12, fontWeight: '700' }, isDark ? { color: '#FFFFFF' } : { color: '#F59E0B' }]}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                                                  </TouchableOpacity>
                                              )}
                                         </View>
@@ -1778,11 +1789,14 @@ export default function ForumScreen() {
                             }}
                         />
                         <TouchableOpacity
-                            style={[styles.sendCommentBtn, !newReplyContent.trim() && { opacity: 0.5 }]}
+                            style={[styles.sendCommentBtn, (!newReplyContent.trim() || isSendingReply) && { opacity: 0.5 }]}
                             onPress={handleSendReply}
-                            disabled={!newReplyContent.trim()}
                         >
-                            <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
+                            {isSendingReply ? (
+                                <ActivityIndicator size="small" color={editingReplyId ? "#10B981" : "#3B82F6"} />
+                            ) : (
+                                <IconSymbol name={editingReplyId ? "checkmark" : "paperplane.fill"} size={20} color={editingReplyId ? "#10B981" : "#3B82F6"} />
+                            )}
                         </TouchableOpacity>
                     </View>
                     </KeyboardAvoidingView>
@@ -2104,7 +2118,10 @@ export default function ForumScreen() {
             </Modal>
 
             {/* Top-Level Transparent Confirm Modals */}
-            <Modal transparent visible={deleteConfirmState.visible} animationType="fade" onRequestClose={() => setDeleteConfirmState({ visible: false, id: null })}>
+            {/* overFullScreen: this can be opened while the post-detail modal is already open
+                (e.g. deleting a comment from within it) — without it, iOS can silently fail
+                to present a second stacked Modal on top of the first one. */}
+            <Modal transparent visible={deleteConfirmState.visible} animationType="fade" presentationStyle="overFullScreen" onRequestClose={() => setDeleteConfirmState({ visible: false, id: null })}>
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center' }}>
                     <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                         <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A1A' }]}>
@@ -2128,13 +2145,15 @@ export default function ForumScreen() {
                 </View>
             </Modal>
 
-            <Modal transparent visible={reportConfirmState.visible} animationType="fade" onRequestClose={() => setReportConfirmState({ visible: false, id: null })}>
+            {/* Same overFullScreen fix as the delete-confirm modal above — Report can also be
+                triggered from within the already-open post-detail modal. */}
+            <Modal transparent visible={reportConfirmState.visible} animationType="fade" presentationStyle="overFullScreen" onRequestClose={() => setReportConfirmState({ visible: false, id: null })}>
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center' }}>
                     <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                         <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF3C7', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A03' }]}>
                             <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#F59E0B" />
                         </View>
-                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Report</Text>
+                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                         <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Bu gönderiyi şikayet etmek istediğinize emin misiniz?</Text>
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                             <TouchableOpacity onPress={() => setReportConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
@@ -2145,7 +2164,7 @@ export default function ForumScreen() {
                                 setReportConfirmState({ visible: false, id: null });
                                 if (id) performReport(id);
                             }} style={{ flex: 1, backgroundColor: '#F59E0B', paddingVertical: 14, borderRadius: 16 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Report</Text>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

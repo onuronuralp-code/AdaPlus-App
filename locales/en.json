@@ -50,6 +50,7 @@
         "success": "Success",
         "cancel": "Cancel",
         "delete": "Delete",
+        "report": "Report",
         "edit": "Edit",
         "deleteConfirm": "Are you sure you want to delete?",
         "deleteFailed": "Could not delete.",
