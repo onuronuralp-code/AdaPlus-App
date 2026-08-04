@@ -27,6 +27,17 @@ import { useAuth } from "../context/AuthContext";
 const NAVY = "#1E3A5F";
 const SEA = "#2F84C8";
 
+// The native splash screen can only be hidden once per app launch. This screen can
+// remount later (e.g. router.replace('/') after deleting the account, or any other
+// return trip to "/"), and calling hideAsync() again throws "No native splash screen
+// registered for given view controller" since it was already hidden the first time.
+let hasHiddenNativeSplash = false;
+const hideNativeSplashOnce = async () => {
+  if (hasHiddenNativeSplash) return;
+  hasHiddenNativeSplash = true;
+  await ExpoSplashScreen.hideAsync();
+};
+
 export default function SplashScreen() {
   const router = useRouter();
   const pathname = usePathname();
@@ -48,7 +59,7 @@ export default function SplashScreen() {
 
     if (isLoggedIn) {
       const timer = setTimeout(() => {
-        ExpoSplashScreen.hideAsync();
+        hideNativeSplashOnce();
         // A cold-start deep link (e.g. a password reset email link) may already have
         // navigated away from "/" by the time this fires — don't clobber it by forcing
         // the user back to Explore. Only redirect if we're still actually on this screen.
@@ -59,7 +70,7 @@ export default function SplashScreen() {
       return () => clearTimeout(timer);
     }
 
-    ExpoSplashScreen.hideAsync().then(() => {
+    hideNativeSplashOnce().then(() => {
       Animated.sequence([
         Animated.delay(2000),
         Animated.parallel([

@@ -41,6 +41,7 @@ import { Provider } from "react-redux";
 
 import { GlobalAlert } from "@/components/GlobalAlert";
 import { GlobalInvisiblePopup } from "@/components/GlobalInvisiblePopup";
+import { PromoPopupModal } from "@/components/PromoPopupModal";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -176,6 +177,7 @@ function RootLayoutNav() {
         <StatusBar style={theme === "dark" ? "light" : "dark"} />
         <GlobalAlert />
         <GlobalInvisiblePopup />
+        <PromoPopupModal />
       </CopilotProvider>
     </ThemeProvider>
   </View>
