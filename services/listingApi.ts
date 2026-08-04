@@ -82,7 +82,9 @@ export const fetchListings = async (
 export const createListing = async (
   request: SaveListingRequest,
 ): Promise<ListingDto | null> => {
+  console.log("[listingApi] createListing entered");
   const token = getToken();
+  console.log("[listingApi] token", { hasToken: !!token });
   if (!token) {
     console.warn("No JWT token found. Aborting listing creation.");
     return null;
@@ -90,6 +92,7 @@ export const createListing = async (
 
   let response: Response;
   try {
+    console.log("[listingApi] calling fetchWithTimeout", { url: LISTING_API_BASE });
     response = await fetchWithTimeout(LISTING_API_BASE, {
       method: "POST",
       headers: {
@@ -98,6 +101,7 @@ export const createListing = async (
       },
       body: JSON.stringify(request),
     });
+    console.log("[listingApi] fetchWithTimeout resolved", { status: response.status });
   } catch (error) {
     console.log("Failed to create listing:", error);
     triggerNetworkError();

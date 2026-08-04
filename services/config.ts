@@ -9,8 +9,10 @@ const MAX_RETRIES = 2;
 
 export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
   let lastError: any = null;
+  console.log('[fetchWithTimeout] entered', { url: typeof input === 'string' ? input : String(input) });
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    console.log('[fetchWithTimeout] attempt', attempt);
     const controller = new AbortController();
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -20,6 +22,7 @@ export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestI
     // connection hang forever with nothing to ever resolve or reject it.
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
+        console.log('[fetchWithTimeout] timer fired, aborting', { attempt });
         controller.abort();
         reject(new Error('Request timed out'));
       }, FETCH_TIMEOUT_MS);
@@ -37,7 +40,9 @@ export const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestI
         signal: controller.signal
       };
 
+      console.log('[fetchWithTimeout] calling fetch()', { attempt });
       const response = await Promise.race([fetch(input, newInit), timeoutPromise]);
+      console.log('[fetchWithTimeout] race resolved', { attempt, status: response.status });
       clearTimeout(timeoutId);
 
       // Retry on transient 5xx server gateway errors

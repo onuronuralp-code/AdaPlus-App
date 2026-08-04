@@ -332,10 +332,12 @@ export default function IlanlarScreen() {
       return;
     }
 
+    console.log('[ilanlar] guards passed, starting publish');
     isPublishingRef.current = true;
     setIsUploading(true);
     try {
       let uploadedUrls: string[] = [];
+      console.log('[ilanlar] uploading images', { count: selectedImages.length });
       for (const uri of selectedImages) {
         if (!uri.startsWith('http') && !uri.startsWith('/')) {
           const uploaded = await mediaApi.uploadImage(uri);
@@ -346,8 +348,11 @@ export default function IlanlarScreen() {
           uploadedUrls.push(uri);
         }
       }
+      console.log('[ilanlar] images done, calling submitListing', { uploadedUrls });
       await submitListing(uploadedUrls);
+      console.log('[ilanlar] submitListing resolved');
     } catch (e: any) {
+      console.log('[ilanlar] handlePublish caught error', e);
       const msg: string | undefined = e?.message;
       // 'invalid contact'/'invalid price' already showed their own alert inline;
       // 'network_error_shown' means listingApi already showed the connection-error toast.
@@ -367,12 +372,14 @@ export default function IlanlarScreen() {
         }, 100);
       }
     } finally {
+      console.log('[ilanlar] handlePublish finally, resetting flags');
       isPublishingRef.current = false;
       setIsUploading(false);
     }
   };
 
   const submitListing = async (imageUrls: string[]) => {
+    console.log('[ilanlar] submitListing entered', { imageUrls });
     const finalPrice = adPrice.trim() ? parseFloat(adPrice.replace(/\./g, '')) : 0;
     const finalContact = adContact.trim();
     if (isNaN(finalPrice) || finalPrice < 0) throw new Error('invalid price');
@@ -394,10 +401,12 @@ export default function IlanlarScreen() {
       sellerName: adSeller.trim(),
       imageUrls: imageUrls
     };
+    console.log('[ilanlar] calling listingApi', { editingListingId, request });
 
     const resultListing = editingListingId
       ? await listingApi.updateListing(editingListingId, request)
       : await listingApi.createListing(request);
+    console.log('[ilanlar] listingApi call resolved', { resultListing });
 
     // A validation/limit rejection throws with a real message from listingApi and is
     // handled by the catch above. A null result here means a network-level failure,
