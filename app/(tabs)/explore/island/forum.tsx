@@ -1812,6 +1812,62 @@ export default function ForumScreen() {
                     </View>
                     </KeyboardAvoidingView>
 
+                    {/* Rendered as a plain overlay (not a second <Modal>) because this needs to
+                        appear while the post-detail modal above is already open — iOS can
+                        silently fail to present a second stacked native Modal on top of a
+                        first one, regardless of presentationStyle, which is what caused the
+                        delete confirmation to never actually appear on screen. */}
+                    {deleteConfirmState.visible && (
+                        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', zIndex: 999 }}>
+                            <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                                <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A1A' }]}>
+                                    <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#EF4444" />
+                                </View>
+                                <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Sil</Text>
+                                <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Silmek istediğinize emin misiniz?</Text>
+                                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                                    <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                        <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        const id = deleteConfirmState.id;
+                                        setDeleteConfirmState({ visible: false, id: null });
+                                        if (id) performDelete(id);
+                                    }} style={{ flex: 1, backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 16 }}>
+                                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Sil</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                    {/* Same fix as deleteConfirmState above, for the "Report" button that also
+                        lives inside this detail modal. handleReport() can also be triggered
+                        from the main feed (outside this modal) — that path keeps using the
+                        separate sibling <Modal> further below, which works fine there since
+                        no other modal is already open in that context. */}
+                    {reportConfirmState.visible && (
+                        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', zIndex: 999 }}>
+                            <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
+                                <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF3C7', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A03' }]}>
+                                    <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#F59E0B" />
+                                </View>
+                                <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
+                                <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Bu gönderiyi şikayet etmek istediğinize emin misiniz?</Text>
+                                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                                    <TouchableOpacity onPress={() => setReportConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
+                                        <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        const id = reportConfirmState.id;
+                                        setReportConfirmState({ visible: false, id: null });
+                                        if (id) performReport(id);
+                                    }} style={{ flex: 1, backgroundColor: '#F59E0B', paddingVertical: 14, borderRadius: 16 }}>
+                                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    )}
                 </View>
             </Modal>
             <Modal
@@ -2132,30 +2188,6 @@ export default function ForumScreen() {
             {/* overFullScreen: this can be opened while the post-detail modal is already open
                 (e.g. deleting a comment from within it) — without it, iOS can silently fail
                 to present a second stacked Modal on top of the first one. */}
-            <Modal transparent visible={deleteConfirmState.visible} animationType="fade" presentationStyle="overFullScreen" onRequestClose={() => setDeleteConfirmState({ visible: false, id: null })}>
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
-                        <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A1A' }]}>
-                            <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#EF4444" />
-                        </View>
-                        <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 12, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>Sil</Text>
-                        <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 24, lineHeight: 22 }, isDark && { color: '#CBD5E1' }]}>Silmek istediğinize emin misiniz?</Text>
-                        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                            <TouchableOpacity onPress={() => setDeleteConfirmState({ visible: false, id: null })} style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16 }, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                <Text style={[{ color: '#475569', fontSize: 16, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>İptal</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => {
-                                console.log('[forum] delete-confirm modal Sil tapped', { id: deleteConfirmState.id });
-                                const id = deleteConfirmState.id;
-                                setDeleteConfirmState({ visible: false, id: null });
-                                if (id) performDelete(id);
-                            }} style={{ flex: 1, backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 16 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Sil</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
 
             {/* Same overFullScreen fix as the delete-confirm modal above — Report can also be
                 triggered from within the already-open post-detail modal. */}
