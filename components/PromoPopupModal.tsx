@@ -20,13 +20,19 @@ export function PromoPopupModal() {
   const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[PromoPopupModal] mounted, fetching active popup');
     (async () => {
       const active = await fetchActivePopup();
+      console.log('[PromoPopupModal] fetchActivePopup result', active);
       if (!active) return;
       const lastSeenId = await AsyncStorage.getItem(LAST_SEEN_KEY);
+      console.log('[PromoPopupModal] lastSeenId', lastSeenId, 'active.id', active.id);
       if (active.id !== lastSeenId) {
+        console.log('[PromoPopupModal] showing popup');
         setPopup(active);
         setVisible(true);
+      } else {
+        console.log('[PromoPopupModal] already seen this popup, skipping');
       }
     })();
   }, []);
