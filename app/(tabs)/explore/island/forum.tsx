@@ -56,10 +56,6 @@ export default function ForumScreen() {
             );
             return false;
         }
-        if (!isAdmin && !user?.phoneVerified) {
-            setShowVerifyPhoneModal(true);
-            return false;
-        }
         return true;
     };
 
