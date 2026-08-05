@@ -17,6 +17,7 @@
       "supportsTablet": false,
       "requireFullScreen": true,
       "bundleIdentifier": "com.onurx.ADA",
+      "associatedDomains": ["applinks:adaplus.app"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
