@@ -856,9 +856,9 @@ export default function IlanlarScreen() {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setShowQuotaModal(false)}
-                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}
+                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: '#7C3AED', justifyContent: 'center', alignItems: 'center' }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '700', color: isDark ? '#CBD5E1' : '#475569' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>
                   {i18n.language.startsWith('en') ? 'Close' : 'Anladım'}
                 </Text>
               </TouchableOpacity>

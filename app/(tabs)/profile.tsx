@@ -1130,17 +1130,15 @@ export default function ProfileScreen() {
                                 : 'Bu ayki ilan yayınlama limitinize ulaştınız (5/5). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
                         </Text>
 
-                        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                            <TouchableOpacity
-                                activeOpacity={0.8}
-                                onPress={() => setShowQuotaModal(false)}
-                                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}
-                            >
-                                <Text style={{ fontSize: 14, fontWeight: '700', color: isDark ? '#CBD5E1' : '#475569' }}>
-                                    {i18n.language.startsWith('en') ? 'Close' : 'Anladım'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => setShowQuotaModal(false)}
+                            style={{ width: '100%', height: 48, borderRadius: 14, backgroundColor: '#7C3AED', justifyContent: 'center', alignItems: 'center' }}
+                        >
+                            <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
+                                {i18n.language.startsWith('en') ? 'Close' : 'Anladım'}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             {/* Invitation Quota Limit Modal (Dark Purple Theme) */}
