@@ -61,6 +61,7 @@ export default function ProfileScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showQuotaModal, setShowQuotaModal] = useState(false);
+    const [showInviteQuotaModal, setShowInviteQuotaModal] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
@@ -957,14 +958,7 @@ export default function ProfileScreen() {
                                 {/* Davet Edilen Adalılar Kartı */}
                                 <TouchableOpacity 
                                     activeOpacity={0.8}
-                                    onPress={() => {
-                                        Alert.alert(
-                                            i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
-                                            i18n.language.startsWith('en')
-                                                ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-                                                : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
-                                        );
-                                    }}
+                                    onPress={() => setShowInviteQuotaModal(true)}
                                     style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -1005,14 +999,7 @@ export default function ProfileScreen() {
 
                                     <TouchableOpacity
                                         activeOpacity={0.8}
-                                        onPress={() => {
-                                            Alert.alert(
-                                                i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
-                                                i18n.language.startsWith('en')
-                                                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-                                                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
-                                            );
-                                        }}
+                                        onPress={() => setShowInviteQuotaModal(true)}
                                         style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderWidth: 1, borderColor: isDark ? '#5B21B6' : '#DDD6FE', alignItems: 'center', justifyContent: 'center' }}
                                     >
                                         <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#C084FC' : '#5B21B6', textAlign: 'center' }}>
@@ -1154,6 +1141,40 @@ export default function ProfileScreen() {
                                 </Text>
                             </TouchableOpacity>
                         </View>
+                    </View>
+                </View>
+            {/* Invitation Quota Limit Modal (Dark Purple Theme) */}
+            <Modal
+                visible={showInviteQuotaModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowInviteQuotaModal(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                    <View style={{ width: '88%', maxWidth: 360, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 }}>
+                        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: isDark ? '#5B21B6' : '#DDD6FE' }}>
+                            <IconSymbol name="person.2.fill" size={30} color={isDark ? '#C084FC' : '#5B21B6'} />
+                        </View>
+
+                        <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 10 }}>
+                            {i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu'}
+                        </Text>
+
+                        <Text style={{ fontSize: 14, color: isDark ? '#94A3B8' : '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 24 }}>
+                            {i18n.language.startsWith('en')
+                                ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                                : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'}
+                        </Text>
+
+                        <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => setShowInviteQuotaModal(false)}
+                            style={{ width: '100%', height: 48, borderRadius: 14, backgroundColor: '#5B21B6', justifyContent: 'center', alignItems: 'center' }}
+                        >
+                            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>
+                                {i18n.language.startsWith('en') ? 'Understood' : 'Anladım'}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
