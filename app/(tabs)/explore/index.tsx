@@ -1652,7 +1652,7 @@ export default function MainMenuScreen() {
               {t('explore.adaAi', { defaultValue: 'ADA AI' })}
             </Text>
             <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#CBD5E1' : '#475569', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
-              {t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to build a genuine artificial intelligence for the Islands.' : 'Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })}
+              {t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to develop our AI guide tailored for the Islands.' : 'Adalar\'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })}
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}

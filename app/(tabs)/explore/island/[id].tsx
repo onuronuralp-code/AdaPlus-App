@@ -136,7 +136,7 @@ export default function IslandDetailScreen() {
                         onPress={() => {
                             Alert.alert(
                                 t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI • Coming Soon' : 'Ada AI • Yakında' }),
-                                t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to build a genuine artificial intelligence for the Islands.' : 'Adaların gerçek bir yapay zekasının olabilmesi için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })
+                                t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to develop our AI guide tailored for the Islands.' : 'Adalar\'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })
                             );
                         }}
                     />
