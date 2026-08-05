@@ -96,6 +96,7 @@ export default function IlanlarScreen() {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
   const [editingListingId, setEditingListingId] = useState<string | null>(null);
   const modalSlideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
@@ -352,18 +353,23 @@ export default function IlanlarScreen() {
       // 'network_error_shown' means listingApi already showed the connection-error toast.
       const alreadyHandled = msg === 'invalid contact' || msg === 'invalid price' || msg === 'network_error_shown';
       if (!alreadyHandled) {
-        setTimeout(() => {
-          Alert.alert(
-            t('common.error', { defaultValue: 'Hata' }),
-            // Prefer the backend's actual reason (e.g. monthly limit reached) over a
-            // generic message, so the user knows *why* it failed, not just that it did.
-            msg && msg.trim().length > 0
-              ? msg
-              : editingListingId
-                ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
-                : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
-          );
-        }, 100);
+        if (msg && (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('kota') || msg.toLowerCase().includes('ulaştı'))) {
+          resetAndCloseModal();
+          setTimeout(() => {
+            setShowQuotaModal(true);
+          }, 300);
+        } else {
+          setTimeout(() => {
+            Alert.alert(
+              t('common.error', { defaultValue: 'Hata' }),
+              msg && msg.trim().length > 0
+                ? msg
+                : editingListingId
+                  ? t('errors.listingUpdateFailed', { defaultValue: 'İlan güncellenemedi. Lütfen tekrar deneyin.' })
+                  : t('errors.listingCreateFailed', { defaultValue: 'İlan oluşturulamadı. Lütfen tekrar deneyin.' })
+            );
+          }, 100);
+        }
       }
     } finally {
       isPublishingRef.current = false;
@@ -469,13 +475,22 @@ export default function IlanlarScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { marginLeft: 10 }, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
         </View>
-        <TouchableOpacity
-          style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
-          onPress={() => setIsGridView(!isGridView)}
-          activeOpacity={0.7}
-        >
-          <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <TouchableOpacity
+            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#311B92' : '#F3E8FF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDark ? '#673AB7' : '#E9D5FF' }]}
+            onPress={() => setShowQuotaModal(true)}
+            activeOpacity={0.7}
+          >
+            <IconSymbol name="tag.fill" size={18} color={isDark ? '#C084FC' : '#7C3AED'} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
+            onPress={() => setIsGridView(!isGridView)}
+            activeOpacity={0.7}
+          >
+            <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={[{ paddingVertical: 6, backgroundColor: 'transparent' }]}>
@@ -813,6 +828,57 @@ export default function IlanlarScreen() {
         }}
         message={t('auth.loginToPost', { defaultValue: 'İlan vermek için giriş yapmalısınız.' })}
       />
+
+      {/* Listing Quota Limit Modal */}
+      <Modal
+        visible={showQuotaModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowQuotaModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <View style={{ width: '88%', maxWidth: 360, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: isDark ? '#311B92' : '#F3E8FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: isDark ? '#673AB7' : '#E9D5FF' }}>
+              <IconSymbol name="tag.fill" size={30} color={isDark ? '#C084FC' : '#7C3AED'} />
+            </View>
+
+            <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 10 }}>
+              {i18n.language.startsWith('en') ? 'Listing Quota Reached' : 'Bu Ayki İlan Limitiniz Doldu'}
+            </Text>
+
+            <Text style={{ fontSize: 14, color: isDark ? '#94A3B8' : '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 24 }}>
+              {i18n.language.startsWith('en')
+                ? 'You have reached your monthly free publishing limit (3/3). You can publish new listings next month.'
+                : 'Bu ayki ilan yayınlama limitinize ulaştınız (3/3). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
+            </Text>
+
+            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setShowQuotaModal(false)}
+                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '700', color: isDark ? '#CBD5E1' : '#475569' }}>
+                  {i18n.language.startsWith('en') ? 'Close' : 'Anladım'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setShowQuotaModal(false);
+                  router.push('/(tabs)/profile');
+                }}
+                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: '#3B82F6', justifyContent: 'center', alignItems: 'center' }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>
+                  {i18n.language.startsWith('en') ? 'My Quotas' : 'Kotalarım'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
     </SwipeNavigation>
   );
