@@ -1141,6 +1141,8 @@ export default function ProfileScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
+            </Modal>
+
             {/* Invitation Quota Limit Modal (Dark Purple Theme) */}
             <Modal
                 visible={showInviteQuotaModal}
