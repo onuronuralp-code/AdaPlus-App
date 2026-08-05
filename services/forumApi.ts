@@ -119,24 +119,39 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   return response;
 };
 
-export const fetchPosts = async (topicId?: string): Promise<PostDto[]> => {
+export interface FetchPostsResult {
+  posts: PostDto[];
+  isLastPage: boolean;
+  totalElements: number;
+}
+
+export const fetchPosts = async (topicId?: string, page: number = 0, size: number = 25): Promise<FetchPostsResult> => {
   try {
     const url = topicId
-      ? `${FORUM_API_BASE}/topics/${topicId}/posts`
-      : `${FORUM_API_BASE}/posts`;
+      ? `${FORUM_API_BASE}/topics/${topicId}/posts?page=${page}&size=${size}`
+      : `${FORUM_API_BASE}/posts?page=${page}&size=${size}`;
 
     const response = await fetchWithAuth(url);
     const data = await response.json();
 
     if (data && data.content && Array.isArray(data.content)) {
-      return data.content;
+      return {
+        posts: data.content,
+        isLastPage: data.last ?? (data.content.length < size),
+        totalElements: data.totalElements ?? data.content.length
+      };
     }
 
-    return Array.isArray(data) ? data : [];
+    const posts = Array.isArray(data) ? data : [];
+    return {
+      posts,
+      isLastPage: posts.length < size,
+      totalElements: posts.length
+    };
   } catch (error) {
     console.log("Failed to fetch forum posts:", error);
     triggerNetworkError();
-    return [];
+    return { posts: [], isLastPage: true, totalElements: 0 };
   }
 };
 

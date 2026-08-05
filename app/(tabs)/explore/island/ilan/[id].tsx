@@ -91,7 +91,7 @@ export default function IlanDetailScreen() {
   
   if (isLoading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+      <View style={[styles.container, isDark && { backgroundColor: '#000000' }, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
         <ActivityIndicator size="large" color="#3B82F6" />
       </View>
     );
@@ -99,7 +99,7 @@ export default function IlanDetailScreen() {
 
   if (!listing) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
+      <View style={[styles.container, isDark && { backgroundColor: '#000000' }, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
         <IconSymbol name="exclamationmark.triangle.fill" size={64} color="#CBD5E1" />
         <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginTop: 16 }}>
           {loadError ? 'Bağlantı hatası.' : 'İlan bulunamadı.'}
@@ -336,7 +336,6 @@ export default function IlanDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   headerActions: {
     position: 'absolute',

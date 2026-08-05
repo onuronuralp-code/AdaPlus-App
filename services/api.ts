@@ -12,6 +12,30 @@ export interface DepartureDto {
   minutesUntil: number;
 }
 
+export interface ServiceBannerDto {
+  id?: string;
+  tag?: string;
+  header?: string;
+  subtitle?: string;
+  imageUrl?: string | null;
+  actionLabel?: string;
+  actionUrl?: string;
+  active?: boolean;
+}
+
+export const fetchServiceBanner = async (): Promise<ServiceBannerDto | null> => {
+  try {
+    const response = await fetchWithTimeout(`${BASE}/api/v1/services/banner`);
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+  } catch (error) {
+    console.log("Service banner API endpoint not active yet:", error);
+  }
+  return null;
+};
+
 import { ListingDto, SaveListingRequest } from "./listingApi";
 export type AppListingDto = ListingDto;
 export type CreateListingRequest = SaveListingRequest;

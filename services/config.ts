@@ -2,7 +2,7 @@ if (!process.env.EXPO_PUBLIC_API_URL) {
   console.warn('[config] EXPO_PUBLIC_API_URL is not set. API calls will fail.');
 }
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
 
 const FETCH_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;

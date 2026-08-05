@@ -122,7 +122,32 @@ export default function ProfileScreen() {
 
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    const handleOpenInviteModal = () => {
+        const invitedCount = (user as any)?.invitedUsersCount || 0;
+        if (invitedCount >= 3) {
+            Alert.alert(
+                i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                i18n.language.startsWith('en')
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+            );
+            return;
+        }
+        setShowInviteModal(true);
+    };
+
     const handleSendInvite = async () => {
+        const invitedCount = (user as any)?.invitedUsersCount || 0;
+        if (invitedCount >= 3) {
+            Alert.alert(
+                i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                i18n.language.startsWith('en')
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+            );
+            return;
+        }
+
         const email = inviteEmail.trim();
         if (!EMAIL_REGEX.test(email)) {
             setInviteEmailError(t('profile.inviteEmailError'));
@@ -142,6 +167,15 @@ export default function ProfileScreen() {
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
+                if (response.status === 400 || response.status === 403 || response.status === 409 || response.status === 429 || (err.message && err.message.toLowerCase().includes('quota'))) {
+                    Alert.alert(
+                        i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                        i18n.language.startsWith('en')
+                            ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                            : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                    );
+                    return;
+                }
                 throw new Error(err.message || t('profile.inviteSendFailed'));
             }
             Alert.alert(t('common.success'), t('profile.inviteSendSuccess'));

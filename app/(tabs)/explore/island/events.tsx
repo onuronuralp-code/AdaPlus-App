@@ -28,6 +28,7 @@ export default function EventsScreen() {
     const { isLoggedIn, user } = useAuth();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const { width } = Dimensions.get('window');
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -112,6 +113,30 @@ export default function EventsScreen() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
+    const [selectedFilterIsland, setSelectedFilterIsland] = useState<string>('ALL');
+
+    const ISLAND_FILTERS = [
+        { id: 'ALL', label: t('common.allIslands', { defaultValue: 'Tüm Adalar' }) },
+        { id: 'KINALIADA', label: 'Kınalıada' },
+        { id: 'BURGAZADA', label: 'Burgazada' },
+        { id: 'HEYBELIADA', label: 'Heybeliada' },
+        { id: 'BUYUKADA', label: 'Büyükada' },
+    ];
+
+    const matchIsland = (itemIsland?: string | null, targetFilter?: string) => {
+        if (!targetFilter || targetFilter === 'ALL') return true;
+        if (!itemIsland) return false;
+        const upperItem = String(itemIsland).toUpperCase();
+        const upperTarget = targetFilter.toUpperCase();
+        if (upperItem === upperTarget) return true;
+        if (upperTarget === 'KINALIADA' && (upperItem.includes('KIN') || upperItem.includes('KINA'))) return true;
+        if (upperTarget === 'BURGAZADA' && upperItem.includes('BURG')) return true;
+        if (upperTarget === 'HEYBELIADA' && upperItem.includes('HEYB')) return true;
+        if (upperTarget === 'BUYUKADA' && (upperItem.includes('BUY') || upperItem.includes('BÜY'))) return true;
+        return false;
+    };
+
+    const filteredEvents = events.filter(e => matchIsland(e.island, selectedFilterIsland));
     
     // removed isValidPhone
     
@@ -406,11 +431,47 @@ export default function EventsScreen() {
                 </TouchableOpacity>
             </View>
 
+            <View style={[{ paddingVertical: 6, backgroundColor: 'transparent' }]}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
+                    {ISLAND_FILTERS.map(item => {
+                        const isActive = selectedFilterIsland === item.id;
+                        return (
+                            <TouchableOpacity
+                                key={item.id}
+                                style={[
+                                    {
+                                        paddingHorizontal: 11,
+                                        paddingVertical: 6,
+                                        borderRadius: 8,
+                                        backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                                        borderWidth: 1,
+                                        borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
+                                    },
+                                    isActive && {
+                                        backgroundColor: '#3B82F6',
+                                        borderColor: '#3B82F6',
+                                    }
+                                ]}
+                                onPress={() => setSelectedFilterIsland(item.id)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[
+                                    { fontSize: 13, fontWeight: '600', color: isDark ? '#94A3B8' : '#475569' },
+                                    isActive && { color: '#FFFFFF', fontWeight: '700' }
+                                ]}>
+                                    {item.label}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+
             <ScrollView
                 style={styles.content}
                 contentContainerStyle={[
                     { paddingBottom: 20 },
-                    (loading || events.length === 0) && { flex: 1 }
+                    (loading || filteredEvents.length === 0) && { flex: 1 }
                 ]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
@@ -421,7 +482,7 @@ export default function EventsScreen() {
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                         <ActivityIndicator size="large" color="#3B82F6" />
                     </View>
-                ) : events.length === 0 ? (
+                ) : filteredEvents.length === 0 ? (
                     <View style={{ flex: 1, justifyContent: 'center' }}>
                         <EmptyState 
                             icon="calendar" 
@@ -431,15 +492,15 @@ export default function EventsScreen() {
                         />
                     </View>
                 ) : (
-                    <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, justifyContent: 'space-between' } : {}}>
-                        {events.map((event) => {
+                    <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12 } : { paddingHorizontal: 16 }}>
+                        {filteredEvents.map((event) => {
                             const resolvedUrl = resolveImageUrl(event.imageUrl);
                             const hasUserImage = event.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
                             
                             return (
                             <TouchableOpacity
                                 key={event.id}
-                                style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }, isGridView && { width: '48%', marginHorizontal: 0 }]}
+                                style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }, isGridView && { width: (width - 44) / 2, marginHorizontal: 0, marginBottom: 14 }]}
                                 activeOpacity={0.8}
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
@@ -503,25 +564,12 @@ export default function EventsScreen() {
                                                     }
                                                     
                                                     return (
-                                                        <TouchableOpacity 
-                                                            activeOpacity={0.7}
-                                                            style={{ flexDirection: 'row', alignItems: 'center' }}
-                                                            onPress={(e) => {
-                                                                e.stopPropagation();
-                                                                const place = event.eventPlace || islandName;
-                                                                if (!place) return;
-                                                                const query = encodeURIComponent(`${place}${islandName ? `, ${islandName}` : ''}`);
-                                                                const url = Platform.OS === 'ios'
-                                                                    ? `https://maps.apple.com/?q=${query}`
-                                                                    : `https://www.google.com/maps/search/?api=1&query=${query}`;
-                                                                Linking.openURL(url).catch(() => {});
-                                                            }}
-                                                        >
+                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                             <IconSymbol name="mappin.circle.fill" size={14} color={isDark ? '#60A5FA' : '#3B82F6'} />
-                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600', textDecorationLine: 'underline' }]} numberOfLines={1}>
+                                                            <Text style={[styles.eventLocation, { fontSize: 13, marginLeft: 4, color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: '600' }]} numberOfLines={1}>
                                                                 {locationText}
                                                             </Text>
-                                                        </TouchableOpacity>
+                                                        </View>
                                                     );
                                                 })()}
 
@@ -807,7 +855,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: isLargeScreen ? 16 : 4,
+        paddingHorizontal: 0,
         paddingTop: 16,
     },
     eventCard: {
@@ -975,7 +1023,7 @@ const styles = StyleSheet.create({
     },
     islandChip: {
         paddingHorizontal: 4,
-        paddingVertical: 8,
+        paddingVertical: 11,
         borderRadius: 8,
         backgroundColor: '#F1F5F9',
         borderWidth: 1,

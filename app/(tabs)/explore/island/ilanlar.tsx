@@ -425,7 +425,31 @@ export default function IlanlarScreen() {
     { id: 'lost',    label: 'Kayıp',        icon: 'alert-circle-outline' },
   ];
 
+  const [selectedFilterIsland, setSelectedFilterIsland] = useState<string>('ALL');
+
+  const ISLAND_FILTERS = [
+    { id: 'ALL', label: t('common.allIslands', { defaultValue: 'Tüm Adalar' }) },
+    { id: 'KINALIADA', label: 'Kınalıada' },
+    { id: 'BURGAZADA', label: 'Burgazada' },
+    { id: 'HEYBELIADA', label: 'Heybeliada' },
+    { id: 'BUYUKADA', label: 'Büyükada' },
+  ];
+
+  const matchIsland = (itemIsland?: string | null, targetFilter?: string) => {
+    if (!targetFilter || targetFilter === 'ALL') return true;
+    if (!itemIsland) return false;
+    const upperItem = String(itemIsland).toUpperCase();
+    const upperTarget = targetFilter.toUpperCase();
+    if (upperItem === upperTarget) return true;
+    if (upperTarget === 'KINALIADA' && (upperItem.includes('KIN') || upperItem.includes('KINA'))) return true;
+    if (upperTarget === 'BURGAZADA' && upperItem.includes('BURG')) return true;
+    if (upperTarget === 'HEYBELIADA' && upperItem.includes('HEYB')) return true;
+    if (upperTarget === 'BUYUKADA' && (upperItem.includes('BUY') || upperItem.includes('BÜY'))) return true;
+    return false;
+  };
+
   const filteredListings = listings.filter(l => {
+    if (!matchIsland(l.island, selectedFilterIsland)) return false;
     if (!searchQuery) return true;
     return l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
            l.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -454,6 +478,42 @@ export default function IlanlarScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={[{ paddingVertical: 6, backgroundColor: 'transparent' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
+          {ISLAND_FILTERS.map(item => {
+            const isActive = selectedFilterIsland === item.id;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  {
+                    paddingHorizontal: 11,
+                    paddingVertical: 6,
+                    borderRadius: 8,
+                    backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                    borderWidth: 1,
+                    borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
+                  },
+                  isActive && {
+                    backgroundColor: '#3B82F6',
+                    borderColor: '#3B82F6',
+                  }
+                ]}
+                onPress={() => setSelectedFilterIsland(item.id)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  { fontSize: 13, fontWeight: '600', color: isDark ? '#94A3B8' : '#475569' },
+                  isActive && { color: '#FFFFFF', fontWeight: '700' }
+                ]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       <View style={styles.tabsWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer} bounces={true}>
           {(Object.keys(CATEGORY_CONFIG) as IlanCategory[]).map(key => {
@@ -465,7 +525,7 @@ export default function IlanlarScreen() {
                 style={[
                   styles.tabItem,
                   isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
-                  isActive && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeTabItem)
+                  isActive && { backgroundColor: isDark ? '#1C1C1E' : '#EFF6FF', borderColor: '#3B82F6', borderWidth: 1.5 }
                 ]}
                 onPress={() => setSelectedCategory(key)}
                 activeOpacity={0.7}
@@ -473,9 +533,9 @@ export default function IlanlarScreen() {
                 <IconSymbol 
                   name={cfg.icon as any} 
                   size={14} 
-                  color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')} 
+                  color={isActive ? '#3B82F6' : (isDark ? '#94A3B8' : '#475569')} 
                 />
-                <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
+                <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && { color: '#3B82F6', fontWeight: '800' }]}>
                   {t(`ilanlar.category.${key}`)}
                 </Text>
               </TouchableOpacity>
@@ -573,11 +633,21 @@ export default function IlanlarScreen() {
                 {islands.map(island => (
                   <TouchableOpacity 
                     key={island} 
-                    style={[styles.adCatItem, isDark && { backgroundColor: '#000000', borderColor: '#262626' }, { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, adIsland === island && styles.activeAdCat]}
+                    style={[
+                      styles.adCatItem, 
+                      isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, 
+                      { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, 
+                      adIsland === island && { backgroundColor: '#3B82F6', borderColor: '#3B82F6' }
+                    ]}
                     onPress={() => setAdIsland(island)}
                   >
                     <Text 
-                      style={[styles.adCatText, isDark && { color: '#E5E5E5' }, { fontSize: 12 }, adIsland === island && styles.activeAdCatText]}
+                      style={[
+                        styles.adCatText, 
+                        isDark && { color: '#E5E5E5' }, 
+                        { fontSize: 12 }, 
+                        adIsland === island && { color: '#FFFFFF', fontWeight: '700' }
+                      ]}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                     >
@@ -617,7 +687,11 @@ export default function IlanlarScreen() {
                 {adCategories.map(cat => (
                   <TouchableOpacity 
                     key={cat.id} 
-                    style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, adCat === cat.id && styles.activeAdCat]}
+                    style={[
+                      styles.adCatItem, 
+                      isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, 
+                      adCat === cat.id && { backgroundColor: '#3B82F6', borderColor: '#3B82F6' }
+                    ]}
                     onPress={() => setAdCat(cat.id as IlanCategory)}
                   >
                     <MaterialCommunityIcons 
@@ -625,7 +699,7 @@ export default function IlanlarScreen() {
                       size={20} 
                       color={adCat === cat.id ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} 
                     />
-                    <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCat === cat.id && styles.activeAdCatText]}>
+                    <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCat === cat.id && { color: '#FFFFFF', fontWeight: '700' }]}>
                       {t(`ilanlar.category.${cat.id}`)}
                     </Text>
                   </TouchableOpacity>
@@ -884,7 +958,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabsContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     gap: 10,
   },
   tabItem: {
@@ -904,8 +978,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   activeTabItem: {
-    backgroundColor: '#1E293B',
-    borderColor: '#1E293B',
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
     shadowOpacity: 0.1,
   },
   tabLabel: {
@@ -1190,6 +1264,7 @@ const styles = StyleSheet.create({
   },
   activeAdCatText: {
     color: '#FFFFFF',
+    fontWeight: '700',
   },
   addPhotoBtn: {
     marginTop: 10,

@@ -28,7 +28,7 @@ import { SwipeButton } from '@/components/SwipeButton';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useTranslation } from 'react-i18next';
-import { fetchActivities, fetchDepartures } from '@/services/api';
+import { fetchActivities, fetchDepartures, fetchServiceBanner, ServiceBannerDto } from '@/services/api';
 import { fetchListings } from '@/services/listingApi';
 import { API_BASE_URL, resolveImageUrl } from '@/services/config';
 
@@ -333,6 +333,7 @@ export default function MainMenuScreen() {
   
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [showAdaAiModal, setShowAdaAiModal] = useState(false);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
   const celebrationScale = useRef(new Animated.Value(0)).current;
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -393,6 +394,17 @@ export default function MainMenuScreen() {
   };
 
   const handleSendInvite = async () => {
+    const invitedCount = (user as any)?.invitedUsersCount || 0;
+    if (invitedCount >= 3) {
+      Alert.alert(
+        i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+        i18n.language.startsWith('en')
+          ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+          : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+      );
+      return;
+    }
+
     const email = inviteEmail.trim();
     if (!email) return;
 
@@ -422,6 +434,15 @@ export default function MainMenuScreen() {
           },
           body: JSON.stringify({ email })
       });
+      if (response.status === 400 || response.status === 403 || response.status === 429) {
+        Alert.alert(
+          i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+          i18n.language.startsWith('en')
+            ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+            : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+        );
+        return;
+      }
       if (response.status === 409) {
         Alert.alert(
           t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
@@ -442,6 +463,8 @@ export default function MainMenuScreen() {
       setIsInviting(false);
     }
   };
+
+  const [serviceBanner, setServiceBanner] = useState<ServiceBannerDto | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -464,9 +487,10 @@ export default function MainMenuScreen() {
           return [];
       };
 
-      Promise.all([fetchActivities(), fetchListings(), fetchActiveBanner(), fetchInitialNotifications()]).then(([eventsData, listingsData, bannerData, notificationsData]) => {
-        const events = Array.isArray(eventsData) ? eventsData : (eventsData?.content || eventsData?.data || []);
-        const listings = Array.isArray(listingsData) ? listingsData : (listingsData?.content || listingsData?.data || []);
+      Promise.all([fetchActivities(), fetchListings(), fetchActiveBanner(), fetchInitialNotifications(), fetchServiceBanner()]).then(([eventsData, listingsData, bannerData, notificationsData, serviceBannerData]) => {
+        if (serviceBannerData) setServiceBanner(serviceBannerData);
+        const events = Array.isArray(eventsData) ? eventsData : ((eventsData as any)?.content || (eventsData as any)?.data || []);
+        const listings = Array.isArray(listingsData) ? listingsData : ((listingsData as any)?.content || (listingsData as any)?.data || []);
         if (Array.isArray(notificationsData) && notificationsData.length > 0) {
             setNotifications(notificationsData);
             AsyncStorage.setItem('cached_notifications', JSON.stringify(notificationsData));
@@ -658,7 +682,7 @@ export default function MainMenuScreen() {
                 justifyContent: 'space-between', 
                 alignItems: 'flex-start', 
                 paddingTop: isIphone11 ? 12 : 6, 
-                paddingHorizontal: 20 
+                paddingHorizontal: 12 
               }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
         <View style={{ flex: 1, paddingRight: 10 }}>
           <Text 
@@ -721,6 +745,26 @@ export default function MainMenuScreen() {
             }}
           >
             <IconSymbol name="questionmark.circle" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
+          </Pressable>
+
+          {/* Campaign Pop-up Button */}
+          <Pressable 
+            style={({ pressed }) => [{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: isDark ? '#311B92' : '#F3E8FF',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: isDark ? '#673AB7' : '#E9D5FF',
+            }, pressed && { opacity: 0.7 }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowCampaignModal(true);
+            }}
+          >
+            <IconSymbol name="tag.fill" size={20} color={isDark ? '#C084FC' : '#7C3AED'} />
           </Pressable>
 
           <CopilotStep text={t('explore.tour.duyurular', { defaultValue: i18n.language.startsWith('en') ? 'You can view all current island announcements and notifications here.' : 'Tüm güncel ada duyurularını ve bildirimlerini buradan görebilirsin.' })} order={8} name="duyurular">
@@ -797,7 +841,7 @@ export default function MainMenuScreen() {
                       );
                     }
                   }}
-                  placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite via E-mail or Phone' : 'E-posta veya telefon ile davet et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
+                  placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite via E-mail' : 'E-posta ile davet et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
                   placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
                   value={inviteEmail}
                   onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
@@ -991,7 +1035,7 @@ export default function MainMenuScreen() {
       <View style={{
         backgroundColor: isDark ? '#121212' : '#FFFFFF',
         marginHorizontal: 12,
-        borderRadius: isLargeScreen ? 26 : 22,
+        borderRadius: isLargeScreen ? 18 : 14,
         paddingTop: isLargeScreen ? 18 : (isSmallScreen ? 12 : 14),
         paddingBottom: isLargeScreen ? 16 : (isSmallScreen ? 12 : 14),
         paddingHorizontal: isLargeScreen ? 16 : 12,
@@ -1008,11 +1052,11 @@ export default function MainMenuScreen() {
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
         <View 
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2, gap: isLargeScreen ? 8 : 6 }}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 0 }}
         >
           {/* 1. Etkinlikler */}
           <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
-            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
+            <WalkthroughableView collapsable={false} style={{ alignItems: 'flex-start', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -1022,7 +1066,7 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
                 <IconSymbol name="calendar" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 {unseenEventsCount > 0 && (
@@ -1031,7 +1075,7 @@ export default function MainMenuScreen() {
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ alignItems: 'center' }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
@@ -1050,7 +1094,7 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
                 <IconSymbol name="tag.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 {unseenListingsCount > 0 && (
@@ -1059,7 +1103,7 @@ export default function MainMenuScreen() {
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ alignItems: 'center' }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
@@ -1073,14 +1117,14 @@ export default function MainMenuScreen() {
                 activeOpacity={0.8}
                 onPress={() => setShowAdaAiModal(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
                 <IconSymbol name="pawprint.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ alignItems: 'center', marginTop: 2 }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
@@ -1089,7 +1133,7 @@ export default function MainMenuScreen() {
 
           {/* 4. Paket Servis */}
           <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={5} name="paket">
-            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
+            <WalkthroughableView collapsable={false} style={{ alignItems: 'flex-end', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -1100,14 +1144,14 @@ export default function MainMenuScreen() {
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 18 : 14, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
                 <IconSymbol name="bag.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ alignItems: 'center', marginTop: 2 }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
                 <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 12 : 13), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
               </View>
             </WalkthroughableView>
@@ -1137,70 +1181,121 @@ export default function MainMenuScreen() {
       <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 16 }}>
         {/* Top Banner Area (Fills upper space completely) */}
         <View style={{ paddingTop: 16, paddingHorizontal: 12, flex: 1, marginBottom: 14 }}>
-          <LinearGradient
-            colors={isDark ? ['#1E293B', '#0F172A'] : ['#2563EB', '#1D4ED8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              flex: 1,
-              borderRadius: 24,
-              padding: 22,
-              justifyContent: 'space-between',
-              shadowColor: '#2563EB',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.2,
-              shadowRadius: 10,
-              elevation: 5,
-              borderWidth: 1,
-              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-              overflow: 'hidden',
-              position: 'relative',
-            }}
-          >
-            <View style={{ position: 'absolute', right: -20, top: -20, width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255,255,255,0.08)' }} />
-            <View style={{ position: 'absolute', right: 30, bottom: -35, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+          {(() => {
+            const bannerTag = serviceBanner?.tag || (i18n.language.startsWith('en') ? '✨ LOCAL NETWORK' : '✨ YEREL HİZMET AĞI');
+            const bannerHeader = serviceBanner?.header || (i18n.language.startsWith('en') ? 'Are You a Local Service Provider?' : 'Adada Hizmet mi Veriyorsun?');
+            const bannerSubtitle = serviceBanner?.subtitle || (i18n.language.startsWith('en') ? 'List your business on AdaPlus and reach islanders directly.' : 'Uzmanlığını adalı komşularınla paylaş, hizmetini hemen öne çıkar.');
+            const bannerActionLabel = serviceBanner?.actionLabel || (i18n.language.startsWith('en') ? 'Join Provider Network' : 'Hizmet Sağlayıcı Ol');
+            const resolvedBannerImg = serviceBanner?.imageUrl ? resolveImageUrl(serviceBanner.imageUrl) : null;
 
-            <View>
-              <View style={{ alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
-                  {i18n.language.startsWith('en') ? '✨ LOCAL NETWORK' : '✨ YEREL HİZMET AĞI'}
-                </Text>
-              </View>
-
-              <Text style={{ fontSize: isLargeScreen ? 19 : 17, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3, lineHeight: 23 }}>
-                {i18n.language.startsWith('en') ? 'Are You a Local Service Provider?' : 'Adada Hizmet mi Veriyorsun?'}
-              </Text>
-              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 4, lineHeight: 16, fontWeight: '500' }}>
-                {i18n.language.startsWith('en') ? 'List your business on AdaPlus and reach islanders directly.' : 'Uzmanlığını adalı komşularınla paylaş, hizmetini hemen öne çıkar.'}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => {
+            const handleBannerPress = () => {
+              if (serviceBanner?.actionUrl) {
+                router.push(serviceBanner.actionUrl as any);
+              } else {
                 Alert.alert(
                   i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında Hizmetinizde',
                   i18n.language.startsWith('en') ? 'Local service provider registration will be available soon.' : 'Yerel hizmet sağlayıcı başvuru formu çok yakında aktif olacaktır.'
                 );
-              }}
-              style={{
-                marginTop: 12,
-                alignSelf: 'flex-start',
-                backgroundColor: '#FFFFFF',
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#1D4ED8' }}>
-                {i18n.language.startsWith('en') ? 'Join Provider Network' : 'Hizmet Sağlayıcı Ol'}
-              </Text>
-              <IconSymbol name="chevron.right" size={12} color="#1D4ED8" />
-            </TouchableOpacity>
-          </LinearGradient>
+              }
+            };
+
+            const content = (
+              <View style={{ flex: 1, padding: 22, justifyContent: 'space-between' }}>
+                {!resolvedBannerImg && (
+                  <>
+                    <View style={{ position: 'absolute', right: -20, top: -20, width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                    <View style={{ position: 'absolute', right: 30, bottom: -35, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+                  </>
+                )}
+
+                <View>
+                  <View style={{ alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
+                      {bannerTag}
+                    </Text>
+                  </View>
+
+                  <Text style={{ fontSize: isLargeScreen ? 19 : 17, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3, lineHeight: 23 }}>
+                    {bannerHeader}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', marginTop: 4, lineHeight: 16, fontWeight: '500' }}>
+                    {bannerSubtitle}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleBannerPress}
+                  style={{
+                    marginTop: 12,
+                    alignSelf: 'flex-start',
+                    backgroundColor: '#FFFFFF',
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 14,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#1D4ED8' }}>
+                    {bannerActionLabel}
+                  </Text>
+                  <IconSymbol name="chevron.right" size={12} color="#1D4ED8" />
+                </TouchableOpacity>
+              </View>
+            );
+
+            if (resolvedBannerImg) {
+              return (
+                <ImageBackground
+                  source={{ uri: resolvedBannerImg }}
+                  style={{
+                    flex: 1,
+                    borderRadius: 24,
+                    overflow: 'hidden',
+                    shadowColor: '#2563EB',
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 10,
+                    elevation: 5,
+                  }}
+                  imageStyle={{ borderRadius: 24 }}
+                >
+                  <LinearGradient
+                    colors={['rgba(15,23,42,0.65)', 'rgba(15,23,42,0.92)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={{ flex: 1 }}
+                  >
+                    {content}
+                  </LinearGradient>
+                </ImageBackground>
+              );
+            }
+
+            return (
+              <LinearGradient
+                colors={isDark ? ['#1E293B', '#0F172A'] : ['#2563EB', '#1D4ED8']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  flex: 1,
+                  borderRadius: 24,
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 6 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 10,
+                  elevation: 5,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                  overflow: 'hidden',
+                }}
+              >
+                {content}
+              </LinearGradient>
+            );
+          })()}
         </View>
 
         {/* Lokal Servisler Title & Grid */}
@@ -1218,56 +1313,59 @@ export default function MainMenuScreen() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14 }}>
           {[
-            { iconSymbol: 'wrench.and.screwdriver.fill', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#3B82F6', bg: isDark ? '#1E3A5F' : '#EFF6FF' },
-            { iconSymbol: 'scissors', label: i18n.language.startsWith('en') ? 'Barber' : 'Berber', color: '#8B5CF6', bg: isDark ? '#2E1065' : '#F5F3FF' },
-            { iconSymbol: 'bolt.fill', label: i18n.language.startsWith('en') ? 'Electrician' : 'Elektrik', color: '#F59E0B', bg: isDark ? '#78350F' : '#FFFBEB' },
-            { iconSymbol: 'globe', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#10B981', bg: isDark ? '#064E3B' : '#ECFDF5' },
-            { iconSymbol: 'shippingbox.fill', label: i18n.language.startsWith('en') ? 'Moving' : 'Nakliyat', color: '#6366F1', bg: isDark ? '#312E81' : '#EEF2FF' },
-            { iconSymbol: 'leaf.fill', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#14532D' : '#F0FDF4' },
+            { iconSymbol: 'wrench.and.screwdriver.fill', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#2563EB', bg: isDark ? '#1E3A8A30' : '#EFF6FF', border: '#3B82F650' },
+            { iconSymbol: 'scissors', label: i18n.language.startsWith('en') ? 'Beauty & Care' : 'Kuaför & Bakım', color: '#EC4899', bg: isDark ? '#83184330' : '#FDF2F8', border: '#F472B650' },
+            { iconSymbol: 'paintbrush.fill', label: i18n.language.startsWith('en') ? 'Painting' : 'Boya', color: '#D97706', bg: isDark ? '#78350F30' : '#FFFBEB', border: '#FBBF2450' },
+            { iconSymbol: 'globe', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#0891B2', bg: isDark ? '#164E6330' : '#ECFEFF', border: '#22D3EE50' },
+            { iconSymbol: 'key.fill', label: i18n.language.startsWith('en') ? 'Locksmith' : 'Çilingir', color: '#8B5CF6', bg: isDark ? '#4C1D9530' : '#F5F3FF', border: '#A78BFA50' },
+            { iconSymbol: 'leaf.fill', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#064E3B30' : '#ECFDF5', border: '#34D39950' },
           ].map((service, idx) => (
-            <TouchableOpacity
+            <Pressable
               key={idx}
-              activeOpacity={0.7}
-              style={{
+              style={({ pressed }) => ({
                 width: (width - 46) / 2,
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingVertical: isLargeScreen ? 24 : (isSmallScreen ? 16 : 20),
                 paddingHorizontal: 14,
-                backgroundColor: service.bg,
+                backgroundColor: pressed ? service.color : service.bg,
                 borderRadius: 20,
-                borderWidth: isDark ? 1 : 0,
-                borderColor: isDark ? '#1C1C1E' : 'transparent',
-              }}
-            >
-              <View style={{
-                width: 42,
-                height: 42,
-                borderRadius: 12,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#FFFFFF',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 10,
-                elevation: isDark ? 0 : 2,
+                borderWidth: 1.5,
+                borderColor: isDark ? service.color + '60' : service.border,
                 shadowColor: service.color,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.15,
-                shadowRadius: 4,
-              }}>
-                <IconSymbol name={service.iconSymbol as any} size={22} color={service.color} />
-              </View>
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: isDark ? 0.2 : 0.1,
+                shadowRadius: 6,
+                elevation: 2,
+              })}
+            >
+              {({ pressed }) => (
+                <>
+                  <View style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    backgroundColor: pressed ? '#FFFFFF' : service.color,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 10,
+                    shadowColor: service.color,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  }}>
+                    <IconSymbol name={service.iconSymbol as any} size={22} color={pressed ? service.color : '#FFFFFF'} />
+                  </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14.5, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155' }} numberOfLines={1}>
-                  {service.label}
-                </Text>
-                <View style={{ marginTop: 3, alignSelf: 'flex-start', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#374151' : '#E2E8F0' }}>
-                  <Text style={{ fontSize: 8.5, fontWeight: '700', color: '#94A3B8' }}>
-                    {i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+                  <View style={{ flex: 1, justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: pressed ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A') }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+                      {service.label}
+                    </Text>
+                  </View>
+                </>
+              )}
+            </Pressable>
           ))}
         </View>
       </View>
@@ -1556,6 +1654,83 @@ export default function MainMenuScreen() {
             >
               <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>{t('common.gotIt', { defaultValue: i18n.language.startsWith('en') ? 'Got it' : 'Anladım' })}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Campaign Modal */}
+      <Modal
+        visible={showCampaignModal}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowCampaignModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <View style={[{ width: '100%', maxWidth: 360, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 12, borderWidth: 1, borderColor: isDark ? '#3A3A3C' : '#F1F5F9' }]}>
+            
+            {/* Campaign Header Icon Badge */}
+            <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#DDD6FE' }}>
+              <Text style={{ fontSize: 36 }}>🎁</Text>
+            </View>
+
+            {/* Campaign Pill Badge */}
+            <View style={{ backgroundColor: '#7C3AED', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 12 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 }}>
+                {i18n.language.startsWith('en') ? '🎉 SPECIAL CAMPAIGN' : '🎉 ÖZEL KAMPANYA'}
+              </Text>
+            </View>
+
+            {/* Campaign Title */}
+            <Text style={[{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 10, lineHeight: 26 }, isDark && { color: '#FFFFFF' }]}>
+              {i18n.language.startsWith('en') ? 'Special Spring Discount for Islanders! 🌸' : 'Adalılara Özel Bahar Fırsatı! 🌸'}
+            </Text>
+
+            {/* Campaign Description */}
+            <Text style={[{ fontSize: 13.5, color: '#64748B', textAlign: 'center', lineHeight: 20, marginBottom: 22 }, isDark && { color: '#94A3B8' }]}>
+              {i18n.language.startsWith('en') 
+                ? 'Enjoy exclusive 20% discounts at participating local island businesses with your AdaPlus membership. Valid until May 31!'
+                : 'AdaPlus üyelerine özel, anlaşmalı yerel ada işletmelerinde %20 indirim fırsatını kaçırmayın. Son gün 31 Mayıs!'}
+            </Text>
+
+            {/* Action Buttons */}
+            <Pressable
+              style={({ pressed }) => [{
+                width: '100%',
+                backgroundColor: pressed ? '#6D28D9' : '#7C3AED',
+                borderRadius: 14,
+                paddingVertical: 15,
+                alignItems: 'center',
+                marginBottom: 10,
+                shadowColor: '#7C3AED',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
+              }]}
+              onPress={() => {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                setShowCampaignModal(false);
+              }}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>
+                {i18n.language.startsWith('en') ? 'Use Campaign' : 'Kampanyadan Faydalan'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [{
+                width: '100%',
+                paddingVertical: 12,
+                alignItems: 'center',
+                opacity: pressed ? 0.6 : 1,
+              }]}
+              onPress={() => setShowCampaignModal(false)}
+            >
+              <Text style={[{ color: '#94A3B8', fontSize: 14, fontWeight: '700' }, isDark && { color: '#64748B' }]}>
+                {i18n.language.startsWith('en') ? 'Close' : 'Daha Sonra'}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Modal>

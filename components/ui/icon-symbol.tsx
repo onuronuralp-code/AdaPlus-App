@@ -106,6 +106,8 @@ const MAPPING = {
   'car.fill': 'directions-car',
   'archivebox.fill': 'inventory',
   'wrench.and.screwdriver.fill': 'build',
+  'paintbrush.fill': 'format-paint',
+  'paintpalette.fill': 'format-paint',
   'slider.horizontal.3': 'tune',
   'pawprint.fill': 'pets',
   'cat.fill': 'pets',

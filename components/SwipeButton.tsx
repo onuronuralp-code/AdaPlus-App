@@ -119,8 +119,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
       <Pressable
         style={({ pressed }) => [
           styles.container, 
-          isSmallScreen && { height: 58, borderRadius: 14, paddingLeft: 6, paddingRight: 10 },
-          isLargeScreen && { height: 76, borderRadius: 18, paddingLeft: 8, paddingRight: 14 },
+          isSmallScreen && { height: 58, borderRadius: 10, paddingLeft: 6, paddingRight: 10 },
+          isLargeScreen && { height: 76, borderRadius: 14, paddingLeft: 8, paddingRight: 14 },
           isDeactivated
             ? { backgroundColor: '#D32F2F', borderColor: '#B71C1C', shadowColor: '#FF0000' }
             : { backgroundColor: pressed ? '#059669' : '#10B981', borderColor: pressed ? '#047857' : '#059669' }
@@ -142,8 +142,8 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
               {/* Icon + live dot */}
               <View style={[
                   styles.iconContainer, 
-                  isSmallScreen && { width: 40, height: 40, borderRadius: 10 },
-                  isLargeScreen && { width: 56, height: 56, borderRadius: 15 },
+                  isSmallScreen && { width: 40, height: 40, borderRadius: 8 },
+                  isLargeScreen && { width: 56, height: 56, borderRadius: 11 },
                   { backgroundColor: isDeactivated ? '#9A0007' : (pressed ? '#047857' : '#059669') }
               ]}>
                 <IconSymbol
@@ -199,7 +199,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 const styles = StyleSheet.create({
   container: {
     height: 68,
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1.5,
     paddingLeft: 7,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 46,
     height: 46,
-    borderRadius: 12,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },

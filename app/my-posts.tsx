@@ -23,8 +23,9 @@ export default function MyPostsScreen() {
             return;
         }
         // Fetch all posts and filter for the current user
-        fetchPosts().then(allPosts => {
-            const myPosts = allPosts.filter(p => p.authorName === user.fullName);
+        fetchPosts().then(res => {
+            const postsList = Array.isArray(res) ? res : (res.posts || []);
+            const myPosts = postsList.filter(p => p.authorName === user.fullName || p.authorId === user.id);
             setPosts(myPosts);
             setLoading(false);
         });

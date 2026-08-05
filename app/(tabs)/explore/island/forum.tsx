@@ -90,24 +90,7 @@ export default function ForumScreen() {
     const replyInputRef = useRef<TextInput>(null);
     const commentsScrollRef = useRef<ScrollView>(null);
 
-    useEffect(() => {
-        if (isKeyboardVisible && isDetailModalVisible) {
-            const timer1 = setTimeout(() => {
-                commentsScrollRef.current?.scrollToEnd({ animated: true });
-            }, 50);
-            const timer2 = setTimeout(() => {
-                commentsScrollRef.current?.scrollToEnd({ animated: true });
-            }, 150);
-            const timer3 = setTimeout(() => {
-                commentsScrollRef.current?.scrollToEnd({ animated: true });
-            }, 300);
-            return () => {
-                clearTimeout(timer1);
-                clearTimeout(timer2);
-                clearTimeout(timer3);
-            };
-        }
-    }, [isKeyboardVisible, isDetailModalVisible]);
+
 
     useEffect(() => {
         // writeModalSlideAnim is now handled in Modal's onShow to ensure native view is ready
@@ -207,6 +190,25 @@ export default function ForumScreen() {
     const [reportConfirmState, setReportConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
     const [translatedPosts, setTranslatedPosts] = useState<Record<string, { text: string; isTranslated: boolean; loading: boolean }>>({});
 
+    useEffect(() => {
+        if (isKeyboardVisible && isDetailModalVisible) {
+            const timer1 = setTimeout(() => {
+                commentsScrollRef.current?.scrollToEnd({ animated: true });
+            }, 50);
+            const timer2 = setTimeout(() => {
+                commentsScrollRef.current?.scrollToEnd({ animated: true });
+            }, 150);
+            const timer3 = setTimeout(() => {
+                commentsScrollRef.current?.scrollToEnd({ animated: true });
+            }, 300);
+            return () => {
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+                clearTimeout(timer3);
+            };
+        }
+    }, [isKeyboardVisible, isDetailModalVisible]);
+
     const handleToggleTranslation = async (postId: string, text: string) => {
         const current = translatedPosts[postId];
         if (current?.isTranslated) {
@@ -289,6 +291,16 @@ export default function ForumScreen() {
     };
 
     const handleInviteFriends = () => {
+        const invitedCount = (user as any)?.invitedUsersCount || 0;
+        if (invitedCount >= 3) {
+            Alert.alert(
+                i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                i18n.language.startsWith('en')
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+            );
+            return;
+        }
         setIsInviteModalVisible(true);
     };
 
@@ -470,17 +482,56 @@ export default function ForumScreen() {
         };
     }, []);
 
+    const [pageNumber, setPageNumber] = useState<number>(0);
+    const [hasMorePosts, setHasMorePosts] = useState<boolean>(true);
+    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
     const loadPosts = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
+        setPageNumber(0);
+        setHasMorePosts(true);
         try {
-            const data = await (activeTab === 'hot' ? forumApi.fetchHotPosts() : forumApi.fetchPosts());
-            setPosts(Array.isArray(data) ? data : []);
+            if (activeTab === 'hot') {
+                const data = await forumApi.fetchHotPosts();
+                setPosts(Array.isArray(data) ? data : []);
+                setHasMorePosts(false);
+            } else {
+                const result = await forumApi.fetchPosts(undefined, 0, 25);
+                setPosts(result.posts);
+                setHasMorePosts(!result.isLastPage);
+            }
         } catch (error) {
             console.error('Failed to load posts:', error);
             setPosts([]);
+            setHasMorePosts(false);
         } finally {
             setIsLoading(false);
             setIsRefreshing(false);
+        }
+    };
+
+    const handleLoadMore = async () => {
+        if (isLoadingMore || !hasMorePosts || activeTab === 'hot' || isLoading) return;
+        setIsLoadingMore(true);
+        const nextPage = pageNumber + 1;
+        try {
+            const result = await forumApi.fetchPosts(undefined, nextPage, 25);
+            if (result.posts && result.posts.length > 0) {
+                setPosts(prev => {
+                    const existingIds = new Set(prev.map(p => p.id));
+                    const newUniquePosts = result.posts.filter(p => !existingIds.has(p.id));
+                    return [...prev, ...newUniquePosts];
+                });
+                setPageNumber(nextPage);
+                setHasMorePosts(!result.isLastPage);
+            } else {
+                setHasMorePosts(false);
+            }
+        } catch (error) {
+            console.error('Failed to load more posts:', error);
+            setHasMorePosts(false);
+        } finally {
+            setIsLoadingMore(false);
         }
     };
 
@@ -1254,6 +1305,16 @@ export default function ForumScreen() {
                         ]}
                         refreshing={isRefreshing}
                         onRefresh={onRefresh}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={() => {
+                            if (!isLoadingMore) return null;
+                            return (
+                                <View style={{ paddingVertical: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                    <ActivityIndicator size="small" color="#3B82F6" />
+                                </View>
+                            );
+                        }}
                         ListEmptyComponent={isLoading ? (
                             <ActivityIndicator size="large" color="#3B82F6" />
                         ) : (
@@ -1538,7 +1599,7 @@ export default function ForumScreen() {
                     <KeyboardAvoidingView
                         style={{ flex: 1 }}
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? (insets.top + 50) : 0}
+                        keyboardVerticalOffset={0}
                     >
                         <View style={styles.modalBody}>
                             <ScrollView 
@@ -1590,36 +1651,26 @@ export default function ForumScreen() {
                                                              </View>
                                                              <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{formatTime(selectedPost.createdAt)}</Text>
                                                          </View>
+                                                         {(selectedPost.authorId === user?.id || (selectedPost as any).author?.id === user?.id) ? (
+                                                             <TouchableOpacity 
+                                                                 style={{ alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4, backgroundColor: '#EF4444' }}
+                                                                 onPress={() => handleDeletePost(selectedPost.id)}
+                                                             >
+                                                                 <IconSymbol name="trash.fill" size={14} color="#FFFFFF" />
+                                                                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                             </TouchableOpacity>
+                                                         ) : (
+                                                             <TouchableOpacity 
+                                                                 style={{ alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4, backgroundColor: '#F59E0B' }}
+                                                                 onPress={() => handleReport(selectedPost.id)}
+                                                             >
+                                                                 <IconSymbol name="exclamationmark.triangle.fill" size={14} color="#FFFFFF" />
+                                                                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.report', { defaultValue: 'Report' })}</Text>
+                                                             </TouchableOpacity>
+                                                         )}
                                                      </>
                                                  );
                                              })()}
-                                            {(selectedPost.authorId === user?.id || (selectedPost as any).author?.id === user?.id) ? (
-                                                 <TouchableOpacity 
-                                                     style={[
-                                                         { alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4 },
-                                                         isDark 
-                                                             ? { backgroundColor: '#EF4444' } 
-                                                             : { backgroundColor: '#EF444415', borderWidth: 1, borderColor: '#EF444430' }
-                                                     ]}
-                                                     onPress={() => handleDeletePost(selectedPost.id)}
-                                                 >
-                                                     <IconSymbol name="trash.fill" size={14} color={isDark ? "#FFFFFF" : "#EF4444"} />
-                                                     <Text style={[{ fontSize: 12, fontWeight: '700' }, isDark ? { color: '#FFFFFF' } : { color: '#EF4444' }]}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
-                                                 </TouchableOpacity>
-                                             ) : (
-                                                 <TouchableOpacity 
-                                                     style={[
-                                                         { alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4 },
-                                                         isDark 
-                                                             ? { backgroundColor: '#D97706' } 
-                                                             : { backgroundColor: '#F59E0B15', borderWidth: 1, borderColor: '#F59E0B30' }
-                                                     ]}
-                                                     onPress={() => handleReport(selectedPost.id)}
-                                                 >
-                                                     <IconSymbol name="exclamationmark.triangle.fill" size={14} color={isDark ? "#FFFFFF" : "#F59E0B"} />
-                                                     <Text style={[{ fontSize: 12, fontWeight: '700' }, isDark ? { color: '#FFFFFF' } : { color: '#F59E0B' }]}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
-                                                 </TouchableOpacity>
-                                             )}
                                         </View>
                                     </View>
                                     <Text style={[styles.detailContentText, isDark && { color: '#F1F5F9' }]}>
@@ -1785,7 +1836,7 @@ export default function ForumScreen() {
                             </View>
                         </ScrollView>
                     </View>
-                    <View style={[styles.commentInputArea, { paddingBottom: isKeyboardVisible ? 16 : Math.max(insets.bottom, 16) }, isDark && { backgroundColor: '#000000', borderTopColor: '#1F2937' }]}>
+                    <View style={[styles.commentInputArea, { paddingBottom: isKeyboardVisible ? 8 : Math.max(insets.bottom, 12) }, isDark && { backgroundColor: '#000000', borderTopColor: '#1F2937' }]}>
                         <TextInput
                             ref={replyInputRef}
                             style={[styles.commentInput, { maxHeight: 120 }, isDark && { backgroundColor: '#18181B', color: '#FFFFFF' }]}
