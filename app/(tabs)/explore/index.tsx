@@ -698,7 +698,14 @@ export default function MainMenuScreen() {
           {isLoggedIn ? (
             <TouchableOpacity 
               activeOpacity={0.7}
-              onPress={() => router.push('/(tabs)/profile')}
+              onPress={() => {
+                Alert.alert(
+                  i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                  i18n.language.startsWith('en')
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                );
+              }}
               style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start' }}
             >
               <IconSymbol name="person.2.fill" size={13} color={isDark ? '#818CF8' : '#6366F1'} />
