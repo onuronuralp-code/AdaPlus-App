@@ -848,8 +848,8 @@ export default function IlanlarScreen() {
 
             <Text style={{ fontSize: 14, color: isDark ? '#94A3B8' : '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 24 }}>
               {i18n.language.startsWith('en')
-                ? 'You have reached your monthly free publishing limit (3/3). You can publish new listings next month.'
-                : 'Bu ayki ilan yayınlama limitinize ulaştınız (3/3). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
+                ? 'You have reached your monthly free publishing limit (5/5). You can publish new listings next month.'
+                : 'Bu ayki ilan yayınlama limitinize ulaştınız (5/5). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
             </Text>
 
             <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>

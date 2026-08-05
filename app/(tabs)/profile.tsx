@@ -969,20 +969,20 @@ export default function ProfileScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
+                                            <IconSymbol name="person.2.fill" size={14} color={isDark ? "#A78BFA" : "#5B21B6"} />
                                             <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#475569', marginLeft: 6, fontWeight: '700' }}>
                                                 {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
                                             </Text>
                                         </View>
-                                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#6366F1' }}>
+                                        <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#C084FC' : '#5B21B6' }}>
                                             {(user as any)?.invitedUsersCount || 0}
                                         </Text>
                                     </View>
-                                    <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#1E1E38' : '#E0E7FF', borderRadius: 3, overflow: 'hidden' }}>
+                                    <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderRadius: 3, overflow: 'hidden' }}>
                                         <View style={{ 
                                             width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 3) * 100, 100)}%`, 
                                             height: '100%', 
-                                            backgroundColor: '#6366F1', 
+                                            backgroundColor: isDark ? '#C084FC' : '#5B21B6', 
                                             borderRadius: 3 
                                         }} />
                                     </View>
@@ -1013,9 +1013,9 @@ export default function ProfileScreen() {
                                                     : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
                                             );
                                         }}
-                                        style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderWidth: 1, borderColor: isDark ? '#312E81' : '#C7D2FE', alignItems: 'center', justifyContent: 'center' }}
+                                        style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderWidth: 1, borderColor: isDark ? '#5B21B6' : '#DDD6FE', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#818CF8' : '#4338CA', textAlign: 'center' }}>
+                                        <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#C084FC' : '#5B21B6', textAlign: 'center' }}>
                                             {i18n.language.startsWith('en') ? '📩 Invite Quota Pop-up' : '📩 Davet Kotası Pop-up'}
                                         </Text>
                                     </TouchableOpacity>
@@ -1139,8 +1139,8 @@ export default function ProfileScreen() {
 
                         <Text style={{ fontSize: 14, color: isDark ? '#94A3B8' : '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 24 }}>
                             {i18n.language.startsWith('en')
-                                ? 'You have reached your monthly free publishing limit (3/3). You can publish new listings next month.'
-                                : 'Bu ayki ilan yayınlama limitinize ulaştınız (3/3). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
+                                ? 'You have reached your monthly free publishing limit (5/5). You can publish new listings next month.'
+                                : 'Bu ayki ilan yayınlama limitinize ulaştınız (5/5). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
                         </Text>
 
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
