@@ -94,7 +94,10 @@ export default function TabLayout() {
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
-            router.replace('/explore');
+            const isAlreadyOnMainExplore = pathname === '/explore' || pathname === '/(tabs)/explore' || pathname === '/';
+            if (!isAlreadyOnMainExplore) {
+              router.replace('/explore');
+            }
           },
         })}
       />
@@ -111,6 +114,13 @@ export default function TabLayout() {
             </CopilotStep>
           ),
         }}
+        listeners={() => ({
+          tabPress: (e) => {
+            if (pathname === '/home' || pathname === '/(tabs)/home') {
+              e.preventDefault();
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="contact"
@@ -120,6 +130,13 @@ export default function TabLayout() {
             <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="envelope.fill" color={color} />
           ),
         }}
+        listeners={() => ({
+          tabPress: (e) => {
+            if (pathname === '/contact' || pathname === '/(tabs)/contact') {
+              e.preventDefault();
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="profile"
@@ -129,6 +146,13 @@ export default function TabLayout() {
             <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="person.fill" color={color} />
           ),
         }}
+        listeners={() => ({
+          tabPress: (e) => {
+            if (pathname === '/profile' || pathname === '/(tabs)/profile') {
+              e.preventDefault();
+            }
+          },
+        })}
       />
     </Tabs>
       {!isDeepRoute && (
