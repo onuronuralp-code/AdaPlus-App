@@ -60,6 +60,7 @@ export default function ProfileScreen() {
     const [fetchError, setFetchError] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showQuotaModal, setShowQuotaModal] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
@@ -921,7 +922,11 @@ export default function ProfileScreen() {
                             </View>
 
                                 {/* Kotalar Kartı */}
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                <TouchableOpacity 
+                                    activeOpacity={0.8}
+                                    onPress={() => setShowQuotaModal(true)}
+                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}
+                                >
                                     {/* İlan Kotası */}
                                     <View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -947,10 +952,21 @@ export default function ProfileScreen() {
                                             {t('profile.remainingQuota', { count: Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` : `Kalan Hakkın: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` })}
                                         </Text>
                                     </View>
-                                </View>
+                                </TouchableOpacity>
 
                                 {/* Davet Edilen Adalılar Kartı */}
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                <TouchableOpacity 
+                                    activeOpacity={0.8}
+                                    onPress={() => {
+                                        Alert.alert(
+                                            i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                                            i18n.language.startsWith('en')
+                                                ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                                                : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                                        );
+                                    }}
+                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}
+                                >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color="#6366F1" />
@@ -973,6 +989,36 @@ export default function ProfileScreen() {
                                     <Text style={{ fontSize: 10, color: isDark ? '#CBD5E1' : '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
                                         {i18n.language.startsWith('en') ? 'Target: 3' : 'Hedef: 3'}
                                     </Text>
+                                </TouchableOpacity>
+
+                                {/* Pop-up Göster Test Butonları */}
+                                <View style={{ marginTop: 12, width: '100%', flexDirection: 'row', gap: 8 }}>
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        onPress={() => setShowQuotaModal(true)}
+                                        style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#311B92' : '#F3E8FF', borderWidth: 1, borderColor: isDark ? '#673AB7' : '#E9D5FF', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                        <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#C084FC' : '#7C3AED', textAlign: 'center' }}>
+                                            {i18n.language.startsWith('en') ? '🏷️ Listing Quota Pop-up' : '🏷️ İlan Kotası Pop-up'}
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        onPress={() => {
+                                            Alert.alert(
+                                                i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                                                i18n.language.startsWith('en')
+                                                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                                                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                                            );
+                                        }}
+                                        style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderWidth: 1, borderColor: isDark ? '#312E81' : '#C7D2FE', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                        <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#818CF8' : '#4338CA', textAlign: 'center' }}>
+                                            {i18n.language.startsWith('en') ? '📩 Invite Quota Pop-up' : '📩 Davet Kotası Pop-up'}
+                                        </Text>
+                                    </TouchableOpacity>
                                 </View>
                         </View>
                     </View>
@@ -1072,6 +1118,42 @@ export default function ProfileScreen() {
                         </View>
                     </View>
                 </KeyboardAvoidingView>
+            {/* Listing Quota Limit Modal */}
+            <Modal
+                visible={showQuotaModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowQuotaModal(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                    <View style={{ width: '88%', maxWidth: 360, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 }}>
+                        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: isDark ? '#311B92' : '#F3E8FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: isDark ? '#673AB7' : '#E9D5FF' }}>
+                            <IconSymbol name="tag.fill" size={30} color={isDark ? '#C084FC' : '#7C3AED'} />
+                        </View>
+
+                        <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 10 }}>
+                            {i18n.language.startsWith('en') ? 'Listing Quota Reached' : 'Bu Ayki İlan Limitiniz Doldu'}
+                        </Text>
+
+                        <Text style={{ fontSize: 14, color: isDark ? '#94A3B8' : '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 24 }}>
+                            {i18n.language.startsWith('en')
+                                ? 'You have reached your monthly free publishing limit (3/3). You can publish new listings next month.'
+                                : 'Bu ayki ilan yayınlama limitinize ulaştınız (3/3). Yeni ilan eklemek için gelecek ayı bekleyebilirsiniz.'}
+                        </Text>
+
+                        <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => setShowQuotaModal(false)}
+                                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}
+                            >
+                                <Text style={{ fontSize: 14, fontWeight: '700', color: isDark ? '#CBD5E1' : '#475569' }}>
+                                    {i18n.language.startsWith('en') ? 'Close' : 'Anladım'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
             </Modal>
         </View>
         </SwipeNavigation>
