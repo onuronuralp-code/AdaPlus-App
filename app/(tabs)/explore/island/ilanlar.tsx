@@ -477,11 +477,11 @@ export default function IlanlarScreen() {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity
-            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#311B92' : '#F3E8FF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDark ? '#673AB7' : '#E9D5FF' }]}
+            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#064E3B' : '#ECFDF5', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDark ? '#047857' : '#A7F3D0' }]}
             onPress={() => setShowQuotaModal(true)}
             activeOpacity={0.7}
           >
-            <IconSymbol name="tag.fill" size={18} color={isDark ? '#C084FC' : '#7C3AED'} />
+            <IconSymbol name="tag.fill" size={18} color={isDark ? '#34D399' : '#10B981'} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
@@ -838,8 +838,8 @@ export default function IlanlarScreen() {
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <View style={{ width: '88%', maxWidth: 360, backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: isDark ? '#311B92' : '#F3E8FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: isDark ? '#673AB7' : '#E9D5FF' }}>
-              <IconSymbol name="tag.fill" size={30} color={isDark ? '#C084FC' : '#7C3AED'} />
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: isDark ? '#064E3B' : '#ECFDF5', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: isDark ? '#047857' : '#A7F3D0' }}>
+              <IconSymbol name="tag.fill" size={30} color={isDark ? '#34D399' : '#10B981'} />
             </View>
 
             <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 10 }}>
@@ -856,7 +856,7 @@ export default function IlanlarScreen() {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setShowQuotaModal(false)}
-                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: '#7C3AED', justifyContent: 'center', alignItems: 'center' }}
+                style={{ flex: 1, height: 48, borderRadius: 14, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center' }}
               >
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>
                   {i18n.language.startsWith('en') ? 'Close' : 'Anladım'}
