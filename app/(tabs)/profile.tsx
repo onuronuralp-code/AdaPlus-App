@@ -1118,6 +1118,8 @@ export default function ProfileScreen() {
                         </View>
                     </View>
                 </KeyboardAvoidingView>
+            </Modal>
+
             {/* Listing Quota Limit Modal */}
             <Modal
                 visible={showQuotaModal}
