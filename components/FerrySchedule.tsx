@@ -671,6 +671,7 @@ export function FerrySchedule() {
                   nextDay.setDate(selectedDate.getDate() + 1);
                   setIsLiveMode(false);
                   setSelectedDate(nextDay);
+                  setSelectedTrip(null);
                   mainScrollRef.current?.scrollTo({ y: 0, animated: true });
                 }}
               >
@@ -1217,10 +1218,22 @@ function TripDetailPopup({
       }
     });
     return tt;
-  }, [trip]);
+  const isToday = (selectedDate ? new Date(selectedDate) : new Date()).toDateString() === new Date().toDateString();
 
-    const scheduleAlarm = async (minutesBefore: number) => {
+  const scheduleAlarm = async (minutesBefore: number) => {
     try {
+      if (!isToday) {
+        onClose();
+        setTimeout(() => {
+          Alert.alert(
+            i18n.language === "tr" ? "Ertesi Gün Seferi" : "Next Day Departure",
+            i18n.language === "tr"
+              ? "Hatırlatıcı yalnızca bugünkü seferler için kurulabilir."
+              : "Reminders can only be set for today's departures.",
+          );
+        }, 400);
+        return;
+      }
       const notifsEnabled = await AsyncStorage.getItem('notificationsEnabled');
       if (notifsEnabled === 'false') {
         onClose();
@@ -1512,65 +1525,67 @@ function TripDetailPopup({
             </View>
           )}
 
-          {/* Alarm Section */}
-          <View style={alarmStyles.alarmSection}>
-            {!showAlarmOptions ? (
-              <TouchableOpacity
-                style={[
-                  alarmStyles.alarmButton,
-                  alarmSet ? alarmStyles.alarmButtonActive : null,
-                ]}
-                onPress={() => setShowAlarmOptions(true)}
-                activeOpacity={0.7}
-              >
-                <Text style={{ fontSize: 18 }}>{alarmSet ? "✅" : "⏰"}</Text>
-                <Text
-                  style={[
-                    alarmStyles.alarmButtonText,
-                    alarmSet ? alarmStyles.alarmButtonTextActive : null,
-                  ]}
-                >
-                  {alarmSet
-                    ? i18n.language === "tr"
-                      ? `Bildirim ayarlandı (${alarmSet < 60 ? alarmSet + " dk" : alarmSet / 60 + " saat"} önce)`
-                      : `Notification set (${alarmSet < 60 ? alarmSet + " min" : alarmSet / 60 + "h"} before)`
-                    : i18n.language === "tr"
-                      ? "Bildirim Gönder"
-                      : "Send Notification"}
-                </Text>
-                {!alarmSet && (
-                  <IconSymbol name="chevron.right" size={14} color="#FFFFFF" />
-                )}
-              </TouchableOpacity>
-            ) : (
-              <View style={alarmStyles.alarmOptionsContainer}>
-                <Text style={alarmStyles.alarmOptionsTitle}>
-                  {i18n.language === "tr"
-                    ? "Ne zaman hatırlatalım?"
-                    : "When to remind you?"}
-                </Text>
-                {ALARM_OPTIONS.map((opt) => (
-                  <TouchableOpacity
-                    key={opt.minutes}
-                    style={alarmStyles.alarmOption}
-                    onPress={() => scheduleAlarm(opt.minutes)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={{ fontSize: 16 }}>{opt.icon}</Text>
-                    <Text style={alarmStyles.alarmOptionText}>{opt.label}</Text>
-                  </TouchableOpacity>
-                ))}
+          {/* Alarm Section - Only for today's departures */}
+          {isToday && (
+            <View style={alarmStyles.alarmSection}>
+              {!showAlarmOptions ? (
                 <TouchableOpacity
-                  style={alarmStyles.alarmCancelBtn}
-                  onPress={() => setShowAlarmOptions(false)}
+                  style={[
+                    alarmStyles.alarmButton,
+                    alarmSet ? alarmStyles.alarmButtonActive : null,
+                  ]}
+                  onPress={() => setShowAlarmOptions(true)}
+                  activeOpacity={0.7}
                 >
-                  <Text style={alarmStyles.alarmCancelText}>
-                    {i18n.language === "tr" ? "İptal" : "Cancel"}
+                  <Text style={{ fontSize: 18 }}>{alarmSet ? "✅" : "⏰"}</Text>
+                  <Text
+                    style={[
+                      alarmStyles.alarmButtonText,
+                      alarmSet ? alarmStyles.alarmButtonTextActive : null,
+                    ]}
+                  >
+                    {alarmSet
+                      ? i18n.language === "tr"
+                        ? `Bildirim ayarlandı (${alarmSet < 60 ? alarmSet + " dk" : alarmSet / 60 + " saat"} önce)`
+                        : `Notification set (${alarmSet < 60 ? alarmSet + " min" : alarmSet / 60 + "h"} before)`
+                      : i18n.language === "tr"
+                        ? "Bildirim Gönder"
+                        : "Send Notification"}
                   </Text>
+                  {!alarmSet && (
+                    <IconSymbol name="chevron.right" size={14} color="#FFFFFF" />
+                  )}
                 </TouchableOpacity>
-              </View>
-            )}
-          </View>
+              ) : (
+                <View style={alarmStyles.alarmOptionsContainer}>
+                  <Text style={alarmStyles.alarmOptionsTitle}>
+                    {i18n.language === "tr"
+                      ? "Ne zaman hatırlatalım?"
+                      : "When to remind you?"}
+                  </Text>
+                  {ALARM_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.minutes}
+                      style={alarmStyles.alarmOption}
+                      onPress={() => scheduleAlarm(opt.minutes)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={{ fontSize: 16 }}>{opt.icon}</Text>
+                      <Text style={alarmStyles.alarmOptionText}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    style={alarmStyles.alarmCancelBtn}
+                    onPress={() => setShowAlarmOptions(false)}
+                  >
+                    <Text style={alarmStyles.alarmCancelText}>
+                      {i18n.language === "tr" ? "İptal" : "Cancel"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
