@@ -1059,7 +1059,7 @@ export default function MainMenuScreen() {
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
         <View 
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 0 }}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: isLargeScreen ? 6 : 2 }}
         >
           {/* 1. Etkinlikler */}
           <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
@@ -1073,18 +1073,18 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="calendar" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
+                <IconSymbol name="calendar" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
                 {unseenEventsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
-                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
+                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1101,18 +1101,18 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="tag.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
+                <IconSymbol name="tag.fill" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
                 {unseenListingsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
-                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
+                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1124,16 +1124,16 @@ export default function MainMenuScreen() {
                 activeOpacity={0.8}
                 onPress={() => setShowAdaAiModal(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
+                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
-                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 11 : (isSmallScreen ? 9.5 : 10), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
+                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1151,15 +1151,15 @@ export default function MainMenuScreen() {
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 10, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="bag.fill" size={isLargeScreen ? 30 : (isSmallScreen ? 20 : 25)} color="#FFFFFF" />
+                <IconSymbol name="bag.fill" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
-                <Text style={{ fontSize: isLargeScreen ? 13 : (isSmallScreen ? 11 : 12), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 12 : 13), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
+              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
+                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 12 : 13), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
