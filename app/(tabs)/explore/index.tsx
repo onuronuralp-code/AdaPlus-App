@@ -1437,29 +1437,6 @@ export default function MainMenuScreen() {
                       : 'Topluluğa lütfen sadece Adada yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.'}
                   </Text>
                 </View>
-
-                {notifications.map(notif => (
-                  <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-                    key={notif.id} 
-                    style={{ backgroundColor: isDark ? (notif.read ? '#18181B' : '#1E293B') : (notif.read ? '#F8FAFC' : '#EFF6FF'), borderRadius: 12, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: isDark ? (notif.read ? '#27272A' : '#3B82F6') : (notif.read ? '#F1F5F9' : '#BFDBFE') }}
-                    onPress={async () => {
-                      if (!notif.read) {
-                        await markNotificationRead(notif.id);
-                        setNotifications(prev => {
-                          const updated = prev.map(n => n.id === notif.id ? { ...n, read: true } : n);
-                          AsyncStorage.setItem('cached_notifications', JSON.stringify(updated));
-                          return updated;
-                        });
-                      }
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#FFFFFF' : '#0F172A', flex: 1, marginRight: 12 }}>{notif.title}</Text>
-                      <Text style={{ fontSize: 14, color: '#94A3B8' }}>{new Date(notif.createdAt).toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'short' })}</Text>
-                    </View>
-                    <Text style={{ fontSize: 14, color: isDark ? '#CBD5E1' : '#475569', lineHeight: 24 }}>{notif.body}</Text>
-                  </Pressable>
-                ))}
               </ScrollView>
             )}
           </View>

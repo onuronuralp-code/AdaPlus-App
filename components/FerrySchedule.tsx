@@ -438,20 +438,16 @@ export function FerrySchedule() {
       target = new Date(today);
       setIsLiveMode(true);
     } else if (type === "weekday") {
-      // If today is weekday/Sat, use same day next week to get full schedule from backend
-      // If Sunday, use tomorrow
+      // If today is Sunday, use tomorrow (Monday)
+      // If today is weekday/Sat, use today
       if (day === 0) {
         target.setDate(today.getDate() + 1);
-      } else {
-        target.setDate(today.getDate() + 7);
       }
       setIsLiveMode(false);
     } else {
-      // If Sunday, use same day next week
-      // If weekday, use next Sunday
-      if (day === 0) {
-        target.setDate(today.getDate() + 7);
-      } else {
+      // If today is weekday/Sat, use next Sunday
+      // If Sunday, use today
+      if (day !== 0) {
         target.setDate(today.getDate() + (7 - day));
       }
       setIsLiveMode(false);
@@ -954,8 +950,8 @@ function ScheduleDatePicker({
               <View style={{ flex: 1 }}>
                 <Text style={[styles.optionTitle, isDark && { color: '#FFFFFF' }]}>
                   {i18n.language === "tr"
-                    ? "Haftaiçi ve Cumartesi"
-                    : "Weekdays & Saturday"}
+                    ? "Haftaiçi/Cmt"
+                    : "Weekdays/Sat"}
                 </Text>
                 <Text style={[styles.optionSub, isDark && { color: '#94A3B8' }]}>
                   {i18n.language === "tr"
@@ -1218,6 +1214,8 @@ function TripDetailPopup({
       }
     });
     return tt;
+  }, [trip]);
+
   const isToday = (selectedDate ? new Date(selectedDate) : new Date()).toDateString() === new Date().toDateString();
 
   const scheduleAlarm = async (minutesBefore: number) => {
