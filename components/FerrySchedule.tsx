@@ -222,6 +222,7 @@ export function FerrySchedule() {
   const calendarScrollRef = useRef<ScrollView>(null);
   const mainScrollRef = useRef<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const autoOpenedTimeRef = useRef<string | null>(null);
 
   // Load initial route (from params, favorites, or default island)
   useFocusEffect(
@@ -250,10 +251,12 @@ export function FerrySchedule() {
     }, [params.from, params.to])
   );
 
-  // Handle auto-selecting the specific ferry trip passed in params
+  // Handle auto-selecting the specific ferry trip passed in params (only once)
   useEffect(() => {
     if (params.time && ferryData.length > 0) {
-      const match = ferryData.find(f => f.departureTime === params.time);
+      const targetTime = params.time as string;
+      router.setParams({ time: undefined });
+      const match = ferryData.find(f => f.departureTime === targetTime);
       if (match) {
         setSelectedTrip(match);
       }
@@ -333,13 +336,9 @@ export function FerrySchedule() {
       setLoading(true);
       try {
         const froms = departure === "Unselected" ? ALL_LOCATIONS : [departure];
-        const isTodaySelection =
-          selectedDate.toDateString() === new Date().toDateString();
-        // To prevent the backend from filtering out past ferries for today,
-        // we request the schedule for exactly 7 days from now (which has the same schedule).
-        const queryDate = isTodaySelection && isLiveMode 
-          ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) 
-          : selectedDate;
+        // To prevent the backend from filtering out daytime ferries for today,
+        // we request the schedule for 7 days from now (which has the exact same schedule).
+        const queryDate = new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
           
         const dateStr = `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, "0")}-${String(queryDate.getDate()).padStart(2, "0")}`;
 
@@ -453,6 +452,7 @@ export function FerrySchedule() {
       setIsLiveMode(false);
     }
 
+    setSelectedTrip(null);
     setSelectedDate(target);
     setShowDatePicker(false);
   };
@@ -892,10 +892,10 @@ function ScheduleDatePicker({
                 styles.scheduleOption,
                 selectedDate.toDateString() === new Date().toDateString() &&
                   isLiveMode &&
-                  styles.scheduleOptionActive,
+                  { borderColor: '#10B981', backgroundColor: isDark ? '#052E1B' : '#ECFDF5' },
                 isDark && {
-                  backgroundColor: (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) ? '#2E1505' : '#1C1C1E',
-                  borderColor: (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) ? '#EA580C' : '#2C2C2E',
+                  backgroundColor: (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) ? '#052E1B' : '#1C1C1E',
+                  borderColor: (selectedDate.toDateString() === new Date().toDateString() && isLiveMode) ? '#10B981' : '#2C2C2E',
                 },
               ]}
               onPress={() => {
@@ -906,7 +906,7 @@ function ScheduleDatePicker({
               <View
                 style={[styles.optionIconBox, { backgroundColor: isDark ? '#052E1B' : '#ECFDF5' }]}
               >
-                <IconSymbol name="clock.fill" size={20} color="#059669" />
+                <IconSymbol name="clock.fill" size={20} color="#10B981" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.optionTitle, isDark && { color: '#FFFFFF' }]}>
@@ -923,7 +923,7 @@ function ScheduleDatePicker({
                   <IconSymbol
                     name="checkmark.circle.fill"
                     size={24}
-                    color="#EA580C"
+                    color="#10B981"
                   />
                 )}
             </TouchableOpacity>
@@ -933,7 +933,7 @@ function ScheduleDatePicker({
                 styles.scheduleOption,
                 selectedDate.getDay() !== 0 &&
                   !isLiveMode &&
-                  styles.scheduleOptionActive,
+                  { borderColor: '#0284C7', backgroundColor: isDark ? '#051A2E' : '#F0F9FF' },
                 isDark && {
                   backgroundColor: (selectedDate.getDay() !== 0 && !isLiveMode) ? '#051A2E' : '#1C1C1E',
                   borderColor: (selectedDate.getDay() !== 0 && !isLiveMode) ? '#0284C7' : '#2C2C2E',
@@ -975,10 +975,10 @@ function ScheduleDatePicker({
                 styles.scheduleOption,
                 selectedDate.getDay() === 0 &&
                   !isLiveMode &&
-                  styles.scheduleOptionActive,
+                  { borderColor: '#EA580C', backgroundColor: isDark ? '#2E1505' : '#FFF7ED' },
                 isDark && {
-                  backgroundColor: (selectedDate.getDay() === 0 && !isLiveMode) ? '#1C152E' : '#1C1C1E',
-                  borderColor: (selectedDate.getDay() === 0 && !isLiveMode) ? '#7C3AED' : '#2C2C2E',
+                  backgroundColor: (selectedDate.getDay() === 0 && !isLiveMode) ? '#2E1505' : '#1C1C1E',
+                  borderColor: (selectedDate.getDay() === 0 && !isLiveMode) ? '#EA580C' : '#2C2C2E',
                 },
               ]}
               onPress={() => {
@@ -987,12 +987,12 @@ function ScheduleDatePicker({
               }}
             >
               <View
-                style={[styles.optionIconBox, { backgroundColor: isDark ? '#1C152E' : '#F5F3FF' }]}
+                style={[styles.optionIconBox, { backgroundColor: isDark ? '#2E1505' : '#FFF7ED' }]}
               >
                 <IconSymbol
                   name="sun.max.fill"
                   size={20}
-                  color="#7C3AED"
+                  color="#EA580C"
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -1011,7 +1011,7 @@ function ScheduleDatePicker({
                 <IconSymbol
                   name="checkmark.circle.fill"
                   size={24}
-                  color="#7C3AED"
+                  color="#EA580C"
                 />
               )}
             </TouchableOpacity>
@@ -1913,7 +1913,7 @@ const styles = StyleSheet.create({
 
   modalBg: {
     flex: 1,
-    backgroundColor: "rgba(13, 27, 42, 0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.78)",
     justifyContent: "flex-end",
   },
   sheet: {

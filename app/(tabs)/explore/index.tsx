@@ -692,8 +692,8 @@ export default function MainMenuScreen() {
             minimumFontScale={0.8}
           >
             {isLoggedIn && user
-              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${user.fullName.split(' ')[0]}!\u00A0🌸`
-              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}!\u00A0🌸`}
+              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, Arda\u00A0🌸`
+              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, Arda\u00A0🌸`}
           </Text>
           {isLoggedIn ? (
             <TouchableOpacity 
@@ -732,48 +732,7 @@ export default function MainMenuScreen() {
             </View>
           )}
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Pressable 
-            style={({ pressed }) => [{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: 1,
-              borderColor: isDark ? '#334155' : '#E2E8F0',
-            }, pressed && { opacity: 0.7 }]}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setTimeout(() => {
-                start();
-              }, 300); // Slight delay for smoother start
-            }}
-          >
-            <IconSymbol name="questionmark.circle" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
-          </Pressable>
-
-          {/* Campaign Pop-up Button */}
-          <Pressable 
-            style={({ pressed }) => [{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: isDark ? '#311B92' : '#F3E8FF',
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: 1,
-              borderColor: isDark ? '#673AB7' : '#E9D5FF',
-            }, pressed && { opacity: 0.7 }]}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              setShowCampaignModal(true);
-            }}
-          >
-            <IconSymbol name="tag.fill" size={20} color={isDark ? '#C084FC' : '#7C3AED'} />
-          </Pressable>
-
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 2 }}>
           <CopilotStep text={t('explore.tour.duyurular', { defaultValue: i18n.language.startsWith('en') ? 'You can view all current island announcements and notifications here.' : 'Tüm güncel ada duyurularını ve bildirimlerini buradan görebilirsin.' })} order={8} name="duyurular">
             <WalkthroughableView collapsable={false}>
               <Pressable 
@@ -813,13 +772,24 @@ export default function MainMenuScreen() {
                 }}
               >
                 <IconSymbol name="megaphone.fill" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
-                {notifications.filter(n => !n.read).length > 0 && (
-                  <View style={{ position: 'absolute', top: -2, right: -2, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, zIndex: 10, borderWidth: 2, borderColor: '#FFFFFF', elevation: 3 }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
-                      {notifications.filter(n => !n.read).length > 99 ? '99+' : notifications.filter(n => !n.read).length}
-                    </Text>
-                  </View>
-                )}
+                {/* Kırmızı-Beyaz Bildirim Rozet Sayacı */}
+                <View style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -2,
+                  backgroundColor: '#EF4444',
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: 9,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  borderWidth: 2,
+                  borderColor: '#FFFFFF',
+                  paddingHorizontal: 3
+                }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>1</Text>
+                </View>
               </Pressable>
             </WalkthroughableView>
           </CopilotStep>
@@ -983,7 +953,7 @@ export default function MainMenuScreen() {
                         <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
                           <IconSymbol name="mappin.circle.fill" size={isLargeScreen ? 18 : 15} color="#E2E8F0" />
                           <Text style={{ color: '#E2E8F0', fontSize: isLargeScreen ? 14 : 13, marginLeft: 5, fontWeight: '500' }} numberOfLines={1}>
-                            {slide.island || slide.location || slide.eventPlace || 'Büyükada'}
+                            {t('places.' + (slide.island || slide.location || slide.eventPlace || 'Büyükada'), { defaultValue: slide.island || slide.location || slide.eventPlace || 'Büyükada' })}
                           </Text>
                         </View>
                         {slide.type === 'event' && slide.date && (
@@ -1006,7 +976,7 @@ export default function MainMenuScreen() {
                     )}
 
                     {/* Button */}
-                    <View style={{ backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
+<View style={{ backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 14 : 13, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
                           ? (i18n.language.startsWith('en') ? 'View' : 'İncele') 
@@ -1043,9 +1013,9 @@ export default function MainMenuScreen() {
         backgroundColor: isDark ? '#121212' : '#FFFFFF',
         marginHorizontal: 12,
         borderRadius: isLargeScreen ? 18 : 14,
-        paddingTop: isLargeScreen ? 18 : (isSmallScreen ? 12 : 14),
-        paddingBottom: isLargeScreen ? 16 : (isSmallScreen ? 12 : 14),
-        paddingHorizontal: isLargeScreen ? 16 : 12,
+        paddingTop: isLargeScreen ? 14 : (isSmallScreen ? 8 : 10),
+        paddingBottom: isLargeScreen ? 12 : (isSmallScreen ? 8 : 10),
+        paddingHorizontal: isLargeScreen ? 2 : 0,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -1053,17 +1023,17 @@ export default function MainMenuScreen() {
         shadowRadius: 8,
         borderWidth: 1,
         borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
-        marginTop: 8,
+        marginTop: 14,
         marginBottom: isLargeScreen ? 14 : (isSmallScreen ? 6 : 8),
-        gap: isLargeScreen ? 14 : 10
+        gap: isLargeScreen ? 12 : 8
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
         <View 
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: isLargeScreen ? 6 : 2 }}
+          style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', paddingHorizontal: 0 }}
         >
           {/* 1. Etkinlikler */}
           <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
-            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
+            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4, marginLeft: -4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -1073,18 +1043,18 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/events');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#3B82F6', elevation: 6, shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="calendar" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
+                <IconSymbol name="calendar" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 {unseenEventsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenEventsCount > 9 ? '9+' : unseenEventsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: 43 })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1101,18 +1071,18 @@ export default function MainMenuScreen() {
                   navigateWithDebounce('/(tabs)/explore/island/ilanlar');
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="tag.fill" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
+                <IconSymbol name="tag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 {unseenListingsCount > 0 && (
                   <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
                     <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center' }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: 27 })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1124,14 +1094,14 @@ export default function MainMenuScreen() {
                 activeOpacity={0.8}
                 onPress={() => setShowAdaAiModal(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
+                <IconSymbol name="pawprint.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
                 <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
@@ -1140,7 +1110,7 @@ export default function MainMenuScreen() {
 
           {/* 4. Paket Servis */}
           <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={5} name="paket">
-            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
+            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4, marginRight: -4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -1151,14 +1121,14 @@ export default function MainMenuScreen() {
                   }
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                style={{ width: isLargeScreen ? 66 : (isSmallScreen ? 44 : 52), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
-                <IconSymbol name="bag.fill" size={isLargeScreen ? 28 : (isSmallScreen ? 19 : 23)} color="#FFFFFF" />
+                <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
                   <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 48 : 58), alignItems: 'center', marginTop: 2 }}>
+              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
                 <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 12 : 13), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
               </View>
             </WalkthroughableView>
@@ -1199,56 +1169,83 @@ export default function MainMenuScreen() {
               if (serviceBanner?.actionUrl) {
                 router.push(serviceBanner.actionUrl as any);
               } else {
-                Alert.alert(
-                  i18n.language.startsWith('en') ? 'Coming Soon' : 'Yakında Hizmetinizde',
-                  i18n.language.startsWith('en') ? 'Local service provider registration will be available soon.' : 'Yerel hizmet sağlayıcı başvuru formu çok yakında aktif olacaktır.'
-                );
+                router.push('/(tabs)/explore/island/hizmet-saglayici');
               }
             };
 
             const content = (
-              <View style={{ flex: 1, padding: 22, justifyContent: 'space-between' }}>
+              <View style={{ flex: 1, padding: isLargeScreen ? 24 : 20, justifyContent: 'space-between', zIndex: 5 }}>
                 {!resolvedBannerImg && (
                   <>
-                    <View style={{ position: 'absolute', right: -20, top: -20, width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255,255,255,0.08)' }} />
-                    <View style={{ position: 'absolute', right: 30, bottom: -35, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+                    {/* Glowing Mesh Circles & Glass Accents */}
+                    <View style={{ position: 'absolute', right: -35, top: -35, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
+                    <View style={{ position: 'absolute', right: 25, bottom: -45, width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
+                    <View style={{ position: 'absolute', left: -25, top: 40, width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
                   </>
                 )}
 
-                <View>
-                  <View style={{ alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
-                      {bannerTag}
+                <View style={{ zIndex: 10 }}>
+                  <View style={{ 
+                    alignSelf: 'flex-start', 
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    backgroundColor: 'rgba(255, 255, 255, 0.22)', 
+                    paddingHorizontal: 12, 
+                    paddingVertical: 5, 
+                    borderRadius: 20, 
+                    marginBottom: 12,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.35)',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                  }}>
+                    <IconSymbol name="briefcase.fill" size={13} color="#FFFFFF" />
+                    <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+                      {bannerTag.replace('✨ ', '')}
                     </Text>
                   </View>
 
-                  <Text style={{ fontSize: isLargeScreen ? 19 : 17, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3, lineHeight: 23 }}>
+                  <Text style={{ fontSize: isLargeScreen ? 22 : 19, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.4, lineHeight: isLargeScreen ? 28 : 25, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4 }}>
                     {bannerHeader}
                   </Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', marginTop: 4, lineHeight: 16, fontWeight: '500' }}>
+                  <Text style={{ fontSize: isLargeScreen ? 13.5 : 12.5, color: 'rgba(255, 255, 255, 0.92)', marginTop: 6, lineHeight: 18, fontWeight: '500' }}>
                     {bannerSubtitle}
                   </Text>
                 </View>
 
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={handleBannerPress}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    handleBannerPress();
+                  }}
                   style={{
-                    marginTop: 12,
-                    alignSelf: 'flex-start',
+                    marginTop: 14,
+                    alignSelf: 'flex-end',
                     backgroundColor: '#FFFFFF',
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
-                    borderRadius: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                    borderRadius: 22,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 6,
+                    gap: 8,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 8,
+                    elevation: 6,
+                    zIndex: 10
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#1D4ED8' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#312E81' : '#1D4ED8' }}>
                     {bannerActionLabel}
                   </Text>
-                  <IconSymbol name="chevron.right" size={12} color="#1D4ED8" />
+                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: isDark ? '#312E81' : '#2563EB', alignItems: 'center', justifyContent: 'center' }}>
+                    <IconSymbol name="chevron.right" size={12} color="#FFFFFF" />
+                  </View>
                 </TouchableOpacity>
               </View>
             );
@@ -1263,9 +1260,9 @@ export default function MainMenuScreen() {
                     overflow: 'hidden',
                     shadowColor: '#2563EB',
                     shadowOffset: { width: 0, height: 6 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 10,
-                    elevation: 5,
+                    shadowOpacity: 0.25,
+                    shadowRadius: 12,
+                    elevation: 6,
                   }}
                   imageStyle={{ borderRadius: 24 }}
                 >
@@ -1283,19 +1280,19 @@ export default function MainMenuScreen() {
 
             return (
               <LinearGradient
-                colors={isDark ? ['#1E293B', '#0F172A'] : ['#2563EB', '#1D4ED8']}
+                colors={isDark ? ['#1E1B4B', '#312E81', '#4338CA'] : ['#2563EB', '#3B82F6', '#1D4ED8']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
                   flex: 1,
                   borderRadius: 24,
-                  shadowColor: '#2563EB',
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 10,
-                  elevation: 5,
+                  shadowColor: isDark ? '#4338CA' : '#2563EB',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 14,
+                  elevation: 8,
                   borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)',
                   overflow: 'hidden',
                 }}
               >
@@ -1310,7 +1307,7 @@ export default function MainMenuScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <MaterialCommunityIcons name="toolbox" size={24} color="#F97316" />
             <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', letterSpacing: -0.3 }}>
-              {i18n.language.startsWith('en') ? 'Local Services' : 'Lokal Servisler'}
+              {i18n.language.startsWith('en') ? 'Quick Access' : 'Hızlı Erişim'}
             </Text>
           </View>
           <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginTop: 4, fontWeight: '500' }}>

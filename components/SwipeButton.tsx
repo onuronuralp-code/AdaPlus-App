@@ -168,11 +168,9 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                     {i18n.language.startsWith('en') ? 'Unavailable' : 'Erişime Kapalı'}
                   </Text>
                 ) : (
-                  userCount !== null && (
-                    <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
-                      {userCount}+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
-                    </Text>
-                  )
+                  <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
+                    100+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                  </Text>
                 )}
               </View>
 
@@ -204,6 +202,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     paddingLeft: 7,
     paddingRight: 12,
+    marginHorizontal: 10,
     justifyContent: 'center',
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },

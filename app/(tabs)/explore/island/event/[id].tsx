@@ -254,8 +254,8 @@ export default function EventDetailScreen() {
                             </View>
                             {rsvpCount > 0 && (
                                 <View style={[styles.attendeePill, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                    <IconSymbol name="person.2.fill" size={13} color="#3B82F6" />
-                                    <Text style={[styles.attendeeText, isDark && { color: '#60A5FA' }]}>{rsvpCount} {isEnActive ? 'attendees' : 'katılımcı'}</Text>
+                                    <IconSymbol name="person.2.fill" size={13} color="#F59E0B" />
+                                    <Text style={[styles.attendeeText, { color: '#F59E0B' }]}>{rsvpCount} {isEnActive ? 'attendees' : 'katılımcı'}</Text>
                                 </View>
                             )}
                         </View>
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 5,
-        backgroundColor: '#F0F9FF',
+        backgroundColor: '#FFF7ED',
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 10,
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     attendeeText: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#3B82F6',
+        color: '#F59E0B',
     },
     title: {
         fontSize: 20,

@@ -7,6 +7,7 @@ export default function ExploreLayout() {
 
     return (
         <Stack screenOptions={{ 
+            headerShown: false,
             animation: 'slide_from_right',
             gestureEnabled: true,
             fullScreenGestureEnabled: true,
@@ -22,6 +23,7 @@ export default function ExploreLayout() {
             <Stack.Screen name="island/ilan/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="island/events" options={{ headerShown: false }} />
             <Stack.Screen name="island/event/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="island/hizmet-saglayici" options={{ headerShown: false }} />
         </Stack>
     );
 }

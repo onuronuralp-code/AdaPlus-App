@@ -522,8 +522,8 @@ export default function EventsScreen() {
                                 {/* Katılımcı Sayısı - Izgara Görünümünde Fotoğraf Üstünde */}
                                 {isGridView && (
                                     <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0, 0, 0, 0.65)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, flexDirection: 'row', alignItems: 'center', zIndex: 10 }}>
-                                        <IconSymbol name="person.2.fill" size={12} color="#FFFFFF" />
-                                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
+                                        <IconSymbol name="person.2.fill" size={12} color="#F59E0B" />
+                                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#F59E0B', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
                                     </View>
                                 )}
 
@@ -532,8 +532,8 @@ export default function EventsScreen() {
                                         <Text style={[styles.eventTitle, { flex: 1, marginRight: 8 }, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{event.name}</Text>
                                         {!isGridView && (
                                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E293B' : '#F1F5F9', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 }}>
-                                                <IconSymbol name="person.2.fill" size={13} color={isDark ? '#60A5FA' : '#3B82F6'} />
-                                                <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
+                                                <IconSymbol name="person.2.fill" size={13} color="#F59E0B" />
+                                                <Text style={{ fontSize: 13, fontWeight: '700', color: '#F59E0B', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
                                             </View>
                                         )}
                                     </View>
