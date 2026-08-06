@@ -52,14 +52,13 @@ const toLocalPhone = (phone?: string | null): string => {
 };
 
 // İlan türleri
-type IlanCategory = 'all' | 'emlak' | 'esya' | 'tasit' | 'service' | 'lost' | 'job' | 'pet';
+type IlanCategory = 'all' | 'emlak' | 'esya' | 'tasit' | 'lost' | 'job' | 'pet';
 
 const CATEGORY_CONFIG: Record<IlanCategory, { label: string; icon: string; color: string; bg: string; backend?: ListingCategory }> = {
   all:     { label: 'Tümü',      icon: 'square.grid.2x2.fill', color: '#3B82F6', bg: '#EFF6FF' },
   emlak:   { label: 'Emlak',     icon: 'house.fill',           color: '#10B981', bg: '#ECFDF5' },
   esya:    { label: 'Eşya',      icon: 'archivebox.fill',      color: '#F59E0B', bg: '#FEF3C7', backend: ListingCategory.ESYA },
   tasit:   { label: 'Taşıt',     icon: 'car.fill',             color: '#EC4899', bg: '#FCE7F3', backend: ListingCategory.TASIT },
-  service: { label: 'Hizmet',    icon: 'wrench.and.screwdriver.fill', color: '#8B5CF6', bg: '#F5F3FF', backend: ListingCategory.HIZMET },
   job:     { label: 'İş İlanı',  icon: 'briefcase.fill',       color: '#6366F1', bg: '#EEF2FF', backend: ListingCategory.IS_ILANI },
   lost:    { label: 'Kayıp',     icon: 'exclamationmark.triangle.fill', color: '#EF4444', bg: '#FEF2F2', backend: ListingCategory.KAYIP },
   pet:     { label: 'Evcil Hayvan', icon: 'cat.fill',          color: '#F43F5E', bg: '#FFE4E6', backend: ListingCategory.EVCIL_HAYVAN },
@@ -425,7 +424,6 @@ export default function IlanlarScreen() {
     { id: 'emlak',   label: 'Emlak',        icon: 'home-outline' },
     { id: 'esya',    label: 'Eşya',         icon: 'archive-outline' },
     { id: 'tasit',   label: 'Taşıt',        icon: 'car-outline' },
-    { id: 'service', label: 'Hizmet',       icon: 'hammer-wrench' },
     { id: 'job',     label: 'İş İlanı',     icon: 'briefcase-outline' },
     { id: 'pet',     label: 'Evcil Hayvan', icon: 'paw-outline' },
     { id: 'lost',    label: 'Kayıp',        icon: 'alert-circle-outline' },

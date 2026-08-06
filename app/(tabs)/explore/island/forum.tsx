@@ -251,7 +251,6 @@ export default function ForumScreen() {
     const adCategories = [
         { id: 'item', label: 'Eşya', icon: 'package-variant-closed' },
         { id: 'estate', label: 'Emlak', icon: 'home-city-outline' },
-        { id: 'service', label: 'Hizmet', icon: 'hammer-wrench' },
         { id: 'other', label: 'Diğer', icon: 'dots-horizontal-circle-outline' },
     ];
 
