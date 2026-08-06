@@ -1173,9 +1173,9 @@ export default function ForumScreen() {
                                 <IconSymbol
                                     name={item.isLiked ? "heart.fill" : "heart"}
                                     size={15}
-                                    color={item.isLiked ? "#EF4444" : "#94A3B8"}
+                                    color={item.isLiked ? "#EF4444" : (isDark ? "#CBD5E1" : "#64748B")}
                                 />
-                                <Text style={[styles.interactionCount, item.isLiked && { color: "#EF4444" }]}>
+                                <Text style={[styles.interactionCount, item.isLiked ? { color: "#EF4444" } : (isDark ? { color: "#CBD5E1" } : { color: "#64748B" })]}>
                                     {item.likeCount > 0 ? item.likeCount : '0'}
                                 </Text>
                             </TouchableOpacity>
@@ -1189,8 +1189,8 @@ export default function ForumScreen() {
                                     }
                                 }}
                             >
-                                <IconSymbol name="bubble.left" size={14} color="#94A3B8" />
-                                <Text style={styles.interactionCount}>
+                                <IconSymbol name="bubble.left" size={14} color={isDark ? "#CBD5E1" : "#64748B"} />
+                                <Text style={[styles.interactionCount, isDark ? { color: "#CBD5E1" } : { color: "#64748B" }]}>
                                     {item.replyCount > 0 ? item.replyCount : '0'}
                                 </Text>
                             </TouchableOpacity>

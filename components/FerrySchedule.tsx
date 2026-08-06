@@ -562,9 +562,11 @@ export function FerrySchedule() {
             >
               <IconSymbol name="calendar" size={20} color="#EA580C" />
               <Text style={styles.scheduleTypeText}>
-                {selectedDate.toDateString() === new Date().toDateString() && isLiveMode
+                {isLiveMode
                   ? (i18n.language === "tr" ? "Bugün" : "Today")
-                  : selectedDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short', weekday: 'short' })}
+                  : selectedDate.getDay() !== 0
+                  ? (i18n.language === "tr" ? "Haftaiçi/Cmt" : "Weekdays/Sat")
+                  : (i18n.language === "tr" ? "Pazar/Tatil" : "Sunday/Holiday")}
               </Text>
             </TouchableOpacity>
           </View>
