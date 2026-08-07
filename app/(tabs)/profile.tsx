@@ -923,9 +923,7 @@ export default function ProfileScreen() {
                             </View>
 
                                 {/* Kotalar Kartı */}
-                                <TouchableOpacity 
-                                    activeOpacity={0.7}
-                                    onPress={() => setShowQuotaModal(true)}
+                                <View 
                                     style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     {/* İlan Kotası */}
                                     <View>
@@ -952,12 +950,10 @@ export default function ProfileScreen() {
                                             {t('profile.remainingQuota', { count: Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` : `Kalan Hakkın: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` })}
                                         </Text>
                                     </View>
-                                </TouchableOpacity>
+                                </View>
 
                                 {/* Davet Edilen Adalılar Kartı */}
-                                <TouchableOpacity 
-                                    activeOpacity={0.7}
-                                    onPress={() => setShowInviteQuotaModal(true)}
+                                <View 
                                     style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -981,7 +977,7 @@ export default function ProfileScreen() {
                                     <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
                                         {i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}` : `Kalan Hakkın: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}`}
                                     </Text>
-                                </TouchableOpacity>
+                                </View>
                         </View>
                     </View>
 
