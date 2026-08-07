@@ -18,6 +18,8 @@ import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { Island } from '@/services/forumApi';
+import { ServiceCategory, submitProviderApplication } from '@/services/providerApplicationApi';
 
 const SERVICE_CATEGORIES = [
   { id: 'repair', labelTr: 'Tadilat & Tamirat', labelEn: 'Renovation & Repair', icon: 'wrench.and.screwdriver.fill' },
@@ -31,14 +33,34 @@ const SERVICE_CATEGORIES = [
   { id: 'other', labelTr: 'Diğer Yerel Hizmetler', labelEn: 'Other Local Services', icon: 'star.fill' },
 ];
 
+// Only the 4 islands the backend's Island enum actually supports — unlike the listings
+// screen, which also offers "Sedef Adası" and "Tüm Adalar" despite neither having a
+// valid backend Island value (a pre-existing gap, out of scope here).
 const ISLANDS = [
   { id: 'buyukada', nameTr: 'Büyükada', nameEn: 'Büyükada' },
   { id: 'heybeliada', nameTr: 'Heybeliada', nameEn: 'Heybeliada' },
   { id: 'burgazada', nameTr: 'Burgazada', nameEn: 'Burgazada' },
   { id: 'kinaliada', nameTr: 'Kınalıada', nameEn: 'Kınalıada' },
-  { id: 'sedefadası', nameTr: 'Sedef Adası', nameEn: 'Sedef Island' },
-  { id: 'all', nameTr: 'Tüm Adalar', nameEn: 'All Islands' },
 ];
+
+const ISLAND_ENUM_MAP: Record<string, Island> = {
+  buyukada: Island.BUYUKADA,
+  heybeliada: Island.HEYBELIADA,
+  burgazada: Island.BURGAZADA,
+  kinaliada: Island.KINALIADA,
+};
+
+const CATEGORY_ENUM_MAP: Record<string, ServiceCategory> = {
+  repair: ServiceCategory.REPAIR,
+  painting: ServiceCategory.PAINTING,
+  locksmith: ServiceCategory.LOCKSMITH,
+  cleaning: ServiceCategory.CLEANING,
+  garden: ServiceCategory.GARDEN,
+  transport: ServiceCategory.TRANSPORT,
+  tutoring: ServiceCategory.TUTORING,
+  pet: ServiceCategory.PET,
+  other: ServiceCategory.OTHER,
+};
 
 export default function HizmetSaglayiciScreen() {
   const insets = useSafeAreaInsets();
@@ -49,7 +71,7 @@ export default function HizmetSaglayiciScreen() {
   const isEn = i18n.language?.startsWith('en');
 
   // Form State
-  const [fullName, setFullName] = useState(user?.name || user?.fullName || '');
+  const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('repair');
   const [selectedIsland, setSelectedIsland] = useState<string>('buyukada');
@@ -86,12 +108,29 @@ export default function HizmetSaglayiciScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSubmitting(true);
 
-    // Simulate API request
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await submitProviderApplication({
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        island: ISLAND_ENUM_MAP[selectedIsland] ?? Island.BUYUKADA,
+        category: CATEGORY_ENUM_MAP[selectedCategory] ?? ServiceCategory.OTHER,
+        offeredServices: offeredServices.trim(),
+        experienceNotes: experienceDetails.trim() || undefined,
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowSuccessModal(true);
-    }, 1200);
+    } catch (error) {
+      console.log('Failed to submit provider application:', error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert(
+        isEn ? 'Submission Failed' : 'Gönderim Başarısız',
+        isEn
+          ? 'Something went wrong while submitting your application. Please try again.'
+          : 'Başvurunuz gönderilirken bir sorun oluştu. Lütfen tekrar deneyin.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
