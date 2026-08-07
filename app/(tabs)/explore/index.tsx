@@ -592,12 +592,10 @@ const MOCK_SERVICES = [
             });
         }
 
-        const eventsCountToSet = validEvents.length > 0 ? validEvents.length : 3;
-        const listingsCountToSet = validListings.length > 0 ? validListings.length : 5;
-        setTotalEventsCount(eventsCountToSet);
-        setTotalListingsCount(listingsCountToSet);
-        AsyncStorage.setItem('cached_total_events', eventsCountToSet.toString());
-        AsyncStorage.setItem('cached_total_listings', listingsCountToSet.toString());
+        setTotalEventsCount(validEvents.length);
+        setTotalListingsCount(validListings.length);
+        AsyncStorage.setItem('cached_total_events', validEvents.length.toString());
+        AsyncStorage.setItem('cached_total_listings', validListings.length.toString());
 
         setAllEventIds(validEvents.map(e => e.id));
         AsyncStorage.getItem('seenEventIds').then(seenStr => {
@@ -684,37 +682,14 @@ const MOCK_SERVICES = [
     setIsHeroExpanded(!isHeroExpanded);
   };
 
-  const defaultSlides = [
-    {
-      id: 'placeholder_event_1',
-      type: 'event',
-      title: i18n.language.startsWith('en') ? 'Büyükada Summer Jazz Concert' : 'Büyükada Yaz Caz Konseri',
-      subtitle: i18n.language.startsWith('en') ? 'Büyükada Culture Center' : 'Büyükada Kültür Merkezi',
-      island: 'Büyükada',
-      date: Date.now() + 86400000 * 2,
-      imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'placeholder_listing_1',
-      type: 'listing',
-      title: i18n.language.startsWith('en') ? 'Sea View Historic Mansion' : 'Deniz Manzaralı Tarihi Köşk',
-      subtitle: i18n.language.startsWith('en') ? 'Heybeliada Center' : 'Heybeliada Merkez',
-      island: 'Heybeliada',
-      price: 18500000,
-      date: Date.now(),
-      createdAt: Date.now(),
-      imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'placeholder_community_1',
-      type: 'banner',
-      title: i18n.language.startsWith('en') ? 'AdaPlus Island Community' : 'AdaPlus Adalılar Topluluğu',
-      subtitle: i18n.language.startsWith('en') ? 'Join island discussions and meet your neighbours.' : 'Adadaki komşularınızla fikirlerinizi paylaşın ve sohbet edin.',
-      imageUrl: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&auto=format&fit=crop&q=80'
-    }
-  ];
+  const defaultSlide = {
+    id: 'default_welcome',
+    title: t('common.readyForAdventure'),
+    subtitle: t('common.exploreServices'),
+    imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+  };
 
-  const slidesToRender = heroSlides.length > 0 ? heroSlides : defaultSlides;
+  const slidesToRender = heroSlides.length > 0 ? heroSlides : [defaultSlide];
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
