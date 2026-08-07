@@ -740,8 +740,8 @@ const MOCK_SERVICES = [
             minimumFontScale={0.8}
           >
             {isLoggedIn && user
-              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, Arda\u00A0🌸`
-              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, Arda\u00A0🌸`}
+              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${((user as any)?.fullName || (user as any)?.name || (user as any)?.username || '').trim().split(' ')[0] || (i18n.language.startsWith('en') ? 'Islander' : 'Adalı')}\u00A0🌸`
+              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}\u00A0🌸`}
           </Text>
           {isLoggedIn ? (
             <TouchableOpacity 
