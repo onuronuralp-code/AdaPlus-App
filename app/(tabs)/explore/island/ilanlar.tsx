@@ -78,112 +78,6 @@ const ISLAND_ENUM_MAP: Record<string, Island> = {
 const getIslandEnum = (name: string): Island =>
   ISLAND_ENUM_MAP[name] ?? Island.BUYUKADA;
 
-const MOCK_LISTINGS: ListingDto[] = [
-  {
-    id: 'mock-1',
-    title: 'Büyükada Deniz Manzaralı Müstakil Bahçeli Köşk',
-    description: 'Büyükada Maden mahallesinde, panoramik deniz manzaralı, geniş bahçeli, tarihi dokusu korunmuş müstakil köşk. Yaz kış oturuma uygundur.',
-    price: 18500000,
-    category: ListingCategory.SATILIK,
-    island: Island.BUYUKADA,
-    contactInfo: '0532 123 45 67',
-    imageUrl: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    userName: 'Ahmet Yılmaz',
-  },
-  {
-    id: 'mock-2',
-    title: 'Heybeliada Sezonluk Kiralık 2+1 Yalı Dairesi',
-    description: 'Denize sıfır konumda, eşyalı, kliması ve geniş balkonu bulunan keyifli 2+1 yazlık daire. İskeleye 3 dakika yürüme mesafesinde.',
-    price: 45000,
-    category: ListingCategory.KIRALIK,
-    island: Island.HEYBELIADA,
-    contactInfo: '0533 987 65 43',
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-    userName: 'Zeynep Kaya',
-  },
-  {
-    id: 'mock-3',
-    title: 'Burgazada Elektrikli Scooter / Akülü Bisiklet',
-    description: 'Az kullanılmış, yeni bataryalı, yokuşları rahat tırmanan Volta marka 3 tekerlekli elektrikli araç. Şarj aletiyle birlikte.',
-    price: 32000,
-    category: ListingCategory.TASIT,
-    island: Island.BURGAZADA,
-    contactInfo: '0535 555 44 33',
-    imageUrl: 'https://images.unsplash.com/photo-1597089542047-b9873d82d8ec?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1597089542047-b9873d82d8ec?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
-    userName: 'Caner Demir',
-  },
-  {
-    id: 'mock-4',
-    title: 'Kınalıada Masif Ahşap Bahçe Mobilyası Seti',
-    description: 'Teak ağacından yapılma 6 kişilik bahçe masası ve sandalyeleri. Minderleri sıfır durumdadır, yağmura ve güneşe dayanıklıdır.',
-    price: 14500,
-    category: ListingCategory.ESYA,
-    island: Island.KINALIADA,
-    contactInfo: '0536 111 22 33',
-    imageUrl: 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-    userName: 'Ece Aydın',
-  },
-  {
-    id: 'mock-5',
-    title: 'iPhone 13 128GB Temiz Kutulu Garantili',
-    description: 'Büyükada\'dan temiz kullanılmış, pil sağlığı %88, kutulu ve orijinal şarj kablosuyla teslim edilecektir.',
-    price: 24500,
-    category: ListingCategory.ESYA,
-    island: Island.BUYUKADA,
-    contactInfo: '0537 444 55 66',
-    imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-    userName: 'Kaan Öztürk',
-  },
-  {
-    id: 'mock-6',
-    title: 'Kayıp Sarman Kedi "Pamuk" - Heybeliada Çamlıca',
-    description: 'Heybeliada Çamlıca mevkiinde kaybolan yeşil gözlü, tasmalı sarman kedimiz Pamuk. Görenlerin veya bulanların insaniyet namına araması rica olunur.',
-    price: 0,
-    category: ListingCategory.KAYIP,
-    island: Island.HEYBELIADA,
-    contactInfo: '0538 777 88 99',
-    imageUrl: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
-    userName: 'Elif Serbest',
-  },
-  {
-    id: 'mock-7',
-    title: 'Sahiplendirilecek 3 Aylık Golden Retriever Yavrusu',
-    description: 'Aşıları tam, sağlık karneli, çocuklarla çok iyi anlaşan sevimli dişi yavru köpek ücretsiz sahiplendirilecektir.',
-    price: 0,
-    category: ListingCategory.EVCIL_HAYVAN,
-    island: Island.BURGAZADA,
-    contactInfo: '0539 222 33 44',
-    imageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 60 * 3600 * 1000).toISOString(),
-    userName: 'Murat Arslan',
-  },
-  {
-    id: 'mock-8',
-    title: 'Kınalıada 1+1 Satılık Yazlık Daire',
-    description: 'İskele meydanına 200 metre mesafe, tam eşyalı, masrafsız, hemen taşınmaya uygun kelepir daire.',
-    price: 4200000,
-    category: ListingCategory.SATILIK,
-    island: Island.KINALIADA,
-    contactInfo: '0530 666 77 88',
-    imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
-    images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80'],
-    createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
-    userName: 'Selim Şahin',
-  },
-];
 
 export default function IlanlarScreen() {
   const { t, i18n } = useTranslation();
@@ -308,40 +202,14 @@ export default function IlanlarScreen() {
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      let realData: ListingDto[] = [];
-      try {
-        if (selectedCategory === 'emlak') {
-          const data = await listingApi.fetchListings();
-          realData = data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK);
-        } else {
-          const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
-          realData = await listingApi.fetchListings(backendCat);
-        }
-      } catch (err) {
-        console.log('Backend fetch failed, using mock listings:', err);
-      }
-
-      // Filter mock listings according to selectedCategory
-      let filteredMocks = MOCK_LISTINGS;
       if (selectedCategory === 'emlak') {
-        filteredMocks = MOCK_LISTINGS.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK);
-      } else if (selectedCategory !== 'all') {
+        const data = await listingApi.fetchListings();
+        setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
+      } else {
         const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
-        if (backendCat) {
-          filteredMocks = MOCK_LISTINGS.filter(l => l.category === backendCat);
-        }
+        const data = await listingApi.fetchListings(backendCat);
+        setListings(data);
       }
-
-      // Combine real data and mock data (ensuring no duplicate IDs)
-      const combined = [...realData];
-      const realIds = new Set(realData.map(l => String(l.id)));
-      filteredMocks.forEach(m => {
-        if (!realIds.has(String(m.id))) {
-          combined.push(m);
-        }
-      });
-
-      setListings(combined);
     } catch {
       if (showLoading) Alert.alert(t('errors.connectionError', { defaultValue: 'Bağlantı Hatası' }), t('errors.listingsLoadFailed', { defaultValue: 'İlanlar yüklenemedi. Lütfen tekrar deneyin.' }));
     } finally {
@@ -1034,9 +902,8 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
     addSuffix: true, 
     locale: i18n.language.startsWith('tr') ? tr : enUS 
   });
-  const rawImg = (listing as any).imageUrl || (listing.images && listing.images.length > 0 ? listing.images[0] : null);
-  const resolvedUrl = resolveImageUrl(rawImg);
-  const hasUserImage = !!resolvedUrl && (resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://'));
+  const resolvedUrl = resolveImageUrl(listing.imageUrl);
+  const hasUserImage = listing.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
 
   return (
     <TouchableOpacity
