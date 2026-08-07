@@ -300,14 +300,40 @@ export default function IlanlarScreen() {
   const loadListings = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      if (selectedCategory === 'emlak') {
-        const data = await listingApi.fetchListings();
-        setListings(data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK));
-      } else {
-        const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
-        const data = await listingApi.fetchListings(backendCat);
-        setListings(data);
+      let realData: ListingDto[] = [];
+      try {
+        if (selectedCategory === 'emlak') {
+          const data = await listingApi.fetchListings();
+          realData = data.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK);
+        } else {
+          const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
+          realData = await listingApi.fetchListings(backendCat);
+        }
+      } catch (err) {
+        console.log('Backend fetch failed, using mock listings:', err);
       }
+
+      // Filter mock listings according to selectedCategory
+      let filteredMocks = MOCK_LISTINGS;
+      if (selectedCategory === 'emlak') {
+        filteredMocks = MOCK_LISTINGS.filter(l => l.category === ListingCategory.SATILIK || l.category === ListingCategory.KIRALIK);
+      } else if (selectedCategory !== 'all') {
+        const backendCat = CATEGORY_CONFIG[selectedCategory].backend;
+        if (backendCat) {
+          filteredMocks = MOCK_LISTINGS.filter(l => l.category === backendCat);
+        }
+      }
+
+      // Combine real data and mock data (ensuring no duplicate IDs)
+      const combined = [...realData];
+      const realIds = new Set(realData.map(l => String(l.id)));
+      filteredMocks.forEach(m => {
+        if (!realIds.has(String(m.id))) {
+          combined.push(m);
+        }
+      });
+
+      setListings(combined);
     } catch {
       if (showLoading) Alert.alert(t('errors.connectionError', { defaultValue: 'Bağlantı Hatası' }), t('errors.listingsLoadFailed', { defaultValue: 'İlanlar yüklenemedi. Lütfen tekrar deneyin.' }));
     } finally {
