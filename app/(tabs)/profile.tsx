@@ -923,7 +923,10 @@ export default function ProfileScreen() {
                             </View>
 
                                 {/* Kotalar Kartı */}
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                <TouchableOpacity 
+                                    activeOpacity={0.7}
+                                    onPress={() => setShowQuotaModal(true)}
+                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     {/* İlan Kotası */}
                                     <View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -949,10 +952,13 @@ export default function ProfileScreen() {
                                             {t('profile.remainingQuota', { count: Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` : `Kalan Hakkın: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` })}
                                         </Text>
                                     </View>
-                                </View>
+                                </TouchableOpacity>
 
                                 {/* Davet Edilen Adalılar Kartı */}
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                <TouchableOpacity 
+                                    activeOpacity={0.7}
+                                    onPress={() => setShowInviteQuotaModal(true)}
+                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color={isDark ? "#A78BFA" : "#5B21B6"} />
@@ -975,7 +981,7 @@ export default function ProfileScreen() {
                                     <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
                                         {i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}` : `Kalan Hakkın: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}`}
                                     </Text>
-                                </View>
+                                </TouchableOpacity>
                         </View>
                     </View>
 
@@ -1031,6 +1037,7 @@ export default function ProfileScreen() {
             {/* Invite Modal */}
             <Modal
                 visible={showInviteModal}
+                statusBarTranslucent
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => { setShowInviteModal(false); setInviteEmailError(''); setInviteEmail(''); }}
@@ -1079,6 +1086,7 @@ export default function ProfileScreen() {
             {/* Listing Quota Limit Modal */}
             <Modal
                 visible={showQuotaModal}
+                statusBarTranslucent
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => setShowQuotaModal(false)}
@@ -1115,6 +1123,7 @@ export default function ProfileScreen() {
             {/* Invitation Quota Limit Modal (Dark Purple Theme) */}
             <Modal
                 visible={showInviteQuotaModal}
+                statusBarTranslucent
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => setShowInviteQuotaModal(false)}

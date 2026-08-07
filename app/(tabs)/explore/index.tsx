@@ -1080,7 +1080,7 @@ const MOCK_SERVICES = [
         borderWidth: 1,
         borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
         marginTop: 14,
-        marginBottom: isLargeScreen ? 14 : (isSmallScreen ? 6 : 8),
+        marginBottom: isLargeScreen ? 26 : (isSmallScreen ? 16 : 20),
         gap: isLargeScreen ? 12 : 8
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
@@ -1583,7 +1583,6 @@ const MOCK_SERVICES = [
                 shadowOffset: { width: 0, height: 3 },
                 shadowOpacity: isDark ? 0.2 : 0.1,
                 shadowRadius: 6,
-                elevation: 2,
               })}
             >
               {({ pressed }) => (
