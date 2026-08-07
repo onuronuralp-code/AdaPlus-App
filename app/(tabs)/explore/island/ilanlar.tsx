@@ -479,13 +479,6 @@ export default function IlanlarScreen() {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity
-            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#064E3B' : '#ECFDF5', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDark ? '#047857' : '#A7F3D0' }]}
-            onPress={() => setShowQuotaModal(true)}
-            activeOpacity={0.7}
-          >
-            <IconSymbol name="tag.fill" size={18} color={isDark ? '#34D399' : '#10B981'} />
-          </TouchableOpacity>
-          <TouchableOpacity
             style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
             onPress={() => setIsGridView(!isGridView)}
             activeOpacity={0.7}

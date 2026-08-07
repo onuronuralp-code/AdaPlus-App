@@ -923,11 +923,7 @@ export default function ProfileScreen() {
                             </View>
 
                                 {/* Kotalar Kartı */}
-                                <TouchableOpacity 
-                                    activeOpacity={0.8}
-                                    onPress={() => setShowQuotaModal(true)}
-                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}
-                                >
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     {/* İlan Kotası */}
                                     <View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -953,14 +949,10 @@ export default function ProfileScreen() {
                                             {t('profile.remainingQuota', { count: Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth), defaultValue: i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` : `Kalan Hakkın: ${Math.max(0, LISTING_MONTHLY_LIMIT - listingsThisMonth)}` })}
                                         </Text>
                                     </View>
-                                </TouchableOpacity>
+                                </View>
 
                                 {/* Davet Edilen Adalılar Kartı */}
-                                <TouchableOpacity 
-                                    activeOpacity={0.8}
-                                    onPress={() => setShowInviteQuotaModal(true)}
-                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}
-                                >
+                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color={isDark ? "#A78BFA" : "#5B21B6"} />
@@ -968,8 +960,8 @@ export default function ProfileScreen() {
                                                 {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
                                             </Text>
                                         </View>
-                                        <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#C084FC' : '#5B21B6' }}>
-                                            {(user as any)?.invitedUsersCount || 0}
+                                        <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#C084FC' : '#5B21B6' }}>
+                                            {(user as any)?.invitedUsersCount || 0} / 3
                                         </Text>
                                     </View>
                                     <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderRadius: 3, overflow: 'hidden' }}>
@@ -980,32 +972,9 @@ export default function ProfileScreen() {
                                             borderRadius: 3 
                                         }} />
                                     </View>
-                                    <Text style={{ fontSize: 10, color: isDark ? '#CBD5E1' : '#94A3B8', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
-                                        {i18n.language.startsWith('en') ? 'Target: 3' : 'Hedef: 3'}
+                                    <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
+                                        {i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}` : `Kalan Hakkın: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}`}
                                     </Text>
-                                </TouchableOpacity>
-
-                                {/* Pop-up Göster Test Butonları */}
-                                <View style={{ marginTop: 12, width: '100%', flexDirection: 'row', gap: 8 }}>
-                                    <TouchableOpacity
-                                        activeOpacity={0.8}
-                                        onPress={() => setShowQuotaModal(true)}
-                                        style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderWidth: 1, borderColor: isDark ? '#047857' : '#A7F3D0', alignItems: 'center', justifyContent: 'center' }}
-                                    >
-                                        <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#34D399' : '#10B981', textAlign: 'center' }}>
-                                            {i18n.language.startsWith('en') ? '🏷️ Listing Quota Pop-up' : '🏷️ İlan Kotası Pop-up'}
-                                        </Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        activeOpacity={0.8}
-                                        onPress={() => setShowInviteQuotaModal(true)}
-                                        style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 10, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderWidth: 1, borderColor: isDark ? '#5B21B6' : '#DDD6FE', alignItems: 'center', justifyContent: 'center' }}
-                                    >
-                                        <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#C084FC' : '#5B21B6', textAlign: 'center' }}>
-                                            {i18n.language.startsWith('en') ? '📩 Invite Quota Pop-up' : '📩 Davet Kotası Pop-up'}
-                                        </Text>
-                                    </TouchableOpacity>
                                 </View>
                         </View>
                     </View>

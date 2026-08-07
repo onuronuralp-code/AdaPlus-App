@@ -17,6 +17,7 @@ import { router, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { Island } from '@/services/forumApi';
 import { ServiceCategory, submitProviderApplication } from '@/services/providerApplicationApi';
@@ -64,21 +65,52 @@ const CATEGORY_ENUM_MAP: Record<string, ServiceCategory> = {
 
 export default function HizmetSaglayiciScreen() {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { user } = useAuth();
   const { i18n } = useTranslation();
   const isEn = i18n.language?.startsWith('en');
 
+  const formatPhoneNumber = (input: string) => {
+    let cleaned = input.replace(/\D/g, '');
+    if (cleaned.startsWith('90')) {
+      cleaned = cleaned.slice(2);
+    }
+    if (cleaned.length > 0 && cleaned.startsWith('5')) {
+      cleaned = '0' + cleaned;
+    }
+    cleaned = cleaned.slice(0, 11);
+
+    if (cleaned.length <= 4) {
+      return cleaned;
+    } else if (cleaned.length <= 7) {
+      return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+    } else if (cleaned.length <= 9) {
+      return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+    } else {
+      return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 9)} ${cleaned.slice(9, 11)}`;
+    }
+  };
+
   // Form State
   const [fullName, setFullName] = useState(user?.fullName || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [selectedCategory, setSelectedCategory] = useState<string>('repair');
+  const [phone, setPhone] = useState(formatPhoneNumber(user?.phone || ''));
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['repair']);
   const [selectedIsland, setSelectedIsland] = useState<string>('buyukada');
   const [offeredServices, setOfferedServices] = useState<string>('');
   const [experienceDetails, setExperienceDetails] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+
+  const toggleCategory = (catId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (selectedCategories.includes(catId)) {
+      if (selectedCategories.length === 1) return;
+      setSelectedCategories(prev => prev.filter(c => c !== catId));
+    } else {
+      setSelectedCategories(prev => [...prev, catId]);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!fullName.trim()) {
@@ -89,10 +121,21 @@ export default function HizmetSaglayiciScreen() {
       return;
     }
 
-    if (!phone.trim() || phone.trim().length < 7) {
+    const cleanedPhone = phone.replace(/\D/g, '');
+    if (!cleanedPhone.startsWith('05') || cleanedPhone.length !== 11) {
+      Alert.alert(
+        isEn ? 'Invalid Phone Number' : 'Geçersiz Telefon Numarası',
+        isEn 
+          ? 'Please enter a valid 11-digit mobile phone number starting with 05 (e.g. 0532 123 45 67).' 
+          : 'Lütfen 05 ile başlayan 11 haneli geçerli bir cep telefonu numarası giriniz (Örn: 0532 123 45 67).'
+      );
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
       Alert.alert(
         isEn ? 'Required Field' : 'Gerekli Alan',
-        isEn ? 'Please enter a valid contact phone number.' : 'Lütfen geçerli bir iletişim telefon numarası giriniz.'
+        isEn ? 'Please select at least one service category.' : 'Lütfen en az bir hizmet kategorisi seçiniz.'
       );
       return;
     }
@@ -108,13 +151,24 @@ export default function HizmetSaglayiciScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSubmitting(true);
 
+    const primaryCatEnum = CATEGORY_ENUM_MAP[selectedCategories[0]] ?? ServiceCategory.OTHER;
+    const catLabels = selectedCategories
+      .map(cId => {
+        const item = SERVICE_CATEGORIES.find(sc => sc.id === cId);
+        return isEn ? item?.labelEn : item?.labelTr;
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    const fullOfferedServices = `[${isEn ? 'Categories' : 'Kategoriler'}: ${catLabels}] ${offeredServices.trim()}`;
+
     try {
       await submitProviderApplication({
         fullName: fullName.trim(),
         phone: phone.trim(),
         island: ISLAND_ENUM_MAP[selectedIsland] ?? Island.BUYUKADA,
-        category: CATEGORY_ENUM_MAP[selectedCategory] ?? ServiceCategory.OTHER,
-        offeredServices: offeredServices.trim(),
+        category: primaryCatEnum,
+        offeredServices: fullOfferedServices,
         experienceNotes: experienceDetails.trim() || undefined,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -134,19 +188,19 @@ export default function HizmetSaglayiciScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? '#0F172A' : '#F8FAFC' }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#F8FAFC' }}>
       <Stack.Screen options={{ headerShown: false }} />
       {/* Top Header */}
       <View style={{
         paddingTop: insets.top + 8,
         paddingBottom: 14,
         paddingHorizontal: 16,
-        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+        backgroundColor: isDark ? '#000000' : '#FFFFFF',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottomWidth: 1,
-        borderBottomColor: isDark ? '#334155' : '#E2E8F0',
+        borderBottomColor: isDark ? '#1C1C1E' : '#E2E8F0',
         zIndex: 10
       }}>
         <TouchableOpacity
@@ -155,22 +209,22 @@ export default function HizmetSaglayiciScreen() {
             router.back();
           }}
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 16,
-            backgroundColor: isDark ? '#334155' : '#F1F5F9',
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9',
             alignItems: 'center',
             justifyContent: 'center'
           }}
         >
-          <IconSymbol name="chevron.left" size={25} color={isDark ? '#F8FAFC' : '#0F172A'} />
+          <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
         </TouchableOpacity>
 
-        <Text style={{ fontSize: 17, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', textAlign: 'center' }}>
-          {isEn ? 'Service Provider Application' : 'Yerel Hizmet Sağlayıcı Ol'}
+        <Text style={{ fontSize: 17, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center' }}>
+          {isEn ? 'Join Service Network' : 'Hizmet Ağına Katıl'}
         </Text>
 
-        <View style={{ width: 52 }} />
+        <View style={{ width: 44 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -193,13 +247,34 @@ export default function HizmetSaglayiciScreen() {
             overflow: 'hidden'
           }}>
             <View style={{ position: 'absolute', right: -25, top: -25, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.12)' }} />
+            
+            {/* Floating Vector Background Icons */}
+            <View style={{ position: 'absolute', right: 15, top: 12, opacity: 0.22, transform: [{ rotate: '15deg' }] }}>
+              <IconSymbol name="wrench.and.screwdriver.fill" size={30} color="#FFFFFF" />
+            </View>
+
+            <View style={{ position: 'absolute', right: 85, top: 10, opacity: 0.18, transform: [{ rotate: '-20deg' }] }}>
+              <IconSymbol name="scissors" size={24} color="#FFFFFF" />
+            </View>
+
+            <View style={{ position: 'absolute', right: 12, bottom: 12, opacity: 0.22, transform: [{ rotate: '35deg' }] }}>
+              <IconSymbol name="paintbrush.fill" size={28} color="#FFFFFF" />
+            </View>
+
+            <View style={{ position: 'absolute', right: 80, bottom: 10, opacity: 0.20, transform: [{ rotate: '-12deg' }] }}>
+              <IconSymbol name="key.fill" size={26} color="#FFFFFF" />
+            </View>
+
+            <View style={{ position: 'absolute', right: 140, bottom: 15, opacity: 0.18, transform: [{ rotate: '20deg' }] }}>
+              <IconSymbol name="leaf.fill" size={24} color="#FFFFFF" />
+            </View>
             <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 }}>
               <IconSymbol name="briefcase.fill" size={12} color="#FFF" />
               <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
-                {isEn ? 'LOCAL PROVIDER NETWORK' : 'YEREL HİZMET AĞI'}
+                {isEn ? 'LOCAL SERVICE NETWORK' : 'YEREL HİZMET AĞI'}
               </Text>
             </View>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: '#FFF', marginBottom: 4 }}>
+            <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#FFF', marginBottom: 4 }} numberOfLines={1} adjustsFontSizeToFit>
               {isEn ? 'Share Your Expertise in Islands' : 'Uzmanlığını Adalı Komşularınla Paylaş'}
             </Text>
             <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 18 }}>
@@ -211,69 +286,70 @@ export default function HizmetSaglayiciScreen() {
 
           {/* Form Card */}
           <View style={{
-            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+            backgroundColor: isDark ? '#121212' : '#FFFFFF',
             borderRadius: 20,
             padding: 18,
             borderWidth: 1,
-            borderColor: isDark ? '#334155' : '#E2E8F0',
+            borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
             gap: 16
           }}>
             {/* 1. Ad Soyad */}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#334155', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 6 }}>
                 {isEn ? 'Full Name' : 'Ad Soyad'} <Text style={{ color: '#EF4444' }}>*</Text>
               </Text>
               <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                backgroundColor: isDark ? '#1C1C1E' : '#F8FAFC',
                 borderWidth: 1,
-                borderColor: isDark ? '#334155' : '#CBD5E1',
+                borderColor: isDark ? '#2C2C2E' : '#CBD5E1',
                 borderRadius: 12,
                 paddingHorizontal: 12,
                 height: 48
               }}>
-                <IconSymbol name="person.fill" size={18} color={isDark ? '#94A3B8' : '#64748B'} />
+                <IconSymbol name="person.fill" size={18} color={isDark ? '#71717A' : '#64748B'} />
                 <TextInput
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder={isEn ? 'e.g. Ahmet Yılmaz' : 'Örn: Ahmet Yılmaz'}
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                  style={{ flex: 1, marginLeft: 10, fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A' }}
+                  placeholderTextColor={isDark ? '#71717A' : '#94A3B8'}
+                  style={{ flex: 1, marginLeft: 10, fontSize: 14, color: isDark ? '#FFFFFF' : '#0F172A' }}
                 />
               </View>
             </View>
 
             {/* 2. İletişim Numarası */}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#334155', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 6 }}>
                 {isEn ? 'Contact Phone Number' : 'İletişim Numarası'} <Text style={{ color: '#EF4444' }}>*</Text>
               </Text>
               <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                backgroundColor: isDark ? '#1C1C1E' : '#F8FAFC',
                 borderWidth: 1,
-                borderColor: isDark ? '#334155' : '#CBD5E1',
+                borderColor: isDark ? '#2C2C2E' : '#CBD5E1',
                 borderRadius: 12,
                 paddingHorizontal: 12,
                 height: 48
               }}>
-                <IconSymbol name="phone.fill" size={18} color={isDark ? '#94A3B8' : '#64748B'} />
+                <IconSymbol name="phone.fill" size={18} color={isDark ? '#71717A' : '#64748B'} />
                 <TextInput
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={(val) => setPhone(formatPhoneNumber(val))}
                   keyboardType="phone-pad"
-                  placeholder={isEn ? '05XX XXX XX XX' : '05XX XXX XX XX'}
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                  style={{ flex: 1, marginLeft: 10, fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A' }}
+                  maxLength={14}
+                  placeholder="05XX XXX XX XX"
+                  placeholderTextColor={isDark ? '#71717A' : '#94A3B8'}
+                  style={{ flex: 1, marginLeft: 10, fontSize: 14, color: isDark ? '#FFFFFF' : '#0F172A' }}
                 />
               </View>
             </View>
 
             {/* 3. Lokasyon / Ada Seçimi */}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#334155', marginBottom: 8 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 8 }}>
                 {isEn ? 'Service Location / Island' : 'Hizmet Verilen Lokasyon (Ada)'} <Text style={{ color: '#EF4444' }}>*</Text>
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -291,12 +367,12 @@ export default function HizmetSaglayiciScreen() {
                         paddingHorizontal: 14,
                         paddingVertical: 8,
                         borderRadius: 20,
-                        backgroundColor: isSelected ? '#2563EB' : (isDark ? '#0F172A' : '#F1F5F9'),
+                        backgroundColor: isSelected ? '#2563EB' : (isDark ? '#1C1C1E' : '#F1F5F9'),
                         borderWidth: 1,
-                        borderColor: isSelected ? '#2563EB' : (isDark ? '#334155' : '#E2E8F0')
+                        borderColor: isSelected ? '#2563EB' : (isDark ? '#2C2C2E' : '#E2E8F0')
                       }}
                     >
-                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: isSelected ? '#FFF' : (isDark ? '#CBD5E1' : '#475569') }}>
+                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: isSelected ? '#FFF' : (isDark ? '#E2E8F0' : '#475569') }}>
                         {isEn ? island.nameEn : island.nameTr}
                       </Text>
                     </TouchableOpacity>
@@ -307,20 +383,17 @@ export default function HizmetSaglayiciScreen() {
 
             {/* 4. Hizmet Kategorisi */}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#334155', marginBottom: 8 }}>
-                {isEn ? 'Service Category' : 'Hizmet Kategorisi'} <Text style={{ color: '#EF4444' }}>*</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 8 }}>
+                {isEn ? 'Service Categories (Multi-select)' : 'Hizmet Kategorisi (Birden fazla seçebilirsiniz)'} <Text style={{ color: '#EF4444' }}>*</Text>
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {SERVICE_CATEGORIES.map(cat => {
-                  const isSelected = selectedCategory === cat.id;
+                  const isSelected = selectedCategories.includes(cat.id);
                   return (
                     <TouchableOpacity
                       key={cat.id}
                       activeOpacity={0.8}
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setSelectedCategory(cat.id);
-                      }}
+                      onPress={() => toggleCategory(cat.id)}
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -328,15 +401,18 @@ export default function HizmetSaglayiciScreen() {
                         paddingHorizontal: 12,
                         paddingVertical: 8,
                         borderRadius: 14,
-                        backgroundColor: isSelected ? (isDark ? '#312E81' : '#EEF2FF') : (isDark ? '#0F172A' : '#F8FAFC'),
+                        backgroundColor: isSelected ? (isDark ? '#1E3A8A' : '#EEF2FF') : (isDark ? '#1C1C1E' : '#F8FAFC'),
                         borderWidth: 1.5,
-                        borderColor: isSelected ? '#4F46E5' : (isDark ? '#334155' : '#E2E8F0')
+                        borderColor: isSelected ? '#3B82F6' : (isDark ? '#2C2C2E' : '#E2E8F0')
                       }}
                     >
-                      <IconSymbol name={cat.icon as any} size={15} color={isSelected ? '#4F46E5' : (isDark ? '#94A3B8' : '#64748B')} />
-                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: isSelected ? '#4F46E5' : (isDark ? '#CBD5E1' : '#475569') }}>
+                      <IconSymbol name={cat.icon as any} size={15} color={isSelected ? (isDark ? '#60A5FA' : '#4F46E5') : (isDark ? '#71717A' : '#64748B')} />
+                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: isSelected ? (isDark ? '#60A5FA' : '#4F46E5') : (isDark ? '#E2E8F0' : '#475569') }}>
                         {isEn ? cat.labelEn : cat.labelTr}
                       </Text>
+                      {isSelected && (
+                        <IconSymbol name="checkmark.circle.fill" size={14} color={isDark ? '#60A5FA' : '#4F46E5'} />
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -345,13 +421,13 @@ export default function HizmetSaglayiciScreen() {
 
             {/* 5. Sunduğu Hizmetler (Açıklama) */}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#334155', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 6 }}>
                 {isEn ? 'Offered Services & Details' : 'Sunduğun Hizmetler ve Detaylar'} <Text style={{ color: '#EF4444' }}>*</Text>
               </Text>
               <View style={{
-                backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                backgroundColor: isDark ? '#1C1C1E' : '#F8FAFC',
                 borderWidth: 1,
-                borderColor: isDark ? '#334155' : '#CBD5E1',
+                borderColor: isDark ? '#2C2C2E' : '#CBD5E1',
                 borderRadius: 12,
                 padding: 12,
                 minHeight: 80
@@ -364,21 +440,21 @@ export default function HizmetSaglayiciScreen() {
                   placeholder={isEn
                     ? 'Describe what services you offer (e.g. Electrician, Plumbing, House painting, Math tutoring...)'
                     : 'Sunduğun hizmetleri açıklayın (Örn: Elektrik tesisatı, Boya-Badana, Musluk tamiri, Ev temizliği...)'}
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                  style={{ fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A', textAlignVertical: 'top' }}
+                  placeholderTextColor={isDark ? '#71717A' : '#94A3B8'}
+                  style={{ fontSize: 14, color: isDark ? '#FFFFFF' : '#0F172A', textAlignVertical: 'top' }}
                 />
               </View>
             </View>
 
             {/* 6. Deneyim & Ek Notlar */}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#CBD5E1' : '#334155', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 6 }}>
                 {isEn ? 'Experience & Additional Notes (Optional)' : 'Deneyim ve Ek Notlar (İsteğe Bağlı)'}
               </Text>
               <View style={{
-                backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                backgroundColor: isDark ? '#1C1C1E' : '#F8FAFC',
                 borderWidth: 1,
-                borderColor: isDark ? '#334155' : '#CBD5E1',
+                borderColor: isDark ? '#2C2C2E' : '#CBD5E1',
                 borderRadius: 12,
                 padding: 12,
                 minHeight: 65
@@ -391,8 +467,8 @@ export default function HizmetSaglayiciScreen() {
                   placeholder={isEn
                     ? 'e.g. 10 years experience on Burgazada, reachable 24/7'
                     : 'Örn: 10 yıllık Büyükada esnafıyım, haftanın 7 günü ulaşılabilirim.'}
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                  style={{ fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A', textAlignVertical: 'top' }}
+                  placeholderTextColor={isDark ? '#71717A' : '#94A3B8'}
+                  style={{ fontSize: 14, color: isDark ? '#FFFFFF' : '#0F172A', textAlignVertical: 'top' }}
                 />
               </View>
             </View>
@@ -439,7 +515,7 @@ export default function HizmetSaglayiciScreen() {
           <View style={{
             width: '100%',
             maxWidth: 340,
-            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+            backgroundColor: isDark ? '#18181B' : '#FFFFFF',
             borderRadius: 24,
             padding: 24,
             alignItems: 'center',
@@ -462,13 +538,13 @@ export default function HizmetSaglayiciScreen() {
             </View>
 
             <Text style={{ fontSize: 19, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A', textAlign: 'center', marginBottom: 8 }}>
-              {isEn ? 'Application Received!' : 'Başvurunuz Alındı!'}
+              {isEn ? 'Application Under Review' : 'Başvurunuz İncelemededir'}
             </Text>
 
             <Text style={{ fontSize: 13.5, color: isDark ? '#CBD5E1' : '#64748B', textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
               {isEn
-                ? 'Thank you for joining the AdaPlus Local Provider Network. Our team will review your application and contact you shortly.'
-                : 'AdaPlus Yerel Hizmet Ağı başvurunuz tarafımıza ulaşmıştır. Ekibimiz en kısa sürede sizinle iletişime geçecektir.'}
+                ? 'Thank you for your application. Our team is currently reviewing your details and will contact you shortly.'
+                : 'AdaPlus Yerel Hizmet Ağı başvurunuz alınmıştır ve şu an inceleme aşamasındadır. Ekibimiz en kısa sürede sizinle iletişime geçecektir.'}
             </Text>
 
             <TouchableOpacity

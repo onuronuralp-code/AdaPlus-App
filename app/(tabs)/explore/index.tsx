@@ -306,6 +306,54 @@ export default function MainMenuScreen() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+const MOCK_SERVICES = [
+  { id: 1, title: 'Büyükada Elektrik & Tesisat Uzmanı', categoryTag: 'TADİLAT & TAMİRAT', description: '7/24 Acil elektrik arıza, su tesisatı tamiri ve ev yenileme usta hizmeti.' },
+  { id: 2, title: 'Heybeliada Boya & Badana Dekoratörü', categoryTag: 'BOYA & BADANA', description: 'İç ve dış cephe boya, tavan badana, nem yalıtımı ve duvar kaplama.' },
+  { id: 3, title: 'Kınalıada Acil Çilingir & Kilit Servisi', categoryTag: 'ÇİLİNGİR & KİLİT', description: 'Kapıda kalma durumlarında 15 dakikada hızlı çilingir ve kilit değişimi.' },
+  { id: 4, title: 'Burgazada Bahçe Bakım & Peyzaj Ustası', categoryTag: 'BAHÇE & PEYZAJ', description: 'Ağaç budama, çim biçme, otomatik sulama ve sezonluk bahçe bakımı.' },
+  { id: 5, title: 'Büyükada Mobil Kuaför & Güzellik', categoryTag: 'KUAFÖR & BAKIM', description: 'Gelin saçı, kişisel bakım, fön, boya ve adada evde kuaförlük.' },
+  { id: 6, title: 'Heybeliada Fiber İnternet & Uydu Servisi', categoryTag: 'İNTERNET & UYDU', description: 'Acil internet arıza giderme, Wi-Fi güçlendirme ve TV uydu ayarı.' },
+  { id: 7, title: 'Kınalıada Özel İngilizce & Matematik Dersi', categoryTag: 'ÖZEL DERS', description: 'İlkokul, ortaokul ve lise öğrencilerine birebir sınav hazırlık dersleri.' },
+  { id: 8, title: 'Büyükada Evcil Hayvan Oteli & Gezdirme', categoryTag: 'PET CARE', description: 'Köpek gezdirme, kedi bakımı ve adada güvenli evcil hayvan konaklaması.' },
+  { id: 9, title: 'Burgazada Nakliye & Eşya Taşıma', categoryTag: 'NAKLİYE & TAŞIMA', description: 'Ada içi eşya taşıma, moloz çıkarma, mobilya nakliyesi ve hamaliye.' },
+  { id: 10, title: 'Büyükada Detaylı Ev & Villa Temizliği', categoryTag: 'EV TEMİZLİĞİ', description: 'İnşaat sonrası temizlik, villa ve yazlık sezon açılış temizlik hizmeti.' },
+  { id: 11, title: 'Heybeliada Kombi & Şofben Arıza Tamiri', categoryTag: 'TADİLAT & TAMİRAT', description: 'Sıcak su arızası, şofben bakımı ve kat kaloriferi arıza servisi.' },
+  { id: 12, title: 'Kınalıada Marangoz & Mobilya Montajı', categoryTag: 'TADİLAT & TAMİRAT', description: 'Özel ahşap mobilya imalatı, kapı tamiri ve dolap montaj ustası.' },
+  { id: 13, title: 'Büyükada İskele & Çatı İzolasyon Ustası', categoryTag: 'TADİLAT & TAMİRAT', description: 'Çatı akar tamiri, ahşap kiremit yenileme ve su yalıtım servisi.' },
+  { id: 14, title: 'Burgazada Bisiklet Tamir & Bakım Servisi', categoryTag: 'DİĞER HİZMETLER', description: 'Elektrikli ve klasik bisiklet zincir, fren, lastik acil adada tamir servisi.' },
+  { id: 15, title: 'Heybeliada Terzi & Özel Dikiş Tadilatı', categoryTag: 'DİĞER HİZMETLER', description: 'Kıyafet daraltma, paça boyu, fermuar değişimi ve perde dikiş hizmeti.' },
+  { id: 16, title: 'Kınalıada Cam & Çerçeve Montaj Servisi', categoryTag: 'TADİLAT & TAMİRAT', description: 'Kırık cam değişimi, PVC pencere fitili ve sineklik imalat servisi.' },
+  { id: 17, title: 'Büyükada Özel Yüzme & Deniz Eğitmeni', categoryTag: 'ÖZEL DERS', description: 'Çocuklar ve yetişkinler için birebir güvenli deniz ve yüzme dersleri.' },
+  { id: 18, title: 'Burgazada Su Deposu Temizlik & İlaçlama', categoryTag: 'EV TEMİZLİĞİ', description: 'Bina ve villa su depolarının dezenfeksiyonu ve haşere ilaçlaması.' },
+  { id: 19, title: 'Heybeliada Akü & Güneş Paneli Tamiri', categoryTag: 'İNTERNET & TEKNOLOJİ', description: 'Güneş paneli kurulumu, akü şarj ve yenilenebilir enerji arıza çözümü.' },
+  { id: 20, title: 'Kınalıada Sezonluk Bahçe Düzenleme Servisi', categoryTag: 'BAHÇE & PEYZAJ', description: 'Yazlık bahçeleri sezona hazırlama, gübreleme ve peyzaj mimarlığı.' },
+];
+
+  const [bannerSlideIndex, setBannerSlideIndex] = useState(0);
+  const [mockServiceIndex, setMockServiceIndex] = useState<number | null>(null);
+  const [selectedQuickServiceLabel, setSelectedQuickServiceLabel] = useState<string | null>(null);
+  const bannerScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const getMockServiceIndexForCategory = (label: string) => {
+    const str = (label || '').toLowerCase();
+    if (str.includes('internet') || str.includes('i̇nternet') || str.includes('uydu')) {
+      return 5; // Heybeliada Fiber İnternet & Uydu Servisi
+    }
+    if (str.includes('kuaför') || str.includes('kuafor') || str.includes('bakım') || str.includes('bakim') || str.includes('beauty')) {
+      return 4; // Büyükada Mobil Kuaför & Güzellik
+    }
+    if (str.includes('boya') || str.includes('painting')) {
+      return 1; // Heybeliada Boya & Badana Dekoratörü
+    }
+    if (str.includes('çilingir') || str.includes('cilingir') || str.includes('kilit') || str.includes('locksmith')) {
+      return 2; // Kınalıada Acil Çilingir & Kilit Servisi
+    }
+    if (str.includes('bahçıvan') || str.includes('bahcivan') || str.includes('bahçe') || str.includes('bahce') || str.includes('gardener')) {
+      return 3; // Burgazada Bahçe Bakım & Peyzaj Ustası
+    }
+    return 0; // Büyükada Elektrik & Tesisat Uzmanı (Tadilat & Tamirat)
+  };
+
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [showSurvey, setShowSurvey] = useState(false);
   const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
@@ -772,24 +820,32 @@ export default function MainMenuScreen() {
                 }}
               >
                 <IconSymbol name="megaphone.fill" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
-                {/* Kırmızı-Beyaz Bildirim Rozet Sayacı */}
-                <View style={{
-                  position: 'absolute',
-                  top: -2,
-                  right: -2,
-                  backgroundColor: '#EF4444',
-                  minWidth: 18,
-                  height: 18,
-                  borderRadius: 9,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 10,
-                  borderWidth: 2,
-                  borderColor: '#FFFFFF',
-                  paddingHorizontal: 3
-                }}>
-                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>1</Text>
-                </View>
+                {/* Dinamik Okunmamış Bildirim Rozeti (Placeholder Kaldırıldı) */}
+                {(() => {
+                  const unreadCount = notifications.filter(n => !n.read).length;
+                  if (unreadCount <= 0) return null;
+                  return (
+                    <View style={{
+                      position: 'absolute',
+                      top: -2,
+                      right: -2,
+                      backgroundColor: '#EF4444',
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 10,
+                      borderWidth: 2,
+                      borderColor: isDark ? '#1E293B' : '#FFFFFF',
+                      paddingHorizontal: 3
+                    }}>
+                      <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
+                        {unreadCount}
+                      </Text>
+                    </View>
+                  );
+                })()}
               </Pressable>
             </WalkthroughableView>
           </CopilotStep>
@@ -1054,7 +1110,7 @@ export default function MainMenuScreen() {
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: 43 })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1082,7 +1138,7 @@ export default function MainMenuScreen() {
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
                 <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: 27 })}</Text>
+                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1114,11 +1170,12 @@ export default function MainMenuScreen() {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
-                  if (!isLoggedIn) {
-                    setShowLoginPrompt(true);
-                  } else {
-                    router.push({ pathname: '/(tabs)/explore/island/paket-servis', params: { islandId: selectedIsland } });
-                  }
+                  Alert.alert(
+                    i18n.language.startsWith('en') ? 'Delivery Service Coming Soon' : 'Paket Servis Hizmeti Çok Yakında',
+                    i18n.language.startsWith('en')
+                      ? 'Our island delivery service is currently under preparation and will be active very soon. Thank you for your patience!'
+                      : 'Adalar için paket servis hizmetimiz şu an hazırlık aşamasında olup çok yakında aktif olacaktır. İlginiz için teşekkür ederiz!'
+                  );
                 }}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                 style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
@@ -1156,13 +1213,107 @@ export default function MainMenuScreen() {
 
       {/* Page 2: Banner Area & Lokal Servisler (Snap Page 2) */}
       <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 16 }}>
+        {/* Centered Island Dropdown Text Selector above Banner */}
+        <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 6, zIndex: 100 }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowIslandPicker(!showIslandPicker);
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+            }}
+          >
+            <IconSymbol name="mappin.and.ellipse" size={17} color="#3B82F6" />
+            <Text style={{ fontSize: 17, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', letterSpacing: -0.3 }}>
+              {selectedIsland}
+            </Text>
+            <IconSymbol name={showIslandPicker ? "chevron.up" : "chevron.down"} size={14} color={isDark ? '#94A3B8' : '#64748B'} />
+          </TouchableOpacity>
+
+          {/* Inline Dropdown Menu */}
+          {showIslandPicker && (
+            <View 
+              style={{
+                position: 'absolute',
+                top: 38,
+                minWidth: 160,
+                backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                borderRadius: 14,
+                padding: 6,
+                borderWidth: 1,
+                borderColor: isDark ? '#334155' : '#E2E8F0',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.15,
+                shadowRadius: 10,
+                elevation: 12,
+                zIndex: 999,
+              }}
+            >
+              {['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'].map((islandName) => {
+                const isSelected = selectedIsland === islandName;
+                return (
+                  <TouchableOpacity
+                    key={islandName}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setSelectedIsland(islandName);
+                      setShowIslandPicker(false);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingVertical: 10,
+                      paddingHorizontal: 14,
+                      borderRadius: 10,
+                      marginBottom: 2,
+                      backgroundColor: isSelected ? (isDark ? '#1E3A8A' : '#EFF6FF') : 'transparent',
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, fontWeight: isSelected ? '800' : '600', color: isSelected ? '#3B82F6' : (isDark ? '#F8FAFC' : '#1E293B') }}>
+                      {islandName}
+                    </Text>
+                    {isSelected && <IconSymbol name="checkmark" size={15} color="#3B82F6" />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
         {/* Top Banner Area (Fills upper space completely) */}
-        <View style={{ paddingTop: 16, paddingHorizontal: 12, flex: 1, marginBottom: 14 }}>
+        <Animated.View style={{ paddingTop: 6, paddingHorizontal: 12, flex: 1, marginBottom: 14, transform: [{ scale: bannerScaleAnim }] }}>
           {(() => {
-            const bannerTag = serviceBanner?.tag || (i18n.language.startsWith('en') ? '✨ LOCAL NETWORK' : '✨ YEREL HİZMET AĞI');
-            const bannerHeader = serviceBanner?.header || (i18n.language.startsWith('en') ? 'Are You a Local Service Provider?' : 'Adada Hizmet mi Veriyorsun?');
-            const bannerSubtitle = serviceBanner?.subtitle || (i18n.language.startsWith('en') ? 'List your business on AdaPlus and reach islanders directly.' : 'Uzmanlığını adalı komşularınla paylaş, hizmetini hemen öne çıkar.');
-            const bannerActionLabel = serviceBanner?.actionLabel || (i18n.language.startsWith('en') ? 'Join Provider Network' : 'Hizmet Sağlayıcı Ol');
+            const dynamicSlide = (() => {
+              if (mockServiceIndex !== null) {
+                const mock = MOCK_SERVICES[mockServiceIndex];
+                return {
+                  tag: `✨ ${mock.categoryTag}`,
+                  header: mock.title,
+                  subtitle: mock.description,
+                  actionLabel: i18n.language.startsWith('en') ? 'Join Service Network' : 'Hizmet Ağına Katıl',
+                };
+              }
+              return {
+                tag: serviceBanner?.tag || (i18n.language.startsWith('en') ? '✨ LOCAL NETWORK' : '✨ YEREL HİZMET AĞI'),
+                header: serviceBanner?.header || (i18n.language.startsWith('en') ? 'Are You a Local Service Provider?' : 'Adada Hizmet mi Veriyorsun?'),
+                subtitle: serviceBanner?.subtitle || (i18n.language.startsWith('en') ? 'List your business on AdaPlus and reach islanders directly.' : 'Uzmanlığını adalı komşularınla paylaş, hizmetini hemen öne çıkar.'),
+                actionLabel: serviceBanner?.actionLabel || (i18n.language.startsWith('en') ? 'Join Service Network' : 'Hizmet Ağına Katıl'),
+              };
+            })();
+
+            const bannerTag = dynamicSlide.tag;
+            const bannerHeader = dynamicSlide.header;
+            const bannerSubtitle = dynamicSlide.subtitle;
+            const bannerActionLabel = dynamicSlide.actionLabel;
             const resolvedBannerImg = serviceBanner?.imageUrl ? resolveImageUrl(serviceBanner.imageUrl) : null;
 
             const handleBannerPress = () => {
@@ -1176,12 +1327,94 @@ export default function MainMenuScreen() {
             const content = (
               <View style={{ flex: 1, padding: isLargeScreen ? 24 : 20, justifyContent: 'space-between', zIndex: 5 }}>
                 {!resolvedBannerImg && (
-                  <>
-                    {/* Glowing Mesh Circles & Glass Accents */}
-                    <View style={{ position: 'absolute', right: -35, top: -35, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
-                    <View style={{ position: 'absolute', right: 25, bottom: -45, width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
-                    <View style={{ position: 'absolute', left: -25, top: 40, width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
-                  </>
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: 24, pointerEvents: 'none' }}>
+                    {/* Background Mesh Orbs */}
+                    <View style={{ position: 'absolute', right: -30, top: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
+                    <View style={{ position: 'absolute', right: 40, bottom: -40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
+
+                    {/* Floating Decorative Vector Icons Pattern (Strictly using only the 6 Quick Access Service Icons) */}
+                    {/* 1. Tadilat & Tamirat (Wrench) - Top Right */}
+                    <View style={{ position: 'absolute', right: 18, top: 12, opacity: 0.22, transform: [{ rotate: '15deg' }] }}>
+                      <IconSymbol name="wrench.and.screwdriver.fill" size={38} color="#FFFFFF" />
+                    </View>
+
+                    {/* 2. Kuaför & Bakım (Scissors) - Top Center */}
+                    <View style={{ position: 'absolute', right: 130, top: 14, opacity: 0.20, transform: [{ rotate: '-25deg' }] }}>
+                      <IconSymbol name="scissors" size={28} color="#FFFFFF" />
+                    </View>
+
+                    {/* 3. Boya (Paintbrush) - Upper Right */}
+                    <View style={{ position: 'absolute', right: 15, top: 85, opacity: 0.22, transform: [{ rotate: '40deg' }] }}>
+                      <IconSymbol name="paintbrush.fill" size={34} color="#FFFFFF" />
+                    </View>
+
+                    {/* 4. İnternet (Globe) - Upper Left */}
+                    <View style={{ position: 'absolute', left: 20, top: 80, opacity: 0.18, transform: [{ rotate: '-10deg' }] }}>
+                      <IconSymbol name="globe" size={30} color="#FFFFFF" />
+                    </View>
+
+                    {/* 5. Çilingir (Key) - Center Right */}
+                    <View style={{ position: 'absolute', right: 90, top: 135, opacity: 0.20, transform: [{ rotate: '-30deg' }] }}>
+                      <IconSymbol name="key.fill" size={32} color="#FFFFFF" />
+                    </View>
+
+                    {/* 6. Bahçıvan (Leaf) - Center Left */}
+                    <View style={{ position: 'absolute', left: 25, top: 140, opacity: 0.20, transform: [{ rotate: '25deg' }] }}>
+                      <IconSymbol name="leaf.fill" size={32} color="#FFFFFF" />
+                    </View>
+
+                    {/* 1b. Tadilat & Tamirat (Wrench) - Center Canvas */}
+                    <View style={{ position: 'absolute', left: 135, top: 145, opacity: 0.18, transform: [{ rotate: '-15deg' }] }}>
+                      <IconSymbol name="wrench.and.screwdriver.fill" size={30} color="#FFFFFF" />
+                    </View>
+
+                    {/* 2b. Kuaför & Bakım (Scissors) - Center Right Outer */}
+                    <View style={{ position: 'absolute', right: 18, top: 160, opacity: 0.18, transform: [{ rotate: '20deg' }] }}>
+                      <IconSymbol name="scissors" size={30} color="#FFFFFF" />
+                    </View>
+
+                    {/* 3b. Boya (Paintbrush) - Lower Middle Left */}
+                    <View style={{ position: 'absolute', left: 35, top: 200, opacity: 0.18, transform: [{ rotate: '-35deg' }] }}>
+                      <IconSymbol name="paintbrush.fill" size={30} color="#FFFFFF" />
+                    </View>
+
+                    {/* 4b. İnternet (Globe) - Lower Middle Right */}
+                    <View style={{ position: 'absolute', right: 125, top: 200, opacity: 0.20, transform: [{ rotate: '15deg' }] }}>
+                      <IconSymbol name="globe" size={28} color="#FFFFFF" />
+                    </View>
+
+                    {/* Dead-Center Middle Gap Fillers */}
+                    {/* 2c. Kuaför & Bakım (Scissors) - Dead Center */}
+                    <View style={{ position: 'absolute', left: 140, top: 245, opacity: 0.20, transform: [{ rotate: '15deg' }] }}>
+                      <IconSymbol name="scissors" size={28} color="#FFFFFF" />
+                    </View>
+
+                    {/* 3c. Boya (Paintbrush) - Center Right Middle */}
+                    <View style={{ position: 'absolute', right: 40, top: 265, opacity: 0.22, transform: [{ rotate: '-30deg' }] }}>
+                      <IconSymbol name="paintbrush.fill" size={32} color="#FFFFFF" />
+                    </View>
+
+
+                    {/* 5c. Çilingir (Key) - Lower Middle Inner */}
+                    <View style={{ position: 'absolute', right: 140, top: 310, opacity: 0.20, transform: [{ rotate: '-15deg' }] }}>
+                      <IconSymbol name="key.fill" size={30} color="#FFFFFF" />
+                    </View>
+
+                    {/* 6c. Bahçıvan (Leaf) - Bottom Center */}
+                    <View style={{ position: 'absolute', left: 130, bottom: 18, opacity: 0.20, transform: [{ rotate: '-10deg' }] }}>
+                      <IconSymbol name="leaf.fill" size={30} color="#FFFFFF" />
+                    </View>
+
+                    {/* 3d. Boya (Paintbrush) - Bottom Right */}
+                    <View style={{ position: 'absolute', right: 18, bottom: 12, opacity: 0.22, transform: [{ rotate: '30deg' }] }}>
+                      <IconSymbol name="paintbrush.fill" size={34} color="#FFFFFF" />
+                    </View>
+
+                    {/* 4c. İnternet (Globe) - Bottom Left (Replacing duplicate wrench) */}
+                    <View style={{ position: 'absolute', left: 18, bottom: 15, opacity: 0.22, transform: [{ rotate: '15deg' }] }}>
+                      <IconSymbol name="globe" size={32} color="#FFFFFF" />
+                    </View>
+                  </View>
                 )}
 
                 <View style={{ zIndex: 10 }}>
@@ -1300,7 +1533,7 @@ export default function MainMenuScreen() {
               </LinearGradient>
             );
           })()}
-        </View>
+        </Animated.View>
 
         {/* Lokal Servisler Title & Grid */}
         <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
@@ -1317,7 +1550,7 @@ export default function MainMenuScreen() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 14 }}>
           {[
-            { iconSymbol: 'wrench.and.screwdriver.fill', label: i18n.language.startsWith('en') ? 'Plumbing' : 'Tesisat', color: '#2563EB', bg: isDark ? '#1E3A8A30' : '#EFF6FF', border: '#3B82F650' },
+            { iconSymbol: 'wrench.and.screwdriver.fill', label: i18n.language.startsWith('en') ? 'Renovation & Repair' : 'Tadilat & Tamirat', color: '#2563EB', bg: isDark ? '#1E3A8A30' : '#EFF6FF', border: '#3B82F650' },
             { iconSymbol: 'scissors', label: i18n.language.startsWith('en') ? 'Beauty & Care' : 'Kuaför & Bakım', color: '#EC4899', bg: isDark ? '#83184330' : '#FDF2F8', border: '#F472B650' },
             { iconSymbol: 'paintbrush.fill', label: i18n.language.startsWith('en') ? 'Painting' : 'Boya', color: '#D97706', bg: isDark ? '#78350F30' : '#FFFBEB', border: '#FBBF2450' },
             { iconSymbol: 'globe', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#0891B2', bg: isDark ? '#164E6330' : '#ECFEFF', border: '#22D3EE50' },
@@ -1326,6 +1559,16 @@ export default function MainMenuScreen() {
           ].map((service, idx) => (
             <Pressable
               key={idx}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setSelectedQuickServiceLabel(service.label);
+                const matchedIdx = getMockServiceIndexForCategory(service.label);
+                setMockServiceIndex(matchedIdx);
+                Animated.sequence([
+                  Animated.timing(bannerScaleAnim, { toValue: 0.94, duration: 100, useNativeDriver: true }),
+                  Animated.spring(bannerScaleAnim, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true }),
+                ]).start();
+              }}
               style={({ pressed }) => ({
                 width: (width - 46) / 2,
                 flexDirection: 'row',
@@ -1430,8 +1673,8 @@ export default function MainMenuScreen() {
                   </View>
                   <Text style={{ fontSize: 14, color: isDark ? '#FEE2E2' : '#7F1D1D', lineHeight: 22 }}>
                     {i18n.language.startsWith('en')
-                      ? 'Please only invite people you know live on the Island to the community. For the safety and integrity of the AdaPlus community, we kindly ask you to adhere to this rule.'
-                      : 'Topluluğa lütfen sadece Adada yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.'}
+                      ? 'Please only invite people you know live on the Islands to the community. For the safety and integrity of the AdaPlus community, we kindly ask you to adhere to this rule.'
+                      : 'Topluluğa lütfen sadece Adalarda yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.'}
                   </Text>
                 </View>
               </ScrollView>

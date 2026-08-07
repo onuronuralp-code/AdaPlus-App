@@ -169,7 +169,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                   </Text>
                 ) : (
                   <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
-                    100+ {i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
+                    {userCount !== null ? `${userCount} ` : ''}{i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
                   </Text>
                 )}
               </View>

@@ -143,6 +143,23 @@ export default function ForumScreen() {
     };
 
     useEffect(() => {
+        const checkSwipeOnboarding = async () => {
+            try {
+                const hasSeen = await AsyncStorage.getItem('has_seen_swipe_onboarding');
+                if (hasSeen !== 'true') {
+                    setTimeout(() => {
+                        setIsSwipeOnboardingVisible(true);
+                    }, 600);
+                    await AsyncStorage.setItem('has_seen_swipe_onboarding', 'true');
+                }
+            } catch (err) {
+                console.log('Error checking swipe onboarding status', err);
+            }
+        };
+        checkSwipeOnboarding();
+    }, []);
+
+    useEffect(() => {
         const checkRulesVisit = async () => {
             try {
                 const lastShown = await AsyncStorage.getItem('lastCommunityRulesShownTimestamp');
@@ -1215,13 +1232,6 @@ export default function ForumScreen() {
                     <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.community')}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <TouchableOpacity 
-                        onPress={() => setIsSwipeOnboardingVisible(true)} 
-                        style={{ width: 38, height: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: isDark ? '#1E293B' : '#EFF6FF', borderRadius: 19, borderWidth: 1, borderColor: '#3B82F640' }}
-                        activeOpacity={0.7}
-                    >
-                        <IconSymbol name="hand.point.left.fill" size={18} color="#3B82F6" />
-                    </TouchableOpacity>
                     <TouchableOpacity onPress={handleInviteFriends} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                         <IconSymbol name="person.badge.plus" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
                     </TouchableOpacity>
