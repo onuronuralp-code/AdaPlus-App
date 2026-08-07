@@ -110,7 +110,7 @@ export const safeOpenUrl = async (url: string | null | undefined): Promise<void>
 export const resolveImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
   const firstUrl = url.includes(',') ? url.split(',')[0].trim() : url;
-  if (firstUrl.startsWith('https://')) return firstUrl;
+  if (firstUrl.startsWith('https://') || firstUrl.startsWith('http://')) return firstUrl;
   if (firstUrl.startsWith('/')) return `${API_BASE_URL}${firstUrl}`;
   try {
     const apiBase = new URL(API_BASE_URL);

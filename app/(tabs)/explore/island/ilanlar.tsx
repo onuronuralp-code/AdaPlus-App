@@ -87,6 +87,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.SATILIK,
     island: Island.BUYUKADA,
     contactInfo: '0532 123 45 67',
+    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
     userName: 'Ahmet Yılmaz',
@@ -99,6 +100,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.KIRALIK,
     island: Island.HEYBELIADA,
     contactInfo: '0533 987 65 43',
+    imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
     userName: 'Zeynep Kaya',
@@ -111,6 +113,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.TASIT,
     island: Island.BURGAZADA,
     contactInfo: '0535 555 44 33',
+    imageUrl: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
     userName: 'Caner Demir',
@@ -123,6 +126,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.ESYA,
     island: Island.KINALIADA,
     contactInfo: '0536 111 22 33',
+    imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
     userName: 'Ece Aydın',
@@ -135,6 +139,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.IS_ILANI,
     island: Island.BUYUKADA,
     contactInfo: '0537 444 55 66',
+    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
     userName: 'Ada Kafe & Restoran',
@@ -147,6 +152,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.KAYIP,
     island: Island.HEYBELIADA,
     contactInfo: '0538 777 88 99',
+    imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
     userName: 'Elif Serbest',
@@ -159,6 +165,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.EVCIL_HAYVAN,
     island: Island.BURGAZADA,
     contactInfo: '0539 222 33 44',
+    imageUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 60 * 3600 * 1000).toISOString(),
     userName: 'Murat Arslan',
@@ -171,6 +178,7 @@ const MOCK_LISTINGS: ListingDto[] = [
     category: ListingCategory.SATILIK,
     island: Island.KINALIADA,
     contactInfo: '0530 666 77 88',
+    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
     images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80'],
     createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
     userName: 'Selim Şahin',
@@ -1026,8 +1034,9 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
     addSuffix: true, 
     locale: i18n.language.startsWith('tr') ? tr : enUS 
   });
-  const resolvedUrl = resolveImageUrl(listing.imageUrl);
-  const hasUserImage = listing.imageUrl && resolvedUrl && resolvedUrl.startsWith('http');
+  const rawImg = (listing as any).imageUrl || (listing.images && listing.images.length > 0 ? listing.images[0] : null);
+  const resolvedUrl = resolveImageUrl(rawImg);
+  const hasUserImage = !!resolvedUrl && (resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://'));
 
   return (
     <TouchableOpacity
