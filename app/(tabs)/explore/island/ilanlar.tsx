@@ -608,11 +608,6 @@ export default function IlanlarScreen() {
             <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { marginLeft: 10 }, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
-          <View style={{ backgroundColor: isDark ? '#1E293B' : '#EFF6FF', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12, marginLeft: 8, borderWidth: 1, borderColor: isDark ? '#334155' : '#DBEAFE' }}>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#3B82F6' }}>
-              {filteredListings.length}
-            </Text>
-          </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity

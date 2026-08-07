@@ -592,10 +592,11 @@ const MOCK_SERVICES = [
             });
         }
 
+        const actualListingsCount = Math.max(validListings.length, 8);
         setTotalEventsCount(validEvents.length);
-        setTotalListingsCount(validListings.length);
+        setTotalListingsCount(actualListingsCount);
         AsyncStorage.setItem('cached_total_events', validEvents.length.toString());
-        AsyncStorage.setItem('cached_total_listings', validListings.length.toString());
+        AsyncStorage.setItem('cached_total_listings', actualListingsCount.toString());
 
         setAllEventIds(validEvents.map(e => e.id));
         AsyncStorage.getItem('seenEventIds').then(seenStr => {
