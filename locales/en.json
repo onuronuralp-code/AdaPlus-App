@@ -207,7 +207,9 @@
         "sendFailed": "Could not send code. Please try again.",
         "verify": "Verify",
         "verifyFailed": "Verification failed. Please try again.",
-        "changeNumber": "Change number"
+        "changeNumber": "Change number",
+        "incorrectCode": "Incorrect or expired code. Please try again.",
+        "phoneAlreadyLinked": "This phone number is already linked to another account."
     },
     "emailVerify": {
         "title": "Email Verification",

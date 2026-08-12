@@ -4,6 +4,12 @@ import { getToken } from "../utils/tokenStorage";
 
 const AUTH_BASE_URL = `${API_BASE_URL}/api/v1/auth`;
 
+const phoneVerifyErrorMessage = (rawMessage: string | undefined, status: number): string => {
+  if (rawMessage === 'phone_already_linked') return i18n.t('phoneVerify.phoneAlreadyLinked', { defaultValue: 'Bu telefon numarası başka bir hesaba bağlı.' });
+  if (rawMessage === 'otp_incorrect_or_expired') return i18n.t('phoneVerify.incorrectCode', { defaultValue: 'Kod hatalı veya süresi dolmuş. Lütfen tekrar deneyin.' });
+  return rawMessage || `Request failed (${status})`;
+};
+
 const isPhoneContact = (contact: string) =>
   /^\+?[0-9]{7,15}$/.test(contact.trim().replace(/[\s\-()]/g, ''));
 
@@ -275,7 +281,7 @@ export const authApi = {
     });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      throw new Error(body.message || `Request failed (${response.status})`);
+      throw new Error(phoneVerifyErrorMessage(body.message, response.status));
     }
   },
 
@@ -288,7 +294,7 @@ export const authApi = {
     });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      throw new Error(body.message || `Request failed (${response.status})`);
+      throw new Error(phoneVerifyErrorMessage(body.message, response.status));
     }
     return response.json();
   },

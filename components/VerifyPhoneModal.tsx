@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, ActivityIndicator, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +18,9 @@ export default function VerifyPhoneModal({ visible, onClose, onVerified, initial
     const isDark = theme === 'dark';
 
     const [step, setStep] = useState<'phone' | 'code'>('phone');
-    const [phone, setPhone] = useState(initialPhone || '');
+    // Some accounts have the literal string "null" stored in the phone column (data bug,
+    // not something to trust as a real value) rather than a real number or SQL NULL.
+    const [phone, setPhone] = useState(initialPhone && initialPhone !== 'null' ? initialPhone : '');
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -79,7 +81,10 @@ export default function VerifyPhoneModal({ visible, onClose, onVerified, initial
             statusBarTranslucent
             onRequestClose={handleClose}
         >
-            <View style={styles.overlay}>
+            <KeyboardAvoidingView
+                style={styles.overlay}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
                 <View style={[styles.card, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                     <View style={[styles.iconCircle, isDark && { backgroundColor: '#064E3B' }]}>
                         <IconSymbol name="checkmark.circle.fill" size={28} color={isDark ? "#34D399" : "#10B981"} />
@@ -102,6 +107,8 @@ export default function VerifyPhoneModal({ visible, onClose, onVerified, initial
                             value={phone}
                             onChangeText={setPhone}
                             autoFocus
+                            returnKeyType="send"
+                            onSubmitEditing={handleSendOtp}
                         />
                     ) : (
                         <TextInput
@@ -113,6 +120,8 @@ export default function VerifyPhoneModal({ visible, onClose, onVerified, initial
                             value={code}
                             onChangeText={setCode}
                             autoFocus
+                            returnKeyType="send"
+                            onSubmitEditing={handleVerify}
                         />
                     )}
 
@@ -149,7 +158,7 @@ export default function VerifyPhoneModal({ visible, onClose, onVerified, initial
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }

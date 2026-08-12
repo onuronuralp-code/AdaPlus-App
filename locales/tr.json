@@ -207,7 +207,9 @@
         "sendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
         "verify": "Doğrula",
         "verifyFailed": "Doğrulama başarısız. Lütfen tekrar deneyin.",
-        "changeNumber": "Numarayı değiştir"
+        "changeNumber": "Numarayı değiştir",
+        "incorrectCode": "Kod hatalı veya süresi dolmuş. Lütfen tekrar deneyin.",
+        "phoneAlreadyLinked": "Bu telefon numarası başka bir hesaba bağlı."
     },
     "emailVerify": {
         "title": "E-posta Doğrulama",
