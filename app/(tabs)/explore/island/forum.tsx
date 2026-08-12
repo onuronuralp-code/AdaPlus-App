@@ -863,7 +863,14 @@ export default function ForumScreen() {
                 setIsWriteModalVisible(false);
             }
         } catch (error: any) {
-            Alert.alert('Gönderi Oluşturulamadı', error?.message || 'Bir hata oluştu.');
+            if (error?.code === 'phone_verification_required') {
+                // Close the write modal first — two sibling native Modals open at once
+                // cause scroll/stacking glitches on iOS (same issue fixed elsewhere here).
+                setIsWriteModalVisible(false);
+                setShowVerifyPhoneModal(true);
+            } else {
+                Alert.alert('Gönderi Oluşturulamadı', error?.message || 'Bir hata oluştu.');
+            }
         } finally {
             setIsUploading(false);
         }
