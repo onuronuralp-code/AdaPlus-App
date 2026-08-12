@@ -864,10 +864,13 @@ export default function ForumScreen() {
             }
         } catch (error: any) {
             if (error?.code === 'phone_verification_required') {
-                // Close the write modal first — two sibling native Modals open at once
-                // cause scroll/stacking glitches on iOS (same issue fixed elsewhere here).
+                // Close the write modal first — iOS won't present a new native Modal while
+                // another is still mid-dismiss-animation, so setting both visible states in
+                // the same tick can silently drop the second presentation entirely. Give the
+                // dismiss animation time to finish before showing the next one (same pattern
+                // used elsewhere in this file for stacked alerts/modals).
                 setIsWriteModalVisible(false);
-                setShowVerifyPhoneModal(true);
+                setTimeout(() => setShowVerifyPhoneModal(true), 400);
             } else {
                 Alert.alert('Gönderi Oluşturulamadı', error?.message || 'Bir hata oluştu.');
             }
