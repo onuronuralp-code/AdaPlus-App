@@ -1109,7 +1109,7 @@ const MOCK_SERVICES = [
                 )}
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
-                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
+                <Text numberOfLines={1} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
@@ -1137,7 +1137,7 @@ const MOCK_SERVICES = [
                 )}
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
-                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
+                <Text numberOfLines={1} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
@@ -1154,7 +1154,7 @@ const MOCK_SERVICES = [
               >
                 <IconSymbol name="pawprint.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
-                  <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                  <Text numberOfLines={1} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
@@ -1182,7 +1182,7 @@ const MOCK_SERVICES = [
               >
                 <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
-                  <Text style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                  <Text numberOfLines={1} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
