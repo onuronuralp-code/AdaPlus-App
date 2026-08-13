@@ -470,8 +470,8 @@ export default function SignUpScreen() {
             {Platform.OS === 'ios' ? (
                 <Modal visible={showDatePicker} transparent animationType="fade">
                     <TouchableOpacity style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
-                        <View style={{ backgroundColor: 'white', padding: 16 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 }}>
+                        <View style={{ backgroundColor: 'white', padding: 16, alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8, width: '100%' }}>
                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                                     <Text style={{ color: '#3B82F6', fontWeight: 'bold', fontSize: 16 }}>Tamam</Text>
                                 </TouchableOpacity>
@@ -482,6 +482,7 @@ export default function SignUpScreen() {
                                 display="spinner"
                                 style={{ height: 200 }}
                                 themeVariant="light"
+                                locale="tr-TR"
                                 maximumDate={new Date(2011, 11, 31)}
                                 onChange={(event, date) => {
                                     if (date) setBirthDate(date);
