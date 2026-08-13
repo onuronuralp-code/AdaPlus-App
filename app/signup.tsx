@@ -480,6 +480,7 @@ export default function SignUpScreen() {
                                 value={birthDate || new Date(2008, 0, 1)}
                                 mode="date"
                                 display="spinner"
+                                style={{ height: 200 }}
                                 maximumDate={new Date(2011, 11, 31)}
                                 onChange={(event, date) => {
                                     if (date) setBirthDate(date);
