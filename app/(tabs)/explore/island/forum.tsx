@@ -2056,6 +2056,11 @@ export default function ForumScreen() {
                 onVerified={(updatedUser) => {
                     updateProfile(updatedUser);
                     setShowVerifyPhoneModal(false);
+                    // Phone is now verified server-side — finish the post they were already
+                    // trying to publish instead of making them retype it from scratch. The
+                    // typed content/poll/images are still sitting in state since closing the
+                    // write modal earlier didn't reset the form, only hid it.
+                    setTimeout(() => handleCreatePost(), 400);
                 }}
             />
 
