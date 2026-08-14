@@ -329,6 +329,15 @@ const MOCK_SERVICES = [
   { id: 20, title: 'Kınalıada Sezonluk Bahçe Düzenleme Servisi', categoryTag: 'BAHÇE & PEYZAJ', description: 'Yazlık bahçeleri sezona hazırlama, gübreleme ve peyzaj mimarlığı.' },
 ];
 
+  // MOCK_SERVICES titles have the island name hardcoded (e.g. "Büyükada Elektrik &
+  // Tesisat Uzmanı") — swap it for whichever island is actually selected at the top
+  // of the screen so the mock card doesn't visibly contradict the island picker.
+  const MOCK_ISLAND_NAMES = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'];
+  const localizeMockTitle = (title: string, island: string) => {
+    const matched = MOCK_ISLAND_NAMES.find(name => title.startsWith(name));
+    return matched ? island + title.slice(matched.length) : title;
+  };
+
   const [bannerSlideIndex, setBannerSlideIndex] = useState(0);
   const [mockServiceIndex, setMockServiceIndex] = useState<number | null>(null);
   const [selectedQuickServiceLabel, setSelectedQuickServiceLabel] = useState<string | null>(null);
@@ -1297,7 +1306,7 @@ const MOCK_SERVICES = [
                 const mock = MOCK_SERVICES[mockServiceIndex];
                 return {
                   tag: `✨ ${mock.categoryTag}`,
-                  header: mock.title,
+                  header: localizeMockTitle(mock.title, selectedIsland),
                   subtitle: mock.description,
                   actionLabel: i18n.language.startsWith('en') ? 'Join Service Network' : 'Hizmet Ağına Katıl',
                 };
