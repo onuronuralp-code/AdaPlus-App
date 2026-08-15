@@ -301,7 +301,10 @@ export default function MainMenuScreen() {
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
   const menuButtonWidth = (width - 56) / 3.5;
-  const pageHeight = height - insets.top - insets.bottom - (Platform.OS === 'ios' ? 65 : 50);
+  // Extra buffer (was 65) so Page 1's last item (the community SwipeButton) doesn't
+  // get pushed past the page boundary into the tab bar on devices where the summed
+  // content height runs tight against the available space.
+  const pageHeight = height - insets.top - insets.bottom - (Platform.OS === 'ios' ? 82 : 50);
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -1118,7 +1121,7 @@ const MOCK_SERVICES = [
                 )}
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
-                <Text numberOfLines={1} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
@@ -1146,7 +1149,7 @@ const MOCK_SERVICES = [
                 )}
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
-                <Text numberOfLines={1} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
                 <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
