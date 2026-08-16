@@ -301,10 +301,12 @@ export default function MainMenuScreen() {
   const isIphone11 = Math.round(height) === 896;
   const isIphone16 = Math.round(height) === 852;
   const menuButtonWidth = (width - 56) / 3.5;
-  // Extra buffer (was 65) so Page 1's last item (the community SwipeButton) doesn't
-  // get pushed past the page boundary into the tab bar on devices where the summed
-  // content height runs tight against the available space.
-  const pageHeight = height - insets.top - insets.bottom - (Platform.OS === 'ios' ? 82 : 50);
+  // Estimate used only until the ScrollView's own onLayout fires below — that gives us
+  // the real available height (already excluding the tab bar and safe areas, since this
+  // screen only ever occupies the space the tab navigator hands it), which is more
+  // reliable across device sizes than guessing a fixed tab-bar-height constant here.
+  const [measuredPageHeight, setMeasuredPageHeight] = useState<number | null>(null);
+  const pageHeight = measuredPageHeight ?? (height - insets.top - insets.bottom - (Platform.OS === 'ios' ? 65 : 50));
   const [showIslandPicker, setShowIslandPicker] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -735,7 +737,18 @@ const MOCK_SERVICES = [
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} scrollEnabled={true} snapToInterval={pageHeight} decelerationRate="fast" snapToAlignment="start" bounces={false} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={true}
+            snapToInterval={pageHeight}
+            decelerationRate="fast"
+            snapToAlignment="start"
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            onLayout={(e) => setMeasuredPageHeight(e.nativeEvent.layout.height)}
+          >
             <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 10 }}>
               <View style={[styles.welcomeContainer, { 
                 flexDirection: 'row', 
