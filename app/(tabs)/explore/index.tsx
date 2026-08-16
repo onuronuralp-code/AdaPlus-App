@@ -1179,7 +1179,7 @@ const MOCK_SERVICES = [
               >
                 <IconSymbol name="pawprint.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
-                  <Text numberOfLines={1} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
@@ -1207,7 +1207,7 @@ const MOCK_SERVICES = [
               >
                 <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
-                  <Text numberOfLines={1} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
               <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
