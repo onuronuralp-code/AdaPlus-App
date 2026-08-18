@@ -271,14 +271,28 @@ export default function MainMenuScreen() {
   const { start, copilotEvents } = useCopilot();
 
   useEffect(() => {
-    // Reverted the auto-start for testing. 
-    // Now you can start it manually using the question mark button in the header.
+    let timer: any;
+    const checkFirstLaunch = async () => {
+      try {
+        const hasSeen = await AsyncStorage.getItem('has_seen_onboarding_tour');
+        if (hasSeen !== 'true') {
+          timer = setTimeout(() => {
+            start();
+          }, 800);
+        }
+      } catch (err) {
+        console.log('Error checking onboarding tour status:', err);
+      }
+    };
+    checkFirstLaunch();
+
     const handleStop = () => {
       AsyncStorage.setItem('has_seen_onboarding_tour', 'true');
     };
     copilotEvents?.on('stop', handleStop);
     
     return () => {
+      if (timer) clearTimeout(timer);
       copilotEvents?.off('stop', handleStop);
     };
   }, []);
@@ -1194,7 +1208,7 @@ const MOCK_SERVICES = [
             <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => router.push('/(tabs)/explore/island/paket-servis')}
+                onPress={() => setShowSurvey(true)}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                 style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
