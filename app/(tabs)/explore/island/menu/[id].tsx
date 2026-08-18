@@ -414,23 +414,14 @@ export default function VenueMenuScreen() {
                 ]}
               >
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, isDark && styles.textLight]}>Maestro Özel Burger</Text>
+                  <Text style={[styles.itemName, isDark && styles.textLight]}>{provider.menu?.[0]?.name || 'Maestro Özel Burger'}</Text>
                   <Text style={[styles.itemDesc, isDark && styles.textMutedDark]} numberOfLines={1}>
-                    200g dana köfte, cheddar, patates...
+                    {provider.menu?.[0]?.description || '200g dana köfte, cheddar, patates...'}
                   </Text>
                 </View>
-                <Text style={styles.itemPrice}>280 ₺</Text>
+                <Text style={styles.itemPrice}>{provider.menu?.[0]?.price || '280 ₺'}</Text>
               </Animated.View>
 
-              {/* Animated Hand Gesture Cursor Icon */}
-              <Animated.View
-                style={[
-                  styles.handCursor,
-                  { transform: [{ translateX: handAnim }] },
-                ]}
-              >
-                <Text style={{ fontSize: 26 }}>👉</Text>
-              </Animated.View>
             </View>
 
             {/* Close Button */}
@@ -460,20 +451,21 @@ function SwipeableMenuCard({
   onAddToCart: (item: MenuItem) => void;
   onPressItem: (item: MenuItem) => void;
 }) {
-  const pan = useRef(new Animated.ValueXY()).current;
+  const slidePan = useRef(new Animated.ValueXY()).current;
   const [isAdded, setIsAdded] = useState(false);
 
-  const panResponder = useRef(
+  const sliderPanResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 12,
-      onPanResponderMove: Animated.event([null, { dx: pan.x }], { useNativeDriver: false }),
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 2,
+      onPanResponderMove: Animated.event([null, { dx: slidePan.x }], { useNativeDriver: false }),
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx > 65 || gestureState.dx < -65) {
+        if (gestureState.dx < -35 || (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5)) {
           onAddToCart(item);
           setIsAdded(true);
           setTimeout(() => setIsAdded(false), 1600);
         }
-        Animated.spring(pan, {
+        Animated.spring(slidePan, {
           toValue: { x: 0, y: 0 },
           friction: 6,
           useNativeDriver: false,
@@ -484,25 +476,11 @@ function SwipeableMenuCard({
 
   return (
     <View style={styles.swipeContainer}>
-      {/* Background Action Revealed on Swipe */}
-      <View style={styles.swipeBackground}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 16 }}>
-          <IconSymbol name="cart.fill.badge.plus" size={18} color="#FFFFFF" />
-          <Text style={styles.swipeText}>Sepete Ekle</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 16 }}>
-          <Text style={styles.swipeText}>Sepete Ekle</Text>
-          <IconSymbol name="cart.fill.badge.plus" size={18} color="#FFFFFF" />
-        </View>
-      </View>
-
       {/* Main Foreground Card */}
       <Animated.View
-        {...panResponder.panHandlers}
         style={[
           styles.menuCard,
           isDark && styles.menuCardDark,
-          { transform: [{ translateX: pan.x }] },
         ]}
       >
         <Pressable
@@ -532,16 +510,19 @@ function SwipeableMenuCard({
           <Text style={styles.itemPrice}>{item.price}</Text>
         </Pressable>
 
-        <TouchableOpacity
-          style={[styles.addCartBtnSmall, { position: 'absolute', right: 12, bottom: 10 }]}
-          onPress={(e) => {
-            e.stopPropagation();
-            onAddToCart(item);
-          }}
-          activeOpacity={0.7}
-        >
-          <IconSymbol name="plus" size={10} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={{ position: 'absolute', right: 12, bottom: 10, width: 70, height: 32, borderRadius: 16, backgroundColor: isDark ? '#334155' : '#E2E8F0', justifyContent: 'center' }}>
+          <Animated.View
+            {...sliderPanResponder.panHandlers}
+            style={[
+              {
+                width: 28, height: 28, borderRadius: 14, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end', marginRight: 2
+              },
+              { transform: [{ translateX: slidePan.x.interpolate({ inputRange: [-38, 0], outputRange: [-38, 0], extrapolate: 'clamp' }) }] }
+            ]}
+          >
+            <IconSymbol name="plus" size={14} color="#FFFFFF" />
+          </Animated.View>
+        </View>
       </Animated.View>
     </View>
   );

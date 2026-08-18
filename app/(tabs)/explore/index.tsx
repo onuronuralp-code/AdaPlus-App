@@ -1114,7 +1114,7 @@ const MOCK_SERVICES = [
         >
           {/* 1. Etkinlikler */}
           <CopilotStep text={t('explore.tour.events', { defaultValue: i18n.language.startsWith('en') ? 'You can follow all island events from here.' : 'Adadaki tüm etkinlikleri buradan takip edebilirsin.' })} order={2} name="etkinlikler">
-            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4, marginLeft: -4 }}>
+            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
@@ -1133,9 +1133,9 @@ const MOCK_SERVICES = [
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
-                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
+              <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1161,9 +1161,9 @@ const MOCK_SERVICES = [
                   </View>
                 )}
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center' }}>
-                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+              <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
@@ -1182,26 +1182,19 @@ const MOCK_SERVICES = [
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
-                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
-                <Text style={{ fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+              <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
 
           {/* 4. Paket Servis */}
           <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={5} name="paket">
-            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4, marginRight: -4 }}>
+            <WalkthroughableView collapsable={false} style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => {
-                  Alert.alert(
-                    i18n.language.startsWith('en') ? 'Delivery Service Coming Soon' : 'Paket Servis Hizmeti Çok Yakında',
-                    i18n.language.startsWith('en')
-                      ? 'Our island delivery service is currently under preparation and will be active very soon. Thank you for your patience!'
-                      : 'Adalar için paket servis hizmetimiz şu an hazırlık aşamasında olup çok yakında aktif olacaktır. İlginiz için teşekkür ederiz!'
-                  );
-                }}
+                onPress={() => router.push('/(tabs)/explore/island/paket-servis')}
                 onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                 style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -1210,8 +1203,8 @@ const MOCK_SERVICES = [
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
                 </View>
               </TouchableOpacity>
-              <View style={{ width: isLargeScreen ? 70 : (isSmallScreen ? 50 : 60), alignItems: 'center', marginTop: 2 }}>
-                <Text style={{ fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10.5 : 11.5), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 12 : 13), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1, textAlign: 'center' }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
+              <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+                <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12 : (isSmallScreen ? 9.5 : 10.5), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
               </View>
             </WalkthroughableView>
           </CopilotStep>
