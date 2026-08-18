@@ -12,6 +12,7 @@ import {
   Linking,
   Alert,
   Platform,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -58,6 +59,10 @@ export default function IlanDetailScreen() {
   const [loadError, setLoadError] = React.useState(false);
   const [loadingContact, setLoadingContact] = React.useState(false);
   const [activeSlide, setActiveSlide] = React.useState(0);
+  const [imageViewerVisible, setImageViewerVisible] = React.useState(false);
+  const [viewerStartIndex, setViewerStartIndex] = React.useState(0);
+  const [viewerActiveIndex, setViewerActiveIndex] = React.useState(0);
+  const viewerScrollRef = React.useRef<ScrollView>(null);
   const [translatedTitle, setTranslatedTitle] = React.useState<string | null>(null);
   const [translatedDesc, setTranslatedDesc] = React.useState<string | null>(null);
   const [isTranslating, setIsTranslating] = React.useState(false);
@@ -132,6 +137,10 @@ export default function IlanDetailScreen() {
     [ListingCategory.EVCIL_HAYVAN]: 'pet',
   };
   
+  const viewerImages = listing.imageUrls && listing.imageUrls.length > 0
+    ? listing.imageUrls
+    : (listing.imageUrl ? [listing.imageUrl] : []);
+
   const frontendCat = backendToFrontend[listing.category] || 'emlak';
   const cfg = CATEGORY_CONFIG[frontendCat];
   
@@ -196,7 +205,18 @@ export default function IlanDetailScreen() {
               }}
             >
               {listing.imageUrls.map((url, idx) => (
-                <Image key={idx} source={{ uri: resolveImageUrl(url) }} style={{ width: SCREEN_WIDTH, height: '100%', backgroundColor: isDark ? '#121212' : '#F8FAFC' }} resizeMode="cover" />
+                <TouchableOpacity
+                  key={idx}
+                  style={{ width: SCREEN_WIDTH, height: '100%' }}
+                  activeOpacity={0.92}
+                  onPress={() => {
+                    setViewerStartIndex(idx);
+                    setViewerActiveIndex(idx);
+                    setImageViewerVisible(true);
+                  }}
+                >
+                  <Image source={{ uri: resolveImageUrl(url) }} style={{ width: '100%', height: '100%', backgroundColor: isDark ? '#121212' : '#F8FAFC' }} resizeMode="cover" />
+                </TouchableOpacity>
               ))}
             </ScrollView>
             
@@ -209,7 +229,17 @@ export default function IlanDetailScreen() {
             )}
           </>
         ) : listing.imageUrl ? (
-          <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]} resizeMode="cover" />
+          <TouchableOpacity
+            activeOpacity={0.92}
+            style={StyleSheet.absoluteFill}
+            onPress={() => {
+              setViewerStartIndex(0);
+              setViewerActiveIndex(0);
+              setImageViewerVisible(true);
+            }}
+          >
+            <Image source={{ uri: resolveImageUrl(listing.imageUrl) }} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]} resizeMode="cover" />
+          </TouchableOpacity>
         ) : (
           <IconSymbol name={cfg.icon as any} size={80} color={cfg.color} />
         )}
@@ -329,6 +359,53 @@ export default function IlanDetailScreen() {
         </View>
       </ScrollView>
 
+      <Modal
+        visible={imageViewerVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setImageViewerVisible(false)}
+      >
+        <View style={styles.viewerOverlay}>
+          <TouchableOpacity
+            style={[styles.viewerCloseButton, { top: insets.top + 10 }]}
+            onPress={() => setImageViewerVisible(false)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <IconSymbol name="xmark" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          <ScrollView
+            ref={viewerScrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onLayout={() => viewerScrollRef.current?.scrollTo({ x: viewerStartIndex * SCREEN_WIDTH, animated: false })}
+            onMomentumScrollEnd={(e) => {
+              const page = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+              setViewerActiveIndex(page);
+            }}
+          >
+            {viewerImages.map((url, idx) => (
+              <View key={idx} style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT, alignItems: 'center', justifyContent: 'center' }}>
+                <Image
+                  source={{ uri: resolveImageUrl(url) }}
+                  style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+                  resizeMode="contain"
+                />
+              </View>
+            ))}
+          </ScrollView>
+
+          {viewerImages.length > 1 && (
+            <View style={[styles.paginationContainer, { bottom: insets.bottom + 24 }]}>
+              {viewerImages.map((_, idx) => (
+                <View key={idx} style={[styles.dot, viewerActiveIndex === idx && styles.activeDot]} />
+              ))}
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -498,5 +575,20 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  viewerOverlay: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  viewerCloseButton: {
+    position: 'absolute',
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
