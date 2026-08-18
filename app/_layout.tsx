@@ -60,17 +60,22 @@ const APP_STORE_URL =
   "https://apps.apple.com/tr/app/ada-plus/id6743840993";
 
 const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
-  const padding = 8;
-  const width = (typeof size.x === 'number' ? size.x : (size.x._value || 0)) + padding * 2;
-  const height = (typeof size.y === 'number' ? size.y : (size.y._value || 0)) + padding * 2;
-  const x = (typeof position.x === 'number' ? position.x : (position.x._value || 0)) - padding;
-  const y = (typeof position.y === 'number' ? position.y : (position.y._value || 0)) - padding;
+  const padding = 4;
+  const rawW = typeof size.x === 'number' ? size.x : (size.x?._value || 0);
+  const rawH = typeof size.y === 'number' ? size.y : (size.y?._value || 0);
+  const rawX = typeof position.x === 'number' ? position.x : (position.x?._value || 0);
+  const rawY = typeof position.y === 'number' ? position.y : (position.y?._value || 0);
+
+  const width = rawW + padding * 2;
+  const height = rawH + padding * 2;
+  const x = rawX - padding;
+  const y = rawY - padding;
 
   // Make the outer canvas bounds much larger than screen to hide the stroke on the edges
   const outer = `M-20,-20 H${(canvasSize.x || 0) + 40} V${(canvasSize.y || 0) + 40} H-20 V-20 Z`;
 
-  // Subtle hand-drawn rounded rectangle
-  const r = 20;
+  // Adaptive rounded rectangle corner radius matching target element dimensions
+  const r = Math.min(16, Math.max(6, Math.min(width, height) / 3.8));
   const x1 = x;
   const x2 = x + width;
   const y1 = y;
