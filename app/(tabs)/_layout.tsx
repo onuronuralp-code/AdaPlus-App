@@ -1,6 +1,7 @@
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Platform, View, Animated } from 'react-native';
+import { StyleSheet, Platform, View, Animated, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -9,10 +10,8 @@ import { useTheme } from '@/context/ThemeContext';
 
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 const WalkthroughableView = walkthroughable(View);
-const WalkthroughableHapticTab = walkthroughable(HapticTab);
 
 function AnimatedTabIcon({ focused, isDeepRoute, iconName, color }: { focused: boolean; isDeepRoute: boolean; iconName: string; color: string }) {
-  const indicatorOpacity = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -23,7 +22,7 @@ function AnimatedTabIcon({ focused, isDeepRoute, iconName, color }: { focused: b
       tension: 40,
       useNativeDriver: true,
     }).start();
-  }, [focused, isDeepRoute]);
+  }, [focused, isDeepRoute, iconScale]);
 
   return (
     <View style={styles.tabIconWrapper}>
@@ -34,16 +33,16 @@ function AnimatedTabIcon({ focused, isDeepRoute, iconName, color }: { focused: b
   );
 }
 
-import { Dimensions } from 'react-native';
-const { width } = Dimensions.get('window');
-const TAB_WIDTH = width / 4;
-
 export default function TabLayout() {
   const { t, i18n } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const tabWidth = width / 4;
+  const tabBarHeight = 56 + Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8);
 
   const isDeepRoute = pathname.includes('/island/') || pathname.includes('/guide');
 
@@ -58,7 +57,7 @@ export default function TabLayout() {
 
     Animated.parallel([
       Animated.spring(slideAnim, {
-        toValue: activeIndex * TAB_WIDTH + (TAB_WIDTH / 2) - 21,
+        toValue: activeIndex * tabWidth + (tabWidth / 2) - 21,
         useNativeDriver: true,
         friction: 8,
         tension: 50,
@@ -69,7 +68,7 @@ export default function TabLayout() {
         useNativeDriver: true,
       })
     ]).start();
-  }, [pathname, isDeepRoute]);
+  }, [pathname, isDeepRoute, tabWidth, opacityAnim, slideAnim]);
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
@@ -77,7 +76,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: (props) => <HapticTab {...props} />,
-        tabBarStyle: isDark ? styles.tabBarDark : styles.tabBarLight,
+        tabBarStyle: [isDark ? styles.tabBarDark : styles.tabBarLight, {
+          height: tabBarHeight,
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8),
+        }],
         tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : (isDark ? '#FFFFFF' : '#000000'),
         tabBarInactiveTintColor: isDark ? '#64748B' : '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
@@ -159,7 +161,7 @@ export default function TabLayout() {
         <Animated.View
           style={{
             position: 'absolute',
-            bottom: Platform.OS === 'ios' ? 85.5 : 81.5,
+            bottom: tabBarHeight - 2.5,
             left: 0,
             width: 42,
             height: 2.5,
@@ -180,17 +182,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
-    height: Platform.OS === 'ios' ? 88 : 84,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 28,
-    paddingTop: 12,
+    paddingTop: 8,
   },
   tabBarDark: {
     backgroundColor: '#000000',
     borderTopWidth: 1,
     borderTopColor: '#1A1A1A',
-    height: Platform.OS === 'ios' ? 88 : 84,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 28,
-    paddingTop: 12,
+    paddingTop: 8,
   },
   tabLabel: {
     fontSize: 10,

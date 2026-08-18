@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, BackHandler, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, Image, BackHandler, Modal } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCallback } from 'react';
@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 import { useTranslation } from 'react-i18next';
 import { KVKKModal } from '@/components/KVKKModal';
-import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
+import { s, vs, ms, SCREEN_HEIGHT } from '@/utils/scale';
 
 const ISLANDS = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Adalı değilim'];
 
@@ -214,17 +214,17 @@ export default function SignUpScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false} keyboardShouldPersistTaps="handled" bounces={false}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
                 <View style={styles.container}>
                     <View style={styles.headerBackground}>
                         <Image
                             source={require('@/assets/images/sunset.jpg')}
-                            style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
+                            style={{ position: 'absolute', left: 0, right: 0, width: '100%', height: '100%' }}
                             resizeMode="cover"
                         />
                         <LinearGradient 
                             colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                            style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
+                            style={{ position: 'absolute', left: 0, right: 0, width: '100%', height: '100%' }}
                         />
                         {!inviteToken && (
                             <TouchableOpacity

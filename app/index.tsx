@@ -7,18 +7,17 @@ import { usePathname, useRouter } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useRef } from "react";
 import {
-  Image,
   StyleSheet,
   useWindowDimensions,
   View,
   Text,
   TouchableOpacity,
   Animated,
-  Easing
+  Easing,
+  ScrollView
 } from "react-native";
 import {
   SafeAreaView,
-  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
@@ -41,9 +40,8 @@ const hideNativeSplashOnce = async () => {
 export default function SplashScreen() {
   const router = useRouter();
   const pathname = usePathname();
-  const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const { t, i18n } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const { i18n } = useTranslation();
   const { isLoggedIn } = useAuth();
 
   const [fontsLoaded] = useFonts({
@@ -92,32 +90,38 @@ export default function SplashScreen() {
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 
-  const logoW = 280;
+  const isCompact = height < 720;
+  const horizontalPadding = Math.max(20, Math.min(40, width * 0.08));
+  const logoW = Math.min(280, width - horizontalPadding * 2, height * (isCompact ? 0.3 : 0.34));
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.center}>
+      <ScrollView
+        contentContainerStyle={[styles.center, { paddingHorizontal: horizontalPadding, paddingVertical: isCompact ? 16 : 28 }]}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
         <Animated.Image
           source={require("../assets/images/adaplus-logo.png")}
-          style={{ width: logoW, height: logoW, resizeMode: "contain", transform: [{ translateY: logoTranslateY }], marginTop: -20 }}
+          style={{ width: logoW, height: logoW, resizeMode: "contain", transform: [{ translateY: logoTranslateY }], marginTop: isCompact ? 0 : -20 }}
           accessibilityLabel="AdaPlus"
         />
 
-        <Animated.View style={{ marginTop: 16, alignItems: 'center', opacity: contentOpacity, width: '100%' }}>
-          <Text style={{ fontSize: 28, fontFamily: "Poppins_800ExtraBold", color: NAVY, marginBottom: 6 }}>
+        <Animated.View style={{ marginTop: isCompact ? 4 : 16, alignItems: 'center', opacity: contentOpacity, width: '100%' }}>
+          <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: isCompact ? 24 : 28, fontFamily: "Poppins_800ExtraBold", color: NAVY, marginBottom: 6 }}>
             {i18n.language.startsWith('en') ? 'Welcome!' : 'Hoş Geldin!'}
           </Text>
-          <View style={{ height: 48, justifyContent: 'center', marginBottom: 32, paddingHorizontal: 16 }}>
+          <View style={{ minHeight: 48, justifyContent: 'center', marginBottom: isCompact ? 16 : 32, paddingHorizontal: 8 }}>
             <Text style={{ fontSize: 15, fontFamily: "Poppins_500Medium", color: '#64748B', textAlign: 'center', lineHeight: 22 }}>
               {i18n.language.startsWith('en') ? 'Please select your preferred language to continue.' : 'Devam etmek için lütfen dil seçimi yapın.'}
             </Text>
           </View>
 
           {/* Language Toggle */}
-          <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 6, marginBottom: 48 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 6, marginBottom: isCompact ? 22 : 48, maxWidth: '100%' }}>
             <TouchableOpacity
               activeOpacity={0.8}
-              style={{ paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('tr') ? 2 : 0 }}
+              style={{ flex: 1, maxWidth: 150, paddingHorizontal: isCompact ? 20 : 32, paddingVertical: isCompact ? 11 : 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('tr') ? 2 : 0 }}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 i18n.changeLanguage('tr');
@@ -128,7 +132,7 @@ export default function SplashScreen() {
 
             <TouchableOpacity
               activeOpacity={0.8}
-              style={{ paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('en') ? 2 : 0 }}
+              style={{ flex: 1, maxWidth: 150, paddingHorizontal: isCompact ? 20 : 32, paddingVertical: isCompact ? 11 : 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('en') ? 2 : 0 }}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 i18n.changeLanguage('en');
@@ -168,7 +172,7 @@ export default function SplashScreen() {
           </View>
         </Animated.View>
 
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -179,6 +183,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 40
+    minHeight: '100%'
   }
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { authApi } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ErrorModal from '@/components/ErrorModal';
-import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
+import { s, vs, ms, SCREEN_HEIGHT } from '@/utils/scale';
 const isEmailPattern = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
 const isPhonePattern = (val: string) => /^\+?[0-9]{7,15}$/.test(val.trim().replace(/[\s\-()]/g, ''));
 
@@ -143,18 +143,18 @@ export default function LoginScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false} keyboardShouldPersistTaps="handled" bounces={false}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
             
             <View style={styles.headerBackground}>
                 <Image
                     source={require('@/assets/images/begonvil_alt.png')}
-                    style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
+                    style={{ position: 'absolute', left: 0, right: 0, width: '100%', height: '100%' }}
                     resizeMode="cover"
                 />
                 <LinearGradient 
                     colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                    style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
+                    style={{ position: 'absolute', left: 0, right: 0, width: '100%', height: '100%' }}
                 />
                 <TouchableOpacity 
                     style={[styles.backButton, { top: insets.top + vs(10) }]} 

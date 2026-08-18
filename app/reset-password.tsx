@@ -8,7 +8,7 @@ import { authApi } from '@/services/authApi';
 import { useTranslation } from 'react-i18next';
 import { s, vs, ms } from '@/utils/scale';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ResetPasswordScreen() {
     const { t } = useTranslation();
@@ -87,12 +87,12 @@ export default function ResetPasswordScreen() {
                     <View style={styles.headerBackground}>
                         <Image
                             source={require('@/assets/images/begonvil_alt.png')}
-                            style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
+                            style={{ position: 'absolute', left: 0, right: 0, width: '100%', height: '100%' }}
                             resizeMode="cover"
                         />
                         <LinearGradient
                             colors={['rgba(0, 0, 0, 0.1)', '#0f172a']}
-                            style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
+                            style={{ position: 'absolute', left: 0, right: 0, width: '100%', height: '100%' }}
                         />
                         <TouchableOpacity
                             style={[styles.backButton, { top: insets.top + vs(10) }]}
