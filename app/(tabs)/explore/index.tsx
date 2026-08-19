@@ -1235,15 +1235,9 @@ const MOCK_SERVICES = [
         {/* 5. Topluluk Banner */}
         <CopilotStep text={t('explore.tour.topluluk', { defaultValue: i18n.language.startsWith('en') ? 'Tap here to chat with islanders and join discussions.' : 'Adalılarla sohbet etmek ve tartışmalara katılmak için buraya dokun.' })} order={6} name="topluluk">
           <WalkthroughableView collapsable={false} style={{ width: '100%' }}>
-            <SwipeButton 
-              isLoggedIn={isLoggedIn} 
-              onSwipeComplete={() => {
-                if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
-                  setShowIslanderStepsModal(true);
-                } else {
-                  navigateWithDebounce('/(tabs)/explore/island/forum');
-                }
-              }} 
+            <SwipeButton
+              isLoggedIn={isLoggedIn}
+              onSwipeComplete={() => navigateWithDebounce('/(tabs)/explore/island/forum')}
             />
           </WalkthroughableView>
         </CopilotStep>
@@ -1754,14 +1748,14 @@ const MOCK_SERVICES = [
                     Follow these steps to enjoy all the privileges of AdaPlus and achieve "Verified Islander" status:
                     {"\n\n"}• Sign up for the application.
                     {"\n"}• Reach out via Contact or have an Islander invite you.
-                    {"\n\n"}"Islanders" can freely share their thoughts in the community and connect with other islanders.
+                    {"\n\n"}"Islanders" can invite other islanders and order from island restaurants through delivery.
                   </>
                 ) : (
                   <>
                     AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
                     {"\n\n"}• Uygulamaya kayıt ol.
                     {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
-                    {"\n\n"}"Adalılar" toplulukta fikirlerini özgürce paylaşabilir, diğer adalılarla iletişime geçebilir.
+                    {"\n\n"}"Adalılar" diğer adalıları davet edebilir ve ada restoranlarından paket servis siparişi verebilir.
                   </>
                 )}
               </Text>

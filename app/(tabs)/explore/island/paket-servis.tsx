@@ -12,6 +12,7 @@ import {
   Pressable,
   ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +33,7 @@ export default function PaketServisScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const { islandId } = useLocalSearchParams<{ islandId?: string }>();
   const isEn = i18n.language.startsWith('en');
 
@@ -88,6 +89,32 @@ export default function PaketServisScreen() {
     Linking.openURL(url).catch(() => {
       Linking.openURL(`https://wa.me/${cleaned}`).catch(() => {});
     });
+  };
+
+  // Ordering (not browsing/calling) is limited to verified Islanders — the delivery
+  // pilot is run manually by hand with a single restaurant partner early on, and
+  // capping orders to invited/vouched-in residents keeps prank/test orders down
+  // while it's being fulfilled that way.
+  const handleOrderPress = (provider: DeliveryProvider) => {
+    if (!isLoggedIn) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    const isResident = user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN';
+    if (!isResident) {
+      Alert.alert(
+        isEn ? 'Islanders Only' : 'Sadece Adalılar',
+        isEn
+          ? 'Ordering is currently limited to verified Islanders. Ask an existing Islander to invite you, or reach out via Contact.'
+          : 'Sipariş verme özelliği şu an sadece Onaylı Adalılar için açık. Bir Adalıdan davet isteyebilir veya İletişim üzerinden bize ulaşabilirsin.',
+        [
+          { text: isEn ? 'Cancel' : 'Vazgeç', style: 'cancel' },
+          { text: isEn ? 'Contact Us' : 'İletişime Geç', onPress: () => router.push('/(tabs)/contact' as any) },
+        ]
+      );
+      return;
+    }
+    router.push({ pathname: '/(tabs)/explore/island/menu/[id]', params: { id: provider.id } });
   };
 
   const handleVoteSubmit = async () => {
@@ -221,7 +248,7 @@ export default function PaketServisScreen() {
               activeOpacity={0.88}
               onPress={() => {
                 if (provider.menu && provider.menu.length > 0) {
-                  router.push({ pathname: '/(tabs)/explore/island/menu/[id]', params: { id: provider.id } });
+                  handleOrderPress(provider);
                 } else {
                   handleCall(provider.phone);
                 }
@@ -265,7 +292,7 @@ export default function PaketServisScreen() {
                 {provider.menu && provider.menu.length > 0 && (
                   <TouchableOpacity
                     style={styles.menuButton}
-                    onPress={() => router.push({ pathname: '/(tabs)/explore/island/menu/[id]', params: { id: provider.id } })}
+                    onPress={() => handleOrderPress(provider)}
                   >
                     <IconSymbol name="fork.knife" size={15} color="#FFFFFF" />
                     <Text style={styles.actionBtnText}>{isEn ? 'Order Now' : 'Sipariş Ver'}</Text>

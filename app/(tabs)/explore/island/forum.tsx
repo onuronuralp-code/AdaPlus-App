@@ -41,29 +41,11 @@ export default function ForumScreen() {
     const isDark = theme === 'dark';
     const [showVerifyPhoneModal, setShowVerifyPhoneModal] = useState(false);
 
-    // Gate: only ISLAND_RESIDENT/ADMIN can post at all, and residents additionally
-    // need a verified phone on file (accountability for forum moderation). Admins
-    // bypass the phone check, matching the backend rule in PostService.createPost.
-    const requireForumPostingAccess = (): boolean => {
-        const isAdmin = user?.userType === 'ADMIN' || user?.role === 'ADMIN';
-        const isIslander = isAdmin || user?.userType === 'ISLAND_RESIDENT' || user?.userType === 'RESIDENT';
-        if (!isIslander) {
-            Alert.alert(
-                t('forum.islanderOnlyTitle', { defaultValue: i18n.language.startsWith('en') ? 'Islanders Only' : 'Sadece Adalılar' }),
-                t('forum.islanderOnlyDesc', { defaultValue: i18n.language.startsWith('en')
-                    ? 'Only verified Islanders can create posts in the community.'
-                    : 'Toplulukta gönderi paylaşabilmek için "Onaylı Adalı" olmanız gerekmektedir.' })
-            );
-            return false;
-        }
-        return true;
-    };
-
     React.useEffect(() => {
-        if (!isLoggedIn || (user && user.userType !== 'ISLAND_RESIDENT' && user.userType !== 'ADMIN' && user.role !== 'ADMIN')) {
+        if (!isLoggedIn) {
             Alert.alert(
                 t('common.accessDenied', { defaultValue: 'Erişim Engellendi' }),
-                t('forum.islanderOnlyDesc', { defaultValue: 'Topluluğa sadece Adalılar girebilir.' }),
+                t('forum.loginRequiredDesc', { defaultValue: 'Topluluğu görüntülemek için giriş yapmalısınız.' }),
                 [{ text: t('common.ok', { defaultValue: 'Tamam' }), onPress: () => {
                     if (router.canGoBack()) {
                         router.back();
@@ -73,7 +55,7 @@ export default function ForumScreen() {
                 }}]
             );
         }
-    }, [user, isLoggedIn]);
+    }, [isLoggedIn]);
 
     const [posts, setPosts] = useState<PostDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -414,7 +396,6 @@ export default function ForumScreen() {
             return;
         }
         if (!newReplyContent.trim() || !selectedPost) return;
-        if (!editingReplyId && !requireForumPostingAccess()) return;
         // The button's disabled state only ever reflected whether the text field was
         // empty, not whether a send was already in flight — tapping twice quickly (before
         // the first request cleared the field) sent the same comment twice.
@@ -1349,7 +1330,6 @@ export default function ForumScreen() {
                                 setShowLoginPrompt(true);
                                 return;
                             }
-                            if (!requireForumPostingAccess()) return;
                             setIsWriteModalVisible(true);
                         }}
                         activeOpacity={0.85}
