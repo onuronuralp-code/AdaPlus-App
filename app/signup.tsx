@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, Image, BackHandler, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, Image, BackHandler, Modal, Pressable } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCallback } from 'react';
@@ -468,8 +468,19 @@ export default function SignUpScreen() {
 
             {/* DatePicker Modal for iOS, or inline for Android */}
             {Platform.OS === 'ios' ? (
-                <Modal visible={showDatePicker} transparent animationType="fade">
-                    <TouchableOpacity style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
+                <Modal
+                    visible={showDatePicker}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowDatePicker(false)}
+                >
+                    <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <Pressable
+                            style={StyleSheet.absoluteFillObject}
+                            onPress={() => setShowDatePicker(false)}
+                            accessibilityRole="button"
+                            accessibilityLabel="Tarih seçiciyi kapat"
+                        />
                         <View style={{ backgroundColor: 'white', padding: 16, alignItems: 'center' }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8, width: '100%' }}>
                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
@@ -489,7 +500,7 @@ export default function SignUpScreen() {
                                 }}
                             />
                         </View>
-                    </TouchableOpacity>
+                    </View>
                 </Modal>
             ) : (
                 showDatePicker && (
