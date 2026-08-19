@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, Keyboard, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, Alert, ActivityIndicator, ScrollView, useWindowDimensions } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { authApi } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CODE_LENGTH = 6;
 
 const maskEmail = (email: string) =>
@@ -23,6 +22,7 @@ const maskPhone = (phone: string) => {
 export default function VerifyScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { width, height } = useWindowDimensions();
     const { login } = useAuth();
 
     // Support legacy `email` param for any existing deep-links/back-compat
@@ -138,14 +138,17 @@ export default function VerifyScreen() {
     const infoText = isPhone
         ? 'Kısa mesajın gelmesi birkaç saniye sürebilir. Hala gelmediyse "Tekrar Gönder" seçeneğini kullanın.'
         : 'Spam veya gereksiz (junk) klasörünü de kontrol etmeyi unutmayın.';
+    const codeGap = width < 390 ? 6 : 10;
+    const codeInputWidth = Math.min(48, Math.floor((width - 40 - codeGap * (CODE_LENGTH - 1)) / CODE_LENGTH));
+    const compactHeight = height < 720;
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.screenContent} bounces={false} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <Stack.Screen options={{ headerShown: false }} />
 
             <LinearGradient
                 colors={['#0D1B2A', '#1B263B']}
-                style={styles.headerBackground}
+                style={[styles.headerBackground, { height: height * (compactHeight ? 0.36 : 0.4) }]}
             >
                 <TouchableOpacity
                     style={[styles.backButton, { top: insets.top + 10 }]}
@@ -176,13 +179,14 @@ export default function VerifyScreen() {
             </LinearGradient>
 
             <View style={styles.cardContainer}>
-                <View style={styles.codeRow}>
+                <View style={[styles.codeRow, { gap: codeGap }]}>
                     {code.map((digit, index) => (
                         <TextInput
                             key={index}
                             ref={(ref) => { inputs.current[index] = ref; }}
                             style={[
                                 styles.codeInput,
+                                { width: codeInputWidth, height: compactHeight ? 52 : 58 },
                                 digit ? styles.codeInputFilled : null,
                                 error ? styles.codeInputError : null,
                             ]}
@@ -231,13 +235,14 @@ export default function VerifyScreen() {
                     <Text style={styles.infoText}>{infoText}</Text>
                 </View>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    headerBackground: { height: SCREEN_HEIGHT * 0.40, paddingHorizontal: 30 },
+    screenContent: { flexGrow: 1, backgroundColor: '#fff' },
+    headerBackground: { paddingHorizontal: 30 },
     backButton: {
         position: 'absolute', left: 20, zIndex: 10, width: 40, height: 40,
         borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)',
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
         paddingHorizontal: 20, paddingTop: 32, alignItems: 'center',
     },
-    codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 12 },
+    codeRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 12, width: '100%' },
     codeInput: {
         width: 48, height: 58, borderRadius: 10, borderWidth: 2, borderColor: '#E2E8F0',
         backgroundColor: '#F8FAFC', textAlign: 'center', fontSize: 22, fontWeight: '800',

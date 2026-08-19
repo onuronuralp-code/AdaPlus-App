@@ -180,6 +180,7 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
         <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
             <View style={styles.overlay}>
                 <View style={styles.container}>
+                  <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     {/* Header */}
                     <View style={styles.header}>
                         <Text style={styles.title}>{title}</Text>
@@ -267,6 +268,7 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
                             <Text style={styles.confirmButtonText}>Tamam</Text>
                         </TouchableOpacity>
                     </View>
+                  </ScrollView>
                 </View>
             </View>
         </Modal>
@@ -283,6 +285,8 @@ const styles = StyleSheet.create({
     },
     container: {
         width: '100%',
+        maxWidth: 420,
+        maxHeight: '92%',
         backgroundColor: '#fff',
         borderRadius: 16,
         overflow: 'hidden',
@@ -291,6 +295,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 32,
         elevation: 12,
+    },
+    scrollContent: {
+        flexGrow: 1,
     },
     header: {
         paddingHorizontal: 24,
