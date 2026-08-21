@@ -261,7 +261,7 @@ export default function EventsScreen() {
         return rawName ? t('places.' + rawName, { defaultValue: rawName }) : '';
     };
 
-    const formatCardDate = (startStr?: string, endStr?: string, hideTime?: boolean) => {
+    const formatCardDate = (startStr?: string, endStr?: string | null, hideTime?: boolean) => {
         if (!startStr) return '';
         const s = new Date(startStr);
         if (hideTime) {
@@ -397,7 +397,7 @@ export default function EventsScreen() {
             name: newEventName.trim(),
             description: newEventDetails.trim(),
             startDate: startDate.toISOString(),
-            ...(hasEndDate ? { endDate: endDate.toISOString() } : {}),
+            endDate: hasEndDate ? endDate.toISOString() : null,
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
             eventPlace: newEventLocation.trim() || undefined,

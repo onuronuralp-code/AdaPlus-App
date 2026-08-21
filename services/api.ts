@@ -124,7 +124,7 @@ export interface AppActivityDto {
   name: string;
   description: string;
   startDate: string;
-  endDate?: string;
+  endDate?: string | null;
   organizerName: string;
   organizerContact?: string;
   eventPlace?: string;
@@ -219,7 +219,9 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
 };
 
 
-export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status">;
+export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status" | "endDate"> & {
+  endDate?: string | null;
+};
 
 export const getActivity = async (id: string): Promise<AppActivityDto | null> => {
   const localMock = MOCK_ACTIVITIES.find(a => a.id === id);
