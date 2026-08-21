@@ -1247,7 +1247,7 @@ const MOCK_SERVICES = [
                       [{ text: i18n.language.startsWith('en') ? 'OK' : 'Tamam' }]
                     );
                   }}
-                  style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 3, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6, overflow: 'visible', alignItems: 'center', justifyContent: 'center', opacity: 0.72 }}
+                  style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 3, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                   <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#EDE9FE', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#DDD6FE', zIndex: 10 }}>
