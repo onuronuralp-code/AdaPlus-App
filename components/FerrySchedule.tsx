@@ -22,8 +22,8 @@ import AnimatedRE, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fetchDepartures } from "../services/api";
 import { IconSymbol } from "./ui/icon-symbol";
-
 import { useTheme } from "@/context/ThemeContext";
+import * as Haptics from 'expo-haptics';
 
 interface FerryRoute {
   id: string;
@@ -201,6 +201,7 @@ export function FerrySchedule() {
   const [showDepartureDropdown, setShowDepartureDropdown] = useState(false);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   const [onlyDirect, setOnlyDirect] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<'ALL' | 'SEHIR_HATLARI' | 'MAVI_MARMARA'>('ALL');
   const [selectedTrip, setSelectedTrip] = useState<FerryRoute | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [ferryData, setFerryData] = useState<FerryRoute[]>([]);
@@ -218,6 +219,7 @@ export function FerrySchedule() {
   }, [isAnyModalVisible]);
 
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isGridView, setIsGridView] = useState(true);
 
   const calendarScrollRef = useRef<ScrollView>(null);
   const mainScrollRef = useRef<any>(null);
@@ -395,10 +397,24 @@ export function FerrySchedule() {
   const filteredData = useMemo(() => {
     const isToday = selectedDate.toDateString() === new Date().toDateString();
     const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+
+    const matchesProvider = (item: FerryRoute) => {
+      if (selectedProvider === 'ALL') return true;
+      if (selectedProvider === 'SEHIR_HATLARI') {
+        const prov = (item.provider || '').toLowerCase();
+        return prov.includes('şehir') || prov.includes('sehir') || item.type === 'Vapur';
+      }
+      if (selectedProvider === 'MAVI_MARMARA') {
+        const prov = (item.provider || '').toLowerCase();
+        return prov.includes('marmara') || prov.includes('mavi');
+      }
+      return true;
+    };
     
     if (isToday && isLiveMode) {
       const upcoming = ferryData.filter((item) => {
         if (onlyDirect && !item.isDirect) return false;
+        if (!matchesProvider(item)) return false;
         const routeTime = getRouteTimeValue(item.departureTime);
         return routeTime >= nowMinutes;
       });
@@ -407,6 +423,7 @@ export function FerrySchedule() {
       const past = ferryData
         .filter((item) => {
           if (onlyDirect && !item.isDirect) return false;
+          if (!matchesProvider(item)) return false;
           const routeTime = getRouteTimeValue(item.departureTime);
           return routeTime < nowMinutes;
         })
@@ -417,9 +434,10 @@ export function FerrySchedule() {
     
     return ferryData.filter((item) => {
       if (onlyDirect && !item.isDirect) return false;
+      if (!matchesProvider(item)) return false;
       return true;
     });
-  }, [ferryData, onlyDirect, selectedDate, isLiveMode]);
+  }, [ferryData, onlyDirect, selectedProvider, selectedDate, isLiveMode]);
 
   const handleSwap = () => {
     if (departure === "Unselected" || destination === "Unselected") return;
@@ -465,6 +483,16 @@ export function FerrySchedule() {
           <View style={styles.headerTitles}>
             <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t("common.ferrySchedule")}</Text>
           </View>
+          <TouchableOpacity
+            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setIsGridView(!isGridView);
+            }}
+            activeOpacity={0.7}
+          >
+            <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
+          </TouchableOpacity>
         </View>
 
         <View style={[styles.largeRouteCard, isDark && { backgroundColor: '#121212', borderColor: '#222222' }]}>
@@ -486,7 +514,7 @@ export function FerrySchedule() {
                   style={[
                     styles.largePlaceText,
                     isDark && { color: '#FFFFFF' },
-                    departure === "Unselected" && (isDark ? { color: '#64748B' } : styles.placeholder),
+                    departure === "Unselected" && (isDark ? { color: '#94A3B8' } : styles.placeholder),
                   ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -525,7 +553,7 @@ export function FerrySchedule() {
                   style={[
                     styles.largePlaceText,
                     isDark && { color: '#FFFFFF' },
-                    destination === "Unselected" && (isDark ? { color: '#64748B' } : styles.placeholder),
+                    destination === "Unselected" && (isDark ? { color: '#94A3B8' } : styles.placeholder),
                   ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -567,6 +595,65 @@ export function FerrySchedule() {
                   : selectedDate.getDay() !== 0
                   ? (i18n.language === "tr" ? "Haftaiçi/Cmt" : "Weekdays/Sat")
                   : (i18n.language === "tr" ? "Pazar/Tatil" : "Sunday/Holiday")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Şehir Hatları & Mavi Marmara Filtreleri */}
+          <View style={[styles.providerFilterRow, isDark && { borderTopColor: '#222222' }]}>
+            <TouchableOpacity
+              activeOpacity={0.75}
+              style={[
+                styles.providerChip,
+                isDark && styles.providerChipDark,
+                selectedProvider === 'SEHIR_HATLARI' && styles.providerChipActiveSH,
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSelectedProvider(prev => prev === 'SEHIR_HATLARI' ? 'ALL' : 'SEHIR_HATLARI');
+              }}
+            >
+              <IconSymbol 
+                name="ferry" 
+                size={14} 
+                color={selectedProvider === 'SEHIR_HATLARI' ? '#FFFFFF' : (isDark ? '#FB923C' : '#EA580C')} 
+              />
+              <Text
+                style={[
+                  styles.providerChipText,
+                  isDark && styles.providerChipTextDark,
+                  selectedProvider === 'SEHIR_HATLARI' && styles.providerChipTextActive,
+                ]}
+              >
+                Şehir Hatları
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.75}
+              style={[
+                styles.providerChip,
+                isDark && styles.providerChipDark,
+                selectedProvider === 'MAVI_MARMARA' && styles.providerChipActiveMM,
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSelectedProvider(prev => prev === 'MAVI_MARMARA' ? 'ALL' : 'MAVI_MARMARA');
+              }}
+            >
+              <IconSymbol 
+                name="sailboat.fill" 
+                size={14} 
+                color={selectedProvider === 'MAVI_MARMARA' ? '#FFFFFF' : (isDark ? '#60A5FA' : '#2563EB')} 
+              />
+              <Text
+                style={[
+                  styles.providerChipText,
+                  isDark && styles.providerChipTextDark,
+                  selectedProvider === 'MAVI_MARMARA' && styles.providerChipTextActive,
+                ]}
+              >
+                Mavi Marmara
               </Text>
             </TouchableOpacity>
           </View>
@@ -625,6 +712,30 @@ export function FerrySchedule() {
                   ? (i18n.language === "tr" ? "Aynı kalkış ve varış noktası arasında sefer bulunmamaktadır." : "No trips available between the same origin and destination.")
                   : (i18n.language === "tr" ? "Bu tarih için sefer kalmadı." : "No trips left for this date.")}
               </Text>
+            </View>
+          ) : isGridView ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+              {filteredData.map((item, idx) => {
+                const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+                const routeTime = getRouteTimeValue(item.departureTime);
+                const isPast = isLiveMode && routeTime < nowMinutes;
+                const isNext = isLiveMode && !isPast && idx === filteredData.findIndex(f => getRouteTimeValue(f.departureTime) >= nowMinutes);
+                return (
+                  <AnimatedRE.View
+                    key={item.id}
+                    entering={FadeInDown.delay(idx * 30).duration(350)}
+                  >
+                    <TripTripGridCard
+                      item={item}
+                      onPress={() => setSelectedTrip(item)}
+                      isNext={isNext}
+                      isPast={isPast}
+                      t={t}
+                      i18n={i18n}
+                    />
+                  </AnimatedRE.View>
+                );
+              })}
             </View>
           ) : (
             filteredData.map((item, idx) => {
@@ -777,12 +888,12 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
               <IconSymbol
                 name="ferry.fill"
                 size={10}
-                color={item.type === "Vapur" ? "#EA580C" : "#0284C7"}
+                color={item.type === "Vapur" ? "#EA580C" : "#2563EB"}
               />
               <Text
                 style={[
                   styles.typeText,
-                  { color: item.type === "Vapur" ? "#EA580C" : "#0284C7" },
+                  { color: item.type === "Vapur" ? "#EA580C" : "#2563EB" },
                 ]}
               >
                 {item.type === "Vapur"
@@ -828,6 +939,118 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
         </View>
         <IconSymbol name="chevron.right" size={16} color={isDark ? "#475569" : "#E2E8F0"} />
       </View>
+    </TouchableOpacity>
+  );
+}
+
+function TripTripGridCard({ item, onPress, isNext, isPast, t, i18n }: any) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      style={[
+        {
+          width: (SCREEN_WIDTH - 50) / 2,
+          backgroundColor: isDark ? '#121212' : '#FFFFFF',
+          borderRadius: 16,
+          padding: 12,
+          marginBottom: 10,
+          borderWidth: 1,
+          borderColor: isDark ? '#222222' : '#E2E8F0',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 6,
+          elevation: 2,
+        },
+        isNext && (isDark ? { backgroundColor: '#1E120A', borderColor: '#EA580C', borderWidth: 1.5 } : { backgroundColor: '#FFF7ED', borderColor: '#EA580C', borderWidth: 1.5 }),
+        isPast && { opacity: 0.45 }
+      ]}
+      onPress={onPress}
+    >
+      {isNext && (
+        <View style={{
+          position: 'absolute',
+          top: -8,
+          right: 10,
+          backgroundColor: '#EA580C',
+          paddingHorizontal: 8,
+          paddingVertical: 2,
+          borderRadius: 6,
+          zIndex: 10,
+        }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: '800' }}>{t("common.next")}</Text>
+        </View>
+      )}
+
+      {/* Time Row */}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+        <Text style={[{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A' }]} numberOfLines={1}>
+          {item.departureTime}
+        </Text>
+        {item.arrivalTime && (
+          <Text style={[{ fontSize: 12, fontWeight: '600', color: isDark ? '#94A3B8' : '#64748B' }]}>
+            → {item.arrivalTime}
+          </Text>
+        )}
+      </View>
+
+      {/* Badges Row */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 3,
+            paddingHorizontal: 6,
+            paddingVertical: 3,
+            borderRadius: 6,
+            backgroundColor: item.type === "Vapur" ? (isDark ? "#2E1505" : "#FFF7ED") : (isDark ? "#051A2E" : "#F0F9FF"),
+          }}
+        >
+          <IconSymbol
+            name="ferry.fill"
+            size={9}
+            color={item.type === "Vapur" ? "#EA580C" : "#2563EB"}
+          />
+          <Text style={{ fontSize: 10, fontWeight: '700', color: item.type === "Vapur" ? "#EA580C" : "#2563EB" }}>
+            {item.type === "Vapur" ? t("common.ferry") : t("common.motorboat")}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 3,
+            paddingHorizontal: 6,
+            paddingVertical: 3,
+            borderRadius: 6,
+            backgroundColor: item.isDirect ? (isDark ? "#052E1B" : "#ECFDF5") : (isDark ? "#1C152E" : "#F5F3FF"),
+          }}
+        >
+          <IconSymbol
+            name={item.isDirect ? "bolt.fill" : "arrow.triangle.branch"}
+            size={9}
+            color={item.isDirect ? "#059669" : "#7C3AED"}
+          />
+          <Text style={{ fontSize: 9.5, fontWeight: '700', color: item.isDirect ? "#059669" : "#7C3AED" }}>
+            {item.isDirect ? (i18n.language === 'tr' ? 'DİREKT' : 'DIRECT') : (i18n.language === 'tr' ? 'AKTARMA' : 'VIA')}
+          </Text>
+        </View>
+      </View>
+
+      {/* Route */}
+      <Text style={[{ fontSize: 12, fontWeight: '700', color: isDark ? '#F1F5F9' : '#1E293B', marginBottom: 4 }]} numberOfLines={1}>
+        {t("places." + item.departure, { defaultValue: item.departure })} → {t("places." + item.destination, { defaultValue: item.destination })}
+      </Text>
+
+      {/* Provider */}
+      <Text style={[{ fontSize: 11, fontWeight: '500', color: isDark ? '#64748B' : '#94A3B8' }]} numberOfLines={1}>
+        {item.provider}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -1733,7 +1956,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     textAlign: "center",
   },
-  placeholder: { color: "#E2E8F0" },
+  placeholder: { color: "#334155" },
   largeSwapBtn: {
     width: 40,
     height: 40,
@@ -1755,9 +1978,54 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingTop: 16,
-    marginTop: 20,
+    marginTop: 18,
     borderTopWidth: 1,
     borderTopColor: "#F8FAFC",
+  },
+  providerFilterRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F8FAFC",
+  },
+  providerChip: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  providerChipDark: {
+    backgroundColor: "#18181B",
+    borderColor: "#27272A",
+  },
+  providerChipActiveSH: {
+    backgroundColor: "#EA580C",
+    borderColor: "#EA580C",
+  },
+  providerChipActiveMM: {
+    backgroundColor: "#2563EB",
+    borderColor: "#2563EB",
+  },
+  providerChipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#475569",
+  },
+  providerChipTextDark: {
+    color: "#94A3B8",
+  },
+  providerChipTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "800",
   },
   calendarTrigger: {
     flexDirection: "row",
@@ -1873,7 +2141,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#F1F5F9",
   },
-  cardNext: { backgroundColor: "#FFFAF5", borderColor: "#FFF7ED" },
+  cardNext: {
+    backgroundColor: "#FFFAF5",
+    borderColor: "#EA580C",
+    borderWidth: 1.5,
+  },
   nextBadge: {
     position: "absolute",
     top: -10,

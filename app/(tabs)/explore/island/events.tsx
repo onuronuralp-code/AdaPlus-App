@@ -33,6 +33,8 @@ export default function EventsScreen() {
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [isGridView, setIsGridView] = useState(true);
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
+    const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -505,18 +507,36 @@ export default function EventsScreen() {
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
                                 {hasUserImage ? (
-                                    <View style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}>
+                                    <TouchableOpacity
+                                        activeOpacity={0.9}
+                                        onPress={(e) => {
+                                            e.stopPropagation?.();
+                                            setViewerImageUrl(resolvedUrl);
+                                            setImageViewerVisible(true);
+                                        }}
+                                        style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
+                                    >
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
                                             resizeMode="cover"
                                         />
-                                    </View>
+                                    </TouchableOpacity>
                                 ) : (
-                                    <Image
-                                        source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                        style={[styles.eventImage, isGridView && { height: 140 }]}
-                                    />
+                                    <TouchableOpacity
+                                        activeOpacity={0.9}
+                                        onPress={(e) => {
+                                            e.stopPropagation?.();
+                                            setViewerImageUrl('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80');
+                                            setImageViewerVisible(true);
+                                        }}
+                                        style={{ width: '100%', height: isGridView ? 140 : 300 }}
+                                    >
+                                        <Image
+                                            source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
+                                            style={[styles.eventImage, isGridView && { height: 140 }]}
+                                        />
+                                    </TouchableOpacity>
                                 )}
                                 
                                 {/* Katılımcı Sayısı - Izgara Görünümünde Fotoğraf Üstünde */}
@@ -816,6 +836,43 @@ export default function EventsScreen() {
                 title={t('common.success', { defaultValue: 'Başarılı' })}
                 message={successModalMessage}
             />
+
+            {/* Fullscreen Image Viewer Modal */}
+            <Modal
+                visible={imageViewerVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setImageViewerVisible(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* Close button */}
+                    <TouchableOpacity
+                        style={{
+                            position: 'absolute',
+                            top: insets.top + 16,
+                            right: 20,
+                            zIndex: 20,
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        onPress={() => setImageViewerVisible(false)}
+                    >
+                        <IconSymbol name="xmark" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+
+                    {viewerImageUrl && (
+                        <Image
+                            source={{ uri: viewerImageUrl }}
+                            style={{ width: Dimensions.get('window').width, height: Dimensions.get('window').height }}
+                            resizeMode="contain"
+                        />
+                    )}
+                </View>
+            </Modal>
         </View>
         </SwipeNavigation>
     );

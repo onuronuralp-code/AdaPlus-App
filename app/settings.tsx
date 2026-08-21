@@ -59,6 +59,12 @@ export default function SettingsScreen() {
         }
     };
 
+    // Edit Account Verification States
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [verifyPassword, setVerifyPassword] = useState('');
+    const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+
     useEffect(() => {
         const backAction = () => {
             if (showPasswordModal) {
@@ -74,12 +80,6 @@ export default function SettingsScreen() {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
         return () => backHandler.remove();
     }, [showPasswordModal, router]);
-
-    // Edit Account Verification States
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [verifyPassword, setVerifyPassword] = useState('');
-    const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
-    const [passwordError, setPasswordError] = useState('');
 
     const handleVerifyPasswordAndNavigate = async () => {
         if (!verifyPassword.trim()) {

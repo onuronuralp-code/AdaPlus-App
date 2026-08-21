@@ -262,19 +262,32 @@ export default function ForumScreen() {
         setReplies(data);
     };
 
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     const performInviteShare = async () => {
         try {
-            const contact = inviteContactInput.trim();
-            if (contact) {
+            const email = inviteContactInput.trim();
+            if (email) {
+                if (!EMAIL_REGEX.test(email)) {
+                    Alert.alert(
+                        t('common.error', { defaultValue: 'Hata' }),
+                        i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
+                    );
+                    return;
+                }
                 Alert.alert(
                     t('common.success', { defaultValue: 'Başarılı' }),
                     i18n.language.startsWith('tr') 
-                        ? `${contact} adresine/numarasına davetiye gönderildi!` 
-                        : `Invitation sent to ${contact}!`
+                        ? `${email} adresine davetiye gönderildi!` 
+                        : `Invitation sent to ${email}!`
                 );
             } else {
+                const appStoreUrl = 'https://apps.apple.com/tr/app/ada-plus/id6743840993';
                 await Share.share({
-                    message: t('forum.inviteMessage', { defaultValue: 'AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası: https://adaplus.app' }),
+                    message: i18n.language.startsWith('en')
+                        ? `Join the AdaPlus Community! Download on the App Store: ${appStoreUrl}`
+                        : `AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası, App Store'dan indir: ${appStoreUrl}`,
+                    url: appStoreUrl,
                 });
             }
             setInviteContactInput('');
@@ -286,12 +299,12 @@ export default function ForumScreen() {
 
     const handleInviteFriends = () => {
         const invitedCount = (user as any)?.invitedUsersCount || 0;
-        if (invitedCount >= 3) {
+        if (invitedCount >= 5) {
             Alert.alert(
                 i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
                 i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                    ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
+                    : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
             );
             return;
         }
@@ -422,7 +435,7 @@ export default function ForumScreen() {
 
                 const reply = await forumApi.postReply(selectedPost.id, request);
                 if (reply) {
-                    const completeReply = {
+                    const completeReply: any = {
                         ...reply,
                         authorId: reply.authorId || user?.id,
                         authorName: reply.authorName || user?.fullName || 'Anonim',
@@ -911,7 +924,7 @@ export default function ForumScreen() {
         setEditingPostId(post.id);
         setNewPostContent(post.content);
         setNewPostType(post.postType.toLowerCase());
-        setIsAnonymous(post.anonymous);
+        setIsAnonymous((post as any).anonymous || false);
         
         if (isDetailModalVisible) {
             setIsDetailModalVisible(false);
@@ -1020,7 +1033,7 @@ export default function ForumScreen() {
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity 
-                            style={{ height: '100%', backgroundColor: '#F59E0B', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
+                            style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
                             activeOpacity={0.7}
                             onPress={() => { swipeable?.close(); handleReport(item.id); }}
                         >
@@ -1656,11 +1669,11 @@ export default function ForumScreen() {
                                                              </TouchableOpacity>
                                                          ) : (
                                                              <TouchableOpacity 
-                                                                 style={{ alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4, backgroundColor: '#F59E0B' }}
+                                                                 style={{ alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4, backgroundColor: '#EF4444' }}
                                                                  onPress={() => handleReport(selectedPost.id)}
                                                              >
                                                                  <IconSymbol name="exclamationmark.triangle.fill" size={14} color="#FFFFFF" />
-                                                                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.report', { defaultValue: 'Report' })}</Text>
+                                                                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                                                              </TouchableOpacity>
                                                          )}
                                                      </>
@@ -1783,11 +1796,18 @@ export default function ForumScreen() {
                                 {replies.length > 0 ? (
                                     replies.map(reply => {
                                         const renderRightActions = (progress: any, dragX: any, swipeable?: any) => {
-                                            if (reply.authorId !== user?.id) return null;
+                                            if (reply.authorId === user?.id) {
+                                                return (
+                                                    <TouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                        <IconSymbol name="trash.fill" size={20} color="#FFF" />
+                                                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                    </TouchableOpacity>
+                                                );
+                                            }
                                             return (
-                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleDeletePost(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
-                                                    <IconSymbol name="trash.fill" size={20} color="#FFF" />
-                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
+                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleReport(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                    <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#FFF" />
+                                                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                                                 </TouchableOpacity>
                                             );
                                         };
@@ -2060,8 +2080,8 @@ export default function ForumScreen() {
                         onPress={() => setIsInviteModalVisible(false)} 
                     />
                     <View style={[{ width: '100%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', zIndex: 10, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
-                        <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#1E3A8A' }]}>
-                            <IconSymbol name="person.2.fill" size={32} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                        <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#ECFDF5', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#064E3B' }]}>
+                            <IconSymbol name="person.2.fill" size={32} color={isDark ? "#34D399" : "#059669"} />
                         </View>
                         <Text style={[{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }, isDark && { color: '#FFFFFF' }]}>
                             {i18n.language.startsWith('en') ? 'Invite Friends' : 'Arkadaşlarını Davet Et'}
@@ -2085,12 +2105,13 @@ export default function ForumScreen() {
                                 color: '#1E293B',
                                 marginBottom: 20
                             }, isDark && { backgroundColor: '#18181B', borderColor: '#2C2C2E', color: '#FFFFFF' }]}
-                            placeholder={i18n.language.startsWith('en') ? 'Email or phone number' : 'E-posta veya telefon numarası'}
+                            placeholder={i18n.language.startsWith('en') ? 'Email address (e.g. adali@email.com)' : 'E-posta adresi (örn. adali@email.com)'}
                             placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
                             value={inviteContactInput}
                             onChangeText={setInviteContactInput}
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            autoCorrect={false}
                         />
 
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
@@ -2104,7 +2125,7 @@ export default function ForumScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity 
                                 onPress={performInviteShare} 
-                                style={{ flex: 1, backgroundColor: '#3B82F6', paddingVertical: 14, borderRadius: 16 }}
+                                style={{ flex: 1, backgroundColor: '#059669', paddingVertical: 14, borderRadius: 16 }}
                             >
                                 <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', textAlign: 'center' }}>
                                     {i18n.language.startsWith('en') ? 'Invite' : 'Davet Et'}
@@ -2199,7 +2220,7 @@ export default function ForumScreen() {
                                 <View style={{ backgroundColor: '#EF4444', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
                                     <IconSymbol name="trash.fill" size={16} color="#FFF" />
                                 </View>
-                                <View style={{ backgroundColor: '#F59E0B', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
+                                <View style={{ backgroundColor: '#EF4444', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
                                     <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#FFF" />
                                 </View>
                             </View>
@@ -2281,7 +2302,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: s(20),
-        paddingBottom: vs(16),
+        paddingBottom: vs(4),
         backgroundColor: 'transparent',
         zIndex: 10,
     },
@@ -2309,8 +2330,8 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
     },
     tabsWrapper: {
-        paddingTop: vs(20),
-        paddingBottom: vs(16),
+        paddingTop: vs(4),
+        paddingBottom: vs(8),
         backgroundColor: 'transparent',
     },
     tabsContainer: {
@@ -2348,7 +2369,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
     },
     listContent: {
-        paddingTop: vs(8),
+        paddingTop: vs(2),
         paddingBottom: vs(100),
         paddingHorizontal: s(10),
     },

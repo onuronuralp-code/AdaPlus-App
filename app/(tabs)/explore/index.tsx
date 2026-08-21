@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard } from 'react-native';
+import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
@@ -272,22 +272,13 @@ export default function MainMenuScreen() {
 
   useEffect(() => {
     let timer: any;
-    const checkFirstLaunch = async () => {
-      try {
-        const hasSeen = await AsyncStorage.getItem('has_seen_onboarding_tour');
-        if (hasSeen !== 'true') {
-          timer = setTimeout(() => {
-            start();
-          }, 800);
-        }
-      } catch (err) {
-        console.log('Error checking onboarding tour status:', err);
-      }
-    };
-    checkFirstLaunch();
+    // Always start onboarding tour for testing
+    timer = setTimeout(() => {
+      start();
+    }, 600);
 
     const handleStop = () => {
-      AsyncStorage.setItem('has_seen_onboarding_tour', 'true');
+      console.log('Onboarding tour stopped');
     };
     copilotEvents?.on('stop', handleStop);
     
@@ -399,6 +390,7 @@ const MOCK_SERVICES = [
   const [inviteEmailError, setInviteEmailError] = useState('');
   const [isInviting, setIsInviting] = useState(false);
   const [isInviteFocused, setIsInviteFocused] = useState(false);
+  const [showEmailInviteModal, setShowEmailInviteModal] = useState(false);
   const inviteInputRef = useRef<TextInput>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -413,6 +405,21 @@ const MOCK_SERVICES = [
   const celebrationScale = useRef(new Animated.Value(0)).current;
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleShareInvite = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const appStoreUrl = 'https://apps.apple.com/tr/app/ada-plus/id6743840993';
+      await Share.share({
+        message: i18n.language.startsWith('en')
+          ? `Join AdaPlus and discover island events, ferry schedules, and community news! Download on the App Store: ${appStoreUrl}`
+          : `AdaPlus ile Adalar parmaklarının ucunda! Sen de aramıza katıl, App Store'dan ücretsiz indir: ${appStoreUrl}`,
+        url: appStoreUrl,
+      });
+    } catch (error) {
+      console.log('Share error:', error);
+    }
+  };
 
   useEffect(() => {
     AsyncStorage.getItem('has_completed_delivery_survey').then(val => {
@@ -471,12 +478,12 @@ const MOCK_SERVICES = [
 
   const handleSendInvite = async () => {
     const invitedCount = (user as any)?.invitedUsersCount || 0;
-    if (invitedCount >= 3) {
+    if (invitedCount >= 5) {
       Alert.alert(
         i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
         i18n.language.startsWith('en')
-          ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-          : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+          ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
+          : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
       );
       return;
     }
@@ -532,6 +539,7 @@ const MOCK_SERVICES = [
       Alert.alert(t('common.success'), t('profile.inviteSendSuccess'));
       setInviteEmail('');
       setInviteEmailError('');
+      setShowEmailInviteModal(false);
     } catch (error) {
       console.error('Failed to send invite:', error);
       Alert.alert(t('common.error'), t('profile.inviteSendFailed'));
@@ -575,24 +583,25 @@ const MOCK_SERVICES = [
         const now = new Date();
         const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
         
-        const validEvents = events
-          .filter(e => {
+        const validEvents = (Array.isArray(events) ? events : [])
+          .filter((e: any) => {
             if (e.endDate) return new Date(e.endDate) >= now;
-            return new Date(e.startDate) >= cutoff;
+            if (e.startDate) return new Date(e.startDate) >= cutoff;
+            return true;
           })
-          .map(event => ({
+          .map((event: any) => ({
             id: event.id,
             type: 'event',
             title: event.name,
             subtitle: event.description || event.organizerName || '',
-            island: event.island || event.eventPlace || 'Büyükada',
-            date: new Date(event.startDate).getTime(),
-            createdAt: event.createdAt ? new Date(event.createdAt).getTime() : new Date(event.startDate).getTime(),
-            imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+            island: event.island || event.eventPlace || 'Kınalıada',
+            date: event.startDate ? new Date(event.startDate).getTime() : now.getTime(),
+            createdAt: event.createdAt ? new Date(event.createdAt).getTime() : (event.startDate ? new Date(event.startDate).getTime() : now.getTime()),
+            imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&auto=format&fit=crop&q=80'
           }));
 
         const validListings = listings
-          .map(listing => ({
+          .map((listing: any) => ({
             id: listing.id,
             type: 'listing',
             title: listing.title,
@@ -607,7 +616,7 @@ const MOCK_SERVICES = [
 
         const combined = [...validEvents, ...validListings]
           .sort((a, b) => b.date - a.date) // sort by newest first
-          .slice(0, 5);
+          .slice(0, 10);
 
         if (bannerData && bannerData.active) {
             combined.unshift({
@@ -625,17 +634,17 @@ const MOCK_SERVICES = [
         AsyncStorage.setItem('cached_total_events', validEvents.length.toString());
         AsyncStorage.setItem('cached_total_listings', validListings.length.toString());
 
-        setAllEventIds(validEvents.map(e => e.id));
+        setAllEventIds(validEvents.map((e: any) => e.id));
         AsyncStorage.getItem('seenEventIds').then(seenStr => {
           const seenIds = seenStr ? JSON.parse(seenStr) : [];
-          const unseenCount = validEvents.filter(e => !seenIds.includes(e.id)).length;
+          const unseenCount = validEvents.filter((e: any) => !seenIds.includes(e.id)).length;
           setUnseenEventsCount(unseenCount);
           AsyncStorage.setItem('cached_unseen_events', unseenCount.toString());
         });
 
         AsyncStorage.getItem('lastViewedListings').then(lastViewedStr => {
           const lastViewed = lastViewedStr ? parseInt(lastViewedStr, 10) : 0;
-          const unseenCount = validListings.filter(l => l.createdAt > lastViewed).length;
+          const unseenCount = validListings.filter((l: any) => l.createdAt > lastViewed).length;
           setUnseenListingsCount(unseenCount);
           AsyncStorage.setItem('cached_unseen_listings', unseenCount.toString());
         });
@@ -718,10 +727,13 @@ const MOCK_SERVICES = [
   };
 
   const slidesToRender = heroSlides.length > 0 ? heroSlides : [defaultSlide];
+  const slideWidth = width - 24;
+  const slideGap = 12;
+  const snapInterval = slideWidth + slideGap;
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / width);
+    const index = Math.round(scrollPosition / snapInterval);
     setActiveIndex(index);
   };
   const heroHeight = isSmallScreen ? Math.min(height * 0.30, 235) : Math.min(Math.max(height * 0.35, 275), 330);
@@ -734,13 +746,13 @@ const MOCK_SERVICES = [
     const interval = setInterval(() => {
       setActiveIndex((current) => {
         const nextIndex = (current + 1) % slidesToRender.length;
-        heroScrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
+        heroScrollRef.current?.scrollTo({ x: nextIndex * snapInterval, animated: true });
         return nextIndex;
       });
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [slidesToRender.length, width]);
+  }, [slidesToRender.length, snapInterval]);
 
 
   return (
@@ -767,190 +779,191 @@ const MOCK_SERVICES = [
               <View style={[styles.welcomeContainer, { 
                 flexDirection: 'row', 
                 justifyContent: 'space-between', 
-                alignItems: 'flex-start', 
+                alignItems: 'center', 
                 paddingTop: isIphone11 ? 12 : 6, 
-                paddingHorizontal: 12 
-              }, isSmallScreen && { marginBottom: 8 }, isLargeScreen && { marginBottom: 12 }]}>
-        <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text 
-            style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 8 }, isDark && { color: '#F8FAFC' }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
-          >
-            {isLoggedIn && user
-              ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${((user as any)?.fullName || (user as any)?.name || (user as any)?.username || '').trim().split(' ')[0] || (i18n.language.startsWith('en') ? 'Islander' : 'Adalı')}\u00A0🌸`
-              : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}\u00A0🌸`}
-          </Text>
-          {isLoggedIn ? (
-            <TouchableOpacity 
-              activeOpacity={0.7}
-              onPress={() => {
-                Alert.alert(
-                  i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
-                  i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
-                );
-              }}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start' }}
-            >
-              <IconSymbol name="person.2.fill" size={13} color={isDark ? '#818CF8' : '#6366F1'} />
-              <Text style={{ fontSize: 12, color: isDark ? '#93C5FD' : '#4338CA', marginLeft: 6, fontWeight: '700' }}>
-                {t('profile.invitedIslanders', { defaultValue: i18n.language.startsWith('tr') ? 'Davet Edilen Adalılar' : 'Invited Islanders' })}
-              </Text>
-              <View style={{ width: 60, height: 6, backgroundColor: isDark ? '#312E81' : '#E0E7FF', borderRadius: 3, marginHorizontal: 8, overflow: 'hidden' }}>
-                <View style={{ 
-                    width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 3) * 100, 100)}%`, 
-                    height: '100%', 
-                    backgroundColor: '#6366F1', 
-                    borderRadius: 3 
-                }} />
+                paddingHorizontal: 12,
+                marginBottom: 8,
+              }]}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text 
+                    style={[styles.welcomeGreeting, isLargeScreen && { fontSize: 30 }, isIphone11 && { fontSize: 28 }, { marginBottom: 2 }, isDark && { color: '#F8FAFC' }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                  >
+                    {isLoggedIn && user
+                      ? `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}, ${((user as any)?.fullName || (user as any)?.name || (user as any)?.username || '').trim().split(' ')[0] || (i18n.language.startsWith('en') ? 'Islander' : 'Adalı')}\u00A0🌸`
+                      : `${t('explore.welcome', { defaultValue: 'Hoşgeldin' })}\u00A0🌸`}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>
+                      {t('explore.readyToExplore', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 2 }}>
+                  <CopilotStep text={t('explore.tour.duyurular', { defaultValue: i18n.language.startsWith('en') ? 'You can view all current island announcements and notifications here.' : 'Tüm güncel ada duyurularını ve bildirimlerini buradan görebilirsin.' })} order={8} name="duyurular">
+                    <WalkthroughableView collapsable={false}>
+                      <Pressable 
+                        style={({ pressed }) => [{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 22,
+                          backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }, pressed && { opacity: 0.7 }]}
+                        onPress={async () => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setShowNotificationModal(true);
+                          setLoadingNotifications(true);
+                          
+                          let notificationsData: any[] = [];
+                          if (!isLoggedIn) {
+                              const stored = await AsyncStorage.getItem('guest_notifications');
+                              notificationsData = stored ? JSON.parse(stored) : [];
+                          } else {
+                              try {
+                                  const fetchedData = await fetchNotifications();
+                                  notificationsData = Array.isArray(fetchedData) ? fetchedData : [];
+                                  markAllRead().catch(() => {});
+                              } catch (e) {
+                                  console.log('Error fetching notifications', e);
+                              }
+                          }
+                          
+                          const now = Date.now();
+                          const allReadData = notificationsData.map(n => ({ ...n, read: true }));
+                          setNotifications(allReadData);
+                          await AsyncStorage.setItem('cached_notifications', JSON.stringify(allReadData));
+                          await AsyncStorage.setItem('lastViewedNotifications', now.toString());
+                          setLoadingNotifications(false);
+                        }}
+                      >
+                        <IconSymbol name="megaphone.fill" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
+                        {/* Dinamik Okunmamış Bildirim Rozeti (Placeholder Kaldırıldı) */}
+                        {(() => {
+                          const unreadCount = notifications.filter(n => !n.read).length;
+                          if (unreadCount <= 0) return null;
+                          return (
+                            <View style={{
+                              position: 'absolute',
+                              top: -2,
+                              right: -2,
+                              backgroundColor: '#EF4444',
+                              minWidth: 18,
+                              height: 18,
+                              borderRadius: 9,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 10,
+                              borderWidth: 2,
+                              borderColor: isDark ? '#1E293B' : '#FFFFFF',
+                              paddingHorizontal: 3
+                            }}>
+                              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
+                                {unreadCount}
+                              </Text>
+                            </View>
+                          );
+                        })()}
+                      </Pressable>
+                    </WalkthroughableView>
+                  </CopilotStep>
+                </View>
               </View>
-              <Text style={{ fontSize: 11, color: isDark ? '#818CF8' : '#6366F1', fontWeight: '800' }}>
-                {(user as any)?.invitedUsersCount || 0}/3
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[styles.welcomeSubtitle, isLargeScreen && { fontSize: 15 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>
-                {t('explore.readyToExplore', { defaultValue: i18n.language.startsWith('en') ? 'Ready to explore the islands?' : 'Adaları keşfetmeye hazır mısın?' })}
-              </Text>
-            </View>
-          )}
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 2 }}>
-          <CopilotStep text={t('explore.tour.duyurular', { defaultValue: i18n.language.startsWith('en') ? 'You can view all current island announcements and notifications here.' : 'Tüm güncel ada duyurularını ve bildirimlerini buradan görebilirsin.' })} order={8} name="duyurular">
-            <WalkthroughableView collapsable={false}>
-              <Pressable 
-                style={({ pressed }) => [{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }, pressed && { opacity: 0.7 }]}
-                onPress={async () => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setShowNotificationModal(true);
-                  setLoadingNotifications(true);
-                  
-                  let notificationsData: any[] = [];
-                  if (!isLoggedIn) {
-                      const stored = await AsyncStorage.getItem('guest_notifications');
-                      notificationsData = stored ? JSON.parse(stored) : [];
-                  } else {
-                      try {
-                          const fetchedData = await fetchNotifications();
-                          notificationsData = Array.isArray(fetchedData) ? fetchedData : [];
-                          markAllRead().catch(() => {});
-                      } catch (e) {
-                          console.log('Error fetching notifications', e);
-                      }
-                  }
-                  
-                  const now = Date.now();
-                  const allReadData = notificationsData.map(n => ({ ...n, read: true }));
-                  setNotifications(allReadData);
-                  await AsyncStorage.setItem('cached_notifications', JSON.stringify(allReadData));
-                  await AsyncStorage.setItem('lastViewedNotifications', now.toString());
-                  setLoadingNotifications(false);
-                }}
-              >
-                <IconSymbol name="megaphone.fill" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
-                {/* Dinamik Okunmamış Bildirim Rozeti (Placeholder Kaldırıldı) */}
-                {(() => {
-                  const unreadCount = notifications.filter(n => !n.read).length;
-                  if (unreadCount <= 0) return null;
-                  return (
-                    <View style={{
-                      position: 'absolute',
-                      top: -2,
-                      right: -2,
-                      backgroundColor: '#EF4444',
-                      minWidth: 18,
-                      height: 18,
-                      borderRadius: 9,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      zIndex: 10,
-                      borderWidth: 2,
-                      borderColor: isDark ? '#1E293B' : '#FFFFFF',
-                      paddingHorizontal: 3
-                    }}>
-                      <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
-                        {unreadCount}
-                      </Text>
-                    </View>
-                  );
-                })()}
-              </Pressable>
-            </WalkthroughableView>
-          </CopilotStep>
-        </View>
-      </View>
 
 
-      {/* Invite User Input (Visible to all, usable only by Islanders/Admins) */}
+      {/* Invite Buttons (Two equal-width buttons: Email Invite & Share Link) */}
       <View style={{ paddingHorizontal: 12, marginBottom: 9 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
-            <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderRadius: 8, paddingHorizontal: 14, height: 54, elevation: 1, borderWidth: 1.5, borderColor: isDark ? '#047857' : '#059669' }}>
-                <IconSymbol name="envelope.fill" size={19} color={isDark ? '#34D399' : '#059669'} />
-                <TextInput
-                  ref={inviteInputRef}
-                  style={{ flex: 1, fontSize: 14.5, color: isDark ? '#F8FAFC' : '#0F172A', opacity: (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? 1 : 0.6, textAlign: 'left', marginLeft: 10, paddingVertical: 0 }}
-                  onFocus={() => { setIsInviteFocused(true); setInviteEmailError(''); }}
-                  onBlur={() => {
-                    setIsInviteFocused(false);
-                    const email = inviteEmail.trim();
-                    if (email && !EMAIL_REGEX.test(email)) {
-                      Alert.alert(
-                        t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
-                        i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
-                      );
-                    }
-                  }}
-                  placeholder={(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') ? t('profile.inviteFriend', { defaultValue: i18n.language.startsWith('en') ? 'Invite via E-mail' : 'E-posta ile davet et' }) : t('common.islanderOnly', { defaultValue: i18n.language.startsWith('en') ? 'Only "Islanders" can invite' : 'Sadece "Adalılar" davet edebilir' })}
-                  placeholderTextColor={isDark ? '#6EE7B7' : '#059669'}
-                  value={inviteEmail}
-                  onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
-                  onSubmitEditing={handleSendInvite}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  editable={user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN'}
-                />
-              </View>
-
-              {!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && (
-                <Pressable 
-                  style={StyleSheet.absoluteFillObject} 
-                  onPress={() => setShowIslanderStepsModal(true)} 
-                />
-              )}
-
-              <Pressable
-                android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-                style={{ width: 54, height: 54, backgroundColor: '#059669', borderRadius: 8, alignItems: 'center', justifyContent: 'center', opacity: ((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && inviteEmail.trim()) ? 1 : 0.5 }}
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              {/* Button 1: Email Invite */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                  borderRadius: 12,
+                  height: 48,
+                  gap: 7,
+                  borderWidth: 1.5,
+                  borderColor: isDark ? '#047857' : '#059669',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}
                 onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
                     setShowIslanderStepsModal(true);
                   } else {
-                    handleSendInvite();
+                    setShowEmailInviteModal(true);
                   }
                 }}
-                disabled={((user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN') && !inviteEmail.trim()) || isInviting}
               >
-                {isInviting ? <ActivityIndicator color="#FFF" size="small" /> : <IconSymbol name="person.badge.plus" size={21} color="#FFF" />}
-              </Pressable>
+                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                  <IconSymbol name="envelope.fill" size={16} color={isDark ? '#34D399' : '#059669'} />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: isDark ? '#34D399' : '#059669',
+                    includeFontPadding: false,
+                  }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {i18n.language.startsWith('en') ? 'Invite by Email' : 'E-posta ile Davet'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Button 2: Share Invite Link */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#059669',
+                  borderRadius: 12,
+                  height: 48,
+                  gap: 7,
+                  shadowColor: '#059669',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
+                onPress={handleShareInvite}
+              >
+                <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 1 }}>
+                  <IconSymbol name="square.and.arrow.up" size={17} color="#FFFFFF" />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                    includeFontPadding: false,
+                  }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {i18n.language.startsWith('en') ? 'Share AdaPlus' : "AdaPlus'ı Paylaş"}
+                </Text>
+              </TouchableOpacity>
             </View>
           </WalkthroughableView>
         </CopilotStep>
-        {!!inviteEmailError && (
-          <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4, marginLeft: 4 }}>{inviteEmailError}</Text>
-        )}
       </View>
 
       {/* Weather & Ferry Banner */}
@@ -965,13 +978,15 @@ const MOCK_SERVICES = [
           ref={heroScrollRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
-          snapToInterval={width}
+          snapToInterval={snapInterval}
+          snapToAlignment="start"
           decelerationRate="fast"
+          disableIntervalMomentum={true}
           bounces={true}
           style={{ overflow: 'visible' }}
           onMomentumScrollEnd={(e) => {
             const scrollPosition = e.nativeEvent.contentOffset.x;
-            const index = Math.round(scrollPosition / width);
+            const index = Math.round(scrollPosition / snapInterval);
             setActiveIndex(index);
           }}
         >
@@ -979,8 +994,8 @@ const MOCK_SERVICES = [
             <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
               key={index} 
               style={{
-                width: width - 24,
-                marginRight: 24,
+                width: slideWidth,
+                marginRight: index === slidesToRender.length - 1 ? 0 : slideGap,
                 backgroundColor: '#fff',
                 borderRadius: 12
               }}
@@ -1000,7 +1015,7 @@ const MOCK_SERVICES = [
                 }
               }}
             >
-              <View style={[styles.heroImage, { width: width - 24, borderRadius: 12, overflow: 'hidden' }]}>
+              <View style={[styles.heroImage, { width: slideWidth, borderRadius: 12, overflow: 'hidden' }]}>
                 <ImageBackground 
                     source={{ uri: slide.imageUrl }} 
                     style={{ flex: 1, padding: 20, justifyContent: 'space-between', paddingHorizontal: 20 }}
@@ -1071,11 +1086,9 @@ const MOCK_SERVICES = [
                     )}
 
                     {/* Button */}
-<View style={{ backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 14 : 13, fontWeight: '700', marginRight: 4 }}>
-                        {slide.type === 'listing' 
-                          ? (i18n.language.startsWith('en') ? 'View' : 'İncele') 
-                          : (i18n.language.startsWith('en') ? 'Register' : 'Kayıt Ol')}
+                        {i18n.language.startsWith('en') ? 'View' : 'İncele'}
                       </Text>
                       <IconSymbol name="arrow.right" size={isLargeScreen ? 16 : 14} color="#0F172A" />
                     </View>
@@ -1150,7 +1163,7 @@ const MOCK_SERVICES = [
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
-            <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+            <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.events')}</Text>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.eventsCount', { count: totalEventsCount })}</Text>
             </View>
@@ -1180,7 +1193,7 @@ const MOCK_SERVICES = [
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
-            <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+            <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
             </View>
@@ -1203,7 +1216,7 @@ const MOCK_SERVICES = [
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
-            <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
+            <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
             </View>
@@ -1215,19 +1228,17 @@ const MOCK_SERVICES = [
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => setShowSurvey(true)}
+                  onPress={() => navigateWithDebounce('/(tabs)/explore/island/paket-servis')}
                   onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
-                  <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#F3E8FF', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#D8B4FE', zIndex: 10 }}>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#8B5CF6', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
-                  </View>
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
-            <View style={{ width: '100%', paddingHorizontal: 2, alignItems: 'center', height: isLargeScreen ? 32 : 28, justifyContent: 'flex-start' }}>
-              <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12 : (isSmallScreen ? 9.5 : 10.5), lineHeight: isLargeScreen ? 14 : (isSmallScreen ? 11 : 12), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket\nServis'}</Text>
+            <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Order Now' : 'Sipariş Ver'}</Text>
             </View>
           </View>
         </View>
@@ -1392,9 +1403,9 @@ const MOCK_SERVICES = [
                       <IconSymbol name="key.fill" size={32} color="#FFFFFF" />
                     </View>
 
-                    {/* 6. Bahçıvan (Leaf) - Center Left */}
+                    {/* 6. Bahçıvan (Flower) - Center Left */}
                     <View style={{ position: 'absolute', left: 25, top: 140, opacity: 0.20, transform: [{ rotate: '25deg' }] }}>
-                      <IconSymbol name="leaf.fill" size={32} color="#FFFFFF" />
+                      <IconSymbol name={"flower" as any} size={32} color="#FFFFFF" />
                     </View>
 
                     {/* 1b. Tadilat & Tamirat (Wrench) - Center Canvas */}
@@ -1434,9 +1445,9 @@ const MOCK_SERVICES = [
                       <IconSymbol name="key.fill" size={30} color="#FFFFFF" />
                     </View>
 
-                    {/* 6c. Bahçıvan (Leaf) - Bottom Center */}
+                    {/* 6c. Bahçıvan (Flower) - Bottom Center */}
                     <View style={{ position: 'absolute', left: 130, bottom: 18, opacity: 0.20, transform: [{ rotate: '-10deg' }] }}>
-                      <IconSymbol name="leaf.fill" size={30} color="#FFFFFF" />
+                      <IconSymbol name={"flower" as any} size={30} color="#FFFFFF" />
                     </View>
 
                     {/* 3d. Boya (Paintbrush) - Bottom Right */}
@@ -1589,7 +1600,7 @@ const MOCK_SERVICES = [
             { iconSymbol: 'paintbrush.fill', label: i18n.language.startsWith('en') ? 'Painting' : 'Boya', color: '#D97706', bg: isDark ? '#78350F30' : '#FFFBEB', border: '#FBBF2450' },
             { iconSymbol: 'globe', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#0891B2', bg: isDark ? '#164E6330' : '#ECFEFF', border: '#22D3EE50' },
             { iconSymbol: 'key.fill', label: i18n.language.startsWith('en') ? 'Locksmith' : 'Çilingir', color: '#8B5CF6', bg: isDark ? '#4C1D9530' : '#F5F3FF', border: '#A78BFA50' },
-            { iconSymbol: 'leaf.fill', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#064E3B30' : '#ECFDF5', border: '#34D39950' },
+            { iconSymbol: 'flower', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#064E3B30' : '#ECFDF5', border: '#34D39950' },
           ].map((service, idx) => (
             <Pressable
               key={idx}
@@ -1676,8 +1687,8 @@ const MOCK_SERVICES = [
               backgroundColor: isDark ? '#121212' : '#fff', 
               borderRadius: 16, 
               width: '95%', 
-              maxHeight: '60%', 
-              marginTop: insets.top + 90, 
+              maxHeight: '65%', 
+              marginTop: insets.top + 65, 
               padding: 24, 
               elevation: 10,
               borderWidth: isDark ? 1 : 0,
@@ -1708,7 +1719,7 @@ const MOCK_SERVICES = [
                   <Text style={{ fontSize: 14, color: isDark ? '#FEE2E2' : '#7F1D1D', lineHeight: 22 }}>
                     {i18n.language.startsWith('en')
                       ? 'Please only invite people you know live on the Islands to the community. For the safety and integrity of the AdaPlus community, we kindly ask you to adhere to this rule.'
-                      : 'Topluluğa lütfen sadece Adalarda yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.'}
+                      : 'Topluluğa lütfen sadece adalarda yaşadığını bildiğiniz insanları davet edin. AdaPlus topluluğunun güvenliği ve bütünlüğü için bu kurala uymanızı rica ederiz.'}
                   </Text>
                 </View>
               </ScrollView>
@@ -1745,17 +1756,17 @@ const MOCK_SERVICES = [
               <Text style={{ fontSize: 14, color: isDark ? '#A7F3D0' : '#065F46', lineHeight: 22 }}>
                 {i18n.language.startsWith('en') ? (
                   <>
-                    Follow these steps to enjoy all the privileges of AdaPlus and achieve "Verified Islander" status:
+                    {'Follow these steps to enjoy all the privileges of AdaPlus and achieve "Verified Islander" status:'}
                     {"\n\n"}• Sign up for the application.
                     {"\n"}• Reach out via Contact or have an Islander invite you.
-                    {"\n\n"}"Islanders" can invite other islanders and order from island restaurants through delivery.
+                    {"\n\n"}{'"Islanders" can invite other islanders and order from island restaurants through delivery.'}
                   </>
                 ) : (
                   <>
-                    AdaPlus'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:
+                    {'AdaPlus\'ın tüm ayrıcalıklarından yararlanmak ve "Onaylı Adalı" statüsüne geçmek için şu adımları izle:'}
                     {"\n\n"}• Uygulamaya kayıt ol.
                     {"\n"}• İletişimden ulaş veya Adalı biri seni davet etsin.
-                    {"\n\n"}"Adalılar" diğer adalıları davet edebilir ve ada restoranlarından paket servis siparişi verebilir.
+                    {"\n\n"}{'"Adalılar" diğer adalıları davet edebilir ve ada restoranlarından paket servis siparişi verebilir.'}
                   </>
                 )}
               </Text>
@@ -1771,6 +1782,91 @@ const MOCK_SERVICES = [
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Email Invite Modal */}
+      <Modal
+        visible={showEmailInviteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowEmailInviteModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+            <TouchableWithoutFeedback onPress={() => setShowEmailInviteModal(false)}>
+              <View style={{ ...StyleSheet.absoluteFillObject }} />
+            </TouchableWithoutFeedback>
+            <View style={{ width: '88%', backgroundColor: isDark ? '#121212' : '#ffffff', borderRadius: 20, padding: 22, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 14, borderWidth: isDark ? 1 : 0, borderColor: '#2C2C2E' }}>
+              {/* Header */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <IconSymbol name="envelope.fill" size={18} color={isDark ? '#34D399' : '#059669'} />
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: isDark ? '#F8FAFC' : '#0F172A' }}>
+                    {i18n.language.startsWith('en') ? 'Invite by Email' : 'E-posta ile Davet Et'}
+                  </Text>
+                </View>
+                <Pressable
+                  android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
+                  onPress={() => setShowEmailInviteModal(false)}
+                  style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <IconSymbol name="xmark" size={14} color={isDark ? '#94A3B8' : '#64748B'} />
+                </Pressable>
+              </View>
+
+              <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', lineHeight: 18, marginBottom: 16 }}>
+                {i18n.language.startsWith('en')
+                  ? 'Enter the email address of an island resident to invite them as a verified islander.'
+                  : 'Ada sakini komşunuzun e-posta adresini girerek AdaPlus\'a davet edin.'}
+              </Text>
+
+              {/* Email Input */}
+              <View style={{ backgroundColor: isDark ? '#1C1C1E' : '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: isDark ? '#334155' : '#E2E8F0', paddingHorizontal: 14, height: 48, justifyContent: 'center', marginBottom: 6 }}>
+                <TextInput
+                  style={{ fontSize: 14.5, color: isDark ? '#F8FAFC' : '#0F172A', paddingVertical: 0 }}
+                  placeholder={i18n.language.startsWith('en') ? 'neighbour@example.com' : 'komsu@email.com'}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                  value={inviteEmail}
+                  onChangeText={v => { setInviteEmail(v); if (inviteEmailError) setInviteEmailError(''); }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              {!!inviteEmailError && (
+                <Text style={{ color: '#EF4444', fontSize: 11, marginBottom: 10, marginLeft: 2 }}>{inviteEmailError}</Text>
+              )}
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={handleSendInvite}
+                disabled={!inviteEmail.trim() || isInviting}
+                style={{
+                  backgroundColor: '#059669',
+                  paddingVertical: 13,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 10,
+                  opacity: inviteEmail.trim() ? 1 : 0.6,
+                }}
+              >
+                {isInviting ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>
+                    {i18n.language.startsWith('en') ? 'Send Invitation' : 'Davet Gönder'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Survey Modal */}
@@ -1897,10 +1993,10 @@ const MOCK_SERVICES = [
               <IconSymbol name="pawprint.fill" size={34} color="#EC4899" />
             </View>
             <View style={{ backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 12 }}>
-              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>{t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'ADA AI • COMING SOON' : 'ADA AI • YAKINDA' })}</Text>
+              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>{t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'ADA+ • COMING SOON' : 'ADA+ • YAKINDA' })}</Text>
             </View>
             <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 12 }}>
-              {t('explore.adaAi', { defaultValue: 'ADA AI' })}
+              {t('explore.adaAi', { defaultValue: 'ADA+' })}
             </Text>
             <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#CBD5E1' : '#475569', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
               {t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to develop our AI guide tailored for the Islands.' : 'Adalar\'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })}

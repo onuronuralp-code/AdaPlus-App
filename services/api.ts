@@ -176,6 +176,8 @@ export const getListing = async (id: string): Promise<AppListingDto | null> => {
   }
 };
 
+export const MOCK_ACTIVITIES: AppActivityDto[] = [];
+
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
     const response = await fetchWithTimeout(ACTIVITIES_API_BASE_URL);
@@ -184,7 +186,6 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.log("Failed to fetch activities:", error);
-    triggerNetworkError();
     return [];
   }
 };
@@ -194,12 +195,9 @@ export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppAct
     const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
     if (!response.ok) throw new Error("Upcoming activities fetch error");
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data) ? data.slice(0, limit) : [];
   } catch (error) {
     console.log("Failed to fetch upcoming activities:", error);
-    if (!(error instanceof Error && error.message.startsWith("Upcoming"))) {
-      triggerNetworkError();
-    }
     return [];
   }
 };
@@ -213,7 +211,7 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
     });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data) ? data.filter(Boolean) : [];
   } catch (error) {
     console.log('Failed to fetch my activities:', error);
     return [];
@@ -224,18 +222,20 @@ export const fetchMyActivities = async (): Promise<AppActivityDto[]> => {
 export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status">;
 
 export const getActivity = async (id: string): Promise<AppActivityDto | null> => {
+  const localMock = MOCK_ACTIVITIES.find(a => a.id === id);
   try {
     const token = getToken();
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/${id}`, { headers });
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    if (!response.ok) {
+      if (localMock) return localMock;
+      throw new Error(`API Error: ${response.status}`);
+    }
     return await response.json();
   } catch (error) {
-    console.log('Failed to fetch activity:', error);
-    if (!(error instanceof Error && error.message.startsWith("API Error:"))) {
-      triggerNetworkError();
-    }
+    console.log('Failed to fetch activity, fallback to mock if available:', error);
+    if (localMock) return localMock;
     return null;
   }
 };

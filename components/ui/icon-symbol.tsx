@@ -39,6 +39,11 @@ const MAPPING = {
   'building.columns.fill': 'museum', // Used for Mosque and other grand buildings
   'cup.and.saucer.fill': 'local-cafe',
   'leaf.fill': 'eco', // eco or park
+  'tree.fill': 'park', // Tree / Gardener
+  'tree': 'park',
+  'flower': 'local-florist',
+  'flower.fill': 'local-florist',
+  'sprout': 'grass',
   'camera.fill': 'camera-alt',
   'graduationcap.fill': 'school',
   'bicycle': 'directions-bike',
@@ -97,6 +102,8 @@ const MAPPING = {
   'tag.fill': 'local-offer',
   'ticket.fill': 'local-activity',
   'person.3.fill': 'groups',
+  'person.2.fill': 'group',
+  'lock.fill': 'lock',
   'phone.fill': 'phone',
   'exclamationmark.circle.fill': 'error',
   'calendar.badge.exclamationmark': 'event-busy',

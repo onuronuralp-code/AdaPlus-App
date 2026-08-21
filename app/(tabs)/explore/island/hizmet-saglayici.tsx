@@ -38,17 +38,17 @@ const SERVICE_CATEGORIES = [
 // screen, which also offers "Sedef Adası" and "Tüm Adalar" despite neither having a
 // valid backend Island value (a pre-existing gap, out of scope here).
 const ISLANDS = [
-  { id: 'buyukada', nameTr: 'Büyükada', nameEn: 'Büyükada' },
-  { id: 'heybeliada', nameTr: 'Heybeliada', nameEn: 'Heybeliada' },
-  { id: 'burgazada', nameTr: 'Burgazada', nameEn: 'Burgazada' },
   { id: 'kinaliada', nameTr: 'Kınalıada', nameEn: 'Kınalıada' },
+  { id: 'burgazada', nameTr: 'Burgazada', nameEn: 'Burgazada' },
+  { id: 'heybeliada', nameTr: 'Heybeliada', nameEn: 'Heybeliada' },
+  { id: 'buyukada', nameTr: 'Büyükada', nameEn: 'Büyükada' },
 ];
 
 const ISLAND_ENUM_MAP: Record<string, Island> = {
-  buyukada: Island.BUYUKADA,
-  heybeliada: Island.HEYBELIADA,
-  burgazada: Island.BURGAZADA,
   kinaliada: Island.KINALIADA,
+  burgazada: Island.BURGAZADA,
+  heybeliada: Island.HEYBELIADA,
+  buyukada: Island.BUYUKADA,
 };
 
 const CATEGORY_ENUM_MAP: Record<string, ServiceCategory> = {
@@ -96,7 +96,7 @@ export default function HizmetSaglayiciScreen() {
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(formatPhoneNumber(user?.phone || ''));
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['repair']);
-  const [selectedIsland, setSelectedIsland] = useState<string>('buyukada');
+  const [selectedIsland, setSelectedIsland] = useState<string>('kinaliada');
   const [offeredServices, setOfferedServices] = useState<string>('');
   const [experienceDetails, setExperienceDetails] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -238,52 +238,6 @@ export default function HizmetSaglayiciScreen() {
           automaticallyAdjustKeyboardInsets={true}
           contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }}
         >
-          {/* Top Hero Banner */}
-          <View style={{
-            backgroundColor: '#2563EB',
-            borderRadius: 20,
-            padding: 20,
-            marginBottom: 20,
-            overflow: 'hidden'
-          }}>
-            <View style={{ position: 'absolute', right: -25, top: -25, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.12)' }} />
-            
-            {/* Floating Vector Background Icons */}
-            <View style={{ position: 'absolute', right: 15, top: 12, opacity: 0.22, transform: [{ rotate: '15deg' }] }}>
-              <IconSymbol name="wrench.and.screwdriver.fill" size={30} color="#FFFFFF" />
-            </View>
-
-            <View style={{ position: 'absolute', right: 85, top: 10, opacity: 0.18, transform: [{ rotate: '-20deg' }] }}>
-              <IconSymbol name="scissors" size={24} color="#FFFFFF" />
-            </View>
-
-            <View style={{ position: 'absolute', right: 12, bottom: 12, opacity: 0.22, transform: [{ rotate: '35deg' }] }}>
-              <IconSymbol name="paintbrush.fill" size={28} color="#FFFFFF" />
-            </View>
-
-            <View style={{ position: 'absolute', right: 80, bottom: 10, opacity: 0.20, transform: [{ rotate: '-12deg' }] }}>
-              <IconSymbol name="key.fill" size={26} color="#FFFFFF" />
-            </View>
-
-            <View style={{ position: 'absolute', right: 140, bottom: 15, opacity: 0.18, transform: [{ rotate: '20deg' }] }}>
-              <IconSymbol name="leaf.fill" size={24} color="#FFFFFF" />
-            </View>
-            <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 }}>
-              <IconSymbol name="briefcase.fill" size={12} color="#FFF" />
-              <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
-                {isEn ? 'LOCAL SERVICE NETWORK' : 'YEREL HİZMET AĞI'}
-              </Text>
-            </View>
-            <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#FFF', marginBottom: 4 }} numberOfLines={1} adjustsFontSizeToFit>
-              {isEn ? 'Share Your Expertise in Islands' : 'Uzmanlığını Adalı Komşularınla Paylaş'}
-            </Text>
-            <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 18 }}>
-              {isEn
-                ? 'Join our verified network of island service providers and get discovered directly by local residents.'
-                : 'AdaPlus hizmet ağına katılarak adadaki komşularına doğrudan ulaşabilir, hizmetini öne çıkarabilirsin.'}
-            </Text>
-          </View>
-
           {/* Form Card */}
           <View style={{
             backgroundColor: isDark ? '#121212' : '#FFFFFF',

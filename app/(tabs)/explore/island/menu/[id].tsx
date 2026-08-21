@@ -1,12 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { DELIVERY_PROVIDERS, DeliveryProvider, MenuItem } from '@/constants/DeliveryProviders';
 import { useTheme } from '@/context/ThemeContext';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Haptics from 'expo-haptics';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Animated,
+  Linking,
   Modal,
   PanResponder,
   Pressable,
@@ -34,17 +37,151 @@ export default function VenueMenuScreen() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [cartItems, setCartItems] = useState<{ item: MenuItem; count: number; note?: string }[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isScrollEnabled, setIsScrollEnabled] = useState<boolean>(true);
   
+  // Cart & Checkout Modal State
+  const [showCartModal, setShowCartModal] = useState<boolean>(false);
+  const [orderAddress, setOrderAddress] = useState<string>('');
+  const [generalNote, setGeneralNote] = useState<string>('');
+
   // Onboarding overlay state
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(true);
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
 
   // Selected Item for Detail Modal
   const [selectedDetailItem, setSelectedDetailItem] = useState<MenuItem | null>(null);
   const [detailQuantity, setDetailQuantity] = useState<number>(1);
   const [detailNote, setDetailNote] = useState<string>('');
 
-  // Animated hand position for onboarding gesture demo
+  // Cart Modal & Detail Modal Slide-up animations
+  const cartModalAnim = useRef(new Animated.Value(0)).current;
+  const detailModalAnim = useRef(new Animated.Value(0)).current;
   const handAnim = useRef(new Animated.Value(0)).current;
+
+  // Floating Cart Bar Scroll Hide/Show Animation
+  const cartBarAnim = useRef(new Animated.Value(1)).current;
+  const isCartBarVisible = useRef(true);
+  const scrollStopTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (showCartModal) {
+      cartModalAnim.setValue(0);
+      Animated.spring(cartModalAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 70,
+        friction: 11,
+      }).start();
+    }
+  }, [showCartModal]);
+
+  const closeCartModal = () => {
+    Animated.timing(cartModalAnim, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowCartModal(false);
+    });
+  };
+
+  useEffect(() => {
+    if (selectedDetailItem) {
+      detailModalAnim.setValue(0);
+      Animated.spring(detailModalAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 70,
+        friction: 11,
+      }).start();
+    }
+  }, [selectedDetailItem]);
+
+  const closeDetailModal = () => {
+    Animated.timing(detailModalAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedDetailItem(null);
+    });
+  };
+
+  const hideCartBar = () => {
+    if (isCartBarVisible.current) {
+      isCartBarVisible.current = false;
+      Animated.timing(cartBarAnim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const showCartBar = () => {
+    if (!isCartBarVisible.current) {
+      isCartBarVisible.current = true;
+      Animated.timing(cartBarAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const handleScrollBeginDrag = () => {
+    if (scrollStopTimeout.current) clearTimeout(scrollStopTimeout.current);
+    hideCartBar();
+  };
+
+  const handleScroll = () => {
+    hideCartBar();
+    if (scrollStopTimeout.current) clearTimeout(scrollStopTimeout.current);
+    scrollStopTimeout.current = setTimeout(() => {
+      showCartBar();
+    }, 280);
+  };
+
+  const handleScrollEndDrag = (e: any) => {
+    const velocity = e?.nativeEvent?.velocity?.y ?? 0;
+    if (Math.abs(velocity) < 0.1) {
+      if (scrollStopTimeout.current) clearTimeout(scrollStopTimeout.current);
+      showCartBar();
+    }
+  };
+
+  const handleMomentumScrollEnd = () => {
+    if (scrollStopTimeout.current) clearTimeout(scrollStopTimeout.current);
+    showCartBar();
+  };
+
+  useEffect(() => {
+    return () => {
+      if (scrollStopTimeout.current) clearTimeout(scrollStopTimeout.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const checkMenuOnboarding = async () => {
+      try {
+        const hasSeen = await AsyncStorage.getItem('has_seen_menu_onboarding');
+        if (hasSeen !== 'true') {
+          setTimeout(() => {
+            setShowOnboarding(true);
+          }, 400);
+        }
+      } catch (e) {
+        console.log('Error checking menu onboarding', e);
+      }
+    };
+    checkMenuOnboarding();
+  }, []);
+
+  const handleDismissOnboarding = async () => {
+    setShowOnboarding(false);
+    try {
+      await AsyncStorage.setItem('has_seen_menu_onboarding', 'true');
+    } catch (e) {}
+  };
 
   useEffect(() => {
     if (showOnboarding) {
@@ -67,6 +204,22 @@ export default function VenueMenuScreen() {
     }
   }, [showOnboarding, handAnim]);
 
+  const parsePrice = (priceStr: string): number => {
+    if (!priceStr) return 0;
+    const clean = priceStr.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(clean);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const totalPrice = cartItems.reduce((sum, ci) => {
+    const p = parsePrice(ci.item.price);
+    return sum + p * ci.count;
+  }, 0);
+
+  const formatPrice = (val: number) => {
+    return new Intl.NumberFormat('tr-TR').format(val) + ' ₺';
+  };
+
   const handleAddToCart = (item: MenuItem, quantity: number = 1, note?: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setCartItems((prev) => {
@@ -83,6 +236,65 @@ export default function VenueMenuScreen() {
     setTimeout(() => {
       setToastMessage(null);
     }, 2500);
+  };
+
+  const handleIncreaseCartItem = (name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setCartItems((prev) =>
+      prev.map((ci) => (ci.item.name === name ? { ...ci, count: ci.count + 1 } : ci))
+    );
+  };
+
+  const handleDecreaseCartItem = (name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setCartItems((prev) =>
+      prev
+        .map((ci) => (ci.item.name === name ? { ...ci, count: ci.count - 1 } : ci))
+        .filter((ci) => ci.count > 0)
+    );
+  };
+
+  const handleRemoveCartItem = (name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setCartItems((prev) => prev.filter((ci) => ci.item.name !== name));
+  };
+
+  const handleClearCart = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    setCartItems([]);
+    setShowCartModal(false);
+  };
+
+  const handleCheckoutWhatsApp = () => {
+    if (!provider?.whatsapp || cartItems.length === 0) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    const cleaned = provider.whatsapp.replace(/[^0-9]/g, '');
+    
+    let msg = `*AdaPlus Sipariş Talebi - ${provider.name}*\n\n`;
+    cartItems.forEach((ci, idx) => {
+      msg += `${idx + 1}. ${ci.item.name} x${ci.count} - ${ci.item.price}`;
+      if (ci.note) msg += ` (Not: ${ci.note})`;
+      msg += '\n';
+    });
+    msg += `\n*Toplam Tutar:* ${formatPrice(totalPrice)}`;
+    if (orderAddress.trim()) {
+      msg += `\n*Adres / Konum:* ${orderAddress.trim()}`;
+    }
+    if (generalNote.trim()) {
+      msg += `\n*Sipariş Notu:* ${generalNote.trim()}`;
+    }
+    msg += `\n\n_AdaPlus mobil uygulaması üzerinden gönderildi._`;
+
+    const url = `whatsapp://send?phone=${cleaned}&text=${encodeURIComponent(msg)}`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`).catch(() => {});
+    });
+  };
+
+  const handleCall = () => {
+    if (!provider?.phone) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Linking.openURL(`tel:${provider.phone}`).catch(() => {});
   };
 
   const openItemDetail = (item: MenuItem) => {
@@ -116,14 +328,35 @@ export default function VenueMenuScreen() {
     new Set((provider.menu || []).map((item) => item.category).filter(Boolean))
   ) as string[];
 
-  const filteredMenuItems = (provider.menu || []).filter((item) => {
-    if (selectedCategoryFilter === 'all') return true;
-    return item.category === selectedCategoryFilter;
-  });
+  const groupedMenuSections = React.useMemo(() => {
+    if (!provider?.menu) return [];
+
+    if (selectedCategoryFilter !== 'all') {
+      const items = provider.menu.filter((item) => item.category === selectedCategoryFilter);
+      return items.length > 0 ? [{ category: selectedCategoryFilter, items }] : [];
+    }
+
+    const groups: { category: string; items: MenuItem[] }[] = [];
+    const map = new Map<string, MenuItem[]>();
+
+    provider.menu.forEach((item) => {
+      const cat = item.category || (isEn ? 'Other' : 'Diğer Ürünler');
+      if (!map.has(cat)) {
+        map.set(cat, []);
+      }
+      map.get(cat)!.push(item);
+    });
+
+    map.forEach((items, category) => {
+      groups.push({ category, items });
+    });
+
+    return groups;
+  }, [provider?.menu, selectedCategoryFilter, isEn]);
 
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Navigation Header */}
@@ -144,129 +377,150 @@ export default function VenueMenuScreen() {
           </Text>
         </View>
 
-        {/* Info Help Icon to re-open onboarding */}
+        {/* Cart Header Button */}
         <TouchableOpacity
-          style={styles.helpButton}
-          onPress={() => setShowOnboarding(true)}
+          style={[styles.headerCartButton, isDark && styles.headerCartButtonDark]}
+          onPress={() => setShowCartModal(true)}
           activeOpacity={0.7}
         >
-          <IconSymbol name="info.circle" size={20} color="#8B5CF6" />
+          <IconSymbol name="bag.fill" size={20} color={isDark ? '#F8FAFC' : '#0F172A'} />
+          {totalCartCount > 0 && (
+            <View style={styles.headerCartBadge}>
+              <Text style={styles.headerCartBadgeText}>{totalCartCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Info Card Banner */}
-      <View style={[styles.infoBanner, isDark && styles.infoBannerDark]}>
-        <View style={styles.infoMetaRow}>
-          <View style={styles.infoMetaItem}>
-            <IconSymbol name="clock" size={14} color="#8B5CF6" />
-            <Text style={[styles.infoMetaText, isDark && styles.textLight]}>{provider.workingHours}</Text>
-          </View>
-          <View style={styles.infoMetaItem}>
-            <IconSymbol name="paperplane.fill" size={14} color="#059669" />
-            <Text style={[styles.infoMetaText, isDark && styles.textLight]}>{provider.estimatedTime}</Text>
-          </View>
-          {provider.minOrder && (
-            <View style={styles.infoMetaItem}>
-              <IconSymbol name="tag.fill" size={14} color="#D97706" />
-              <Text style={[styles.infoMetaText, isDark && styles.textLight]}>Min: {provider.minOrder}</Text>
-            </View>
-          )}
-        </View>
-        {provider.description && (
-          <Text style={[styles.infoDesc, isDark && styles.textMutedDark]}>{provider.description}</Text>
-        )}
-      </View>
-
-      {/* Category Chips Bar */}
-      {menuCategories.length > 0 && (
-        <View style={[styles.categoryBar, isDark && styles.categoryBarDark]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
-            <TouchableOpacity
-              onPress={() => setSelectedCategoryFilter('all')}
-              style={[
-                styles.categoryChip,
-                isDark && styles.categoryChipDark,
-                selectedCategoryFilter === 'all' && styles.categoryChipActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  isDark && styles.categoryChipTextDark,
-                  selectedCategoryFilter === 'all' && styles.categoryChipTextActive,
-                ]}
-              >
-                {isEn ? 'All Items' : 'Tüm Menü'}
-              </Text>
-            </TouchableOpacity>
-
-            {menuCategories.map((cat) => {
-              const isActive = selectedCategoryFilter === cat;
-              return (
-                <TouchableOpacity
-                  key={cat}
-                  onPress={() => setSelectedCategoryFilter(cat)}
-                  style={[
-                    styles.categoryChip,
-                    isDark && styles.categoryChipDark,
-                    isActive && styles.categoryChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.categoryChipText,
-                      isDark && styles.categoryChipTextDark,
-                      isActive && styles.categoryChipTextActive,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
-
       {/* Menu List */}
       <ScrollView
+        scrollEnabled={isScrollEnabled}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+        stickyHeaderIndices={menuCategories.length > 0 ? [1] : undefined}
+        contentContainerStyle={{ paddingBottom: 90 }}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScroll={handleScroll}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        scrollEventThrottle={16}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text style={[styles.sectionHeading, isDark && styles.textLight, { marginBottom: 0 }]}>
-            {selectedCategoryFilter === 'all' ? (isEn ? 'Full Menu' : 'Menü İçi Lezzetler') : selectedCategoryFilter}
-          </Text>
-
-          <View style={styles.swipeHintBadge}>
-            <IconSymbol name="hand.draw" size={13} color="#8B5CF6" />
-            <Text style={styles.swipeHintBadgeText}>{isEn ? 'Swipe or tap' : 'Tıkla veya Kaydır'}</Text>
+        {/* Info Card Banner */}
+        <View style={[styles.infoBanner, isDark && styles.infoBannerDark]}>
+          <View style={styles.infoMetaRow}>
+            <View style={styles.infoMetaItem}>
+              <IconSymbol name="clock" size={14} color="#8B5CF6" />
+              <Text style={[styles.infoMetaText, isDark && styles.textLight]}>{provider.workingHours}</Text>
+            </View>
+            <View style={styles.infoMetaItem}>
+              <IconSymbol name="paperplane.fill" size={14} color="#059669" />
+              <Text style={[styles.infoMetaText, isDark && styles.textLight]}>{provider.estimatedTime}</Text>
+            </View>
+            {provider.minOrder && (
+              <View style={styles.infoMetaItem}>
+                <IconSymbol name="tag.fill" size={14} color="#D97706" />
+                <Text style={[styles.infoMetaText, isDark && styles.textLight]}>Min: {provider.minOrder}</Text>
+              </View>
+            )}
           </View>
+          {provider.description && (
+            <Text style={[styles.infoDesc, isDark && styles.textMutedDark]}>{provider.description}</Text>
+          )}
         </View>
 
-        {filteredMenuItems.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <IconSymbol name="fork.knife" size={32} color={isDark ? '#64748B' : '#94A3B8'} />
-            <Text style={[styles.emptyText, isDark && styles.textMutedDark]}>
-              {isEn ? 'No menu items available for this category.' : 'Bu kategoride ürün bulunamadı.'}
-            </Text>
+        {/* Category Chips Bar */}
+        {menuCategories.length > 0 && (
+          <View style={[styles.categoryBar, isDark && styles.categoryBarDark]}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => setSelectedCategoryFilter('all')}
+                style={[
+                  styles.categoryChip,
+                  isDark && styles.categoryChipDark,
+                  selectedCategoryFilter === 'all' && styles.categoryChipActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    isDark && styles.categoryChipTextDark,
+                    selectedCategoryFilter === 'all' && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {isEn ? 'All Items' : 'Tüm Menü'}
+                </Text>
+              </TouchableOpacity>
+
+              {menuCategories.map((cat) => {
+                const isActive = selectedCategoryFilter === cat;
+                return (
+                  <TouchableOpacity
+                    key={cat}
+                    onPress={() => setSelectedCategoryFilter(cat)}
+                    style={[
+                      styles.categoryChip,
+                      isDark && styles.categoryChipDark,
+                      isActive && styles.categoryChipActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        isDark && styles.categoryChipTextDark,
+                        isActive && styles.categoryChipTextActive,
+                      ]}
+                    >
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
-        ) : (
-          filteredMenuItems.map((item, index) => (
-            <SwipeableMenuCard
-              key={index}
-              item={item}
-              isDark={isDark}
-              onAddToCart={handleAddToCart}
-              onPressItem={openItemDetail}
-            />
-          ))
         )}
+
+        <View style={{ paddingHorizontal: 16, paddingTop: 4 }}>
+          {groupedMenuSections.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <IconSymbol name="fork.knife" size={32} color={isDark ? '#64748B' : '#94A3B8'} />
+              <Text style={[styles.emptyText, isDark && styles.textMutedDark]}>
+                {isEn ? 'No menu items available for this category.' : 'Bu kategoride ürün bulunamadı.'}
+              </Text>
+            </View>
+          ) : (
+            groupedMenuSections.map((section, sIdx) => (
+              <View key={section.category} style={{ marginBottom: 14 }}>
+                {/* Category Subheader */}
+                <View style={{ marginTop: sIdx === 0 ? 6 : 18, marginBottom: 10 }}>
+                  <Text style={[{ fontSize: 17, fontWeight: '800', color: '#0F172A' }, isDark && styles.textLight]}>
+                    {section.category}
+                  </Text>
+                </View>
+
+                {section.items.map((item, index) => {
+                  const inCartItem = cartItems.find((ci) => ci.item.name === item.name);
+                  const cartQuantity = inCartItem ? inCartItem.count : 0;
+                  return (
+                    <SwipeableMenuCard
+                      key={`${section.category}-${index}`}
+                      item={item}
+                      isDark={isDark}
+                      cartQuantity={cartQuantity}
+                      onAddToCart={handleAddToCart}
+                      onPressItem={openItemDetail}
+                      onSwipeStart={() => setIsScrollEnabled(false)}
+                      onSwipeEnd={() => setIsScrollEnabled(true)}
+                    />
+                  );
+                })}
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
 
       {/* Toast Notification Banner */}
       {toastMessage && (
-        <View style={[styles.toastContainer, { bottom: 12 }]}>
+        <View style={[styles.toastContainer, { bottom: totalCartCount > 0 ? 76 : 14 }]}>
           <Text style={styles.toastText}>{toastMessage}</Text>
           {totalCartCount > 0 && (
             <View style={styles.cartCountBadge}>
@@ -276,15 +530,217 @@ export default function VenueMenuScreen() {
         </View>
       )}
 
+      {/* Floating Bottom Cart Bar (Visible when cart has items, hides during scroll) */}
+      {totalCartCount > 0 && (
+        <Animated.View
+          style={[
+            styles.floatingCartBar,
+            {
+              bottom: 8,
+              opacity: cartBarAnim,
+              transform: [
+                {
+                  translateY: cartBarAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [70, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+          pointerEvents={totalCartCount > 0 ? 'auto' : 'none'}
+        >
+          <TouchableOpacity
+            style={styles.floatingCartBtn}
+            onPress={() => setShowCartModal(true)}
+            activeOpacity={0.9}
+          >
+            <View style={styles.floatingCartLeft}>
+              <View style={styles.floatingCartIconWrapper}>
+                <IconSymbol name="bag.fill" size={20} color="#FFFFFF" />
+                <View style={styles.floatingCartBadge}>
+                  <Text style={styles.floatingCartBadgeText}>{totalCartCount}</Text>
+                </View>
+              </View>
+              <View>
+                <Text style={styles.floatingCartLabel}>{isEn ? 'Total' : 'Toplam'}</Text>
+                <Text style={styles.floatingCartPrice}>{formatPrice(totalPrice)}</Text>
+              </View>
+            </View>
+
+        <View style={styles.floatingCartRight}>
+              <Text style={styles.floatingCartBtnText}>{isEn ? 'View Cart & Order' : 'Sepeti Gör & Sipariş Ver'}</Text>
+              <IconSymbol name="chevron.right" size={16} color="#FFFFFF" />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+
+      {/* Cart & Checkout Modal */}
+      <Modal
+        visible={showCartModal}
+        transparent
+        animationType="fade"
+        onRequestClose={closeCartModal}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
+            activeOpacity={1}
+            onPress={closeCartModal}
+          />
+          <Animated.View
+            style={[
+              styles.cartSheetContent,
+              isDark && styles.modalContentDark,
+              {
+                transform: [
+                  {
+                    translateY: cartModalAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [500, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {/* Cart Header */}
+            <View style={styles.cartSheetHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cartSheetTitle, isDark && styles.textLight]}>
+                  {isEn ? 'Your Cart' : 'Sepetiniz'}
+                </Text>
+                <Text style={[styles.cartSheetSubtitle, isDark && styles.textMutedDark]}>
+                  {provider.name} • {totalCartCount} {isEn ? 'items' : 'ürün'}
+                </Text>
+              </View>
+
+              <TouchableOpacity style={styles.cartClearBtn} onPress={handleClearCart}>
+                <Text style={styles.cartClearBtnText}>{isEn ? 'Clear' : 'Temizle'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalCloseBtn, { marginLeft: 8 }]}
+                onPress={closeCartModal}
+              >
+                <IconSymbol name="xmark" size={18} color={isDark ? '#F8FAFC' : '#0F172A'} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Cart Item List */}
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320, marginVertical: 6 }}>
+              {cartItems.map((ci, idx) => (
+                <View key={idx} style={[styles.cartItemRow, isDark && styles.cartItemRowDark]}>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={[styles.cartItemName, isDark && styles.textLight]}>{ci.item.name}</Text>
+                    <Text style={styles.cartItemPrice}>{ci.item.price}</Text>
+                    {ci.note ? (
+                      <Text style={[styles.cartItemNote, isDark && styles.textMutedDark]}>📝 {ci.note}</Text>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.cartQuantityControls}>
+                    <TouchableOpacity
+                      style={styles.cartQtyBtn}
+                      onPress={() => handleDecreaseCartItem(ci.item.name)}
+                    >
+                      <Text style={styles.cartQtyBtnText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.cartQtyText, isDark && styles.textLight]}>{ci.count}</Text>
+                    <TouchableOpacity
+                      style={styles.cartQtyBtn}
+                      onPress={() => handleIncreaseCartItem(ci.item.name)}
+                    >
+                      <Text style={styles.cartQtyBtnText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* Delivery Address Input */}
+            <View style={{ marginTop: 8 }}>
+              <Text style={[styles.inputFieldLabel, isDark && styles.textLight]}>
+                {isEn ? 'Delivery Address & Location:' : 'Teslimat Adresi & Konum:'}
+              </Text>
+              <TextInput
+                style={[styles.modalInput, isDark && styles.modalInputDark]}
+                placeholder={isEn ? 'e.g. Kinaliada Bazaar Ave. No: 12...' : 'Örn: Kınalıada Çarşı Cad. No: 12...'}
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                value={orderAddress}
+                onChangeText={setOrderAddress}
+              />
+            </View>
+
+            {/* Note to Venue */}
+            <View style={{ marginTop: 8 }}>
+              <Text style={[styles.inputFieldLabel, isDark && styles.textLight]}>
+                {isEn ? 'Order Note (Optional):' : 'Sipariş Notu (İsteğe Bağlı):'}
+              </Text>
+              <TextInput
+                style={[styles.modalInput, isDark && styles.modalInputDark]}
+                placeholder={isEn ? 'e.g. Please ring the doorbell, payment by card...' : 'Örn: Kapıda kredi kartı ile ödeme...'}
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                value={generalNote}
+                onChangeText={setGeneralNote}
+              />
+            </View>
+
+            {/* Cart Total Summary */}
+            <View style={styles.cartSummaryRow}>
+              <Text style={[styles.cartSummaryLabel, isDark && styles.textLight]}>
+                {isEn ? 'Total Amount:' : 'Toplam Tutar:'}
+              </Text>
+              <Text style={styles.cartSummaryValue}>{formatPrice(totalPrice)}</Text>
+            </View>
+
+            {/* Order Action Buttons */}
+            <View style={{ marginTop: 14 }}>
+              <TouchableOpacity
+                style={[styles.whatsappOrderBtn, { flex: undefined, width: '100%', height: 50 }]}
+                onPress={handleCheckoutWhatsApp}
+                activeOpacity={0.85}
+              >
+                <MaterialCommunityIcons name="whatsapp" size={22} color="#FFFFFF" />
+                <Text style={styles.whatsappOrderBtnText}>
+                  {isEn ? 'Order via WhatsApp' : 'WhatsApp ile Sipariş Ver'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
+
       {/* Item Detail Sheet Modal */}
       <Modal
         visible={!!selectedDetailItem}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedDetailItem(null)}
+        onRequestClose={closeDetailModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.detailSheetContent, isDark && styles.modalContentDark]}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
+            activeOpacity={1}
+            onPress={closeDetailModal}
+          />
+          <Animated.View
+            style={[
+              styles.detailSheetContent,
+              isDark && styles.modalContentDark,
+              {
+                transform: [
+                  {
+                    translateY: detailModalAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [500, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
             {selectedDetailItem && (
               <>
                 <View style={styles.detailSheetHeader}>
@@ -301,9 +757,16 @@ export default function VenueMenuScreen() {
                         </View>
                       )}
                     </View>
-                    <Text style={[styles.detailTitle, isDark && styles.textLight]}>{selectedDetailItem.name}</Text>
+                    <Text style={[styles.detailSheetTitle, isDark && styles.textLight]}>
+                      {selectedDetailItem.name}
+                    </Text>
+                    <Text style={styles.detailSheetPrice}>{selectedDetailItem.price}</Text>
                   </View>
-                  <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setSelectedDetailItem(null)}>
+
+                  <TouchableOpacity
+                    style={styles.modalCloseBtn}
+                    onPress={closeDetailModal}
+                  >
                     <IconSymbol name="xmark" size={18} color={isDark ? '#F8FAFC' : '#0F172A'} />
                   </TouchableOpacity>
                 </View>
@@ -366,7 +829,7 @@ export default function VenueMenuScreen() {
                 </TouchableOpacity>
               </>
             )}
-          </View>
+          </Animated.View>
         </View>
       </Modal>
 
@@ -375,7 +838,7 @@ export default function VenueMenuScreen() {
         visible={showOnboarding}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowOnboarding(false)}
+        onRequestClose={handleDismissOnboarding}
       >
         <View style={styles.onboardingOverlay}>
           <View style={[styles.onboardingCard, isDark && styles.onboardingCardDark]}>
@@ -427,7 +890,7 @@ export default function VenueMenuScreen() {
             {/* Close Button */}
             <TouchableOpacity
               style={styles.onboardingBtn}
-              onPress={() => setShowOnboarding(false)}
+              onPress={handleDismissOnboarding}
               activeOpacity={0.8}
             >
               <Text style={styles.onboardingBtnText}>{isEn ? 'Got It!' : 'Anladım, Başla'}</Text>
@@ -443,52 +906,104 @@ export default function VenueMenuScreen() {
 function SwipeableMenuCard({
   item,
   isDark,
+  cartQuantity = 0,
   onAddToCart,
   onPressItem,
+  onSwipeStart,
+  onSwipeEnd,
 }: {
   item: MenuItem;
   isDark: boolean;
+  cartQuantity?: number;
   onAddToCart: (item: MenuItem) => void;
   onPressItem: (item: MenuItem) => void;
+  onSwipeStart?: () => void;
+  onSwipeEnd?: () => void;
 }) {
-  const slidePan = useRef(new Animated.ValueXY()).current;
+  const panX = useRef(new Animated.Value(0)).current;
   const [isAdded, setIsAdded] = useState(false);
 
-  const sliderPanResponder = useRef(
+  const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 2,
-      onPanResponderMove: Animated.event([null, { dx: slidePan.x }], { useNativeDriver: false }),
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only capture gesture for clear rightward horizontal swipe
+        return gestureState.dx > 8 && gestureState.dx > Math.abs(gestureState.dy);
+      },
+      onPanResponderGrant: () => {
+        onSwipeStart?.();
+      },
+      onPanResponderTerminationRequest: () => true,
+      onPanResponderMove: (_, gestureState) => {
+        // Smoothly follow finger right and left between 0 and 140px
+        const clampedX = Math.max(0, Math.min(gestureState.dx, 140));
+        panX.setValue(clampedX);
+      },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -35 || (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5)) {
+        onSwipeEnd?.();
+        if (gestureState.dx > 65) {
           onAddToCart(item);
           setIsAdded(true);
           setTimeout(() => setIsAdded(false), 1600);
         }
-        Animated.spring(slidePan, {
-          toValue: { x: 0, y: 0 },
-          friction: 6,
-          useNativeDriver: false,
+        Animated.spring(panX, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 10,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        onSwipeEnd?.();
+        Animated.spring(panX, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 10,
         }).start();
       },
     })
   ).current;
 
+  const clampedTranslateX = panX.interpolate({
+    inputRange: [0, 200],
+    outputRange: [0, 200],
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
   return (
     <View style={styles.swipeContainer}>
-      {/* Main Foreground Card */}
+      {/* Background action revealed on right-swipe */}
+      <View style={[styles.swipeBackground, { paddingLeft: 18 }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <IconSymbol name="cart.badge.plus" size={20} color="#FFFFFF" />
+          <Text style={styles.swipeText}>Sepete Ekle</Text>
+        </View>
+      </View>
+
+      {/* Main Foreground Card that slides right */}
       <Animated.View
+        {...panResponder.panHandlers}
         style={[
           styles.menuCard,
           isDark && styles.menuCardDark,
+          cartQuantity > 0 && (isDark ? styles.menuCardInCartDark : styles.menuCardInCart),
+          { transform: [{ translateX: clampedTranslateX }] },
         ]}
       >
         <Pressable
-          style={{ flex: 1, paddingRight: 10 }}
+          style={{ flex: 1, paddingRight: 12 }}
           onPress={() => onPressItem(item)}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
             <Text style={[styles.itemName, isDark && styles.textLight]}>{item.name}</Text>
+            {cartQuantity > 0 && (
+              <View style={styles.itemInCartBadge}>
+                <IconSymbol name="bag.fill" size={10} color="#FFFFFF" />
+                <Text style={styles.itemInCartBadgeText}>{cartQuantity} Adet</Text>
+              </View>
+            )}
             {item.badge && (
               <View style={styles.itemBadge}>
                 <Text style={styles.itemBadgeText}>{item.badge}</Text>
@@ -500,29 +1015,14 @@ function SwipeableMenuCard({
               </View>
             )}
           </View>
-          {item.description && (
+          {item.description ? (
             <Text style={[styles.itemDesc, isDark && styles.textMutedDark]}>{item.description}</Text>
-          )}
-          {item.category && <Text style={styles.itemCategoryTag}>{item.category}</Text>}
+          ) : null}
         </Pressable>
 
-        <Pressable onPress={() => onPressItem(item)} style={{ alignSelf: 'flex-start', paddingLeft: 8 }}>
-          <Text style={styles.itemPrice}>{item.price}</Text>
+        <Pressable onPress={() => onPressItem(item)} style={{ alignSelf: 'center', paddingLeft: 8 }}>
+          <Text style={[styles.itemPrice, cartQuantity > 0 && styles.itemPriceInCart]}>{item.price}</Text>
         </Pressable>
-
-        <View style={{ position: 'absolute', right: 12, bottom: 10, width: 70, height: 32, borderRadius: 16, backgroundColor: isDark ? '#334155' : '#E2E8F0', justifyContent: 'center' }}>
-          <Animated.View
-            {...sliderPanResponder.panHandlers}
-            style={[
-              {
-                width: 28, height: 28, borderRadius: 14, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end', marginRight: 2
-              },
-              { transform: [{ translateX: slidePan.x.interpolate({ inputRange: [-38, 0], outputRange: [-38, 0], extrapolate: 'clamp' }) }] }
-            ]}
-          >
-            <IconSymbol name="plus" size={14} color="#FFFFFF" />
-          </Animated.View>
-        </View>
       </Animated.View>
     </View>
   );
@@ -531,7 +1031,7 @@ function SwipeableMenuCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   containerDark: {
     backgroundColor: '#0F172A',
@@ -567,13 +1067,36 @@ const styles = StyleSheet.create({
   backButtonDark: {
     backgroundColor: '#334155',
   },
-  helpButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F3E8FF',
+  headerCartButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  headerCartButtonDark: {
+    backgroundColor: '#334155',
+  },
+  headerCartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  headerCartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
   },
   headerTitle: {
     fontSize: 18,
@@ -589,7 +1112,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: 16,
     marginHorizontal: 16,
-    marginTop: 14,
+    marginTop: 12,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -623,13 +1146,13 @@ const styles = StyleSheet.create({
   categoryBar: {
     paddingVertical: 10,
     backgroundColor: '#FFFFFF',
-    marginTop: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#F1F5F9',
+    zIndex: 10,
   },
   categoryBarDark: {
-    backgroundColor: '#1E293B',
-    borderBottomColor: '#334155',
+    backgroundColor: '#0F172A',
+    borderBottomColor: '#1E293B',
   },
   categoryChip: {
     paddingHorizontal: 16,
@@ -719,6 +1242,34 @@ const styles = StyleSheet.create({
   menuCardDark: {
     backgroundColor: '#1E293B',
     borderColor: '#334155',
+  },
+  menuCardInCart: {
+    borderColor: '#10B981',
+    borderWidth: 1.5,
+    backgroundColor: '#FAFCFA',
+  },
+  menuCardInCartDark: {
+    borderColor: '#10B981',
+    borderWidth: 1.5,
+    backgroundColor: '#064E3B15',
+  },
+  itemInCartBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  itemInCartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
+  itemPriceInCart: {
+    color: '#059669',
+    fontWeight: '800',
   },
   itemName: {
     fontSize: 15,
@@ -1097,5 +1648,290 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800',
+  },
+  floatingCartBar: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    zIndex: 99,
+  },
+  floatingCartBtn: {
+    backgroundColor: '#059669',
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  floatingCartLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  floatingCartIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  floatingCartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#059669',
+    paddingHorizontal: 3,
+  },
+  floatingCartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  floatingCartLabel: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  floatingCartPrice: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  floatingCartRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+  },
+  floatingCartBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  cartSheetContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 22,
+    paddingBottom: 36,
+    maxHeight: '90%',
+  },
+  cartSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  cartSheetTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  cartSheetSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  cartClearBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: '#FEE2E2',
+  },
+  cartClearBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#EF4444',
+  },
+  cartItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  cartItemRowDark: {
+    borderBottomColor: '#334155',
+  },
+  cartItemName: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  cartItemPrice: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#059669',
+    marginTop: 2,
+  },
+  cartItemNote: {
+    fontSize: 11.5,
+    color: '#64748B',
+    marginTop: 3,
+    fontStyle: 'italic',
+  },
+  cartQuantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  cartQtyBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  cartQtyBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  cartQtyText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+    minWidth: 18,
+    textAlign: 'center',
+  },
+  inputHeading: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  cartInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  cartInputDark: {
+    backgroundColor: '#0F172A',
+    borderColor: '#334155',
+    color: '#F8FAFC',
+  },
+  cartSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
+    marginVertical: 4,
+  },
+  cartSummaryLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  cartSummaryValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  callOrderBtn: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  callOrderBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  whatsappOrderBtn: {
+    flex: 1,
+    backgroundColor: '#25D366',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#25D366',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  whatsappOrderBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14.5,
+    fontWeight: '800',
+  },
+  inputFieldLabel: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 6,
+  },
+  modalInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 13.5,
+    color: '#0F172A',
+  },
+  modalInputDark: {
+    backgroundColor: '#0F172A',
+    borderColor: '#334155',
+    color: '#F8FAFC',
+  },
+  detailSheetTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  detailSheetPrice: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#059669',
+    marginTop: 2,
   },
 });

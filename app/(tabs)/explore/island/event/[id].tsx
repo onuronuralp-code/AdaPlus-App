@@ -12,6 +12,7 @@ import {
     Share,
     Alert,
     Platform,
+    Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,6 +57,7 @@ export default function EventDetailScreen() {
     const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
     const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
 
     const handleToggleTranslation = async () => {
         if (!activity) return;
@@ -224,8 +226,11 @@ export default function EventDetailScreen() {
                     style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]}
                     onPress={async () => {
                         try {
+                            const shareUrl = `https://adaplus.app/explore/island/event/${activity.id}`;
                             await Share.share({
-                                message: `${activity.name}\n\n${activity.description}\n\nAdaPlus'ta incele!`,
+                                title: activity.name,
+                                message: `${activity.name}\n\n${activity.description || ''}\n\nAdaPlus'ta etkinliği incele: ${shareUrl}`,
+                                url: shareUrl,
                             });
                         } catch (error) {
                             console.log('Share error:', error);
@@ -236,8 +241,14 @@ export default function EventDetailScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Hero image (Fixed) */}
-            <Image source={{ uri: heroUri }} style={[styles.heroImage, { backgroundColor: isDark ? '#121212' : '#F1F5F9' }]} resizeMode="cover" />
+            {/* Hero image (Clickable for Fullscreen) */}
+            <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setImageViewerVisible(true)}
+                style={[styles.heroImage, { backgroundColor: isDark ? '#121212' : '#F1F5F9' }]}
+            >
+                <Image source={{ uri: heroUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            </TouchableOpacity>
 
             <ScrollView
                 style={{ flex: 1, marginTop: 0 }}
@@ -421,23 +432,6 @@ export default function EventDetailScreen() {
                         </TouchableOpacity>
                     )}
 
-                    <TouchableOpacity 
-                        style={[styles.rsvpButton, going && (isDark ? { backgroundColor: '#1E3A8A', borderWidth: 1, borderColor: '#3B82F6' } : styles.rsvpButtonActive), { marginTop: 20, marginBottom: 8 }]} 
-                        onPress={handleRsvp}
-                        disabled={rsvpLoading}
-                    >
-                        {rsvpLoading ? (
-                            <ActivityIndicator color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
-                        ) : (
-                            <>
-                                <IconSymbol name={going ? "checkmark.circle.fill" : "calendar.badge.plus"} size={20} color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
-                                <Text style={[styles.rsvpButtonText, going && (isDark ? { color: '#60A5FA' } : styles.rsvpButtonTextActive)]}>
-                                    {going ? (isEnActive ? 'Attending' : 'Katılıyorum') : (isEnActive ? "I'll Attend" : 'Katılacağım')}
-                                </Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-
                 </View>
             </ScrollView>
 
@@ -450,6 +444,41 @@ export default function EventDetailScreen() {
                 }}
                 message="Etkinliğe katılmak için giriş yapmalısınız."
             />
+
+            {/* Fullscreen Image Viewer Modal */}
+            <Modal
+                visible={imageViewerVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setImageViewerVisible(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* Close button */}
+                    <TouchableOpacity
+                        style={{
+                            position: 'absolute',
+                            top: insets.top + 16,
+                            right: 20,
+                            zIndex: 20,
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        onPress={() => setImageViewerVisible(false)}
+                    >
+                        <IconSymbol name="xmark" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+
+                    <Image
+                        source={{ uri: heroUri }}
+                        style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+                        resizeMode="contain"
+                    />
+                </View>
+            </Modal>
         </View>
     );
 }

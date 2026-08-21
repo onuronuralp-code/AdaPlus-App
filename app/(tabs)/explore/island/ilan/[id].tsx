@@ -175,8 +175,11 @@ export default function IlanDetailScreen() {
 
         <TouchableOpacity style={[styles.iconButton, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]} onPress={async () => {
           try {
+            const shareUrl = `https://adaplus.app/explore/island/ilan/${listing.id}`;
             await Share.share({
-              message: `${listing.title}\n\n${listing.description}\n\nAdaPlus'ta incele!`,
+              title: listing.title,
+              message: `${listing.title}\n\n${listing.description || ''}\n\nAdaPlus'ta detayları incele: ${shareUrl}`,
+              url: shareUrl,
             });
           } catch (error) {
             console.log('Share error:', error);
@@ -508,7 +511,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   infoGrid: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 12,
   },
   infoItem: {

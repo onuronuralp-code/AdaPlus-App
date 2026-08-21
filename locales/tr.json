@@ -327,6 +327,13 @@
         "listingQuota": "Aylık İlan Yayınlama Kotası",
         "eventQuota": "Etkinlik Oluşturma Kotası",
         "remainingQuota": "Kalan Hakkın: {{count}}",
+        "myBadges": "Rozetlerim",
+        "badges": {
+            "islander": "Adalı",
+            "community": "Topluluk Üyesi",
+            "seller": "İlan Sahibi",
+            "ambassador": "Ada Elçisi"
+        },
         "tabs": {
             "posts": "Paylaşımlar",
             "replies": "Yanıtlar",

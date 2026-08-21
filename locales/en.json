@@ -327,6 +327,13 @@
         "listingQuota": "Monthly Listing Publishing Quota",
         "eventQuota": "Event Creation Quota",
         "remainingQuota": "Remaining Quota: {{count}}",
+        "myBadges": "My Badges",
+        "badges": {
+            "islander": "Islander",
+            "community": "Community Member",
+            "seller": "Listing Owner",
+            "ambassador": "Island Ambassador"
+        },
         "deleteAccountTitle": "Delete Account",
         "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
         "tabs": {

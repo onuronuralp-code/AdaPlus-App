@@ -25,6 +25,9 @@ import { useAuth } from "../context/AuthContext";
 
 const NAVY = "#1E3A5F";
 const SEA = "#2F84C8";
+// Keep this in sync with expo-splash-screen's imageWidth in app.json so the
+// native splash and the first React frame use the exact same logo size.
+const SPLASH_LOGO_WIDTH = 240;
 
 // The native splash screen can only be hidden once per app launch. This screen can
 // remount later (e.g. router.replace('/') after deleting the account, or any other
@@ -92,7 +95,7 @@ export default function SplashScreen() {
 
   const isCompact = height < 720;
   const horizontalPadding = Math.max(20, Math.min(40, width * 0.08));
-  const logoW = Math.min(280, width - horizontalPadding * 2, height * (isCompact ? 0.3 : 0.34));
+  const logoW = Math.min(SPLASH_LOGO_WIDTH, width - horizontalPadding * 2);
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -118,27 +121,55 @@ export default function SplashScreen() {
           </View>
 
           {/* Language Toggle */}
-          <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 6, marginBottom: isCompact ? 22 : 48, maxWidth: '100%' }}>
+          <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 6, marginBottom: isCompact ? 22 : 48, maxWidth: '100%', alignItems: 'center' }}>
             <TouchableOpacity
               activeOpacity={0.8}
-              style={{ flex: 1, maxWidth: 150, paddingHorizontal: isCompact ? 20 : 32, paddingVertical: isCompact ? 11 : 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('tr') ? 2 : 0 }}
+              style={{
+                flex: 1,
+                maxWidth: 150,
+                paddingHorizontal: isCompact ? 20 : 28,
+                paddingVertical: isCompact ? 11 : 14,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent',
+                shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: i18n.language.startsWith('tr') ? 2 : 0,
+              }}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 i18n.changeLanguage('tr');
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: '800', color: i18n.language.startsWith('tr') ? NAVY : '#94A3B8' }}>Türkçe</Text>
+              <Text style={{ fontSize: 16, fontWeight: '800', textAlign: 'center', color: i18n.language.startsWith('tr') ? NAVY : '#94A3B8' }}>Türkçe</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               activeOpacity={0.8}
-              style={{ flex: 1, maxWidth: 150, paddingHorizontal: isCompact ? 20 : 32, paddingVertical: isCompact ? 11 : 14, borderRadius: 12, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: i18n.language.startsWith('en') ? 2 : 0 }}
+              style={{
+                flex: 1,
+                maxWidth: 150,
+                paddingHorizontal: isCompact ? 20 : 28,
+                paddingVertical: isCompact ? 11 : 14,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent',
+                shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: i18n.language.startsWith('en') ? 2 : 0,
+              }}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 i18n.changeLanguage('en');
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: '800', color: i18n.language.startsWith('en') ? NAVY : '#94A3B8' }}>English</Text>
+              <Text style={{ fontSize: 16, fontWeight: '800', textAlign: 'center', color: i18n.language.startsWith('en') ? NAVY : '#94A3B8' }}>English</Text>
             </TouchableOpacity>
           </View>
 
