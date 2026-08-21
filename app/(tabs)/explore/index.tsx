@@ -45,7 +45,6 @@ import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
 import { CopilotStep, walkthroughable, useCopilot } from 'react-native-copilot';
 const WalkthroughableView = walkthroughable(View);
-let hasStartedMainMenuOnboardingThisSession = false;
 
 const getRouteTimeValue = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
@@ -275,15 +274,25 @@ export default function MainMenuScreen() {
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let isMounted = true;
 
-    if (!hasStartedMainMenuOnboardingThisSession) {
-      timer = setTimeout(() => {
-        hasStartedMainMenuOnboardingThisSession = true;
+    const showOnboardingOnce = async () => {
+      const hasSeenOnboarding = await AsyncStorage.getItem('has_seen_main_menu_onboarding');
+      if (!isMounted || hasSeenOnboarding === 'true') return;
+
+      timer = setTimeout(async () => {
+        if (!isMounted) return;
+        await AsyncStorage.setItem('has_seen_main_menu_onboarding', 'true');
         startOnboardingRef.current();
       }, 600);
-    }
+    };
+
+    showOnboardingOnce().catch(error => {
+      console.log('Error checking main menu onboarding status', error);
+    });
     
     return () => {
+      isMounted = false;
       if (timer) clearTimeout(timer);
     };
   }, []);
