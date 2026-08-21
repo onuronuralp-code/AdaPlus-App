@@ -357,15 +357,15 @@ export default function EventsScreen() {
         setIsUploading(true);
         try {
             let imageUrl = selectedImage;
-            if (selectedImage && !selectedImage.startsWith('http')) {
+            if (selectedImage && !selectedImage.startsWith('http') && !selectedImage.startsWith('/')) {
                 const uploaded = await mediaApi.uploadImage(selectedImage);
                 if (!uploaded) {
-                    Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Fotoğraf yüklenemedi. Fotoğrafsız devam etmek ister misiniz?', [
-                        { text: 'İptal', style: 'cancel', onPress: () => setIsUploading(false) },
-                        { text: 'Devam Et', onPress: async () => {
-                            await publishEvent(undefined);
-                        }},
-                    ]);
+                    Alert.alert(
+                        t('common.error', { defaultValue: 'Hata' }),
+                        i18n.language.startsWith('en')
+                            ? 'The event photo could not be uploaded. Please try again.'
+                            : 'Etkinlik fotoğrafı yüklenemedi. Lütfen tekrar deneyin.'
+                    );
                     return;
                 }
                 imageUrl = uploaded;

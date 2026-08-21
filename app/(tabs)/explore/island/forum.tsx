@@ -769,8 +769,12 @@ export default function ForumScreen() {
             if (selectedImages.length > 0) {
                 const uploadedUrls: string[] = [];
                 for (const uri of selectedImages) {
-                    const uploaded = await mediaApi.uploadImage(uri);
-                    if (uploaded) uploadedUrls.push(uploaded);
+                    if (uri.startsWith('http') || uri.startsWith('/')) {
+                        uploadedUrls.push(uri);
+                    } else {
+                        const uploaded = await mediaApi.uploadImage(uri);
+                        if (uploaded) uploadedUrls.push(uploaded);
+                    }
                 }
                 if (uploadedUrls.length < selectedImages.length) {
                     Alert.alert(
@@ -788,9 +792,10 @@ export default function ForumScreen() {
                     imageUrl: imageUrl,
                 };
                 const updatedPost = await forumApi.updatePost(editingPostId, updateReq);
-                setPosts(posts.map(p => p.id === editingPostId ? updatedPost : p));
+                const completeUpdatedPost = { ...updatedPost, imageUrl: updatedPost.imageUrl ?? imageUrl };
+                setPosts(posts.map(p => p.id === editingPostId ? completeUpdatedPost : p));
                 if (selectedPost && selectedPost.id === editingPostId) {
-                    setSelectedPost(updatedPost);
+                    setSelectedPost(completeUpdatedPost);
                 }
                 setNewPostContent('');
                 setNewPostType('discussion');
@@ -829,6 +834,7 @@ export default function ForumScreen() {
                     authorId: createdPost.authorId || user?.id,
                     authorName: createdPost.authorName || user?.fullName || 'Anonim',
                     authorUserType: (createdPost.authorUserType || user?.userType || UserType.VISITOR) as any,
+                    imageUrl: createdPost.imageUrl || imageUrl,
                     pollOptions: (createdPost.pollOptions && createdPost.pollOptions.length > 0)
                         ? createdPost.pollOptions
                         : (createdPost as any).options || (createdPost as any).poll_options || optionsFromReq
@@ -912,6 +918,7 @@ export default function ForumScreen() {
         setNewPostContent(post.content);
         setNewPostType(post.postType.toLowerCase());
         setIsAnonymous((post as any).anonymous || false);
+        setSelectedImages(post.imageUrl ? post.imageUrl.split(',').map(url => url.trim()).filter(Boolean) : []);
         
         if (isDetailModalVisible) {
             setIsDetailModalVisible(false);

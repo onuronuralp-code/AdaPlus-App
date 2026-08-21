@@ -48,6 +48,19 @@ export interface SaveListingRequest {
 
 const LISTING_API_BASE = `${API_BASE_URL}/api/v1/listings`;
 
+const normalizeListingImages = (listing: ListingDto): ListingDto => {
+  const imageUrls = Array.isArray(listing.imageUrls)
+    ? listing.imageUrls.filter(Boolean)
+    : [];
+  const primaryImage = listing.imageUrl || imageUrls[0];
+
+  return {
+    ...listing,
+    imageUrl: primaryImage,
+    imageUrls: imageUrls.length > 0 ? imageUrls : (primaryImage ? [primaryImage] : []),
+  };
+};
+
 export const fetchListings = async (
   category?: ListingCategory,
 ): Promise<ListingDto[]> => {
@@ -61,9 +74,9 @@ export const fetchListings = async (
     const data = await response.json();
 
     if (data && data.content && Array.isArray(data.content)) {
-      return data.content;
+      return data.content.map(normalizeListingImages);
     } else if (Array.isArray(data)) {
-      return data;
+      return data.map(normalizeListingImages);
     }
     return [];
   } catch (error) {
@@ -108,14 +121,14 @@ export const createListing = async (
     const body = await response.json().catch(() => ({}));
     throw new Error(body.message || `API Error: ${response.status}`);
   }
-  return await response.json();
+  return normalizeListingImages(await response.json());
 };
 
 export const getListing = async (id: string): Promise<ListingDto | null> => {
   try {
     const response = await fetchWithTimeout(`${LISTING_API_BASE}/${id}`);
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
+    return normalizeListingImages(await response.json());
   } catch (error) {
     console.log("Failed to fetch listing detail:", error);
     return null;
@@ -147,7 +160,7 @@ export const updateListing = async (
     const body = await response.json().catch(() => ({}));
     throw new Error(body.message || `API Error: ${response.status}`);
   }
-  return await response.json();
+  return normalizeListingImages(await response.json());
 };
 
 export const fetchMyListings = async (): Promise<ListingDto[]> => {
@@ -159,7 +172,7 @@ export const fetchMyListings = async (): Promise<ListingDto[]> => {
     });
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data) ? data.map(normalizeListingImages) : [];
   } catch (error) {
     console.log('Failed to fetch my listings:', error);
     return [];

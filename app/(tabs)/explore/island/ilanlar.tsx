@@ -344,6 +344,10 @@ export default function IlanlarScreen() {
           const uploaded = await mediaApi.uploadImage(uri);
           if (uploaded) {
             uploadedUrls.push(uploaded);
+          } else {
+            throw new Error(i18n.language.startsWith('en')
+              ? 'The photo could not be uploaded. Please try again.'
+              : 'Fotoğraf yüklenemedi. Lütfen tekrar deneyin.');
           }
         } else {
           uploadedUrls.push(uri);
@@ -400,7 +404,8 @@ export default function IlanlarScreen() {
       active: true,
       contactInfo: finalContact,
       sellerName: adSeller.trim(),
-      imageUrls: imageUrls
+      imageUrl: imageUrls[0],
+      imageUrls: imageUrls,
     };
 
     const resultListing = editingListingId

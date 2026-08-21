@@ -31,7 +31,8 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
     if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
     
     const data = await response.json();
-    return data.url;
+    if (typeof data === 'string') return data;
+    return data.url ?? data.imageUrl ?? data.fileUrl ?? data.path ?? null;
   } catch (error) {
     console.log('Failed to upload image:', error);
     triggerNetworkError();
