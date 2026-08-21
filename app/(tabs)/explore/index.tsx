@@ -45,6 +45,7 @@ import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
 import { CopilotStep, walkthroughable, useCopilot } from 'react-native-copilot';
 const WalkthroughableView = walkthroughable(View);
+let hasStartedMainMenuOnboardingThisSession = false;
 
 const getRouteTimeValue = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
@@ -268,23 +269,22 @@ const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChan
 };
 
 export default function MainMenuScreen() {
-  const { start, copilotEvents } = useCopilot();
+  const { start } = useCopilot();
+  const startOnboardingRef = useRef(start);
+  startOnboardingRef.current = start;
 
   useEffect(() => {
-    let timer: any;
-    // Always start onboarding tour for testing
-    timer = setTimeout(() => {
-      start();
-    }, 600);
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const handleStop = () => {
-      console.log('Onboarding tour stopped');
-    };
-    copilotEvents?.on('stop', handleStop);
+    if (!hasStartedMainMenuOnboardingThisSession) {
+      timer = setTimeout(() => {
+        hasStartedMainMenuOnboardingThisSession = true;
+        startOnboardingRef.current();
+      }, 600);
+    }
     
     return () => {
       if (timer) clearTimeout(timer);
-      copilotEvents?.off('stop', handleStop);
     };
   }, []);
 
@@ -1228,17 +1228,19 @@ const MOCK_SERVICES = [
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => navigateWithDebounce('/(tabs)/explore/island/paket-servis')}
-                  onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                  style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 6, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
+                  disabled
+                  style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 3, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6, overflow: 'visible', alignItems: 'center', justifyContent: 'center', opacity: 0.72 }}
                 >
                   <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
+                  <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#EDE9FE', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#DDD6FE', zIndex: 10 }}>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#7C3AED', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
+                  </View>
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
             <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Order Now' : 'Sipariş Ver'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Coming Soon' : 'Çok Yakında'}</Text>
             </View>
           </View>
         </View>
@@ -1372,7 +1374,7 @@ const MOCK_SERVICES = [
             const content = (
               <View style={{ flex: 1, padding: isLargeScreen ? 24 : 20, justifyContent: 'space-between', zIndex: 5 }}>
                 {!resolvedBannerImg && (
-                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: 24, pointerEvents: 'none' }}>
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: 12, pointerEvents: 'none' }}>
                     {/* Background Mesh Orbs */}
                     <View style={{ position: 'absolute', right: -30, top: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
                     <View style={{ position: 'absolute', right: 40, bottom: -40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
@@ -1403,9 +1405,9 @@ const MOCK_SERVICES = [
                       <IconSymbol name="key.fill" size={32} color="#FFFFFF" />
                     </View>
 
-                    {/* 6. Bahçıvan (Flower) - Center Left */}
+                    {/* 6. Bahçıvan (Tırmık - Rake) - Center Left */}
                     <View style={{ position: 'absolute', left: 25, top: 140, opacity: 0.20, transform: [{ rotate: '25deg' }] }}>
-                      <IconSymbol name={"flower" as any} size={32} color="#FFFFFF" />
+                      <MaterialCommunityIcons name="rake" size={32} color="#FFFFFF" />
                     </View>
 
                     {/* 1b. Tadilat & Tamirat (Wrench) - Center Canvas */}
@@ -1445,9 +1447,9 @@ const MOCK_SERVICES = [
                       <IconSymbol name="key.fill" size={30} color="#FFFFFF" />
                     </View>
 
-                    {/* 6c. Bahçıvan (Flower) - Bottom Center */}
+                    {/* 6c. Bahçıvan (Tırmık - Rake) - Bottom Center */}
                     <View style={{ position: 'absolute', left: 130, bottom: 18, opacity: 0.20, transform: [{ rotate: '-10deg' }] }}>
-                      <IconSymbol name={"flower" as any} size={30} color="#FFFFFF" />
+                      <MaterialCommunityIcons name="rake" size={30} color="#FFFFFF" />
                     </View>
 
                     {/* 3d. Boya (Paintbrush) - Bottom Right */}
@@ -1468,10 +1470,10 @@ const MOCK_SERVICES = [
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 6,
-                    backgroundColor: 'rgba(255, 255, 255, 0.22)', 
-                    paddingHorizontal: 12, 
-                    paddingVertical: 5, 
-                    borderRadius: 20, 
+                    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 6,
                     marginBottom: 12,
                     borderWidth: 1,
                     borderColor: 'rgba(255, 255, 255, 0.35)',
@@ -1506,7 +1508,7 @@ const MOCK_SERVICES = [
                     backgroundColor: '#FFFFFF',
                     paddingHorizontal: 16,
                     paddingVertical: 10,
-                    borderRadius: 22,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 8,
@@ -1521,8 +1523,8 @@ const MOCK_SERVICES = [
                   <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#312E81' : '#1D4ED8' }}>
                     {bannerActionLabel}
                   </Text>
-                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: isDark ? '#312E81' : '#2563EB', alignItems: 'center', justifyContent: 'center' }}>
-                    <IconSymbol name="chevron.right" size={12} color="#FFFFFF" />
+                  <View style={{ width: 20, height: 20, borderRadius: 6, backgroundColor: isDark ? '#312E81' : '#2563EB', alignItems: 'center', justifyContent: 'center' }}>
+                    <IconSymbol name="chevron.right" size={11} color="#FFFFFF" />
                   </View>
                 </TouchableOpacity>
               </View>
@@ -1534,7 +1536,7 @@ const MOCK_SERVICES = [
                   source={{ uri: resolvedBannerImg }}
                   style={{
                     flex: 1,
-                    borderRadius: 24,
+                    borderRadius: 12,
                     overflow: 'hidden',
                     shadowColor: '#2563EB',
                     shadowOffset: { width: 0, height: 6 },
@@ -1542,7 +1544,7 @@ const MOCK_SERVICES = [
                     shadowRadius: 12,
                     elevation: 6,
                   }}
-                  imageStyle={{ borderRadius: 24 }}
+                  imageStyle={{ borderRadius: 12 }}
                 >
                   <LinearGradient
                     colors={['rgba(15,23,42,0.65)', 'rgba(15,23,42,0.92)']}
@@ -1563,7 +1565,7 @@ const MOCK_SERVICES = [
                 end={{ x: 1, y: 1 }}
                 style={{
                   flex: 1,
-                  borderRadius: 24,
+                  borderRadius: 12,
                   shadowColor: isDark ? '#4338CA' : '#2563EB',
                   shadowOffset: { width: 0, height: 8 },
                   shadowOpacity: 0.3,
@@ -1600,7 +1602,7 @@ const MOCK_SERVICES = [
             { iconSymbol: 'paintbrush.fill', label: i18n.language.startsWith('en') ? 'Painting' : 'Boya', color: '#D97706', bg: isDark ? '#78350F30' : '#FFFBEB', border: '#FBBF2450' },
             { iconSymbol: 'globe', label: i18n.language.startsWith('en') ? 'Internet' : 'İnternet', color: '#0891B2', bg: isDark ? '#164E6330' : '#ECFEFF', border: '#22D3EE50' },
             { iconSymbol: 'key.fill', label: i18n.language.startsWith('en') ? 'Locksmith' : 'Çilingir', color: '#8B5CF6', bg: isDark ? '#4C1D9530' : '#F5F3FF', border: '#A78BFA50' },
-            { iconSymbol: 'flower', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#064E3B30' : '#ECFDF5', border: '#34D39950' },
+            { materialIcon: 'rake', label: i18n.language.startsWith('en') ? 'Gardener' : 'Bahçıvan', color: '#10B981', bg: isDark ? '#064E3B30' : '#ECFDF5', border: '#34D39950' },
           ].map((service, idx) => (
             <Pressable
               key={idx}
@@ -1621,7 +1623,7 @@ const MOCK_SERVICES = [
                 paddingVertical: isLargeScreen ? 24 : (isSmallScreen ? 16 : 20),
                 paddingHorizontal: 14,
                 backgroundColor: pressed ? service.color : service.bg,
-                borderRadius: 20,
+                borderRadius: 18,
                 borderWidth: 1.5,
                 borderColor: isDark ? service.color + '60' : service.border,
                 shadowColor: service.color,
@@ -1636,7 +1638,7 @@ const MOCK_SERVICES = [
                   <View style={{
                     width: 44,
                     height: 44,
-                    borderRadius: 14,
+                    borderRadius: 13,
                     backgroundColor: pressed ? '#FFFFFF' : service.color,
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1647,7 +1649,11 @@ const MOCK_SERVICES = [
                     shadowRadius: 4,
                     elevation: 3,
                   }}>
-                    <IconSymbol name={service.iconSymbol as any} size={22} color={pressed ? service.color : '#FFFFFF'} />
+                    {(service as any).materialIcon ? (
+                      <MaterialCommunityIcons name={(service as any).materialIcon} size={24} color={pressed ? service.color : '#FFFFFF'} />
+                    ) : (
+                      <IconSymbol name={(service as any).iconSymbol as any} size={22} color={pressed ? service.color : '#FFFFFF'} />
+                    )}
                   </View>
 
                   <View style={{ flex: 1, justifyContent: 'center' }}>

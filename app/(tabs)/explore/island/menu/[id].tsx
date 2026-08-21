@@ -161,19 +161,23 @@ export default function VenueMenuScreen() {
   }, []);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
     const checkMenuOnboarding = async () => {
       try {
         const hasSeen = await AsyncStorage.getItem('has_seen_menu_onboarding');
         if (hasSeen !== 'true') {
-          setTimeout(() => {
-            setShowOnboarding(true);
-          }, 400);
+          timer = setTimeout(() => setShowOnboarding(true), 400);
         }
-      } catch (e) {
-        console.log('Error checking menu onboarding', e);
+      } catch (error) {
+        console.log('Error checking menu onboarding', error);
       }
     };
+
     checkMenuOnboarding();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleDismissOnboarding = async () => {

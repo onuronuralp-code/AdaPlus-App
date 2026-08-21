@@ -102,44 +102,31 @@ export default function ForumScreen() {
     }, [isSwipeOnboardingVisible]);
 
     useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
         const checkSwipeOnboarding = async () => {
             try {
-                const hasSeen = await AsyncStorage.getItem('hasSeenSwipeOnboarding');
-                if (!hasSeen) {
-                    setTimeout(() => {
-                        setIsSwipeOnboardingVisible(true);
-                    }, 1200);
+                const hasSeen = await AsyncStorage.getItem('has_seen_swipe_onboarding');
+                if (hasSeen !== 'true') {
+                    timer = setTimeout(() => setIsSwipeOnboardingVisible(true), 600);
                 }
             } catch (error) {
-                console.error("Error reading swipe onboarding status", error);
+                console.log('Error checking swipe onboarding status', error);
             }
         };
+
         checkSwipeOnboarding();
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
     }, []);
 
     const dismissSwipeOnboarding = async () => {
         setIsSwipeOnboardingVisible(false);
         try {
-            await AsyncStorage.setItem('hasSeenSwipeOnboarding', 'true');
+            await AsyncStorage.setItem('has_seen_swipe_onboarding', 'true');
         } catch {}
     };
-
-    useEffect(() => {
-        const checkSwipeOnboarding = async () => {
-            try {
-                const hasSeen = await AsyncStorage.getItem('has_seen_swipe_onboarding');
-                if (hasSeen !== 'true') {
-                    setTimeout(() => {
-                        setIsSwipeOnboardingVisible(true);
-                    }, 600);
-                    await AsyncStorage.setItem('has_seen_swipe_onboarding', 'true');
-                }
-            } catch (err) {
-                console.log('Error checking swipe onboarding status', err);
-            }
-        };
-        checkSwipeOnboarding();
-    }, []);
 
     useEffect(() => {
         const checkRulesVisit = async () => {

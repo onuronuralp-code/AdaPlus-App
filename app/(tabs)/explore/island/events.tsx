@@ -75,8 +75,10 @@ export default function EventsScreen() {
             getActivity(id).then(act => {
                 if (act) {
                     setNewEventName(act.name);
-                    setStartDate(new Date(act.startDate));
-                    if (act.endDate) setEndDate(new Date(act.endDate));
+                    const activityStartDate = new Date(act.startDate);
+                    setStartDate(activityStartDate);
+                    setHasEndDate(Boolean(act.endDate));
+                    setEndDate(act.endDate ? new Date(act.endDate) : new Date(activityStartDate.getTime() + 60 * 60 * 1000));
                     if (act.eventPlace) setNewEventLocation(act.eventPlace);
                     setNewEventDetails(act.description);
                     setOrganizerName(act.organizerName);
@@ -104,7 +106,8 @@ export default function EventsScreen() {
     // Form States
     const [newEventName, setNewEventName] = useState('');
     const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(() => new Date(Date.now() + 60 * 60 * 1000));
+    const [hasEndDate, setHasEndDate] = useState(false);
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
     const [newEventLocation, setNewEventLocation] = useState('');
@@ -372,6 +375,7 @@ export default function EventsScreen() {
             name: newEventName.trim(),
             description: newEventDetails.trim(),
             startDate: startDate.toISOString(),
+            ...(hasEndDate ? { endDate: endDate.toISOString() } : {}),
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
             eventPlace: newEventLocation.trim() || undefined,
@@ -390,7 +394,8 @@ export default function EventsScreen() {
         setEditingActivityId(null);
         setNewEventName('');
         setStartDate(new Date());
-        setEndDate(new Date());
+        setEndDate(new Date(Date.now() + 60 * 60 * 1000));
+        setHasEndDate(false);
         setNewEventLocation('');
         setNewEventDetails('');
         setOrganizerName('');
@@ -722,6 +727,29 @@ export default function EventsScreen() {
                                     <IconSymbol name="calendar" size={14} color="#3B82F6" />
                                 </TouchableOpacity>
                             </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>
+                                    {t('events.endDate')} ({i18n.language.startsWith('en') ? 'Optional' : 'Opsiyonel'})
+                                </Text>
+                                <TouchableOpacity
+                                    style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]}
+                                    onPress={() => setShowEndPicker(true)}
+                                >
+                                    <Text style={[styles.dateSelectorText, isDark && { color: '#FFFFFF' }, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
+                                        {hasEndDate
+                                            ? `${endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                            : (i18n.language.startsWith('en') ? 'Add end date' : 'Bitiş tarihi ekle')}
+                                    </Text>
+                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                </TouchableOpacity>
+                                {hasEndDate && (
+                                    <TouchableOpacity onPress={() => setHasEndDate(false)} style={{ alignSelf: 'flex-end', paddingTop: 5, paddingVertical: 2 }}>
+                                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#EF4444' }}>
+                                            {i18n.language.startsWith('en') ? 'Remove' : 'Kaldır'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
                         </View>
 
                         <CustomDateTimePicker
@@ -730,8 +758,22 @@ export default function EventsScreen() {
                             title="Başlangıç Tarihi ve Saati"
                             accentColor="#3B82F6"
                             minimumDate={new Date()}
-                            onConfirm={(date) => { setStartDate(date); setShowStartPicker(false); }}
+                            onConfirm={(date) => {
+                                setStartDate(date);
+                                if (endDate <= date) setEndDate(new Date(date.getTime() + 60 * 60 * 1000));
+                                setShowStartPicker(false);
+                            }}
                             onCancel={() => setShowStartPicker(false)}
+                        />
+
+                        <CustomDateTimePicker
+                            visible={showEndPicker}
+                            value={endDate}
+                            title={i18n.language.startsWith('en') ? 'End Date and Time' : 'Bitiş Tarihi ve Saati'}
+                            accentColor="#3B82F6"
+                            minimumDate={startDate}
+                            onConfirm={(date) => { setEndDate(date); setHasEndDate(true); setShowEndPicker(false); }}
+                            onCancel={() => setShowEndPicker(false)}
                         />
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventLocation')}</Text>

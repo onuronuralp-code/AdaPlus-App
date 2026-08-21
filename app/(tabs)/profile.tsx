@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { s, vs, ms } from '@/utils/scale';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
@@ -830,28 +831,28 @@ export default function ProfileScreen() {
         {
             key: 'islander',
             title: t('profile.badges.islander'),
-            icon: 'star.fill',
+            badgeIcon: 'shield-star',
             color: '#F59E0B',
             earned: true,
         },
         {
             key: 'community',
             title: t('profile.badges.community'),
-            icon: 'bubble.left.and.bubble.right.fill',
+            badgeIcon: 'forum',
             color: '#6366F1',
             earned: true,
         },
         {
             key: 'seller',
             title: t('profile.badges.seller'),
-            icon: 'tag.fill',
+            badgeIcon: 'treasure-chest',
             color: '#10B981',
             earned: true,
         },
         {
             key: 'ambassador',
             title: t('profile.badges.ambassador'),
-            icon: 'person.2.fill',
+            badgeIcon: 'email-seal',
             color: '#8B5CF6',
             earned: true,
         },
@@ -993,63 +994,6 @@ export default function ProfileScreen() {
                                 ]}>
                                     {user?.userType === 'ADMIN' ? 'Admin' : (user?.userType === 'ISLAND_RESIDENT' ? t('forum.role.islander', { defaultValue: 'Islander' }) : t('forum.role.visitor', { defaultValue: 'Visitor' }))}
                                 </Text>
-                            </View>
-
-                            <View style={[styles.badgesCard, isDark && styles.badgesCardDark]}>
-                                <TouchableOpacity
-                                    activeOpacity={0.7}
-                                    onPress={() => {
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        setIsBadgesExpanded(!isBadgesExpanded);
-                                    }}
-                                    style={[styles.badgesHeader, !isBadgesExpanded && { marginBottom: 0 }]}
-                                >
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <IconSymbol name="star.fill" size={14} color="#F59E0B" />
-                                        <Text style={[styles.badgesTitle, isDark && { color: '#FFFFFF' }]}>
-                                            {t('profile.myBadges')}
-                                        </Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <Text style={styles.badgesCount}>
-                                            {profileBadges.filter(badge => badge.earned).length}/{profileBadges.length}
-                                        </Text>
-                                        <IconSymbol 
-                                            name={isBadgesExpanded ? "chevron.up" : "chevron.down"} 
-                                            size={13} 
-                                            color={isDark ? '#94A3B8' : '#64748B'} 
-                                        />
-                                    </View>
-                                </TouchableOpacity>
-
-                                {isBadgesExpanded && (
-                                    <View style={styles.badgesGrid}>
-                                        {profileBadges.map(badge => (
-                                            <View
-                                                key={badge.key}
-                                                style={[
-                                                    styles.profileBadge,
-                                                    isDark && styles.profileBadgeDark,
-                                                    !badge.earned && styles.profileBadgeLocked,
-                                                ]}
-                                            >
-                                                <View style={[styles.profileBadgeIcon, { backgroundColor: `${badge.color}18` }]}>
-                                                    <IconSymbol
-                                                        name={badge.earned ? badge.icon as any : 'lock.fill'}
-                                                        size={17}
-                                                        color={badge.earned ? badge.color : '#94A3B8'}
-                                                    />
-                                                </View>
-                                                <Text
-                                                    numberOfLines={2}
-                                                    style={[styles.profileBadgeText, isDark && { color: '#E2E8F0' }, !badge.earned && { color: '#94A3B8' }]}
-                                                >
-                                                    {badge.title}
-                                                </Text>
-                                            </View>
-                                        ))}
-                                    </View>
-                                )}
                             </View>
 
                                 {/* Kotalar Kartı */}
@@ -1306,6 +1250,7 @@ const styles = StyleSheet.create({
     profileBadgeDark: { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
     profileBadgeLocked: { opacity: 0.58 },
     profileBadgeIcon: { width: s(30), height: s(30), borderRadius: s(15), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    badgeRosetteContainer: { width: s(30), height: s(30), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     profileBadgeText: { flex: 1, fontSize: ms(10.5), lineHeight: ms(13), fontWeight: '700', color: '#334155' },
     loginButton: { marginTop: vs(16), backgroundColor: '#10B981', paddingHorizontal: s(20), paddingVertical: vs(10), borderRadius: s(10) },
     loginButtonText: { color: '#fff', fontSize: ms(15), fontWeight: '700' },

@@ -100,9 +100,24 @@ const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
 
 
 const CustomTooltip = () => {
-  const { currentStep, goToNext, goToPrev, stop, isFirstStep, isLastStep } = useCopilot();
+  const { currentStep, currentStepNumber, goToNth, stop, isFirstStep, isLastStep } = useCopilot();
   const { i18n } = useTranslation();
   const isEn = i18n.language?.startsWith('en');
+  const isChangingStep = useRef(false);
+
+  const changeStep = async (direction: 'next' | 'previous') => {
+    if (isChangingStep.current) return;
+    isChangingStep.current = true;
+
+    const targetStep = direction === 'next'
+      ? currentStepNumber + 1
+      : currentStepNumber - 1;
+
+    await goToNth(targetStep);
+    setTimeout(() => {
+      isChangingStep.current = false;
+    }, 350);
+  };
 
   return (
     <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 24 }}>
@@ -113,7 +128,7 @@ const CustomTooltip = () => {
       <View style={{ flexDirection: 'row', gap: 12 }}>
         {!isFirstStep && (
           <TouchableOpacity
-            onPress={() => goToPrev()}
+            onPress={() => changeStep('previous')}
             style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}
           >
             <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
@@ -122,7 +137,7 @@ const CustomTooltip = () => {
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          onPress={() => isLastStep ? stop() : goToNext()}
+          onPress={() => isLastStep ? stop() : changeStep('next')}
           style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#FFFFFF' }}
         >
           <Text style={{ color: '#0F172A', fontSize: 16, fontWeight: '700' }}>

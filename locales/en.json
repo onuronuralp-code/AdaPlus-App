@@ -330,8 +330,8 @@
         "myBadges": "My Badges",
         "badges": {
             "islander": "Islander",
-            "community": "Community Member",
-            "seller": "Listing Owner",
+            "community": "Companion",
+            "seller": "Island Merchant",
             "ambassador": "Island Ambassador"
         },
         "deleteAccountTitle": "Delete Account",
