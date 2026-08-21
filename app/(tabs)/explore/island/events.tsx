@@ -427,7 +427,7 @@ export default function EventsScreen() {
         setSuccessModalMessage(
             editingActivityId 
                 ? t('common.eventUpdated', { defaultValue: 'Etkinlik başarıyla güncellendi.' })
-                : t('common.eventRequestReceived', { defaultValue: 'Etkinlik isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+                : t('common.eventRequestReceived', { defaultValue: 'Etkinliğiniz incelemeye gönderildi.' })
         );
         setSuccessModalVisible(true);
         loadEvents(true);

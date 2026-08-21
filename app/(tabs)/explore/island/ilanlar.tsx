@@ -418,7 +418,7 @@ export default function IlanlarScreen() {
         t('common.success', { defaultValue: 'Başarılı' }),
         editingListingId
           ? t('common.listingUpdated', { defaultValue: 'İlan başarıyla güncellendi.' })
-          : t('common.listingReceived', { defaultValue: 'İlan isteğiniz alınmıştır ve incelemeye alınmıştır.' })
+          : t('common.listingReceived', { defaultValue: 'İlanınız incelemeye gönderildi.' })
       );
     }, 400);
     loadListings(true);
