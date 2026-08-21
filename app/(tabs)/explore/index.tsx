@@ -1228,7 +1228,16 @@ const MOCK_SERVICES = [
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  disabled
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    Alert.alert(
+                      i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis',
+                      i18n.language.startsWith('en')
+                        ? 'Delivery service will be available very soon.'
+                        : 'Paket Servis hizmeti çok yakında kullanıma açılacak.',
+                      [{ text: i18n.language.startsWith('en') ? 'OK' : 'Tamam' }]
+                    );
+                  }}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 3, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6, overflow: 'visible', alignItems: 'center', justifyContent: 'center', opacity: 0.72 }}
                 >
                   <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />

@@ -128,20 +128,44 @@ export default function EventsScreen() {
         { id: 'BUYUKADA', label: 'Büyükada' },
     ];
 
-    const matchIsland = (itemIsland?: string | null, targetFilter?: string) => {
-        if (!targetFilter || targetFilter === 'ALL') return true;
-        if (!itemIsland) return false;
-        const upperItem = String(itemIsland).toUpperCase();
-        const upperTarget = targetFilter.toUpperCase();
-        if (upperItem === upperTarget) return true;
-        if (upperTarget === 'KINALIADA' && (upperItem.includes('KIN') || upperItem.includes('KINA'))) return true;
-        if (upperTarget === 'BURGAZADA' && upperItem.includes('BURG')) return true;
-        if (upperTarget === 'HEYBELIADA' && upperItem.includes('HEYB')) return true;
-        if (upperTarget === 'BUYUKADA' && (upperItem.includes('BUY') || upperItem.includes('BÜY'))) return true;
-        return false;
+    const normalizeIslandId = (value?: unknown): string | null => {
+        if (value === null || value === undefined) return null;
+
+        const numericIslandMap: Record<string, string> = {
+            '0': 'BUYUKADA',
+            '1': 'HEYBELIADA',
+            '2': 'BURGAZADA',
+            '3': 'KINALIADA',
+        };
+        const rawValue = typeof value === 'object'
+            ? String((value as any).id ?? (value as any).name ?? (value as any).value ?? '')
+            : String(value);
+        const trimmedValue = rawValue.trim();
+        if (numericIslandMap[trimmedValue]) return numericIslandMap[trimmedValue];
+
+        const normalizedValue = trimmedValue
+            .toLocaleUpperCase('tr-TR')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/İ/g, 'I')
+            .replace(/[^A-Z0-9]/g, '');
+
+        if (normalizedValue.includes('KINALI')) return 'KINALIADA';
+        if (normalizedValue.includes('BURGAZ')) return 'BURGAZADA';
+        if (normalizedValue.includes('HEYBELI')) return 'HEYBELIADA';
+        if (normalizedValue.includes('BUYUK')) return 'BUYUKADA';
+        return null;
     };
 
-    const filteredEvents = events.filter(e => matchIsland(e.island, selectedFilterIsland));
+    const getEventIslandId = (event: AppActivityDto): string | null => {
+        return normalizeIslandId(event.island)
+            ?? normalizeIslandId(event.eventPlace)
+            ?? normalizeIslandId(event.name);
+    };
+
+    const filteredEvents = selectedFilterIsland === 'ALL'
+        ? events
+        : events.filter(event => getEventIslandId(event) === selectedFilterIsland);
     
     // removed isValidPhone
     
@@ -224,19 +248,17 @@ export default function EventsScreen() {
     };
 
     const getIslandName = (event: AppActivityDto) => {
-        if (event.island) {
-            const id = event.island.toUpperCase();
-            const rawName = id === 'BUYUKADA' ? 'Büyükada' : id === 'HEYBELIADA' ? 'Heybeliada' : id === 'BURGAZADA' ? 'Burgazada' : id === 'KINALIADA' ? 'Kınalıada' : event.island;
-            return t('places.' + rawName, { defaultValue: rawName });
-        }
-        
-        const searchText = `${event.eventPlace || ''} ${event.name || ''}`.toLowerCase();
-        if (searchText.includes('kınalı') || searchText.includes('kinal') || searchText.includes('kınal')) return t('places.Kınalıada');
-        if (searchText.includes('burgaz')) return t('places.Burgazada');
-        if (searchText.includes('heybeli')) return t('places.Heybeliada');
-        if (searchText.includes('büyük') || searchText.includes('buyuk')) return t('places.Büyükada');
-        
-        return '';
+        const islandId = getEventIslandId(event);
+        const rawName = islandId === 'BUYUKADA'
+            ? 'Büyükada'
+            : islandId === 'HEYBELIADA'
+                ? 'Heybeliada'
+                : islandId === 'BURGAZADA'
+                    ? 'Burgazada'
+                    : islandId === 'KINALIADA'
+                        ? 'Kınalıada'
+                        : '';
+        return rawName ? t('places.' + rawName, { defaultValue: rawName }) : '';
     };
 
     const formatCardDate = (startStr?: string, endStr?: string, hideTime?: boolean) => {
@@ -716,7 +738,9 @@ export default function EventsScreen() {
 
                         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>{t('events.startDate')}</Text>
+                                <Text style={[styles.inputLabel, { fontSize: 11 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} allowFontScaling={false}>
+                                    {i18n.language.startsWith('en') ? 'START DATE' : 'BAŞLANGIÇ TARİHİ'}
+                                </Text>
                                 <TouchableOpacity 
                                     style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]} 
                                     onPress={() => setShowStartPicker(true)}
@@ -728,8 +752,8 @@ export default function EventsScreen() {
                                 </TouchableOpacity>
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>
-                                    {t('events.endDate')} ({i18n.language.startsWith('en') ? 'Optional' : 'Opsiyonel'})
+                                <Text style={[styles.inputLabel, { fontSize: 11 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} allowFontScaling={false}>
+                                    {i18n.language.startsWith('en') ? 'END DATE' : 'BİTİŞ TARİHİ'}
                                 </Text>
                                 <TouchableOpacity
                                     style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]}
@@ -738,17 +762,22 @@ export default function EventsScreen() {
                                     <Text style={[styles.dateSelectorText, isDark && { color: '#FFFFFF' }, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
                                         {hasEndDate
                                             ? `${endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                                            : (i18n.language.startsWith('en') ? 'Add end date' : 'Bitiş tarihi ekle')}
+                                            : (i18n.language.startsWith('en') ? 'Add end date (Optional)' : 'Bitiş tarihi ekle (Opsiyonel)')}
                                     </Text>
-                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                    {hasEndDate ? (
+                                        <TouchableOpacity
+                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                            onPress={(event) => {
+                                                event.stopPropagation();
+                                                setHasEndDate(false);
+                                            }}
+                                        >
+                                            <IconSymbol name="xmark" size={14} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                    )}
                                 </TouchableOpacity>
-                                {hasEndDate && (
-                                    <TouchableOpacity onPress={() => setHasEndDate(false)} style={{ alignSelf: 'flex-end', paddingTop: 5, paddingVertical: 2 }}>
-                                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#EF4444' }}>
-                                            {i18n.language.startsWith('en') ? 'Remove' : 'Kaldır'}
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
                             </View>
                         </View>
 
