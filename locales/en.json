@@ -39,7 +39,7 @@
         "tabRequests": "Requests",
         "tabContact": "Contact",
         "tabProfile": "Profile",
-        "adaAI": "Tour Guide",
+        "adaAI": "ADA+",
         "yourSmartGuide": "Discover the island like a local with your smart travel assistant",
         "guidedTours": "Your personal island AI companion",
         "agoraForum": "Community",
@@ -207,7 +207,9 @@
         "sendFailed": "Could not send code. Please try again.",
         "verify": "Verify",
         "verifyFailed": "Verification failed. Please try again.",
-        "changeNumber": "Change number"
+        "changeNumber": "Change number",
+        "incorrectCode": "Incorrect or expired code. Please try again.",
+        "phoneAlreadyLinked": "This phone number is already linked to another account."
     },
     "emailVerify": {
         "title": "Email Verification",
@@ -325,6 +327,13 @@
         "listingQuota": "Monthly Listing Publishing Quota",
         "eventQuota": "Event Creation Quota",
         "remainingQuota": "Remaining Quota: {{count}}",
+        "myBadges": "My Badges",
+        "badges": {
+            "islander": "Islander",
+            "community": "Companion",
+            "seller": "Island Merchant",
+            "ambassador": "Island Ambassador"
+        },
         "deleteAccountTitle": "Delete Account",
         "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
         "tabs": {
@@ -401,14 +410,14 @@
         "addPhoto": "Add Photo"
     },
     "guide": {
-        "title": "Welcome to Ada AI Guide",
+        "title": "Welcome to ADA+ Guide",
         "authSubtitle": "You need to log in to access your personal guide and save your questions.",
         "islandContext": "I'm on {{island}}.",
         "errorRetry": "Something went wrong, please try again.",
         "errorGeneric": "Something went wrong.",
         "dailyLimitReached": "You've reached your 10 message daily limit. See you tomorrow! 🌊",
         "welcomeMessage": "Hello! 👋 I'm your Ada Plus assistant. To give you the most accurate information, which island would you like to get information about?",
-        "placeholder": "Ask Ada AI...",
+        "placeholder": "Ask ADA+...",
         "chip": {
             "sightseeing": "📍 Sightseeing",
             "cafes": "☕ Cafes",
@@ -460,9 +469,9 @@
         "quickAccess": "For You",
         "events": "Events",
         "eventsCount": "{{count}} events",
-        "adaAi": "ADA AI",
+        "adaAi": "ADA+",
         "yourGuide": "Your Guide",
-        "adaAiModalTitle": "ADA AI • COMING SOON",
+        "adaAiModalTitle": "ADA+ • COMING SOON",
         "adaAiModalDesc": "Our work with the Islands Municipality and the Museum of the Princes' Islands is ongoing to build a genuine artificial intelligence for the Islands.",
         "yourSmartGuide": "Coming Soon - In collaboration with the Islands Municipality and Museum...",
         "listings": "Listings",

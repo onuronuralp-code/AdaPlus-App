@@ -180,7 +180,9 @@ export const createPost = async (
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(forumErrorMessage(body, response.status));
+    const err = new Error(forumErrorMessage(body, response.status)) as Error & { code?: string };
+    err.code = body.message;
+    throw err;
   }
   return response.json();
 };

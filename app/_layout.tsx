@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, Dimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import "../utils/configureTextScaling";
 import type * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { fetchAppVersion, requiresUpdate } from "@/services/appVersionApi";
@@ -60,17 +61,22 @@ const APP_STORE_URL =
   "https://apps.apple.com/tr/app/ada-plus/id6743840993";
 
 const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
-  const padding = 8;
-  const width = (typeof size.x === 'number' ? size.x : (size.x._value || 0)) + padding * 2;
-  const height = (typeof size.y === 'number' ? size.y : (size.y._value || 0)) + padding * 2;
-  const x = (typeof position.x === 'number' ? position.x : (position.x._value || 0)) - padding;
-  const y = (typeof position.y === 'number' ? position.y : (position.y._value || 0)) - padding;
+  const padding = 4;
+  const rawW = typeof size.x === 'number' ? size.x : (size.x?._value || 0);
+  const rawH = typeof size.y === 'number' ? size.y : (size.y?._value || 0);
+  const rawX = typeof position.x === 'number' ? position.x : (position.x?._value || 0);
+  const rawY = typeof position.y === 'number' ? position.y : (position.y?._value || 0);
+
+  const width = rawW + padding * 2;
+  const height = rawH + padding * 2;
+  const x = rawX - padding;
+  const y = rawY - padding;
 
   // Make the outer canvas bounds much larger than screen to hide the stroke on the edges
   const outer = `M-20,-20 H${(canvasSize.x || 0) + 40} V${(canvasSize.y || 0) + 40} H-20 V-20 Z`;
 
-  // Subtle hand-drawn rounded rectangle
-  const r = 20;
+  // Adaptive rounded rectangle corner radius matching target element dimensions
+  const r = Math.min(16, Math.max(6, Math.min(width, height) / 3.8));
   const x1 = x;
   const x2 = x + width;
   const y1 = y;
@@ -94,9 +100,24 @@ const handDrawnSvgMaskPath = ({ size, position, canvasSize, step }: any) => {
 
 
 const CustomTooltip = () => {
-  const { currentStep, goToNext, goToPrev, stop, isFirstStep, isLastStep } = useCopilot();
+  const { currentStep, currentStepNumber, goToNth, stop, isFirstStep, isLastStep } = useCopilot();
   const { i18n } = useTranslation();
   const isEn = i18n.language?.startsWith('en');
+  const isChangingStep = useRef(false);
+
+  const changeStep = async (direction: 'next' | 'previous') => {
+    if (isChangingStep.current) return;
+    isChangingStep.current = true;
+
+    const targetStep = direction === 'next'
+      ? currentStepNumber + 1
+      : currentStepNumber - 1;
+
+    await goToNth(targetStep);
+    setTimeout(() => {
+      isChangingStep.current = false;
+    }, 350);
+  };
 
   return (
     <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 24 }}>
@@ -107,7 +128,7 @@ const CustomTooltip = () => {
       <View style={{ flexDirection: 'row', gap: 12 }}>
         {!isFirstStep && (
           <TouchableOpacity
-            onPress={() => goToPrev()}
+            onPress={() => changeStep('previous')}
             style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}
           >
             <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
@@ -116,7 +137,7 @@ const CustomTooltip = () => {
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          onPress={() => isLastStep ? stop() : goToNext()}
+          onPress={() => isLastStep ? stop() : changeStep('next')}
           style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#FFFFFF' }}
         >
           <Text style={{ color: '#0F172A', fontSize: 16, fontWeight: '700' }}>

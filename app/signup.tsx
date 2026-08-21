@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, BackHandler, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, BackHandler, Modal, Pressable } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCallback } from 'react';
@@ -9,7 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { authApi } from '@/services/authApi';
 import { useTranslation } from 'react-i18next';
 import { KVKKModal } from '@/components/KVKKModal';
-import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
+import { s, vs, ms, SCREEN_HEIGHT } from '@/utils/scale';
 
 const ISLANDS = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Adalı değilim'];
 
@@ -214,17 +215,19 @@ export default function SignUpScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false} keyboardShouldPersistTaps="handled" bounces={false}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
                 <View style={styles.container}>
                     <View style={styles.headerBackground}>
-                        <Image
+                        <ExpoImage
                             source={require('@/assets/images/sunset.jpg')}
-                            style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
-                            resizeMode="cover"
+                            style={StyleSheet.absoluteFillObject}
+                            contentFit="cover"
+                            contentPosition="center"
+                            priority="high"
                         />
                         <LinearGradient 
                             colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                            style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
+                            style={StyleSheet.absoluteFillObject}
                         />
                         {!inviteToken && (
                             <TouchableOpacity
@@ -372,10 +375,10 @@ export default function SignUpScreen() {
                             {/* Şifre */}
                             <View style={styles.inputGroup}>
                                 <Text style={styles.inputLabel}>{t('auth.passwordLabel')}</Text>
-                                <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                                <View style={[styles.inputWrapper, { paddingVertical: vs(10.5), minHeight: vs(44) }, errors.password ? styles.inputWrapperError : null]}>
                                     <IconSymbol name="lock.fill" size={18} color={errors.password ? '#EF4444' : '#94A3B8'} />
                                     <TextInput
-                                        style={[styles.input, { flex: 1 }]}
+                                        style={[styles.input, { flex: 1, paddingVertical: 0 }]}
                                         placeholder={(errors.password && focusedField !== 'password') ? errors.password : t('auth.passwordPlaceholder')}
                                         placeholderTextColor={(errors.password && focusedField !== 'password') ? "#EF4444" : "#94A3B8"}
                                         secureTextEntry={!showPassword}
@@ -387,7 +390,7 @@ export default function SignUpScreen() {
                                             handlePasswordBlur();
                                         }}
                                     />
-                                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: s(2) }}>
                                         <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={18} color="#94A3B8" />
                                     </TouchableOpacity>
                                 </View>
@@ -468,10 +471,21 @@ export default function SignUpScreen() {
 
             {/* DatePicker Modal for iOS, or inline for Android */}
             {Platform.OS === 'ios' ? (
-                <Modal visible={showDatePicker} transparent animationType="fade">
-                    <TouchableOpacity style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
-                        <View style={{ backgroundColor: 'white', padding: 16 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 }}>
+                <Modal
+                    visible={showDatePicker}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowDatePicker(false)}
+                >
+                    <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <Pressable
+                            style={StyleSheet.absoluteFillObject}
+                            onPress={() => setShowDatePicker(false)}
+                            accessibilityRole="button"
+                            accessibilityLabel="Tarih seçiciyi kapat"
+                        />
+                        <View style={{ backgroundColor: 'white', padding: 16, alignItems: 'center', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8, width: '100%' }}>
                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                                     <Text style={{ color: '#3B82F6', fontWeight: 'bold', fontSize: 16 }}>Tamam</Text>
                                 </TouchableOpacity>
@@ -480,13 +494,17 @@ export default function SignUpScreen() {
                                 value={birthDate || new Date(2008, 0, 1)}
                                 mode="date"
                                 display="spinner"
+                                style={{ height: 200, width: '100%' }}
+                                themeVariant="light"
+                                textColor="#0F172A"
+                                locale="tr-TR"
                                 maximumDate={new Date(2011, 11, 31)}
                                 onChange={(event, date) => {
                                     if (date) setBirthDate(date);
                                 }}
                             />
                         </View>
-                    </TouchableOpacity>
+                    </View>
                 </Modal>
             ) : (
                 showDatePicker && (
@@ -663,7 +681,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
         borderRadius: s(12),
         paddingHorizontal: s(16),
-        paddingVertical: vs(10),
+        paddingVertical: vs(12.5),
+        minHeight: vs(48),
         borderWidth: 1,
         borderColor: '#E2E8F0',
     },

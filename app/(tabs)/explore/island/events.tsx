@@ -33,6 +33,8 @@ export default function EventsScreen() {
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [isGridView, setIsGridView] = useState(true);
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
+    const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -73,8 +75,10 @@ export default function EventsScreen() {
             getActivity(id).then(act => {
                 if (act) {
                     setNewEventName(act.name);
-                    setStartDate(new Date(act.startDate));
-                    if (act.endDate) setEndDate(new Date(act.endDate));
+                    const activityStartDate = new Date(act.startDate);
+                    setStartDate(activityStartDate);
+                    setHasEndDate(Boolean(act.endDate));
+                    setEndDate(act.endDate ? new Date(act.endDate) : new Date(activityStartDate.getTime() + 60 * 60 * 1000));
                     if (act.eventPlace) setNewEventLocation(act.eventPlace);
                     setNewEventDetails(act.description);
                     setOrganizerName(act.organizerName);
@@ -102,7 +106,8 @@ export default function EventsScreen() {
     // Form States
     const [newEventName, setNewEventName] = useState('');
     const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(() => new Date(Date.now() + 60 * 60 * 1000));
+    const [hasEndDate, setHasEndDate] = useState(false);
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
     const [newEventLocation, setNewEventLocation] = useState('');
@@ -123,20 +128,44 @@ export default function EventsScreen() {
         { id: 'BUYUKADA', label: 'Büyükada' },
     ];
 
-    const matchIsland = (itemIsland?: string | null, targetFilter?: string) => {
-        if (!targetFilter || targetFilter === 'ALL') return true;
-        if (!itemIsland) return false;
-        const upperItem = String(itemIsland).toUpperCase();
-        const upperTarget = targetFilter.toUpperCase();
-        if (upperItem === upperTarget) return true;
-        if (upperTarget === 'KINALIADA' && (upperItem.includes('KIN') || upperItem.includes('KINA'))) return true;
-        if (upperTarget === 'BURGAZADA' && upperItem.includes('BURG')) return true;
-        if (upperTarget === 'HEYBELIADA' && upperItem.includes('HEYB')) return true;
-        if (upperTarget === 'BUYUKADA' && (upperItem.includes('BUY') || upperItem.includes('BÜY'))) return true;
-        return false;
+    const normalizeIslandId = (value?: unknown): string | null => {
+        if (value === null || value === undefined) return null;
+
+        const numericIslandMap: Record<string, string> = {
+            '0': 'BUYUKADA',
+            '1': 'HEYBELIADA',
+            '2': 'BURGAZADA',
+            '3': 'KINALIADA',
+        };
+        const rawValue = typeof value === 'object'
+            ? String((value as any).id ?? (value as any).name ?? (value as any).value ?? '')
+            : String(value);
+        const trimmedValue = rawValue.trim();
+        if (numericIslandMap[trimmedValue]) return numericIslandMap[trimmedValue];
+
+        const normalizedValue = trimmedValue
+            .toLocaleUpperCase('tr-TR')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/İ/g, 'I')
+            .replace(/[^A-Z0-9]/g, '');
+
+        if (normalizedValue.includes('KINALI')) return 'KINALIADA';
+        if (normalizedValue.includes('BURGAZ')) return 'BURGAZADA';
+        if (normalizedValue.includes('HEYBELI')) return 'HEYBELIADA';
+        if (normalizedValue.includes('BUYUK')) return 'BUYUKADA';
+        return null;
     };
 
-    const filteredEvents = events.filter(e => matchIsland(e.island, selectedFilterIsland));
+    const getEventIslandId = (event: AppActivityDto): string | null => {
+        return normalizeIslandId(event.island)
+            ?? normalizeIslandId(event.eventPlace)
+            ?? normalizeIslandId(event.name);
+    };
+
+    const filteredEvents = selectedFilterIsland === 'ALL'
+        ? events
+        : events.filter(event => getEventIslandId(event) === selectedFilterIsland);
     
     // removed isValidPhone
     
@@ -219,19 +248,17 @@ export default function EventsScreen() {
     };
 
     const getIslandName = (event: AppActivityDto) => {
-        if (event.island) {
-            const id = event.island.toUpperCase();
-            const rawName = id === 'BUYUKADA' ? 'Büyükada' : id === 'HEYBELIADA' ? 'Heybeliada' : id === 'BURGAZADA' ? 'Burgazada' : id === 'KINALIADA' ? 'Kınalıada' : event.island;
-            return t('places.' + rawName, { defaultValue: rawName });
-        }
-        
-        const searchText = `${event.eventPlace || ''} ${event.name || ''}`.toLowerCase();
-        if (searchText.includes('kınalı') || searchText.includes('kinal') || searchText.includes('kınal')) return t('places.Kınalıada');
-        if (searchText.includes('burgaz')) return t('places.Burgazada');
-        if (searchText.includes('heybeli')) return t('places.Heybeliada');
-        if (searchText.includes('büyük') || searchText.includes('buyuk')) return t('places.Büyükada');
-        
-        return '';
+        const islandId = getEventIslandId(event);
+        const rawName = islandId === 'BUYUKADA'
+            ? 'Büyükada'
+            : islandId === 'HEYBELIADA'
+                ? 'Heybeliada'
+                : islandId === 'BURGAZADA'
+                    ? 'Burgazada'
+                    : islandId === 'KINALIADA'
+                        ? 'Kınalıada'
+                        : '';
+        return rawName ? t('places.' + rawName, { defaultValue: rawName }) : '';
     };
 
     const formatCardDate = (startStr?: string, endStr?: string, hideTime?: boolean) => {
@@ -370,6 +397,7 @@ export default function EventsScreen() {
             name: newEventName.trim(),
             description: newEventDetails.trim(),
             startDate: startDate.toISOString(),
+            ...(hasEndDate ? { endDate: endDate.toISOString() } : {}),
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
             eventPlace: newEventLocation.trim() || undefined,
@@ -388,7 +416,8 @@ export default function EventsScreen() {
         setEditingActivityId(null);
         setNewEventName('');
         setStartDate(new Date());
-        setEndDate(new Date());
+        setEndDate(new Date(Date.now() + 60 * 60 * 1000));
+        setHasEndDate(false);
         setNewEventLocation('');
         setNewEventDetails('');
         setOrganizerName('');
@@ -505,18 +534,36 @@ export default function EventsScreen() {
                                 onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
                             >
                                 {hasUserImage ? (
-                                    <View style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}>
+                                    <TouchableOpacity
+                                        activeOpacity={0.9}
+                                        onPress={(e) => {
+                                            e.stopPropagation?.();
+                                            setViewerImageUrl(resolvedUrl);
+                                            setImageViewerVisible(true);
+                                        }}
+                                        style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
+                                    >
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
                                             resizeMode="cover"
                                         />
-                                    </View>
+                                    </TouchableOpacity>
                                 ) : (
-                                    <Image
-                                        source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                        style={[styles.eventImage, isGridView && { height: 140 }]}
-                                    />
+                                    <TouchableOpacity
+                                        activeOpacity={0.9}
+                                        onPress={(e) => {
+                                            e.stopPropagation?.();
+                                            setViewerImageUrl('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80');
+                                            setImageViewerVisible(true);
+                                        }}
+                                        style={{ width: '100%', height: isGridView ? 140 : 300 }}
+                                    >
+                                        <Image
+                                            source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
+                                            style={[styles.eventImage, isGridView && { height: 140 }]}
+                                        />
+                                    </TouchableOpacity>
                                 )}
                                 
                                 {/* Katılımcı Sayısı - Izgara Görünümünde Fotoğraf Üstünde */}
@@ -691,7 +738,9 @@ export default function EventsScreen() {
 
                         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]} numberOfLines={1} adjustsFontSizeToFit>{t('events.startDate')}</Text>
+                                <Text style={[styles.inputLabel, { fontSize: 11 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} allowFontScaling={false}>
+                                    {i18n.language.startsWith('en') ? 'START DATE' : 'BAŞLANGIÇ TARİHİ'}
+                                </Text>
                                 <TouchableOpacity 
                                     style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]} 
                                     onPress={() => setShowStartPicker(true)}
@@ -702,6 +751,34 @@ export default function EventsScreen() {
                                     <IconSymbol name="calendar" size={14} color="#3B82F6" />
                                 </TouchableOpacity>
                             </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.inputLabel, { fontSize: 11 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} allowFontScaling={false}>
+                                    {i18n.language.startsWith('en') ? 'END DATE' : 'BİTİŞ TARİHİ'}
+                                </Text>
+                                <TouchableOpacity
+                                    style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]}
+                                    onPress={() => setShowEndPicker(true)}
+                                >
+                                    <Text style={[styles.dateSelectorText, isDark && { color: '#FFFFFF' }, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
+                                        {hasEndDate
+                                            ? `${endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                            : (i18n.language.startsWith('en') ? 'Add end date (Optional)' : 'Bitiş tarihi ekle (Opsiyonel)')}
+                                    </Text>
+                                    {hasEndDate ? (
+                                        <TouchableOpacity
+                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                            onPress={(event) => {
+                                                event.stopPropagation();
+                                                setHasEndDate(false);
+                                            }}
+                                        >
+                                            <IconSymbol name="xmark" size={14} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <IconSymbol name="calendar" size={14} color="#3B82F6" />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <CustomDateTimePicker
@@ -710,8 +787,22 @@ export default function EventsScreen() {
                             title="Başlangıç Tarihi ve Saati"
                             accentColor="#3B82F6"
                             minimumDate={new Date()}
-                            onConfirm={(date) => { setStartDate(date); setShowStartPicker(false); }}
+                            onConfirm={(date) => {
+                                setStartDate(date);
+                                if (endDate <= date) setEndDate(new Date(date.getTime() + 60 * 60 * 1000));
+                                setShowStartPicker(false);
+                            }}
                             onCancel={() => setShowStartPicker(false)}
+                        />
+
+                        <CustomDateTimePicker
+                            visible={showEndPicker}
+                            value={endDate}
+                            title={i18n.language.startsWith('en') ? 'End Date and Time' : 'Bitiş Tarihi ve Saati'}
+                            accentColor="#3B82F6"
+                            minimumDate={startDate}
+                            onConfirm={(date) => { setEndDate(date); setHasEndDate(true); setShowEndPicker(false); }}
+                            onCancel={() => setShowEndPicker(false)}
                         />
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventLocation')}</Text>
@@ -816,6 +907,43 @@ export default function EventsScreen() {
                 title={t('common.success', { defaultValue: 'Başarılı' })}
                 message={successModalMessage}
             />
+
+            {/* Fullscreen Image Viewer Modal */}
+            <Modal
+                visible={imageViewerVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setImageViewerVisible(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* Close button */}
+                    <TouchableOpacity
+                        style={{
+                            position: 'absolute',
+                            top: insets.top + 16,
+                            right: 20,
+                            zIndex: 20,
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        onPress={() => setImageViewerVisible(false)}
+                    >
+                        <IconSymbol name="xmark" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+
+                    {viewerImageUrl && (
+                        <Image
+                            source={{ uri: viewerImageUrl }}
+                            style={{ width: Dimensions.get('window').width, height: Dimensions.get('window').height }}
+                            resizeMode="contain"
+                        />
+                    )}
+                </View>
+            </Modal>
         </View>
         </SwipeNavigation>
     );

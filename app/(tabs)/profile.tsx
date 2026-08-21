@@ -1,5 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Share, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, Animated } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { s, vs, ms } from '@/utils/scale';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
@@ -10,7 +12,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/EmptyState';
-import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto, deletePost, updatePost, UpdatePostRequest, voteOnPoll } from '@/services/forumApi';
+import { fetchUserPosts, fetchUserReplies, fetchUserLikes, PostDto, deletePost, updatePost, UpdatePostRequest, voteOnPoll, PostType, UserType, Island } from '@/services/forumApi';
 import { fetchMyListings, ListingDto, deleteListing } from '@/services/listingApi';
 import { fetchMyActivities, AppActivityDto, deleteActivity } from '@/services/api';
 import { fetchNotifications, markNotificationRead, NotificationDto, NotificationType } from '@/services/notificationApi';
@@ -25,7 +27,6 @@ import { authApi } from '@/services/authApi';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import { CelebrationModal } from '@/components/CelebrationModal';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
-
 
 type ProfileTab = 'posts' | 'listings' | 'events' | 'likes' | 'notifications';
 
@@ -51,25 +52,27 @@ export default function ProfileScreen() {
     const [notifications, setNotifications] = useState<NotificationDto[]>([]);
     const [listings, setListings] = useState<ListingDto[]>([]);
     const [activities, setActivities] = useState<AppActivityDto[]>([]);
-    const [loadingPosts, setLoadingPosts] = useState(true);
+    const [loadingPosts, setLoadingPosts] = useState(false);
     const [loadingReplies, setLoadingReplies] = useState(true);
     const [loadingLikes, setLoadingLikes] = useState(true);
     const [loadingNotifications, setLoadingNotifications] = useState(true);
     const [loadingListings, setLoadingListings] = useState(true);
     const [loadingActivities, setLoadingActivities] = useState(true);
-    const [fetchError, setFetchError] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [fetchError, setFetchError] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showQuotaModal, setShowQuotaModal] = useState(false);
     const [showInviteQuotaModal, setShowInviteQuotaModal] = useState(false);
-    const [showCelebration, setShowCelebration] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
-
     const [inviteEmailError, setInviteEmailError] = useState('');
+    const [isSendingInvite, setIsSendingInvite] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
+    const [editingPost, setEditingPost] = useState<PostDto | null>(null);
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
     const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [isBadgesExpanded, setIsBadgesExpanded] = useState(true);
 
     // Check for 3 invites milestone
     useEffect(() => {
@@ -97,7 +100,7 @@ export default function ProfileScreen() {
             .finally(() => setLoadingNotifications(false));
 
         fetchUserPosts(user.id)
-            .then(data => setPosts(data))
+            .then(data => setPosts(data || []))
             .catch(() => { setPosts([]); setFetchError(true); })
             .finally(() => setLoadingPosts(false));
 
@@ -117,7 +120,7 @@ export default function ProfileScreen() {
             .finally(() => setLoadingListings(false));
 
         fetchMyActivities()
-            .then(data => setActivities(data))
+            .then(data => setActivities(Array.isArray(data) ? data.filter(activity => activity?.id) : []))
             .catch(() => { setActivities([]); setFetchError(true); })
             .finally(() => setLoadingActivities(false));
     }, [user?.id]);
@@ -126,12 +129,12 @@ export default function ProfileScreen() {
 
     const handleOpenInviteModal = () => {
         const invitedCount = (user as any)?.invitedUsersCount || 0;
-        if (invitedCount >= 3) {
+        if (invitedCount >= 5) {
             Alert.alert(
                 i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
                 i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                    ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
+                    : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
             );
             return;
         }
@@ -140,12 +143,12 @@ export default function ProfileScreen() {
 
     const handleSendInvite = async () => {
         const invitedCount = (user as any)?.invitedUsersCount || 0;
-        if (invitedCount >= 3) {
+        if (invitedCount >= 5) {
             Alert.alert(
                 i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
                 i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
-                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                    ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
+                    : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
             );
             return;
         }
@@ -824,6 +827,36 @@ export default function ProfileScreen() {
     startOfThisMonth.setDate(1);
     startOfThisMonth.setHours(0, 0, 0, 0);
     const listingsThisMonth = listings.filter(l => new Date(l.createdAt) >= startOfThisMonth).length;
+    const profileBadges = [
+        {
+            key: 'islander',
+            title: t('profile.badges.islander'),
+            badgeIcon: 'shield-star',
+            color: '#F59E0B',
+            earned: true,
+        },
+        {
+            key: 'community',
+            title: t('profile.badges.community'),
+            badgeIcon: 'forum',
+            color: '#6366F1',
+            earned: true,
+        },
+        {
+            key: 'seller',
+            title: t('profile.badges.seller'),
+            badgeIcon: 'treasure-chest',
+            color: '#10B981',
+            earned: true,
+        },
+        {
+            key: 'ambassador',
+            title: t('profile.badges.ambassador'),
+            badgeIcon: 'email-seal',
+            color: '#8B5CF6',
+            earned: true,
+        },
+    ];
 
     return (
         <SwipeNavigation leftRoute="/(tabs)/contact">
@@ -831,20 +864,61 @@ export default function ProfileScreen() {
             {!isLoggedIn ? (
                 <View style={{ flex: 1 }}>
                     <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                        <Text style={styles.headerTitle}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
+                        <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.tabProfile', { defaultValue: 'Profil' })}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                            <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 10, padding: 4 }}>
+                            <View style={{ 
+                                flexDirection: 'row', 
+                                backgroundColor: isDark ? '#1E293B' : '#F1F5F9', 
+                                borderRadius: 10, 
+                                padding: 4,
+                                borderWidth: isDark ? 1 : 0,
+                                borderColor: '#334155',
+                            }}>
                                 <TouchableOpacity
-                                    style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('tr') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('tr') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                    style={{ 
+                                        paddingHorizontal: 16, 
+                                        paddingVertical: 8, 
+                                        borderRadius: 8, 
+                                        backgroundColor: i18n.language.startsWith('tr') 
+                                            ? (isDark ? '#334155' : '#FFFFFF') 
+                                            : 'transparent', 
+                                        shadowColor: i18n.language.startsWith('tr') && !isDark ? '#000' : 'transparent', 
+                                        shadowOffset: { width: 0, height: 1 }, 
+                                        shadowOpacity: 0.1, 
+                                        shadowRadius: 1 
+                                    }}
                                     onPress={() => i18n.changeLanguage('tr')}
                                 >
-                                    <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('tr') ? '#0F172A' : '#64748B' }}>TR</Text>
+                                    <Text style={{ 
+                                        fontSize: 15, 
+                                        fontWeight: '700', 
+                                        color: i18n.language.startsWith('tr') 
+                                            ? (isDark ? '#FFFFFF' : '#0F172A') 
+                                            : (isDark ? '#94A3B8' : '#64748B') 
+                                    }}>TR</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: i18n.language.startsWith('en') ? '#FFFFFF' : 'transparent', shadowColor: i18n.language.startsWith('en') ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 }}
+                                    style={{ 
+                                        paddingHorizontal: 16, 
+                                        paddingVertical: 8, 
+                                        borderRadius: 8, 
+                                        backgroundColor: i18n.language.startsWith('en') 
+                                            ? (isDark ? '#334155' : '#FFFFFF') 
+                                            : 'transparent', 
+                                        shadowColor: i18n.language.startsWith('en') && !isDark ? '#000' : 'transparent', 
+                                        shadowOffset: { width: 0, height: 1 }, 
+                                        shadowOpacity: 0.1, 
+                                        shadowRadius: 1 
+                                    }}
                                     onPress={() => i18n.changeLanguage('en')}
                                 >
-                                    <Text style={{ fontSize: 15, fontWeight: '700', color: i18n.language.startsWith('en') ? '#0F172A' : '#64748B' }}>EN</Text>
+                                    <Text style={{ 
+                                        fontSize: 15, 
+                                        fontWeight: '700', 
+                                        color: i18n.language.startsWith('en') 
+                                            ? (isDark ? '#FFFFFF' : '#0F172A') 
+                                            : (isDark ? '#94A3B8' : '#64748B') 
+                                    }}>EN</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -963,19 +1037,19 @@ export default function ProfileScreen() {
                                             </Text>
                                         </View>
                                         <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#C084FC' : '#5B21B6' }}>
-                                            {(user as any)?.invitedUsersCount || 0} / 3
+                                            {(user as any)?.invitedUsersCount || 0} / 5
                                         </Text>
                                     </View>
                                     <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderRadius: 3, overflow: 'hidden' }}>
                                         <View style={{ 
-                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 3) * 100, 100)}%`, 
+                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
                                             height: '100%', 
                                             backgroundColor: isDark ? '#C084FC' : '#5B21B6', 
                                             borderRadius: 3 
                                         }} />
                                     </View>
                                     <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
-                                        {i18n.language.startsWith('en') ? `Remaining Quota: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}` : `Kalan Hakkın: ${Math.max(0, 3 - ((user as any)?.invitedUsersCount || 0))}`}
+                                        {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
                                     </Text>
                                 </View>
                         </View>
@@ -1171,6 +1245,18 @@ const styles = StyleSheet.create({
     avatarText: { fontSize: ms(28), fontWeight: 'bold', color: '#fff' },
     roleBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: s(12), paddingVertical: vs(4), borderRadius: s(8) },
     roleText: { fontSize: ms(11.5), fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
+    badgesCard: { width: '100%', marginTop: vs(10), padding: s(12), borderRadius: s(14), backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0' },
+    badgesCardDark: { backgroundColor: '#121212', borderColor: '#2C2C2E' },
+    badgesHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(9) },
+    badgesTitle: { fontSize: ms(13), fontWeight: '800', color: '#0F172A' },
+    badgesCount: { fontSize: ms(11), fontWeight: '800', color: '#8B5CF6', backgroundColor: '#EDE9FE', paddingHorizontal: s(8), paddingVertical: vs(3), borderRadius: s(10) },
+    badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: s(8) },
+    profileBadge: { width: '48%', minHeight: vs(46), flexDirection: 'row', alignItems: 'center', gap: s(7), padding: s(8), borderRadius: s(11), backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0' },
+    profileBadgeDark: { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
+    profileBadgeLocked: { opacity: 0.58 },
+    profileBadgeIcon: { width: s(30), height: s(30), borderRadius: s(15), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    badgeRosetteContainer: { width: s(30), height: s(30), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    profileBadgeText: { flex: 1, fontSize: ms(10.5), lineHeight: ms(13), fontWeight: '700', color: '#334155' },
     loginButton: { marginTop: vs(16), backgroundColor: '#10B981', paddingHorizontal: s(20), paddingVertical: vs(10), borderRadius: s(10) },
     loginButtonText: { color: '#fff', fontSize: ms(15), fontWeight: '700' },
 

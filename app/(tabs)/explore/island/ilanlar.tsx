@@ -693,23 +693,33 @@ export default function IlanlarScreen() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.category')}</Text>
-              <View style={styles.adCategoryRow}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                 {adCategories.map(cat => (
                   <TouchableOpacity 
                     key={cat.id} 
                     style={[
                       styles.adCatItem, 
                       isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, 
+                      { justifyContent: 'center', paddingHorizontal: 10, paddingVertical: 8 },
                       adCat === cat.id && { backgroundColor: '#3B82F6', borderColor: '#3B82F6' }
                     ]}
                     onPress={() => setAdCat(cat.id as IlanCategory)}
                   >
                     <MaterialCommunityIcons 
                       name={cat.icon as any} 
-                      size={20} 
+                      size={16} 
                       color={adCat === cat.id ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} 
                     />
-                    <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCat === cat.id && { color: '#FFFFFF', fontWeight: '700' }]}>
+                    <Text 
+                      style={[
+                        styles.adCatText, 
+                        { fontSize: 12 },
+                        isDark && { color: '#CBD5E1' }, 
+                        adCat === cat.id && { color: '#FFFFFF', fontWeight: '700' }
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
                       {t(`ilanlar.category.${cat.id}`)}
                     </Text>
                   </TouchableOpacity>

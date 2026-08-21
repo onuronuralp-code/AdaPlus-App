@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator, TouchableWithoutFeedback, Keyboard, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +10,7 @@ import { authApi } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ErrorModal from '@/components/ErrorModal';
-import { s, vs, ms, SCREEN_HEIGHT, SCREEN_WIDTH } from '@/utils/scale';
+import { s, vs, ms, SCREEN_HEIGHT } from '@/utils/scale';
 const isEmailPattern = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
 const isPhonePattern = (val: string) => /^\+?[0-9]{7,15}$/.test(val.trim().replace(/[\s\-()]/g, ''));
 
@@ -143,18 +144,20 @@ export default function LoginScreen() {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false} keyboardShouldPersistTaps="handled" bounces={false}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
             
             <View style={styles.headerBackground}>
-                <Image
-                    source={require('@/assets/images/begonvil_alt.png')}
-                    style={{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }}
-                    resizeMode="cover"
+                <ExpoImage
+                    source={require('@/assets/images/begonvil.jpeg')}
+                    style={StyleSheet.absoluteFillObject}
+                    contentFit="cover"
+                    contentPosition="center"
+                    priority="high"
                 />
                 <LinearGradient 
                     colors={['rgba(0, 0, 0, 0.1)', '#0f172a']} 
-                    style={[{ position: 'absolute', width: SCREEN_WIDTH, height: '100%' }]}
+                    style={StyleSheet.absoluteFillObject}
                 />
                 <TouchableOpacity 
                     style={[styles.backButton, { top: insets.top + vs(10) }]} 
@@ -212,10 +215,10 @@ export default function LoginScreen() {
                                     <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
                                 </TouchableOpacity>
                             </View>
-                            <View style={[styles.inputWrapper, errors.password ? styles.inputWrapperError : null]}>
+                            <View style={[styles.inputWrapper, { paddingVertical: vs(10.5), minHeight: vs(44) }, errors.password ? styles.inputWrapperError : null]}>
                                 <IconSymbol name="lock.fill" size={ms(18)} color={errors.password ? '#EF4444' : '#94A3B8'} /> 
                                 <TextInput 
-                                    style={[styles.input, { flex: 1 }]} 
+                                    style={[styles.input, { flex: 1, paddingVertical: 0 }]} 
                                     placeholder={(errors.password && focusedField !== 'password') ? errors.password : t('auth.passwordPlaceholder')}
                                     placeholderTextColor={(errors.password && focusedField !== 'password') ? "#EF4444" : "#94A3B8"}
                                     secureTextEntry={!showPassword}
@@ -227,7 +230,7 @@ export default function LoginScreen() {
                                         handlePasswordBlur();
                                     }}
                                 />
-                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: s(4) }}>
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: s(2) }}>
                                     <IconSymbol name={showPassword ? "eye.slash.fill" : "eye.fill"} size={ms(18)} color="#94A3B8" />
                                 </TouchableOpacity>
                             </View>
@@ -301,7 +304,7 @@ const styles = StyleSheet.create({
     formContainer: { flex: 1, paddingBottom: vs(20) },
     inputGroup: { marginBottom: vs(10) },
     inputLabel: { fontSize: ms(11), fontWeight: '800', color: '#415A77', marginBottom: vs(8), letterSpacing: 1 },
-    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: s(12), paddingHorizontal: s(16), paddingVertical: vs(14), borderWidth: 1, borderColor: '#E2E8F0' },
+    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: s(12), paddingHorizontal: s(16), paddingVertical: vs(12.5), minHeight: vs(48), borderWidth: 1, borderColor: '#E2E8F0' },
     input: { flex: 1, marginLeft: s(10), fontSize: ms(14), color: '#0D1B2A', fontWeight: '500' },
     forgotText: { fontSize: ms(11), fontWeight: '800', color: '#10B981', marginBottom: vs(8) },
     primaryButton: { backgroundColor: '#10B981', borderRadius: s(12), paddingVertical: vs(14), alignItems: 'center', justifyContent: 'center', marginTop: vs(10), shadowColor: '#10B981', shadowOffset: { width: 0, height: vs(8) }, shadowOpacity: 0.25, shadowRadius: s(15), elevation: 8 },

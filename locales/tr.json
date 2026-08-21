@@ -38,7 +38,7 @@
         "tabRequests": "İletişim",
         "tabContact": "İletişim",
         "tabProfile": "Profil",
-        "adaAI": "Tur Rehberi",
+        "adaAI": "ADA+",
         "events": "Etkinlikler",
         "islandEvents": "Adadaki etkinlikleri keşfedin",
         "yourSmartGuide": "Adalar için akıllı seyahat asistanın ile adayı bir yerli gibi keşfet",
@@ -207,7 +207,9 @@
         "sendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
         "verify": "Doğrula",
         "verifyFailed": "Doğrulama başarısız. Lütfen tekrar deneyin.",
-        "changeNumber": "Numarayı değiştir"
+        "changeNumber": "Numarayı değiştir",
+        "incorrectCode": "Kod hatalı veya süresi dolmuş. Lütfen tekrar deneyin.",
+        "phoneAlreadyLinked": "Bu telefon numarası başka bir hesaba bağlı."
     },
     "emailVerify": {
         "title": "E-posta Doğrulama",
@@ -325,6 +327,13 @@
         "listingQuota": "Aylık İlan Yayınlama Kotası",
         "eventQuota": "Etkinlik Oluşturma Kotası",
         "remainingQuota": "Kalan Hakkın: {{count}}",
+        "myBadges": "Rozetlerim",
+        "badges": {
+            "islander": "Adalı",
+            "community": "Yoldaş",
+            "seller": "Çerçi",
+            "ambassador": "Ada Elçisi"
+        },
         "tabs": {
             "posts": "Paylaşımlar",
             "replies": "Yanıtlar",
@@ -399,14 +408,14 @@
         "addPhoto": "Fotoğraf Ekle"
     },
     "guide": {
-        "title": "Ada AI Rehberine Hoş Geldin",
+        "title": "ADA+ Rehberine Hoş Geldin",
         "authSubtitle": "Kişisel rehberinize erişmek ve sorularınızı kaydetmek için giriş yapmanız gerekiyor.",
         "islandContext": "{{island}} hakkında bilgi vermek istiyorum.",
         "errorRetry": "Bir hata oluştu, tekrar dene.",
         "errorGeneric": "Bir hata oluştu.",
         "dailyLimitReached": "Günlük 10 mesaj limitine ulaştın. Yarın tekrar görüşürüz! 🌊",
         "welcomeMessage": "Merhaba! 👋 Ben Ada Plus asistanın. Sana en doğru bilgileri verebilmem için öncelikle hangi ada hakkında bilgi almak istersin?",
-        "placeholder": "Ada AI'a sor...",
+        "placeholder": "ADA+'a sor...",
         "chip": {
             "sightseeing": "📍 Gezilecek Yerler",
             "cafes": "☕ Kafeler",
@@ -458,9 +467,9 @@
         "quickAccess": "Senin İçin",
         "events": "Etkinlikler",
         "eventsCount": "{{count}} etkinlik",
-        "adaAi": "ADA AI",
+        "adaAi": "ADA+",
         "yourGuide": "Rehberin",
-        "adaAiModalTitle": "ADA AI • YAKINDA",
+        "adaAiModalTitle": "ADA+ • YAKINDA",
         "adaAiModalDesc": "Adalar'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.",
         "yourSmartGuide": "Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...",
         "listings": "İlanlar",

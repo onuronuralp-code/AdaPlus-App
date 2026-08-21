@@ -131,11 +131,11 @@ export default function IslandDetailScreen() {
                     <ActivityCard
                         icon="pawprint.fill"
                         color="#EC4899"
-                        title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI (Coming Soon)' : 'Ada AI (Yakında)' })}
+                        title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'ADA+ (Coming Soon)' : 'ADA+ (Yakında)' })}
                         subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon - In collaboration with the Islands Municipality and Museum...' : 'Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...' })}
                         onPress={() => {
                             Alert.alert(
-                                t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'Ada AI • Coming Soon' : 'Ada AI • Yakında' }),
+                                t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'ADA+ • Coming Soon' : 'ADA+ • Yakında' }),
                                 t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to develop our AI guide tailored for the Islands.' : 'Adalar\'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })
                             );
                         }}

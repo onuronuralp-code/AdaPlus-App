@@ -24,6 +24,8 @@ export default function ExploreLayout() {
             <Stack.Screen name="island/events" options={{ headerShown: false }} />
             <Stack.Screen name="island/event/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="island/hizmet-saglayici" options={{ headerShown: false }} />
+            <Stack.Screen name="island/paket-servis" options={{ headerShown: false }} />
+            <Stack.Screen name="island/menu/[id]" options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
         </Stack>
     );
 }
