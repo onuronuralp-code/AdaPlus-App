@@ -39,12 +39,15 @@ const MAPPING = {
   'building.columns.fill': 'museum', // Used for Mosque and other grand buildings
   'cup.and.saucer.fill': 'local-cafe',
   'leaf.fill': 'eco', // eco or park
+  'camera.fill': 'photo-camera',
+  'photo.fill': 'photo',
+  'list.bullet': 'view-list',
+  'square.grid.2x2.fill': 'grid-view',
   'tree.fill': 'park', // Tree / Gardener
   'tree': 'park',
   'flower': 'local-florist',
   'flower.fill': 'local-florist',
   'sprout': 'grass',
-  'camera.fill': 'camera-alt',
   'graduationcap.fill': 'school',
   'bicycle': 'directions-bike',
   'sailboat.fill': 'sailing',
@@ -101,11 +104,12 @@ const MAPPING = {
   'scope': 'my-location',
   'tag.fill': 'local-offer',
   'ticket.fill': 'local-activity',
+  'person.2.fill': 'people',
   'person.3.fill': 'groups',
-  'person.2.fill': 'group',
   'lock.fill': 'lock',
   'phone.fill': 'phone',
   'exclamationmark.circle.fill': 'error',
+  'wifi.exclamationmark': 'wifi-off',
   'calendar.badge.exclamationmark': 'event-busy',
   'doc.text.magnifyingglass': 'find-in-page',
   'arrow.uturn.left.circle.fill': 'reply',
@@ -130,6 +134,8 @@ const MAPPING = {
   'rectangle.portrait.and.arrow.right': 'logout',
   'person.circle.fill': 'account-circle',
   'person.crop.circle.badge.exclamationmark': 'person-off',
+  'scissors': 'content-cut',
+  'key.fill': 'vpn-key',
 } as Partial<IconMapping>;
 
 /**

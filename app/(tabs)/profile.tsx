@@ -997,7 +997,8 @@ export default function ProfileScreen() {
                             </View>
 
                                 {/* Kotalar Kartı */}
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                <View 
+                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     {/* İlan Kotası */}
                                     <View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -1026,7 +1027,8 @@ export default function ProfileScreen() {
                                 </View>
 
                                 {/* Davet Edilen Adalılar Kartı */}
-                                <View style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
+                                <View 
+                                    style={{ marginTop: 10, width: '100%', backgroundColor: isDark ? '#121212' : '#FFFFFF', padding: 10, paddingHorizontal: 14, borderRadius: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <IconSymbol name="person.2.fill" size={14} color={isDark ? "#A78BFA" : "#5B21B6"} />
@@ -1105,6 +1107,7 @@ export default function ProfileScreen() {
             {/* Invite Modal */}
             <Modal
                 visible={showInviteModal}
+                statusBarTranslucent
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => { setShowInviteModal(false); setInviteEmailError(''); setInviteEmail(''); }}
@@ -1153,6 +1156,7 @@ export default function ProfileScreen() {
             {/* Listing Quota Limit Modal */}
             <Modal
                 visible={showQuotaModal}
+                statusBarTranslucent
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => setShowQuotaModal(false)}
@@ -1189,6 +1193,7 @@ export default function ProfileScreen() {
             {/* Invitation Quota Limit Modal (Dark Purple Theme) */}
             <Modal
                 visible={showInviteQuotaModal}
+                statusBarTranslucent
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => setShowInviteQuotaModal(false)}

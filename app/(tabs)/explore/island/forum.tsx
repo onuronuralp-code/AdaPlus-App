@@ -2124,7 +2124,7 @@ export default function ForumScreen() {
             </Modal>
 
             {/* Rules Modal */}
-            <Modal visible={isRulesModalVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
+            <Modal visible={isRulesModalVisible} statusBarTranslucent animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
                 <View style={[{ flex: 1, backgroundColor: '#F8FAFC' }, isDark && { backgroundColor: '#000000' }]}>
                     <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                         <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
