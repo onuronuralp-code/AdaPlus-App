@@ -236,7 +236,7 @@ export default function HizmetSaglayiciScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           automaticallyAdjustKeyboardInsets={true}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
         >
           {/* Form Card */}
           <View style={{

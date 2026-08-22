@@ -30,7 +30,7 @@ import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useTranslation } from 'react-i18next';
 import { fetchActivities, fetchDepartures, fetchServiceBanner, ServiceBannerDto } from '@/services/api';
 import { fetchListings } from '@/services/listingApi';
-import { API_BASE_URL, resolveImageUrl } from '@/services/config';
+import { API_BASE_URL, fetchWithTimeout, resolveImageUrl } from '@/services/config';
 
 import { fetchNotifications, markNotificationRead, markAllRead, NotificationDto } from '@/services/notificationApi';
 import { ListingDto } from '@/services/listingApi';
@@ -486,6 +486,8 @@ const MOCK_SERVICES = [
   };
 
   const handleSendInvite = async () => {
+    if (isInviting) return;
+
     const invitedCount = (user as any)?.invitedUsersCount || 0;
     if (invitedCount >= 5) {
       Alert.alert(
@@ -518,7 +520,7 @@ const MOCK_SERVICES = [
         Alert.alert(t('common.error'), i18n.language.startsWith('en') ? 'You must be logged in to send invites.' : 'Davet göndermek için giriş yapmalısın.');
         return;
       }
-      const response = await fetch(`${API_BASE_URL}/api/v1/users/invites`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/invites`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -526,6 +528,18 @@ const MOCK_SERVICES = [
           },
           body: JSON.stringify({ email })
       });
+      const errorBody = response.ok ? null : await response.json().catch(() => null);
+      const errorMessage = String(errorBody?.message || errorBody?.error || '').toLowerCase();
+
+      if (response.status === 409 || errorMessage.includes('already') || errorMessage.includes('zaten')) {
+        Alert.alert(
+          i18n.language.startsWith('en') ? 'Already Invited' : 'Davet Zaten Gönderilmiş',
+          i18n.language.startsWith('en')
+            ? 'An invitation has already been sent to this email address.'
+            : 'Bu e-posta adresine daha önce davet gönderilmiş.'
+        );
+        return;
+      }
       if (response.status === 400 || response.status === 403 || response.status === 429) {
         Alert.alert(
           i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
@@ -535,15 +549,8 @@ const MOCK_SERVICES = [
         );
         return;
       }
-      if (response.status === 409) {
-        Alert.alert(
-          t('common.error', { defaultValue: i18n.language.startsWith('en') ? 'Error' : 'Hata' }),
-          i18n.language.startsWith('en') ? 'An invite has already been sent to this address.' : 'Bu adrese zaten bir davet gönderildi.'
-        );
-        return;
-      }
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(errorBody?.message || `HTTP ${response.status}`);
       }
       Alert.alert(t('common.success'), t('profile.inviteSendSuccess'));
       setInviteEmail('');
@@ -902,11 +909,6 @@ const MOCK_SERVICES = [
                   gap: 7,
                   borderWidth: 1.5,
                   borderColor: isDark ? '#047857' : '#059669',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 2,
-                  elevation: 1,
                 }}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1756,9 +1758,11 @@ const MOCK_SERVICES = [
         visible={showIslanderStepsModal}
         transparent
         animationType="fade"
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => setShowIslanderStepsModal(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center' }}>
           <TouchableWithoutFeedback onPress={() => setShowIslanderStepsModal(false)}>
             <View style={{ ...StyleSheet.absoluteFillObject }} />
           </TouchableWithoutFeedback>
@@ -1812,13 +1816,15 @@ const MOCK_SERVICES = [
         visible={showEmailInviteModal}
         transparent
         animationType="fade"
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => setShowEmailInviteModal(false)}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
         >
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center' }}>
             <TouchableWithoutFeedback onPress={() => setShowEmailInviteModal(false)}>
               <View style={{ ...StyleSheet.absoluteFillObject }} />
             </TouchableWithoutFeedback>

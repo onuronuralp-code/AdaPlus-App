@@ -135,6 +135,23 @@ const MAPPING = {
   'person.crop.circle.badge.exclamationmark': 'person-off',
   'scissors': 'content-cut',
   'key.fill': 'vpn-key',
+  'hand.point.left.fill': 'swipe-left',
+  'hand.point.left': 'swipe-left',
+  'checkmark': 'check',
+  'mappin': 'place',
+  'pin.fill': 'push-pin',
+  'clock': 'access-time',
+  'info': 'info',
+  'photo': 'photo',
+  'arrow.right': 'arrow-forward',
+  'arrow.uturn.left': 'undo',
+  'magnifyingglass': 'search',
+  'phone.circle.fill': 'phone',
+  'stop.fill': 'stop',
+  'speaker.wave.2.fill': 'volume-up',
+  'cart.badge.plus': 'add-shopping-cart',
+  'cart.fill.badge.plus': 'add-shopping-cart',
+  'arrow.triangle.turn.up.right.circle.fill': 'directions',
 } as Partial<IconMapping>;
 
 /**
@@ -148,11 +165,12 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: IconSymbolName;
+  name: IconSymbolName | any;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  const iconName = (MAPPING[name as keyof typeof MAPPING] || name) as any;
+  return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
 }

@@ -23,7 +23,8 @@ import LoginPromptModal from '@/components/LoginPromptModal';
 import VerifyPhoneModal from '@/components/VerifyPhoneModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EmptyState } from '@/components/EmptyState';
-import { resolveImageUrl } from '@/services/config';
+import { API_BASE_URL, fetchWithTimeout, resolveImageUrl } from '@/services/config';
+import { getToken } from '@/utils/tokenStorage';
 
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
@@ -250,25 +251,14 @@ export default function ForumScreen() {
     };
 
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const [isInvitingInForum, setIsInvitingInForum] = useState(false);
 
     const performInviteShare = async () => {
+        if (isInvitingInForum) return;
+
         try {
             const email = inviteContactInput.trim();
-            if (email) {
-                if (!EMAIL_REGEX.test(email)) {
-                    Alert.alert(
-                        t('common.error', { defaultValue: 'Hata' }),
-                        i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
-                    );
-                    return;
-                }
-                Alert.alert(
-                    t('common.success', { defaultValue: 'Başarılı' }),
-                    i18n.language.startsWith('tr') 
-                        ? `${email} adresine davetiye gönderildi!` 
-                        : `Invitation sent to ${email}!`
-                );
-            } else {
+            if (!email) {
                 const appStoreUrl = 'https://apps.apple.com/tr/app/ada-plus/id6743840993';
                 await Share.share({
                     message: i18n.language.startsWith('en')
@@ -276,11 +266,73 @@ export default function ForumScreen() {
                         : `AdaPlus Topluluğuna sen de katıl! Adalıların buluşma noktası, App Store'dan indir: ${appStoreUrl}`,
                     url: appStoreUrl,
                 });
+                setIsInviteModalVisible(false);
+                return;
             }
+
+            if (!EMAIL_REGEX.test(email)) {
+                Alert.alert(
+                    t('common.error', { defaultValue: 'Hata' }),
+                    i18n.language.startsWith('en') ? 'Please enter a valid email address.' : 'Geçerli bir e-posta adresi girin.'
+                );
+                return;
+            }
+
+            setIsInvitingInForum(true);
+            const token = getToken();
+            if (!token) {
+                Alert.alert(t('common.error', { defaultValue: 'Hata' }), i18n.language.startsWith('en') ? 'You must be logged in to send invites.' : 'Davet göndermek için giriş yapmalısın.');
+                return;
+            }
+
+            const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/users/invites`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ email })
+            });
+            const errorBody = response.ok ? null : await response.json().catch(() => null);
+            const errorMessage = String(errorBody?.message || errorBody?.error || '').toLowerCase();
+
+            if (response.status === 409 || errorMessage.includes('already') || errorMessage.includes('zaten')) {
+                Alert.alert(
+                    i18n.language.startsWith('en') ? 'Already Invited' : 'Davet Zaten Gönderilmiş',
+                    i18n.language.startsWith('en')
+                        ? 'An invitation has already been sent to this email address.'
+                        : 'Bu e-posta adresine daha önce davet gönderilmiş.'
+                );
+                return;
+            }
+
+            if (response.status === 400 || response.status === 403 || response.status === 429) {
+                Alert.alert(
+                    i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
+                    i18n.language.startsWith('en')
+                        ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                        : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
+                );
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(errorBody?.message || `HTTP ${response.status}`);
+            }
+
+            Alert.alert(
+                t('common.success', { defaultValue: 'Başarılı' }),
+                i18n.language.startsWith('tr')
+                    ? `${email} adresine davetiye başarıyla gönderildi!`
+                    : `Invitation successfully sent to ${email}!`
+            );
             setInviteContactInput('');
             setIsInviteModalVisible(false);
         } catch (error) {
-            console.error(error);
+            console.error('Failed to send invite from forum:', error);
+            Alert.alert(t('common.error', { defaultValue: 'Hata' }), t('profile.inviteSendFailed', { defaultValue: 'Davet gönderilemedi, lütfen tekrar deneyin.' }));
+        } finally {
+            setIsInvitingInForum(false);
         }
     };
 
@@ -1410,15 +1462,33 @@ export default function ForumScreen() {
                         <View style={styles.formSection}>
                             <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.postType')}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
-                                {postTypes.map(type => (
-                                    <TouchableOpacity 
-                                        key={type.id} 
-                                        style={[styles.writeChip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, newPostType === type.id && styles.activeWriteChipPink]}
-                                        onPress={() => setNewPostType(type.id)}
-                                    >
-                                        <Text style={[styles.writeChipText, isDark && { color: '#CBD5E1' }, newPostType === type.id && styles.activeWriteChipPinkText]}>{type.label}</Text>
-                                    </TouchableOpacity>
-                                ))}
+                                {postTypes.map(type => {
+                                    const isSelected = newPostType === type.id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={type.id}
+                                            style={[
+                                                styles.writeChip,
+                                                !isSelected && (isDark
+                                                    ? { backgroundColor: '#172554', borderColor: '#1E40AF' }
+                                                    : { backgroundColor: '#EFF6FF', borderColor: '#DBEAFE' }),
+                                                isDark && isSelected && { backgroundColor: '#3B82F6', borderColor: '#3B82F6' },
+                                                isSelected && styles.activeWriteChipPink
+                                            ]}
+                                            onPress={() => setNewPostType(type.id)}
+                                        >
+                                            <Text style={[
+                                                styles.writeChipText,
+                                                !isSelected && (isDark
+                                                    ? { color: '#93C5FD' }
+                                                    : { color: '#2563EB' }),
+                                                isSelected && styles.activeWriteChipPinkText
+                                            ]}>
+                                                {type.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </ScrollView>
                         </View>
                         <View style={[styles.writeOptionsDivider, isDark && { backgroundColor: '#1C1C1E' }]} />
@@ -2062,10 +2132,12 @@ export default function ForumScreen() {
                 visible={isInviteModalVisible}
                 transparent={true}
                 animationType="fade"
+                statusBarTranslucent={true}
+                navigationBarTranslucent={true}
                 onRequestClose={() => setIsInviteModalVisible(false)}
             >
                 <KeyboardAvoidingView
-                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }}
+                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center', padding: 20 }}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <TouchableOpacity 
@@ -2111,6 +2183,7 @@ export default function ForumScreen() {
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                             <TouchableOpacity 
                                 onPress={() => { setInviteContactInput(''); setIsInviteModalVisible(false); }} 
+                                disabled={isInvitingInForum}
                                 style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}
                             >
                                 <Text style={[{ color: '#475569', fontSize: 15, fontWeight: '700', textAlign: 'center' }, isDark && { color: '#94A3B8' }]}>
@@ -2119,11 +2192,16 @@ export default function ForumScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity 
                                 onPress={performInviteShare} 
-                                style={{ flex: 1, backgroundColor: '#059669', paddingVertical: 14, borderRadius: 16 }}
+                                disabled={isInvitingInForum}
+                                style={{ flex: 1, backgroundColor: '#059669', paddingVertical: 14, borderRadius: 16, opacity: isInvitingInForum ? 0.7 : 1, alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', textAlign: 'center' }}>
-                                    {i18n.language.startsWith('en') ? 'Invite' : 'Davet Et'}
-                                </Text>
+                                {isInvitingInForum ? (
+                                    <ActivityIndicator color="#FFFFFF" size="small" />
+                                ) : (
+                                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', textAlign: 'center' }}>
+                                        {i18n.language.startsWith('en') ? 'Invite' : 'Davet Et'}
+                                    </Text>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -2131,7 +2209,7 @@ export default function ForumScreen() {
             </Modal>
 
             {/* Rules Modal */}
-            <Modal visible={isRulesModalVisible} statusBarTranslucent animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
+            <Modal visible={isRulesModalVisible} statusBarTranslucent navigationBarTranslucent animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setIsRulesModalVisible(false)}>
                 <View style={[{ flex: 1, backgroundColor: '#F8FAFC' }, isDark && { backgroundColor: '#000000' }]}>
                     <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                         <TouchableOpacity onPress={() => setIsRulesModalVisible(false)} style={styles.modalHeaderButton}>
@@ -2151,30 +2229,30 @@ export default function ForumScreen() {
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Posting irrelevant, repetitive messages or unauthorized commercial advertising is prohibited. Please only share relevant topics.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Privacy & Personal Data</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Do not share your own or others' personal contact information (phone number, full address, etc.) in public areas.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Do not share your own or others&apos; personal contact information (phone number, full address, etc.) in public areas.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Off-topic Posts</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Please make sure your posts are relevant to the islands or matters concerning the community.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderation</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Messages violating the rules may be removed by moderators, and users violating rules may have their community access restricted.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', lineHeight: 22 }}>Posts that do not comply with community guidelines may be removed by administrators. Users with repeated violations may be banned from the platform.</Text>
                                 </>
                             ) : (
                                 <>
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır. Kişiler paylaşımlarından sorumludur. Oluşabilecek mağduriyetlerden AdaPlus sorumlu değildir.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır. Bireyler kendi paylaşımlarından sorumludur, oluşabilecek herhangi bir mağduriyetten AdaPlus sorumlu değildir.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam ve Reklam</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>İlgisiz, tekrarlayan mesajlar atmak veya ticari amaçlı izinsiz reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Konuyla ilgisiz, sürekli tekrarlanan iletiler veya izinsiz ticari reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
                                     
-                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Mahremiyet ve Kişisel Veriler</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kendinizin veya başkalarının kişisel iletişim bilgilerini (telefon numarası, açık adres vb.) açık alanda paylaşmayın.</Text>
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Gizlilik ve Kişisel Veriler</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Başkalarının veya kendinizin özel iletişim bilgilerini (telefon numarası, açık adres vb.) genel alanlarda paylaşmayın.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Konu Dışı Paylaşımlar</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Lütfen adalarla veya topluluğu ilgilendiren konularla alakalı paylaşımlar yapmaya özen gösterin.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Paylaşımlarınızın Adalar ile veya topluluğu ilgilendiren konularla alakalı olmasına özen gösterin.</Text>
                                     
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderasyon</Text>
-                                    <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Kurallara uymayan mesajlar moderatörler tarafından silinebilir ve kural ihlali yapan kullanıcıların topluluğa erişimi kısıtlanabilir.</Text>
+                                    <Text style={{ fontSize: 15, color: '#475569', lineHeight: 22 }}>Topluluk kurallarına uymayan içerikler yöneticiler tarafından kaldırılabilir. Kural ihlali yapan kullanıcılar platformdan uzaklaştırılabilir.</Text>
                                 </>
                             )}
                         </View>
@@ -2187,9 +2265,11 @@ export default function ForumScreen() {
                 visible={isSwipeOnboardingVisible}
                 transparent={true}
                 animationType="fade"
+                statusBarTranslucent={true}
+                navigationBarTranslucent={true}
                 onRequestClose={dismissSwipeOnboarding}
             >
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
                     <View style={[{ width: '100%', maxWidth: 360, backgroundColor: '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 10 }, isDark && { backgroundColor: '#18181B', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                         
                         {/* Icon */}
@@ -2259,8 +2339,8 @@ export default function ForumScreen() {
 
             {/* Same overFullScreen fix as the delete-confirm modal above — Report can also be
                 triggered from within the already-open post-detail modal. */}
-            <Modal transparent visible={reportConfirmState.visible} animationType="fade" presentationStyle="overFullScreen" onRequestClose={() => setReportConfirmState({ visible: false, id: null })}>
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center' }}>
+            <Modal transparent visible={reportConfirmState.visible} animationType="fade" statusBarTranslucent={true} navigationBarTranslucent={true} presentationStyle="overFullScreen" onRequestClose={() => setReportConfirmState({ visible: false, id: null })}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center' }}>
                     <View style={[{ width: '85%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                         <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF3C7', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#451A03' }]}>
                             <IconSymbol name="exclamationmark.triangle.fill" size={32} color="#F59E0B" />
