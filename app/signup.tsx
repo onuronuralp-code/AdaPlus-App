@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, BackHandler, Modal, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, BackHandler, Modal, Pressable, useColorScheme } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,6 +21,8 @@ export default function SignUpScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === 'dark';
     const searchParams = useLocalSearchParams<{ inviteToken?: string }>();
     const inviteToken = searchParams.inviteToken;
     useEffect(() => {
@@ -423,14 +425,16 @@ export default function SignUpScreen() {
                             {/* Doğum Tarihi (isteğe bağlı) */}
                             <View style={[styles.inputGroup, { marginBottom: 12 }]}>
                                 <Text style={styles.inputLabel}>DOĞUM TARİHİ <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
-                                <TouchableOpacity 
-                                    style={[styles.inputWrapper, { justifyContent: 'center' }]} 
+                                <TouchableOpacity
+                                    style={styles.inputWrapper}
                                     onPress={() => {
                                         Keyboard.dismiss();
                                         setShowDatePicker(true);
                                     }}
+                                    activeOpacity={0.8}
                                 >
-                                    <Text style={{ color: birthDate ? '#1E293B' : '#94A3B8', fontSize: 16 }}>
+                                    <IconSymbol name="calendar" size={18} color="#94A3B8" />
+                                    <Text style={[styles.dateInputText, !birthDate && styles.datePlaceholder]}>
                                         {birthDate ? birthDate.toLocaleDateString('tr-TR') : 'GG / AA / YYYY'}
                                     </Text>
                                 </TouchableOpacity>
@@ -469,7 +473,6 @@ export default function SignUpScreen() {
                 onAccept={handleSignupAfterKVKK}
             />
 
-            {/* DatePicker Modal for iOS, or inline for Android */}
             {Platform.OS === 'ios' ? (
                 <Modal
                     visible={showDatePicker}
@@ -477,29 +480,34 @@ export default function SignUpScreen() {
                     animationType="fade"
                     onRequestClose={() => setShowDatePicker(false)}
                 >
-                    <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View style={styles.datePickerBackdrop}>
                         <Pressable
                             style={StyleSheet.absoluteFillObject}
                             onPress={() => setShowDatePicker(false)}
                             accessibilityRole="button"
                             accessibilityLabel="Tarih seçiciyi kapat"
                         />
-                        <View style={{ backgroundColor: 'white', padding: 16, alignItems: 'center', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8, width: '100%' }}>
-                                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                    <Text style={{ color: '#3B82F6', fontWeight: 'bold', fontSize: 16 }}>Tamam</Text>
+                        <View style={[styles.datePickerSheet, isDarkMode && styles.datePickerSheetDark, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                            <View style={styles.datePickerHeader}>
+                                <Text style={[styles.datePickerTitle, isDarkMode && styles.datePickerTextDark]}>Doğum Tarihi</Text>
+                                <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.datePickerDoneButton}>
+                                    <Text style={styles.datePickerDoneText}>Tamam</Text>
                                 </TouchableOpacity>
                             </View>
                             <DateTimePicker
+                                key={`birth-date-picker-${colorScheme ?? 'light'}`}
                                 value={birthDate || new Date(2008, 0, 1)}
                                 mode="date"
                                 display="spinner"
-                                style={{ height: 200, width: '100%' }}
-                                themeVariant="light"
-                                textColor="#0F172A"
+                                style={[
+                                    styles.datePicker,
+                                    { backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF' },
+                                ]}
+                                themeVariant={isDarkMode ? 'dark' : 'light'}
+                                textColor={isDarkMode ? '#F8FAFC' : '#0F172A'}
                                 locale="tr-TR"
                                 maximumDate={new Date(2011, 11, 31)}
-                                onChange={(event, date) => {
+                                onChange={(_, date) => {
                                     if (date) setBirthDate(date);
                                 }}
                             />
@@ -515,7 +523,7 @@ export default function SignUpScreen() {
                         maximumDate={new Date(2011, 11, 31)}
                         onChange={(event, date) => {
                             setShowDatePicker(false);
-                            if (date) setBirthDate(date);
+                            if (event.type !== 'dismissed' && date) setBirthDate(date);
                         }}
                     />
                 )
@@ -685,6 +693,60 @@ const styles = StyleSheet.create({
         minHeight: vs(48),
         borderWidth: 1,
         borderColor: '#E2E8F0',
+    },
+    dateInputText: {
+        flex: 1,
+        marginLeft: s(10),
+        color: '#0D1B2A',
+        fontSize: ms(14),
+    },
+    datePlaceholder: {
+        color: '#94A3B8',
+    },
+    datePickerBackdrop: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.55)',
+    },
+    datePickerSheet: {
+        width: '100%',
+        backgroundColor: '#FFFFFF',
+        paddingTop: vs(12),
+        paddingHorizontal: s(16),
+        borderTopLeftRadius: s(24),
+        borderTopRightRadius: s(24),
+    },
+    datePickerSheetDark: {
+        backgroundColor: '#0F172A',
+    },
+    datePickerHeader: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: vs(40),
+    },
+    datePickerTitle: {
+        color: '#0F172A',
+        fontSize: ms(16),
+        fontWeight: '700',
+    },
+    datePickerTextDark: {
+        color: '#F8FAFC',
+    },
+    datePickerDoneButton: {
+        paddingHorizontal: s(10),
+        paddingVertical: vs(8),
+    },
+    datePickerDoneText: {
+        color: '#3B82F6',
+        fontSize: ms(15),
+        fontWeight: '700',
+    },
+    datePicker: {
+        width: '100%',
+        height: 216,
+        alignSelf: 'center',
     },
     inputWrapperFocused: {
         borderColor: '#3B82F6',
