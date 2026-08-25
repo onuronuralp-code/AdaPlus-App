@@ -93,6 +93,26 @@ export default function SplashScreen() {
 
   if (!fontsLoaded) return <View style={styles.screen} />;
 
+  // Logged-in users only see the launch splash before being redirected. Keep this
+  // frame identical to the native splash so the logo does not jump when the native
+  // view is replaced by React's first frame.
+  if (isLoggedIn) {
+    const centeredLogoWidth = Math.min(SPLASH_LOGO_WIDTH, width - 40);
+    return (
+      <View style={styles.centeredSplash}>
+        <Animated.Image
+          source={require("../assets/images/adaplus-logo.png")}
+          style={{
+            width: centeredLogoWidth,
+            height: centeredLogoWidth,
+            resizeMode: "contain",
+          }}
+          accessibilityLabel="AdaPlus"
+        />
+      </View>
+    );
+  }
+
   const isCompact = height < 720;
   const horizontalPadding = Math.max(20, Math.min(40, width * 0.08));
   const logoW = Math.min(SPLASH_LOGO_WIDTH, width - horizontalPadding * 2);
@@ -210,6 +230,12 @@ export default function SplashScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#FFFFFF" },
+  centeredSplash: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   center: {
     flex: 1,
     alignItems: "center",

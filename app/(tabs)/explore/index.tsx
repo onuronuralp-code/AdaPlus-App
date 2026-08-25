@@ -890,89 +890,38 @@ const MOCK_SERVICES = [
               </View>
 
 
-      {/* Invite Buttons (Two equal-width buttons: Email Invite & Share Link) */}
+      {/* Invite and share */}
       <View style={{ paddingHorizontal: 12, marginBottom: 9 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-              {/* Button 1: Email Invite */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                  borderRadius: 12,
-                  height: 48,
-                  gap: 7,
-                  borderWidth: 1.5,
-                  borderColor: isDark ? '#047857' : '#059669',
-                }}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
-                    setShowIslanderStepsModal(true);
-                  } else {
-                    setShowEmailInviteModal(true);
-                  }
-                }}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={{
+                width: '100%',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#059669',
+                borderRadius: 12,
+                height: 48,
+                gap: 8,
+                shadowColor: '#059669',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+              onPress={handleShareInvite}
+            >
+              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+              <Text
+                style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF', includeFontPadding: false }}
+                numberOfLines={1}
+                allowFontScaling={false}
               >
-                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                  <IconSymbol name="envelope.fill" size={16} color={isDark ? '#34D399' : '#059669'} />
-                </View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: isDark ? '#34D399' : '#059669',
-                    includeFontPadding: false,
-                  }}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {i18n.language.startsWith('en') ? 'Invite by Email' : 'E-posta ile Davet'}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Button 2: Share Invite Link */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#059669',
-                  borderRadius: 12,
-                  height: 48,
-                  gap: 7,
-                  shadowColor: '#059669',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 4,
-                  elevation: 2,
-                }}
-                onPress={handleShareInvite}
-              >
-                <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 1 }}>
-                  <IconSymbol name="square.and.arrow.up" size={17} color="#FFFFFF" />
-                </View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: '#FFFFFF',
-                    includeFontPadding: false,
-                  }}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {i18n.language.startsWith('en') ? 'Share AdaPlus' : "AdaPlus'ı Paylaş"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {i18n.language.startsWith('en') ? 'Invite & Share' : 'Davet Et ve Paylaş'}
+              </Text>
+            </TouchableOpacity>
           </WalkthroughableView>
         </CopilotStep>
       </View>

@@ -1083,7 +1083,13 @@ export default function ProfileScreen() {
                                     activeOpacity={0.7}
                                 >
                                     <IconSymbol name={tab.icon as any} size={16} color={isActive ? '#fff' : (isDark ? '#94A3B8' : tab.color)} />
-                                    <Text style={[styles.tabLabel, isDark && !isActive && { color: '#94A3B8' }, isActive && { color: '#fff' }]}>
+                                    <Text
+                                        numberOfLines={1}
+                                        adjustsFontSizeToFit
+                                        minimumFontScale={0.85}
+                                        allowFontScaling={false}
+                                        style={[styles.tabLabel, isDark && !isActive && { color: '#94A3B8' }, isActive && { color: '#fff' }]}
+                                    >
                                         {t(`profile.tabs.${tab.key}`)}
                                     </Text>
                                 </TouchableOpacity>
@@ -1263,8 +1269,8 @@ const styles = StyleSheet.create({
     // Tab Bar
     tabBar: { paddingVertical: vs(8), backgroundColor: '#FFFFFF' },
     tabScroll: { paddingHorizontal: s(20), gap: s(8), paddingVertical: vs(6) },
-    tabItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: s(6), paddingHorizontal: s(14), paddingVertical: vs(10), borderRadius: s(12), backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
-    tabLabel: { fontSize: ms(14), fontWeight: '700', color: '#475569' },
+    tabItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: s(6), paddingHorizontal: s(14), paddingVertical: vs(10), borderRadius: s(12), backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1, flexShrink: 0 },
+    tabLabel: { fontSize: ms(14), fontWeight: '700', color: '#475569', flexShrink: 0 },
 
     // Content
     loadingContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: vs(120) },
