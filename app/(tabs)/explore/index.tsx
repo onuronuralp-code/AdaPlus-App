@@ -890,38 +890,65 @@ const MOCK_SERVICES = [
               </View>
 
 
-      {/* Invite and share */}
+      {/* Invite and share actions */}
       <View style={{ paddingHorizontal: 12, marginBottom: 9 }}>
         <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
           <WalkthroughableView collapsable={false}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={{
-                width: '100%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#059669',
-                borderRadius: 12,
-                height: 48,
-                gap: 8,
-                shadowColor: '#059669',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 2,
-              }}
-              onPress={handleShareInvite}
-            >
-              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
-              <Text
-                style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF', includeFontPadding: false }}
-                numberOfLines={1}
-                allowFontScaling={false}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                  flex: 1,
+                  height: 48,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  borderRadius: 12,
+                  backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                  borderWidth: 1.5,
+                  borderColor: isDark ? '#34D399' : '#059669',
+                }}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
+                    setShowIslanderStepsModal(true);
+                  } else {
+                    setShowEmailInviteModal(true);
+                  }
+                }}
               >
-                {i18n.language.startsWith('en') ? 'Invite & Share' : 'Davet Et ve Paylaş'}
-              </Text>
-            </TouchableOpacity>
+                <IconSymbol name="person.badge.plus" size={18} color={isDark ? '#34D399' : '#059669'} />
+                <Text style={{ fontSize: 14, fontWeight: '800', color: isDark ? '#34D399' : '#059669' }} numberOfLines={1} allowFontScaling={false}>
+                  {i18n.language.startsWith('en') ? 'Invite' : 'Davet Et'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                  flex: 1,
+                  height: 48,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  borderRadius: 12,
+                  backgroundColor: '#059669',
+                  shadowColor: '#059669',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
+                onPress={handleShareInvite}
+              >
+                <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }} numberOfLines={1} allowFontScaling={false}>
+                  {i18n.language.startsWith('en') ? 'Share' : 'Paylaş'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </WalkthroughableView>
         </CopilotStep>
       </View>
