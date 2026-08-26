@@ -41,7 +41,6 @@ import { fetchUserCount } from '@/services/authApi';
 import { CelebrationModal } from '@/components/CelebrationModal';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
 import { CopilotStep, walkthroughable, useCopilot } from 'react-native-copilot';
 const WalkthroughableView = walkthroughable(View);
@@ -60,9 +59,26 @@ const TodayOnIsland = () => {
   const isLargeScreen = height > 900;
   
   const { user, isLoggedIn } = useAuth();
-  const { weather, loading: weatherLoading } = useWeather();
-  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string} | null>(null);
+  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string, diffMinutes?: number} | null>(null);
   const [ferryLoading, setFerryLoading] = useState(true);
+  const [countdownMin, setCountdownMin] = useState<number | null>(null);
+
+  // Live countdown: recalculate minutes remaining every 60s
+  useEffect(() => {
+    if (!nextFerry?.time) { setCountdownMin(null); return; }
+    const calc = () => {
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const ferryMin = getRouteTimeValue(nextFerry.time);
+      let diff = ferryMin - nowMin;
+      // handle next-day ferries (before 03:00)
+      if (diff < 0 && ferryMin < 180) diff += 1440;
+      setCountdownMin(diff >= 0 ? diff : null);
+    };
+    calc();
+    const iv = setInterval(calc, 60_000);
+    return () => clearInterval(iv);
+  }, [nextFerry?.time]);
 
   useFocusEffect(
     useCallback(() => {
@@ -193,6 +209,7 @@ const TodayOnIsland = () => {
             to: allUpcoming[0].to,
             time: allUpcoming[0].time,
             provider: allUpcoming[0].provider,
+            diffMinutes: allUpcoming[0].diffMinutes,
           });
         }
       } catch (err) {
@@ -208,19 +225,7 @@ const TodayOnIsland = () => {
   );
 
   return (
-    <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
-      {/* Weather Badge */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, borderWidth: 2, borderColor: isDark ? '#F97316' : '#FED7AA' }}>
-        <IconSymbol 
-          name={weatherLoading ? 'sun.max.fill' : (weather?.condition === 'rainy' ? 'cloud.rain.fill' : (weather?.condition === 'cloudy' ? 'cloud.fill' : 'sun.max.fill'))} 
-          size={isLargeScreen ? 18 : 14} 
-          color={weatherLoading ? '#F97316' : (weather?.condition === 'rainy' ? '#3B82F6' : (weather?.condition === 'cloudy' ? '#94A3B8' : '#F97316'))} 
-        />
-        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: isDark ? '#FB923C' : '#C2410C', marginLeft: 6 }}>
-          {weatherLoading ? '...' : (weather ? `${weather.temperature}°` : '28°')}
-        </Text>
-      </View>
-
+    <View style={{ marginTop: 2 }}>
       {/* Ferry Badge */}
       <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
         style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1, borderWidth: 2, borderColor: isDark ? '#3B82F6' : '#BFDBFE' }}
@@ -240,6 +245,13 @@ const TodayOnIsland = () => {
         <Text style={{ fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', color: isDark ? '#93C5FD' : '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
           {ferryLoading ? (i18n.language.startsWith('en') ? 'Loading...' : 'Yükleniyor...') : (nextFerry ? `${nextFerry.time} ${nextFerry.from}-${nextFerry.to}${nextFerry.provider ? ' (' + nextFerry.provider + ')' : ''}` : (i18n.language.startsWith('en') ? 'No schedule found' : 'Sefer Bulunamadı'))}
         </Text>
+        {!ferryLoading && nextFerry && countdownMin != null && countdownMin >= 0 && (
+          <View style={{ backgroundColor: isDark ? '#1E3A5F' : '#DBEAFE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginLeft: 4 }}>
+            <Text style={{ fontSize: 10, fontWeight: '800', color: isDark ? '#93C5FD' : '#1D4ED8' }}>
+              {countdownMin === 0 ? (i18n.language.startsWith('en') ? 'NOW' : 'ŞİMDİ') : `${countdownMin} ${i18n.language.startsWith('en') ? 'min' : 'dk'}`}
+            </Text>
+          </View>
+        )}
       </Pressable>
     </View>
   );

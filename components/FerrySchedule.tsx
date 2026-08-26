@@ -720,6 +720,7 @@ export function FerrySchedule() {
                 const routeTime = getRouteTimeValue(item.departureTime);
                 const isPast = isLiveMode && routeTime < nowMinutes;
                 const isNext = isLiveMode && !isPast && idx === filteredData.findIndex(f => getRouteTimeValue(f.departureTime) >= nowMinutes);
+                const diffMin = isLiveMode && !isPast ? routeTime - nowMinutes : undefined;
                 return (
                   <AnimatedRE.View
                     key={item.id}
@@ -730,6 +731,7 @@ export function FerrySchedule() {
                       onPress={() => setSelectedTrip(item)}
                       isNext={isNext}
                       isPast={isPast}
+                      diffMinutes={diffMin}
                       t={t}
                       i18n={i18n}
                     />
@@ -743,6 +745,7 @@ export function FerrySchedule() {
               const routeTime = getRouteTimeValue(item.departureTime);
               const isPast = isLiveMode && routeTime < nowMinutes;
               const isNext = isLiveMode && !isPast && idx === filteredData.findIndex(f => getRouteTimeValue(f.departureTime) >= nowMinutes);
+              const diffMin = isLiveMode && !isPast ? routeTime - nowMinutes : undefined;
               return (
                 <AnimatedRE.View
                   key={item.id}
@@ -753,6 +756,7 @@ export function FerrySchedule() {
                     onPress={() => setSelectedTrip(item)}
                     isNext={isNext}
                     isPast={isPast}
+                    diffMinutes={diffMin}
                     t={t}
                     i18n={i18n}
                   />
@@ -844,9 +848,17 @@ export function FerrySchedule() {
   );
 }
 
-function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
+function TripTripCard({ item, onPress, isNext, isPast, diffMinutes, t, i18n }: any) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const countdownLabel = (diffMinutes != null && diffMinutes >= 0 && !isPast)
+    ? (diffMinutes === 0
+      ? (i18n.language === 'tr' ? 'ŞİMDİ' : 'NOW')
+      : (diffMinutes < 60
+        ? `${diffMinutes} ${i18n.language === 'tr' ? 'dk' : 'min'}`
+        : `${Math.floor(diffMinutes / 60)} ${i18n.language === 'tr' ? 'sa' : 'h'} ${diffMinutes % 60} ${i18n.language === 'tr' ? 'dk' : 'min'}`))
+    : null;
 
   return (
     <TouchableOpacity
@@ -935,7 +947,16 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
               defaultValue: item.destination,
             })}
           </Text>
-          <Text style={[styles.providerLabel, isDark && { color: '#64748B' }]}>{item.provider}</Text>
+          <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+            <Text style={[styles.providerLabel, isDark && { color: '#64748B' }]} numberOfLines={1}>{item.provider}</Text>
+            {countdownLabel && (
+              <View style={{ backgroundColor: isNext ? '#EA580C' : (isDark ? '#1E3A5F' : '#DBEAFE'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
+                <Text style={{ fontSize: 9, fontWeight: '800', color: isNext ? '#FFFFFF' : (isDark ? '#93C5FD' : '#1D4ED8') }}>
+                  {countdownLabel}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
         <IconSymbol name="chevron.right" size={16} color={isDark ? "#475569" : "#E2E8F0"} />
       </View>
@@ -943,9 +964,17 @@ function TripTripCard({ item, onPress, isNext, isPast, t, i18n }: any) {
   );
 }
 
-function TripTripGridCard({ item, onPress, isNext, isPast, t, i18n }: any) {
+function TripTripGridCard({ item, onPress, isNext, isPast, diffMinutes, t, i18n }: any) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const countdownLabel = (diffMinutes != null && diffMinutes >= 0 && !isPast)
+    ? (diffMinutes === 0
+      ? (i18n.language === 'tr' ? 'ŞİMDİ' : 'NOW')
+      : (diffMinutes < 60
+        ? `${diffMinutes} ${i18n.language === 'tr' ? 'dk' : 'min'}`
+        : `${Math.floor(diffMinutes / 60)} ${i18n.language === 'tr' ? 'sa' : 'h'} ${diffMinutes % 60} ${i18n.language === 'tr' ? 'dk' : 'min'}`))
+    : null;
 
   return (
     <TouchableOpacity
@@ -986,7 +1015,7 @@ function TripTripGridCard({ item, onPress, isNext, isPast, t, i18n }: any) {
       )}
 
       {/* Time Row */}
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
         <Text style={[{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A' }]} numberOfLines={1}>
           {item.departureTime}
         </Text>
@@ -1047,10 +1076,19 @@ function TripTripGridCard({ item, onPress, isNext, isPast, t, i18n }: any) {
         {t("places." + item.departure, { defaultValue: item.departure })} → {t("places." + item.destination, { defaultValue: item.destination })}
       </Text>
 
-      {/* Provider */}
-      <Text style={[{ fontSize: 11, fontWeight: '500', color: isDark ? '#64748B' : '#94A3B8' }]} numberOfLines={1}>
-        {item.provider}
-      </Text>
+      {/* Provider & countdown */}
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+        <Text style={[{ fontSize: 11, fontWeight: '500', color: isDark ? '#64748B' : '#94A3B8', flexShrink: 1 }]} numberOfLines={1}>
+          {item.provider}
+        </Text>
+        {countdownLabel && (
+          <View style={{ backgroundColor: isNext ? '#EA580C' : (isDark ? '#1E3A5F' : '#DBEAFE'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
+            <Text style={{ fontSize: 9, fontWeight: '800', color: isNext ? '#FFFFFF' : (isDark ? '#93C5FD' : '#1D4ED8') }}>
+              {countdownLabel}
+            </Text>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }
