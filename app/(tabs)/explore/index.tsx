@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard, Share } from 'react-native';
+import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard, Share, AppState } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
@@ -61,12 +61,13 @@ const TodayOnIsland = () => {
   
   const { user, isLoggedIn } = useAuth();
   const { weather, loading: weatherLoading } = useWeather();
-  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string} | null>(null);
+  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string, diffMinutes?: number} | null>(null);
   const [ferryLoading, setFerryLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
     let cancelled = false;
+    let requestId = 0;
     
     const getNormalizedIsland = (rawIsland?: string): string => {
       if (!rawIsland) return isLoggedIn ? "Büyükada" : "Kınalıada";
@@ -79,6 +80,7 @@ const TodayOnIsland = () => {
     };
 
     const fetchFerry = async () => {
+      const currentRequestId = ++requestId;
       try {
         setFerryLoading(true);
         let targetIsland = isLoggedIn ? "Büyükada" : "Kınalıada";
@@ -187,25 +189,31 @@ const TodayOnIsland = () => {
           allUpcoming.sort((a, b) => a.diffMinutes - b.diffMinutes);
         }
 
-        if (!cancelled && allUpcoming.length > 0) {
-          setNextFerry({
+        if (!cancelled && currentRequestId === requestId) {
+          setNextFerry(allUpcoming.length > 0 ? {
             from: allUpcoming[0].from,
             to: allUpcoming[0].to,
             time: allUpcoming[0].time,
             provider: allUpcoming[0].provider,
             diffMinutes: allUpcoming[0].diffMinutes,
-          });
+          } : null);
         }
       } catch (err) {
         console.log("Failed to fetch next ferry", err);
       } finally {
-        if (!cancelled) setFerryLoading(false);
+        if (!cancelled && currentRequestId === requestId) setFerryLoading(false);
       }
     };
     fetchFerry();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchFerry();
+    });
     
-    return () => { cancelled = true; };
-  }, [user])
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, [user, isLoggedIn])
   );
 
   return (

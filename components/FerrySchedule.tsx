@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  AppState,
   Alert,
   ActionSheetIOS,
   Platform,
@@ -329,10 +330,14 @@ export function FerrySchedule() {
 
   const MONTHS = i18n.language === "tr" ? MONTHS_TR : MONTHS_EN;
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    let requestId = 0;
     const loadData = async () => {
+      const currentRequestId = ++requestId;
       if (destination === "Unselected") {
         setFerryData([]);
+        setLoading(false);
         return;
       }
       setLoading(true);
@@ -350,6 +355,7 @@ export function FerrySchedule() {
         const results = await Promise.all(
           pairs.map((p) => fetchDepartures(p.from, p.to, dateStr)),
         );
+        if (!active || currentRequestId !== requestId) return;
 
         const allRoutes: FerryRoute[] = [];
         results.forEach((data, idx) => {
@@ -388,11 +394,18 @@ export function FerrySchedule() {
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        if (active && currentRequestId === requestId) setLoading(false);
       }
     };
     loadData();
-  }, [destination, departure, selectedDate]);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') loadData();
+    });
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, [destination, departure, selectedDate]));
 
   const filteredData = useMemo(() => {
     const isToday = selectedDate.toDateString() === new Date().toDateString();
