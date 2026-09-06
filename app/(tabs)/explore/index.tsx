@@ -61,7 +61,7 @@ const TodayOnIsland = () => {
   
   const { user, isLoggedIn } = useAuth();
   const { weather, loading: weatherLoading } = useWeather();
-  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string, diffMinutes?: number} | null>(null);
+  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string, diffMinutes: number} | null>(null);
   const [ferryLoading, setFerryLoading] = useState(true);
 
   useFocusEffect(
