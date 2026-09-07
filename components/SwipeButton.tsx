@@ -45,6 +45,11 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
 
   // Shimmer sweeps left→right every ~3.5 s
   useEffect(() => {
+    if (!isLoggedIn) {
+      pulseAnim.setValue(0);
+      return;
+    }
+
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
@@ -59,7 +64,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
     );
     loop.start();
     return () => loop.stop();
-  }, []);
+  }, [isLoggedIn]);
 
   // Live dot breathes
   useEffect(() => {
@@ -75,15 +80,22 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
   }, []);
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      setUserCount(null);
+      return;
+    }
+
+    let cancelled = false;
     fetchWithTimeout(`${API_BASE_URL}/api/v1/users/count`)
       .then(res => res.json())
       .then(data => {
-        if (typeof data?.count === 'number') {
+        if (!cancelled && typeof data?.count === 'number') {
           setUserCount(data.count);
         }
       })
       .catch(() => {});
-  }, []);
+    return () => { cancelled = true; };
+  }, [isLoggedIn]);
 
   const handlePress = () => {
     if (isDeactivated) {
@@ -151,11 +163,13 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                   size={isSmallScreen ? 20 : (isLargeScreen ? 28 : 24)}
                   color="#FFFFFF"
                 />
-                <Animated.View style={[
-                  styles.liveDot, 
-                  { transform: [{ scale: dotScale }], opacity: dotOpacity },
-                  isDeactivated && { backgroundColor: '#FF0000', borderColor: '#FFFFFF' }
-                ]} />
+                {isLoggedIn && (
+                  <Animated.View style={[
+                    styles.liveDot,
+                    { transform: [{ scale: dotScale }], opacity: dotOpacity },
+                    isDeactivated && { backgroundColor: '#FF0000', borderColor: '#FFFFFF' }
+                  ]} />
+                )}
               </View>
 
               {/* Text block */}
@@ -163,7 +177,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                 <Text style={[styles.text, isSmallScreen && { fontSize: 14 }, isLargeScreen && { fontSize: 17.5 }]}>
                   {t('common.goToCommunity', { defaultValue: i18n.language.startsWith('en') ? 'Go to Community' : 'Topluluğa Git' })}
                 </Text>
-                {isDeactivated ? (
+                {isLoggedIn && (isDeactivated ? (
                   <Text style={[styles.subtext, { color: '#FEE2E2', fontWeight: '600' }]}>
                     {i18n.language.startsWith('en') ? 'Unavailable' : 'Erişime Kapalı'}
                   </Text>
@@ -171,7 +185,7 @@ export function SwipeButton({ onSwipeComplete, isLoggedIn = true, isActive = tru
                   <Text style={[styles.subtext, { color: pressed ? '#ECFDF5' : '#D1FAE5' }]}>
                     {userCount !== null ? `${userCount} ` : ''}{i18n.language.startsWith('en') ? 'members joined' : 'üye katıldı'}
                   </Text>
-                )}
+                ))}
               </View>
 
               {/* Cascading arrows or warning indicator */}

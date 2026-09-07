@@ -332,8 +332,9 @@
         "badges": {
             "islander": "Adalı",
             "community": "Yoldaş",
-            "seller": "Çerçi",
-            "ambassador": "Ada Elçisi"
+            "seller": "Tüccar",
+            "ambassador": "Ada Elçisi",
+            "regular": "Müdavim"
         },
         "tabs": {
             "posts": "Paylaşımlar",

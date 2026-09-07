@@ -76,6 +76,8 @@ export default function ForumScreen() {
     }, [isWriteModalVisible]);
 
     const [isSwipeOnboardingVisible, setIsSwipeOnboardingVisible] = useState(false);
+    const [isSwipeOnboardingPending, setIsSwipeOnboardingPending] = useState(false);
+    const [isRulesCheckComplete, setIsRulesCheckComplete] = useState(false);
     const onboardingSwipeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -103,24 +105,28 @@ export default function ForumScreen() {
     }, [isSwipeOnboardingVisible]);
 
     useEffect(() => {
-        let timer: ReturnType<typeof setTimeout> | undefined;
-
         const checkSwipeOnboarding = async () => {
             try {
                 const hasSeen = await AsyncStorage.getItem('has_seen_swipe_onboarding');
-                if (hasSeen !== 'true') {
-                    timer = setTimeout(() => setIsSwipeOnboardingVisible(true), 600);
-                }
+                if (hasSeen !== 'true') setIsSwipeOnboardingPending(true);
             } catch (error) {
                 console.log('Error checking swipe onboarding status', error);
             }
         };
 
         checkSwipeOnboarding();
-        return () => {
-            if (timer) clearTimeout(timer);
-        };
     }, []);
+
+    // iOS can freeze when two native modals are presented at the same time.
+    // Show the swipe onboarding only after the first-visit rules modal is closed.
+    useEffect(() => {
+        if (!isSwipeOnboardingPending || !isRulesCheckComplete || isRulesModalVisible) return;
+        const timer = setTimeout(() => {
+            setIsSwipeOnboardingPending(false);
+            setIsSwipeOnboardingVisible(true);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [isSwipeOnboardingPending, isRulesCheckComplete, isRulesModalVisible]);
 
     const dismissSwipeOnboarding = async () => {
         setIsSwipeOnboardingVisible(false);
@@ -138,8 +144,11 @@ export default function ForumScreen() {
                 if (!lastShown || (now - Number(lastShown)) >= SEVEN_DAYS_MS) {
                     setTimeout(() => {
                         setIsRulesModalVisible(true);
+                        setIsRulesCheckComplete(true);
                     }, 500);
                     await AsyncStorage.setItem('lastCommunityRulesShownTimestamp', now.toString());
+                } else {
+                    setIsRulesCheckComplete(true);
                 }
             } catch (error) {
                 console.error("Error reading rules visit status", error);
@@ -1058,9 +1067,14 @@ export default function ForumScreen() {
 
     const renderPost = ({ item }: { item: PostDto }) => {
         const isMyPost = Boolean(user?.id && item.authorId === user.id);
+        const isPostAnonymous = Boolean((item as any).isAnonymous || (item as any).anonymous);
         const roleInfo = getRoleInfo(item.authorUserType);
         const tagColor = roleInfo.color;
-        const authorName = isMyPost 
+        const authorName = isPostAnonymous
+            ? (isMyPost
+                ? (i18n.language.startsWith('en') ? 'You (Anonymous)' : 'Siz (Anonim)')
+                : t('forum.anonymous', { defaultValue: i18n.language.startsWith('en') ? 'Anonymous' : 'Anonim' }))
+            : isMyPost
             ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
             : (item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' }));
         const roleName = roleInfo.name;
@@ -1079,7 +1093,7 @@ export default function ForumScreen() {
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity 
-                            style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
+                            style={{ height: '100%', backgroundColor: '#F59E0B', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
                             activeOpacity={0.7}
                             onPress={() => { swipeable?.close(); handleReport(item.id); }}
                         >
@@ -1112,7 +1126,7 @@ export default function ForumScreen() {
                     <View style={styles.bubbleHeader}>
                         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             {(() => {
-                                const isAnon = Boolean((item as any).isAnonymous || (item as any).anonymous || authorName?.toLowerCase() === 'anonim' || authorName?.toLowerCase() === 'anonymous');
+                                const isAnon = isPostAnonymous || authorName?.toLowerCase() === 'anonim' || authorName?.toLowerCase() === 'anonymous';
                                 const postAuthorColor = isAnon ? '#64748B' : (isMyPost ? (isDark ? '#60A5FA' : '#2563EB') : getUserAvatarColor(item.authorId || item.authorName, item.authorName, isAnon));
                                 return (
                                     <Text style={[styles.authorName, { color: postAuthorColor }]}>~ {authorName}</Text>
@@ -1706,7 +1720,11 @@ export default function ForumScreen() {
                                                          <View style={{ flex: 1 }}>
                                                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                                                  <Text style={[styles.authorName, { color: detailAuthorColor }]}>
-                                                                     ~ {selectedPost.authorId === user?.id 
+                                                                     ~ {isDetailAnon
+                                                                         ? (selectedPost.authorId === user?.id
+                                                                             ? (i18n.language.startsWith('en') ? 'You (Anonymous)' : 'Siz (Anonim)')
+                                                                             : t('forum.anonymous', { defaultValue: i18n.language.startsWith('en') ? 'Anonymous' : 'Anonim' }))
+                                                                         : selectedPost.authorId === user?.id
                                                                          ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
                                                                          : (selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' }))}
                                                                  </Text>
@@ -1869,7 +1887,7 @@ export default function ForumScreen() {
                                                 );
                                             }
                                             return (
-                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleReport(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80 }}>
+                                                <TouchableOpacity onPress={() => { swipeable?.close(); handleReport(reply.id); }} activeOpacity={0.7} style={{ height: '100%', backgroundColor: '#F59E0B', justifyContent: 'center', alignItems: 'center', width: 80 }}>
                                                     <IconSymbol name="exclamationmark.triangle.fill" size={20} color="#FFF" />
                                                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.report', { defaultValue: 'Bildir' })}</Text>
                                                 </TouchableOpacity>
@@ -2294,7 +2312,7 @@ export default function ForumScreen() {
                                 <View style={{ backgroundColor: '#EF4444', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
                                     <IconSymbol name="trash.fill" size={16} color="#FFF" />
                                 </View>
-                                <View style={{ backgroundColor: '#EF4444', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
+                                <View style={{ backgroundColor: '#F59E0B', height: '100%', width: 44, justifyContent: 'center', alignItems: 'center' }}>
                                     <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#FFF" />
                                 </View>
                             </View>

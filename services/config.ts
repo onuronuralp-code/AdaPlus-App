@@ -1,8 +1,41 @@
-if (!process.env.EXPO_PUBLIC_API_URL) {
-  console.warn('[config] EXPO_PUBLIC_API_URL is not set. API calls will fail.');
-}
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
+const getDevHost = (): string | null => {
+  const hostUri =
+    Constants.expoConfig?.hostUri ||
+    (Constants as any).manifest?.debuggerHost ||
+    (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
+  if (hostUri) {
+    return hostUri.split(':')[0];
+  }
+  return null;
+};
+
+const resolveApiBaseUrl = (): string => {
+  let url = process.env.EXPO_PUBLIC_API_URL;
+
+  if (!url) {
+    const devHost = getDevHost();
+    if (devHost && Platform.OS !== 'web') {
+      return `http://${devHost}:8080`;
+    }
+    return 'http://localhost:8080';
+  }
+
+  // If URL explicitly targets localhost on a non-web device, rewrite to Metro dev host IP
+  if (url.includes('localhost') && Platform.OS !== 'web') {
+    const devHost = getDevHost();
+    if (devHost && devHost !== 'localhost' && devHost !== '127.0.0.1') {
+      url = url.replace('localhost', devHost);
+    }
+  }
+
+  return url;
+};
+
+export const API_BASE_URL = resolveApiBaseUrl();
+console.log(`[config] API_BASE_URL: ${API_BASE_URL}`);
 
 const FETCH_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;

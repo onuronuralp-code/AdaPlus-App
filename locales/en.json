@@ -332,8 +332,9 @@
         "badges": {
             "islander": "Islander",
             "community": "Companion",
-            "seller": "Island Merchant",
-            "ambassador": "Island Ambassador"
+            "seller": "Merchant",
+            "ambassador": "Island Ambassador",
+            "regular": "Regular"
         },
         "deleteAccountTitle": "Delete Account",
         "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",

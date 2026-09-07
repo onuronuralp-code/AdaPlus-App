@@ -72,7 +72,6 @@ export default function ProfileScreen() {
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
     const [isSavingEdit, setIsSavingEdit] = useState(false);
-    const [isBadgesExpanded, setIsBadgesExpanded] = useState(true);
 
     // Check for 3 invites milestone
     useEffect(() => {
@@ -827,37 +826,6 @@ export default function ProfileScreen() {
     startOfThisMonth.setDate(1);
     startOfThisMonth.setHours(0, 0, 0, 0);
     const listingsThisMonth = listings.filter(l => new Date(l.createdAt) >= startOfThisMonth).length;
-    const profileBadges = [
-        {
-            key: 'islander',
-            title: t('profile.badges.islander'),
-            badgeIcon: 'shield-star',
-            color: '#F59E0B',
-            earned: true,
-        },
-        {
-            key: 'community',
-            title: t('profile.badges.community'),
-            badgeIcon: 'forum',
-            color: '#6366F1',
-            earned: true,
-        },
-        {
-            key: 'seller',
-            title: t('profile.badges.seller'),
-            badgeIcon: 'treasure-chest',
-            color: '#10B981',
-            earned: true,
-        },
-        {
-            key: 'ambassador',
-            title: t('profile.badges.ambassador'),
-            badgeIcon: 'email-seal',
-            color: '#8B5CF6',
-            earned: true,
-        },
-    ];
-
     return (
         <SwipeNavigation leftRoute="/(tabs)/contact">
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
@@ -1052,6 +1020,7 @@ export default function ProfileScreen() {
                                         {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
                                     </Text>
                                 </View>
+
                         </View>
                     </View>
 
@@ -1257,7 +1226,7 @@ const styles = StyleSheet.create({
     badgesTitle: { fontSize: ms(13), fontWeight: '800', color: '#0F172A' },
     badgesCount: { fontSize: ms(11), fontWeight: '800', color: '#8B5CF6', backgroundColor: '#EDE9FE', paddingHorizontal: s(8), paddingVertical: vs(3), borderRadius: s(10) },
     badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: s(8) },
-    profileBadge: { width: '48%', minHeight: vs(46), flexDirection: 'row', alignItems: 'center', gap: s(7), padding: s(8), borderRadius: s(11), backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0' },
+    profileBadge: { flexBasis: '47%', flexGrow: 1, minHeight: vs(44), flexDirection: 'row', alignItems: 'center', gap: s(7), padding: s(8), borderRadius: s(11), backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0' },
     profileBadgeDark: { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
     profileBadgeLocked: { opacity: 0.58 },
     profileBadgeIcon: { width: s(30), height: s(30), borderRadius: s(15), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
