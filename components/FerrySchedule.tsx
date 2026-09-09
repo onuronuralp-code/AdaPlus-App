@@ -226,15 +226,44 @@ export function FerrySchedule() {
   const mainScrollRef = useRef<any>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const autoOpenedTimeRef = useRef<string | null>(null);
+  const isResettingRef = useRef(false);
+  const hasInitialLoadedRef = useRef(false);
+
+  const resetSelection = useCallback(() => {
+    isResettingRef.current = true;
+    setDeparture("Unselected");
+    setDestination("Unselected");
+    setShowDepartureDropdown(false);
+    setShowDestinationDropdown(false);
+    setShowScheduleDropdown(false);
+    setSelectedTrip(null);
+    autoOpenedTimeRef.current = null;
+    try {
+      router.setParams({ from: undefined, to: undefined, time: undefined });
+    } catch (_) {}
+    mainScrollRef.current?.scrollTo?.({ y: 0, animated: true });
+  }, [router]);
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('resetFerrySchedule', resetSelection);
+    return () => {
+      sub.remove();
+    };
+  }, [resetSelection]);
 
   // Load initial route (from params, favorites, or default island)
   useFocusEffect(
     useCallback(() => {
+      if (isResettingRef.current) {
+        isResettingRef.current = false;
+        return;
+      }
       const loadInitial = async () => {
         if (params.from && params.to) {
           setDeparture(params.from as string);
           setDestination(params.to as string);
-        } else {
+        } else if (!hasInitialLoadedRef.current) {
+          hasInitialLoadedRef.current = true;
           try {
             const fav = await AsyncStorage.getItem('favorite_route');
             if (fav) {

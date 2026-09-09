@@ -263,12 +263,6 @@ export default function EventDetailScreen() {
                             <View style={[styles.badge, isDark && { backgroundColor: '#1E3A8A' }]}>
                                 <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{isEnActive ? 'EVENT' : 'ETKİNLİK'}</Text>
                             </View>
-                            {rsvpCount > 0 && (
-                                <View style={[styles.attendeePill, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                    <IconSymbol name="person.2.fill" size={13} color="#F59E0B" />
-                                    <Text style={[styles.attendeeText, { color: '#F59E0B' }]}>{rsvpCount} {isEnActive ? 'attendees' : 'katılımcı'}</Text>
-                                </View>
-                            )}
                         </View>
                         {activity.description && activity.description.trim().length > 3 && (
                             <TouchableOpacity 

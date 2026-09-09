@@ -28,7 +28,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as listingApi from '@/services/listingApi';
 import { ListingDto, ListingCategory } from '@/services/listingApi';
-import { isLargeScreen } from '@/utils/scale';
 import { Island } from '@/services/forumApi';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
@@ -579,7 +578,7 @@ export default function IlanlarScreen() {
             color="#EAB308"
           />
         ) : (
-          <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' } : {}}>
+          <View style={isGridView ? { flexDirection: 'row', flexWrap: 'wrap', gap: 12 } : {}}>
             {filteredListings.map(l => (
               <ListingCard key={l.id} listing={l} router={router} isGridView={isGridView} />
             ))}
@@ -925,7 +924,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
       style={[
         styles.card,
         isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 },
-        isGridView && { width: '48%', marginHorizontal: 0 }
+        isGridView && { width: (SCREEN_WIDTH - 44) / 2, marginHorizontal: 0, marginBottom: 14 }
       ]}
       activeOpacity={0.7}
       onPress={() => {
@@ -1070,7 +1069,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: isLargeScreen ? 16 : 4,
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 0, // overridden inline with tabBarHeight
   },

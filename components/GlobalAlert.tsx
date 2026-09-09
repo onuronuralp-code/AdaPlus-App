@@ -68,6 +68,10 @@ export function GlobalAlert() {
   const isError = alertState.title.toLowerCase().includes('hata') || alertState.title.toLowerCase().includes('error') || alertState.title.toLowerCase().includes('başarısız') || alertState.title.toLowerCase().includes('failed') || alertState.title.toLowerCase().includes('erişim') || alertState.title.toLowerCase().includes('access') || alertState.title.toLowerCase().includes('deaktif') || alertState.title.toLowerCase().includes('disabled') || alertState.title.toLowerCase().includes('kapalı') || alertState.title.toLowerCase().includes('bakım');
   const isSuccess = alertState.title.toLowerCase().includes('başarılı') || alertState.title.toLowerCase().includes('success') || alertState.title.toLowerCase().includes('tebrik') || alertState.title.toLowerCase().includes('harika');
   const isWarning = alertState.title.toLowerCase().includes('uyarı') || alertState.title.toLowerCase().includes('warning') || alertState.title.toLowerCase().includes('dikkat');
+  const isDelivery = alertState.title.toLowerCase().includes('paket') || 
+                     alertState.title.toLowerCase().includes('delivery') ||
+                     (alertState.message?.toLowerCase().includes('paket servis') ?? false) ||
+                     (alertState.message?.toLowerCase().includes('delivery service') ?? false);
   
   let iconName = 'info.circle.fill';
   let iconColor = '#3B82F6';
@@ -85,12 +89,17 @@ export function GlobalAlert() {
     iconName = 'exclamationmark.triangle.fill';
     iconColor = '#F59E0B';
     iconBg = '#FFFBEB';
+  } else if (isDelivery) {
+    iconName = 'bag.fill';
+    iconColor = '#8B5CF6';
+    iconBg = '#EDE9FE';
   }
 
   if (isDark) {
     if (isError) iconBg = '#450A0A';
     else if (isWarning) iconBg = '#451A03';
     else if (isSuccess) iconBg = '#064E3B';
+    else if (isDelivery) iconBg = '#2E1065';
     else iconBg = '#1E1B4B';
   }
 
@@ -100,12 +109,18 @@ export function GlobalAlert() {
     // If there's only one button
     if (buttons.length === 1) {
       const btn = buttons[0];
+      const buttonText = isDelivery && (btn.text === 'Tamam' || btn.text === 'OK') ? 'Anladım' : btn.text;
       return (
         <TouchableOpacity
-          style={[styles.button, styles.primaryButton, isSuccess && { backgroundColor: '#10B981' }]}
+          style={[
+            styles.button, 
+            styles.primaryButton, 
+            isSuccess && { backgroundColor: '#10B981' },
+            isDelivery && { backgroundColor: '#8B5CF6' }
+          ]}
           onPress={() => handlePress(btn.onPress)}
         >
-          <Text style={styles.primaryButtonText}>{btn.text}</Text>
+          <Text style={styles.primaryButtonText}>{buttonText}</Text>
         </TouchableOpacity>
       );
     }
@@ -127,7 +142,13 @@ export function GlobalAlert() {
             <Text style={[styles.secondaryButtonText, isDark && { color: '#E4E4E7' }]} numberOfLines={1} adjustsFontSizeToFit>{cancelBtn.text}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, isDestructive ? styles.destructiveButton : styles.primaryButton, isSuccess && !isDestructive && { backgroundColor: '#10B981' }, { flex: 1, marginLeft: 8 }]}
+            style={[
+              styles.button, 
+              isDestructive ? styles.destructiveButton : styles.primaryButton, 
+              isSuccess && !isDestructive && { backgroundColor: '#10B981' }, 
+              isDelivery && !isDestructive && { backgroundColor: '#8B5CF6' },
+              { flex: 1, marginLeft: 8 }
+            ]}
             onPress={() => handlePress(confirmBtn.onPress)}
           >
             <Text style={isDestructive ? styles.destructiveButtonText : styles.primaryButtonText} numberOfLines={1} adjustsFontSizeToFit>{confirmBtn.text}</Text>
@@ -148,7 +169,8 @@ export function GlobalAlert() {
               style={[
                 styles.button,
                 isCancel ? (isDark ? { backgroundColor: '#27272A' } : styles.secondaryButton) : (isDestructive ? styles.destructiveButton : styles.primaryButton),
-                isSuccess && !isCancel && !isDestructive && { backgroundColor: '#10B981' }
+                isSuccess && !isCancel && !isDestructive && { backgroundColor: '#10B981' },
+                isDelivery && !isCancel && !isDestructive && { backgroundColor: '#8B5CF6' }
               ]}
               onPress={() => handlePress(btn.onPress)}
             >
@@ -175,12 +197,38 @@ export function GlobalAlert() {
     >
       <View style={styles.overlay}>
         <View style={[styles.alertContainer, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#27272A' }]}>
-          <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-            <IconSymbol name={iconName as any} size={28} color={iconColor} />
+          <View style={[styles.iconContainer, { backgroundColor: iconBg }, isDelivery && { marginBottom: 16 }]}>
+            <IconSymbol name={iconName as any} size={isDelivery ? 32 : 28} color={iconColor} />
           </View>
           
-          <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{alertState.title}</Text>
-          {alertState.message ? <Text style={[styles.message, isDark && { color: '#CBD5E1' }]}>{alertState.message}</Text> : null}
+          {isDelivery ? (
+            <View style={{ backgroundColor: isDark ? '#2E1065' : '#EDE9FE', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 16 }}>
+              <Text style={{ color: '#8B5CF6', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>
+                {alertState.title.toLowerCase().includes('delivery') || alertState.title.toLowerCase().includes('soon')
+                  ? 'COMING SOON'
+                  : 'YAKINDA'}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{alertState.title}</Text>
+          )}
+          {alertState.message ? (
+            <Text
+              style={[
+                styles.message,
+                isDark && { color: '#CBD5E1' },
+                isDelivery && {
+                  fontSize: 14,
+                  fontWeight: '500',
+                  lineHeight: 22,
+                  color: isDark ? '#FFFFFF' : '#000000',
+                  marginBottom: 24,
+                },
+              ]}
+            >
+              {alertState.message}
+            </Text>
+          ) : null}
 
           <View style={styles.buttonContainer}>
             {renderButtons()}
@@ -201,7 +249,7 @@ const styles = StyleSheet.create({
   },
   alertContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 24,
     width: '100%',
     maxWidth: 340,

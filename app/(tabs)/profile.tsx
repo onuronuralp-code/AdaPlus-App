@@ -128,12 +128,12 @@ export default function ProfileScreen() {
 
     const handleOpenInviteModal = () => {
         const invitedCount = (user as any)?.invitedUsersCount || 0;
-        if (invitedCount >= 5) {
+        if (invitedCount >= 3) {
             Alert.alert(
                 i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
                 i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
-                    : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
             );
             return;
         }
@@ -142,12 +142,12 @@ export default function ProfileScreen() {
 
     const handleSendInvite = async () => {
         const invitedCount = (user as any)?.invitedUsersCount || 0;
-        if (invitedCount >= 5) {
+        if (invitedCount >= 3) {
             Alert.alert(
                 i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
                 i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
-                    : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
             );
             return;
         }
@@ -1005,19 +1005,19 @@ export default function ProfileScreen() {
                                             </Text>
                                         </View>
                                         <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#C084FC' : '#5B21B6' }}>
-                                            {(user as any)?.invitedUsersCount || 0} / 5
+                                            {(user as any)?.invitedUsersCount || 0} / 3
                                         </Text>
                                     </View>
                                     <View style={{ width: '100%', height: 6, backgroundColor: isDark ? '#2E1065' : '#F3E8FF', borderRadius: 3, overflow: 'hidden' }}>
                                         <View style={{ 
-                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 5) * 100, 100)}%`, 
+                                            width: `${Math.min((((user as any)?.invitedUsersCount || 0) / 3) * 100, 100)}%`, 
                                             height: '100%', 
                                             backgroundColor: isDark ? '#C084FC' : '#5B21B6', 
                                             borderRadius: 3 
                                         }} />
                                     </View>
                                     <Text style={{ fontSize: 10, color: isDark ? '#94A3B8' : '#64748B', marginTop: 3, textAlign: 'right', fontWeight: '600' }}>
-                                        {i18n.language.startsWith('en') ? 'Target: 5' : 'Hedef: 5'}
+                                        {i18n.language.startsWith('en') ? 'Target: 3' : 'Hedef: 3'}
                                     </Text>
                                 </View>
 

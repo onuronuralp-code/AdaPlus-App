@@ -317,6 +317,7 @@ export default function MainMenuScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { isLoggedIn, user } = useAuth();
+  const isIslander = isLoggedIn && (user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN');
   const [selectedIsland, setSelectedIsland] = useState(isLoggedIn && (user as any)?.island ? ((user as any).island === 'KINALIADA' ? 'Kınalıada' : (user as any).island === 'BURGAZADA' ? 'Burgazada' : (user as any).island === 'HEYBELIADA' ? 'Heybeliada' : 'Büyükada') : 'Kınalıada');
   const isSmallScreen = height < 820;
   const isLargeScreen = height > 900;
@@ -497,12 +498,12 @@ const MOCK_SERVICES = [
     if (isInviting) return;
 
     const invitedCount = (user as any)?.invitedUsersCount || 0;
-    if (invitedCount >= 5) {
+    if (invitedCount >= 3) {
       Alert.alert(
         i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
         i18n.language.startsWith('en')
-          ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
-          : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
+          ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+          : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
       );
       return;
     }
@@ -900,7 +901,17 @@ const MOCK_SERVICES = [
 
       {/* Invite and share actions */}
       <View style={{ paddingHorizontal: 12, marginBottom: 9 }}>
-        <CopilotStep text={t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' })} order={7} name="davet">
+        <CopilotStep 
+          text={
+            !isLoggedIn 
+              ? (i18n.language.startsWith('en') ? 'Sign up to access all features of AdaPlus.' : 'AdaPlus özelliklerinden yararlanmak için buradan kayıt olabilirsin.')
+              : isIslander 
+                ? t('explore.tour.davet', { defaultValue: i18n.language.startsWith('en') ? 'You can invite island residents from here.' : 'Buradan ada sakinlerini davet edebilirsin.' }) 
+                : (i18n.language.startsWith('en') ? 'Learn how to become an islander from here.' : 'Buradan nasıl Adalı olabileceğini öğrenebilirsin.')
+          } 
+          order={7} 
+          name="davet"
+        >
           <WalkthroughableView collapsable={false}>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TouchableOpacity
@@ -919,16 +930,27 @@ const MOCK_SERVICES = [
                 }}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (!(user?.userType === 'ISLAND_RESIDENT' || user?.role === 'ADMIN')) {
+                  if (!isLoggedIn) {
+                    router.push('/signup');
+                  } else if (!isIslander) {
                     setShowIslanderStepsModal(true);
                   } else {
                     setShowEmailInviteModal(true);
                   }
                 }}
               >
-                <IconSymbol name="person.badge.plus" size={18} color={isDark ? '#34D399' : '#059669'} />
+                <IconSymbol 
+                  name={!isLoggedIn ? "person.badge.plus" : isIslander ? "person.badge.plus" : "star.fill"} 
+                  size={18} 
+                  color={isDark ? '#34D399' : '#059669'} 
+                />
                 <Text style={{ fontSize: 14, fontWeight: '800', color: isDark ? '#34D399' : '#059669' }} numberOfLines={1} allowFontScaling={false}>
-                  {i18n.language.startsWith('en') ? 'Invite' : 'Davet Et'}
+                  {!isLoggedIn 
+                    ? (i18n.language.startsWith('en') ? 'Sign Up' : 'Kayıt Ol')
+                    : isIslander 
+                      ? (i18n.language.startsWith('en') ? 'Invite' : 'Davet Et')
+                      : (i18n.language.startsWith('en') ? 'Become an Islander' : 'Adalı Ol')
+                  }
                 </Text>
               </TouchableOpacity>
 
@@ -1226,11 +1248,11 @@ const MOCK_SERVICES = [
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     Alert.alert(
-                      i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis',
+                      i18n.language.startsWith('en') ? 'DELIVERY • COMING SOON' : 'PAKET SERVİS • YAKINDA',
                       i18n.language.startsWith('en')
                         ? 'Delivery service will be available very soon.'
                         : 'Paket Servis hizmeti çok yakında kullanıma açılacak.',
-                      [{ text: i18n.language.startsWith('en') ? 'OK' : 'Tamam' }]
+                      [{ text: i18n.language.startsWith('en') ? 'Understood' : 'Anladım' }]
                     );
                   }}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 3, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
@@ -1783,14 +1805,26 @@ const MOCK_SERVICES = [
               </Text>
             </View>
             
-            <TouchableOpacity 
-              onPress={() => { setShowIslanderStepsModal(false); navigateWithDebounce('/(tabs)/contact'); }} 
-              style={{ backgroundColor: '#10B981', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                {i18n.language.startsWith('en') ? 'Send Request' : 'Talep Gönder'}
-              </Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {!isLoggedIn && (
+                <TouchableOpacity 
+                  onPress={() => { setShowIslanderStepsModal(false); router.push('/signup'); }} 
+                  style={{ flex: 1, backgroundColor: '#3B82F6', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+                    {i18n.language.startsWith('en') ? 'Sign Up' : 'Kayıt Ol'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity 
+                onPress={() => { setShowIslanderStepsModal(false); navigateWithDebounce('/(tabs)/contact'); }} 
+                style={{ flex: 1, backgroundColor: '#10B981', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+                  {i18n.language.startsWith('en') ? 'Send Request' : 'Talep Gönder'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1832,8 +1866,8 @@ const MOCK_SERVICES = [
 
               <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', lineHeight: 18, marginBottom: 16 }}>
                 {i18n.language.startsWith('en')
-                  ? 'Enter the email address of an island resident to invite them as a verified islander.'
-                  : 'Ada sakini komşunuzun e-posta adresini girerek AdaPlus\'a davet edin.'}
+                  ? 'Enter the email address of an island resident to invite them as a verified islander. Invite 3 friends and earn the Island Ambassador badge!'
+                  : 'Ada sakini komşunuzun e-posta adresini girerek AdaPlus\'a davet edin. 3 arkadaşınızı davet edin ve ada elçisi rozetini kazanın!'}
               </Text>
 
               {/* Email Input */}
@@ -2005,13 +2039,10 @@ const MOCK_SERVICES = [
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: isDark ? '#2D1B28' : '#FDF2F8', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
               <IconSymbol name="pawprint.fill" size={34} color="#EC4899" />
             </View>
-            <View style={{ backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 12 }}>
-              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>{t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'ADA+ • COMING SOON' : 'ADA+ • YAKINDA' })}</Text>
+            <View style={{ backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 16 }}>
+              <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>{t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'COMING SOON' : 'YAKINDA' })}</Text>
             </View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: isDark ? '#FFFFFF' : '#0F172A', textAlign: 'center', marginBottom: 12 }}>
-              {t('explore.adaAi', { defaultValue: 'ADA+' })}
-            </Text>
-            <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#CBD5E1' : '#475569', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
+            <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#FFFFFF' : '#000000', textAlign: 'center', marginBottom: 24, fontWeight: '500' }}>
               {t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to develop our AI guide tailored for the Islands.' : 'Adalar\'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })}
             </Text>
             <TouchableOpacity

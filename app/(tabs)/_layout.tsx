@@ -1,6 +1,6 @@
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Platform, View, Animated, useWindowDimensions } from 'react-native';
+import { StyleSheet, Platform, View, Animated, useWindowDimensions, DeviceEventEmitter } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -111,6 +111,7 @@ export default function TabLayout() {
         }}
         listeners={() => ({
           tabPress: (e) => {
+            DeviceEventEmitter.emit('resetFerrySchedule');
             if (pathname === '/home' || pathname === '/(tabs)/home') {
               e.preventDefault();
             }

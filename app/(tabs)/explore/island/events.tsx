@@ -566,23 +566,9 @@ export default function EventsScreen() {
                                     </TouchableOpacity>
                                 )}
                                 
-                                {/* Katılımcı Sayısı - Izgara Görünümünde Fotoğraf Üstünde */}
-                                {isGridView && (
-                                    <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0, 0, 0, 0.65)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, flexDirection: 'row', alignItems: 'center', zIndex: 10 }}>
-                                        <IconSymbol name="person.2.fill" size={12} color="#F59E0B" />
-                                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#F59E0B', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
-                                    </View>
-                                )}
-
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
                                     <View style={[styles.titleRow, isGridView && { marginBottom: 4 }]}>
-                                        <Text style={[styles.eventTitle, { flex: 1, marginRight: 8 }, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{event.name}</Text>
-                                        {!isGridView && (
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E293B' : '#F1F5F9', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 }}>
-                                                <IconSymbol name="person.2.fill" size={13} color="#F59E0B" />
-                                                <Text style={{ fontSize: 13, fontWeight: '700', color: '#F59E0B', marginLeft: 4 }}>{event.rsvpCount || 0}</Text>
-                                            </View>
-                                        )}
+                                        <Text style={[styles.eventTitle, { flex: 1 }, isGridView && { fontSize: 14 }, isDark && { color: '#F8FAFC' }]} numberOfLines={1}>{event.name}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <View style={{ flex: 1 }}>

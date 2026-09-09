@@ -347,12 +347,12 @@ export default function ForumScreen() {
 
     const handleInviteFriends = () => {
         const invitedCount = (user as any)?.invitedUsersCount || 0;
-        if (invitedCount >= 5) {
+        if (invitedCount >= 3) {
             Alert.alert(
                 i18n.language.startsWith('en') ? 'Invitation Quota Full' : 'Davet Kotanız Doldu',
                 i18n.language.startsWith('en')
-                    ? 'You can invite a maximum of 5 islanders. Your invitation quota (5/5) has been reached.'
-                    : 'En fazla 5 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (5/5) dolmuştur.'
+                    ? 'You can invite a maximum of 3 islanders. Your invitation quota (3/3) has been reached.'
+                    : 'En fazla 3 kişiyi Adalı olarak davet edebilirsiniz. Davet kotanız (3/3) dolmuştur.'
             );
             return;
         }
@@ -2172,8 +2172,8 @@ export default function ForumScreen() {
                         </Text>
                         <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }, isDark && { color: '#CBD5E1' }]}>
                             {i18n.language.startsWith('en') 
-                                ? 'Share the AdaPlus community with your friends and help it grow. People you invite gain Islander status!' 
-                                : 'AdaPlus topluluğunu arkadaşlarınla paylaşarak büyümesine katkıda bulun. Davet ettiğin kişiler Adalı statüsü kazanır!'}
+                                ? 'Share the AdaPlus community with your friends and help it grow. Invite 3 friends and earn the Island Ambassador badge!' 
+                                : 'AdaPlus topluluğunu arkadaşlarınla paylaşarak büyümesine katkıda bulun. 3 arkadaşınızı davet edin ve ada elçisi rozetini kazanın!'}
                         </Text>
 
                         <TextInput
