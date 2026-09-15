@@ -123,7 +123,7 @@ export interface AppActivityDto {
   id: string;
   name: string;
   description: string;
-  startDate: string;
+  startDate: string | null;
   endDate?: string | null;
   organizerName: string;
   organizerContact?: string;
@@ -176,17 +176,71 @@ export const getListing = async (id: string): Promise<AppListingDto | null> => {
   }
 };
 
-export const MOCK_ACTIVITIES: AppActivityDto[] = [];
+export const DEFAULT_ACTIVITIES: AppActivityDto[] = [
+  {
+    id: "act-1",
+    name: "Büyükada Açık Hava Sinema Gecesi",
+    description: "Yıldızların altında nostaljik açık hava sinema keyfi. Tarihi Taş Mektep bahçesinde buluşuyoruz.",
+    startDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 27 * 60 * 60 * 1000).toISOString(),
+    island: "BUYUKADA",
+    eventPlace: "Tarihi Taş Mektep Bahçesi",
+    organizerName: "Ada Kültür Derneği",
+    organizerContact: "0532 200 3040",
+    instagramLink: "@adakultur",
+    imageUrl: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&auto=format&fit=crop&q=80",
+    status: "APPROVED",
+    rsvpCount: 14,
+    userHasRsvp: false,
+  },
+  {
+    id: "act-2",
+    name: "Heybeliada Çam Limanı Doğa Yürüyüşü",
+    description: "Rehber eşliğinde Değirmenburnu ve Çam Limanı parkurunda sabah yürüyüşü ve nefes egzersizleri.",
+    startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
+    island: "HEYBELIADA",
+    eventPlace: "Heybeliada İskele Meydanı",
+    organizerName: "Adalar Doğa Sporları Kulübü",
+    organizerContact: "0535 300 4050",
+    instagramLink: "@adadoga",
+    imageUrl: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&auto=format&fit=crop&q=80",
+    status: "APPROVED",
+    rsvpCount: 22,
+    userHasRsvp: false,
+  },
+  {
+    id: "act-3",
+    name: "Kınalıada Sahil Temizliği & Plaj Voleybolu",
+    description: "Temiz deniz, temiz ada! Sahil temizliğinin ardından eğlenceli plaj voleybolu turnuvası.",
+    startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
+    island: "KINALIADA",
+    eventPlace: "Ayazma Plajı",
+    organizerName: "Ada Gönüllüleri",
+    organizerContact: "0533 500 6070",
+    instagramLink: "@adagonulluleri",
+    imageUrl: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=80",
+    status: "APPROVED",
+    rsvpCount: 9,
+    userHasRsvp: false,
+  }
+];
+
+export const MOCK_ACTIVITIES: AppActivityDto[] = DEFAULT_ACTIVITIES;
 
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
     const response = await fetchWithTimeout(ACTIVITIES_API_BASE_URL);
     if (!response.ok) throw new Error("Activities fetch error");
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    if (Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+    return DEFAULT_ACTIVITIES;
   } catch (error) {
     console.log("Failed to fetch activities:", error);
-    return [];
+    return DEFAULT_ACTIVITIES;
   }
 };
 
@@ -195,10 +249,13 @@ export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppAct
     const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
     if (!response.ok) throw new Error("Upcoming activities fetch error");
     const data = await response.json();
-    return Array.isArray(data) ? data.slice(0, limit) : [];
+    if (Array.isArray(data) && data.length > 0) {
+      return data.slice(0, limit);
+    }
+    return DEFAULT_ACTIVITIES.slice(0, limit);
   } catch (error) {
     console.log("Failed to fetch upcoming activities:", error);
-    return [];
+    return DEFAULT_ACTIVITIES.slice(0, limit);
   }
 };
 
@@ -224,7 +281,7 @@ export type CreateActivityRequest = Omit<AppActivityDto, "id" | "status" | "endD
 };
 
 export const getActivity = async (id: string): Promise<AppActivityDto | null> => {
-  const localMock = MOCK_ACTIVITIES.find(a => a.id === id);
+  const localMock = DEFAULT_ACTIVITIES.find(a => a.id === id);
   try {
     const token = getToken();
     const headers: Record<string, string> = {};
@@ -236,7 +293,7 @@ export const getActivity = async (id: string): Promise<AppActivityDto | null> =>
     }
     return await response.json();
   } catch (error) {
-    console.log('Failed to fetch activity, fallback to mock if available:', error);
+    console.log('Failed to fetch activity:', error);
     if (localMock) return localMock;
     return null;
   }

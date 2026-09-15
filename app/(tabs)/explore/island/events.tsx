@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions, Linking, DeviceEventEmitter } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import SuccessModal from '@/components/SuccessModal';
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomDateTimePicker from '@/components/CustomDateTimePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { IslandDropdown } from '@/components/IslandDropdown';
 
 
 export default function EventsScreen() {
@@ -32,13 +33,12 @@ export default function EventsScreen() {
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isGridView, setIsGridView] = useState(true);
+    const isGridView = true;
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
     const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-    const titleInputRef = React.useRef<TextInput>(null);
     const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
     const modalSlideAnim = React.useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
@@ -75,17 +75,22 @@ export default function EventsScreen() {
             getActivity(id).then(act => {
                 if (act) {
                     setNewEventName(act.name);
-                    const activityStartDate = new Date(act.startDate);
+                    const activityStartDate = act.startDate ? new Date(act.startDate) : new Date();
+                    setHasStartDate(Boolean(act.startDate));
+                    setHasStartTime(Boolean(act.startDate) && (activityStartDate.getHours() !== 0 || activityStartDate.getMinutes() !== 0));
                     setStartDate(activityStartDate);
                     setHasEndDate(Boolean(act.endDate));
-                    setEndDate(act.endDate ? new Date(act.endDate) : new Date(activityStartDate.getTime() + 60 * 60 * 1000));
-                    if (act.eventPlace) setNewEventLocation(act.eventPlace);
+                    const activityEndDate = act.endDate ? new Date(act.endDate) : new Date(activityStartDate.getTime() + 60 * 60 * 1000);
+                    setEndDate(activityEndDate);
+                    setHasEndTime(Boolean(act.endDate) && (activityEndDate.getHours() !== 0 || activityEndDate.getMinutes() !== 0));
+                    setNewEventLocation(act.eventPlace || '');
                     setNewEventDetails(act.description);
+                    setShowOptionalDetails(true);
                     setOrganizerName(act.organizerName);
-                    if (act.organizerContact) setContactNumber(act.organizerContact);
-                    if (act.instagramLink) setSocialLink(act.instagramLink);
-                    if (act.imageUrl) setSelectedImage(act.imageUrl);
-                    if (act.island) setSelectedIsland(act.island);
+                    setContactNumber(act.organizerContact || '');
+                    setSocialLink(act.instagramLink || '');
+                    setSelectedImage(act.imageUrl || null);
+                    setSelectedIsland(act.island || null);
                     setIsAddModalVisible(true);
                 }
             });
@@ -106,12 +111,18 @@ export default function EventsScreen() {
     // Form States
     const [newEventName, setNewEventName] = useState('');
     const [startDate, setStartDate] = useState(new Date());
+    const [hasStartDate, setHasStartDate] = useState(false);
+    const [hasStartTime, setHasStartTime] = useState(false);
     const [endDate, setEndDate] = useState(() => new Date(Date.now() + 60 * 60 * 1000));
     const [hasEndDate, setHasEndDate] = useState(false);
+    const [hasEndTime, setHasEndTime] = useState(false);
     const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showStartTimePicker, setShowStartTimePicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
+    const [showEndTimePicker, setShowEndTimePicker] = useState(false);
     const [newEventLocation, setNewEventLocation] = useState('');
     const [newEventDetails, setNewEventDetails] = useState('');
+    const [showOptionalDetails, setShowOptionalDetails] = useState(false);
     const [organizerName, setOrganizerName] = useState('');
     const [contactNumber, setContactNumber] = useState('');
     const [socialLink, setSocialLink] = useState('');
@@ -169,18 +180,19 @@ export default function EventsScreen() {
     
     // removed isValidPhone
     
-    const isPublishDisabled = 
-        newEventName.trim().length < 3 || 
-        newEventDetails.trim().length < 1 || 
-        !newEventLocation.trim() ||
-        !selectedIsland ||
-        !organizerName.trim() || 
-        contactNumber.trim().length === 0 || 
-        isUploading;
+    const isPublishDisabled = !selectedImage || isUploading;
+
+    useEffect(() => {
+        const sub = DeviceEventEmitter.addListener('eventRsvpChanged', ({ id, count }) => {
+            setEvents(prev => prev.map(e => e.id === id ? { ...e, rsvpCount: count } : e));
+        });
+        return () => sub.remove();
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
             loadEvents();
+            DeviceEventEmitter.emit('eventsSeen');
             const id = setInterval(() => loadEvents(false), 60_000);
             return () => clearInterval(id);
         }, [])
@@ -191,6 +203,11 @@ export default function EventsScreen() {
         try {
             const data = await fetchActivities();
             setEvents(data);
+            if (Array.isArray(data) && data.length > 0) {
+                AsyncStorage.setItem('seenEventIds', JSON.stringify(data.map((e: any) => e.id)));
+                AsyncStorage.setItem('cached_unseen_events', '0');
+                DeviceEventEmitter.emit('eventsSeen');
+            }
         } catch {
             // keep existing list on background poll failure; only show error on initial load
             if (showLoading) Alert.alert('Bağlantı Hatası', 'Etkinlikler yüklenemedi. Lütfen tekrar deneyin.');
@@ -261,8 +278,8 @@ export default function EventsScreen() {
         return rawName ? t('places.' + rawName, { defaultValue: rawName }) : '';
     };
 
-    const formatCardDate = (startStr?: string, endStr?: string | null, hideTime?: boolean) => {
-        if (!startStr) return '';
+    const formatCardDate = (startStr?: string | null, endStr?: string | null, hideTime?: boolean) => {
+        if (!startStr) return t('common.notSpecified', { defaultValue: 'Belirtilmemiş' });
         const s = new Date(startStr);
         if (hideTime) {
             return s.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
@@ -290,7 +307,7 @@ export default function EventsScreen() {
                 }
                 const result = await ImagePicker.launchCameraAsync({
                     allowsEditing: true,
-                    aspect: [4, 3],
+                    aspect: [4, 5],
                     quality: 0.8,
                 });
                 if (!result.canceled) {
@@ -308,7 +325,7 @@ export default function EventsScreen() {
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ['images'],
                 allowsEditing: true,
-                aspect: [4, 3],
+                aspect: [4, 5],
                 quality: 0.8,
             });
             if (!result.canceled) {
@@ -349,7 +366,7 @@ export default function EventsScreen() {
 
     const handlePublishEvent = async () => {
         if (isPublishDisabled) {
-            Alert.alert('Eksik Bilgi', 'Lütfen ilan içeriğini düzeltiniz.');
+            Alert.alert(t('common.error'), i18n.language.startsWith('en') ? 'Please add an event photo.' : 'Lütfen etkinlik fotoğrafı ekleyin.');
             return;
         }
 
@@ -394,13 +411,13 @@ export default function EventsScreen() {
         }
 
         const request: CreateActivityRequest = {
-            name: newEventName.trim(),
-            description: newEventDetails.trim(),
-            startDate: startDate.toISOString(),
-            endDate: hasEndDate ? endDate.toISOString() : null,
+            name: newEventName.trim() || (i18n.language.startsWith('en') ? 'Event' : 'Etkinlik'),
+            description: newEventDetails.trim() || (i18n.language.startsWith('en') ? 'Event details are in the photo.' : 'Etkinlik detayları fotoğraftadır.'),
+            startDate: hasStartDate ? startDate.toISOString() : null,
+            endDate: hasStartDate && hasEndDate ? endDate.toISOString() : null,
             organizerName: organizerName.trim(),
             organizerContact: contactNumber.trim(),
-            eventPlace: newEventLocation.trim() || undefined,
+            eventPlace: newEventLocation.trim(),
             instagramLink: formattedSocialLink,
             imageUrl: imageUrl,
             island: selectedIsland || undefined,
@@ -416,10 +433,14 @@ export default function EventsScreen() {
         setEditingActivityId(null);
         setNewEventName('');
         setStartDate(new Date());
+        setHasStartDate(false);
+        setHasStartTime(false);
         setEndDate(new Date(Date.now() + 60 * 60 * 1000));
         setHasEndDate(false);
+        setHasEndTime(false);
         setNewEventLocation('');
         setNewEventDetails('');
+        setShowOptionalDetails(false);
         setOrganizerName('');
         setContactNumber('');
         setSocialLink('');
@@ -431,6 +452,7 @@ export default function EventsScreen() {
         );
         setSuccessModalVisible(true);
         loadEvents(true);
+        DeviceEventEmitter.emit('contentUpdated');
     };
 
     return (
@@ -451,53 +473,21 @@ export default function EventsScreen() {
                     </TouchableOpacity>
                     <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
                 </View>
-                <TouchableOpacity
-                    style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
-                    onPress={() => setIsGridView(!isGridView)}
-                    activeOpacity={0.7}
-                >
-                    <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
-                </TouchableOpacity>
-            </View>
-
-            <View style={[{ paddingVertical: 6, backgroundColor: 'transparent' }]}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
-                    {ISLAND_FILTERS.map(item => {
-                        const isActive = selectedFilterIsland === item.id;
-                        return (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={[
-                                    {
-                                        paddingHorizontal: 11,
-                                        paddingVertical: 6,
-                                        borderRadius: 8,
-                                        backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                                        borderWidth: 1,
-                                        borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
-                                    },
-                                    isActive && {
-                                        backgroundColor: '#3B82F6',
-                                        borderColor: '#3B82F6',
-                                    }
-                                ]}
-                                onPress={() => setSelectedFilterIsland(item.id)}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={[
-                                    { fontSize: 13, fontWeight: '600', color: isDark ? '#94A3B8' : '#475569' },
-                                    isActive && { color: '#FFFFFF', fontWeight: '700' }
-                                ]}>
-                                    {item.label}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </ScrollView>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <IslandDropdown
+                        options={ISLAND_FILTERS.map(item => ({ value: item.id, label: item.label }))}
+                        value={selectedFilterIsland}
+                        onChange={setSelectedFilterIsland}
+                        isDark={isDark}
+                        menuTop={insets.top + 62}
+                        compact
+                        triggerLabel={selectedFilterIsland === 'ALL' ? (i18n.language.startsWith('en') ? 'All' : 'Tümü') : undefined}
+                    />
+                </View>
             </View>
 
             <ScrollView
-                style={styles.content}
+                style={[styles.content, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}
                 contentContainerStyle={[
                     { paddingBottom: 20 },
                     (loading || filteredEvents.length === 0) && { flex: 1 }
@@ -531,39 +521,35 @@ export default function EventsScreen() {
                                 key={event.id}
                                 style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }, isGridView && { width: (width - 44) / 2, marginHorizontal: 0, marginBottom: 14 }]}
                                 activeOpacity={0.8}
-                                onPress={() => router.push({ pathname: '/explore/island/event/[id]', params: { id: event.id } })}
+                                onPress={() => {
+                                    setViewerImageUrl(
+                                        hasUserImage
+                                            ? resolvedUrl
+                                            : 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
+                                    );
+                                    setImageViewerVisible(true);
+                                }}
                             >
                                 {hasUserImage ? (
-                                    <TouchableOpacity
-                                        activeOpacity={0.9}
-                                        onPress={(e) => {
-                                            e.stopPropagation?.();
-                                            setViewerImageUrl(resolvedUrl);
-                                            setImageViewerVisible(true);
-                                        }}
-                                        style={{ width: '100%', height: isGridView ? 140 : 300, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
+                                    <View
+                                        style={{ width: '100%', aspectRatio: 4 / 5, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
                                     >
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
-                                            resizeMode="cover"
+                                            resizeMode="contain"
                                         />
-                                    </TouchableOpacity>
+                                    </View>
                                 ) : (
-                                    <TouchableOpacity
-                                        activeOpacity={0.9}
-                                        onPress={(e) => {
-                                            e.stopPropagation?.();
-                                            setViewerImageUrl('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80');
-                                            setImageViewerVisible(true);
-                                        }}
-                                        style={{ width: '100%', height: isGridView ? 140 : 300 }}
+                                    <View
+                                        style={{ width: '100%', aspectRatio: 4 / 5, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
                                     >
                                         <Image
                                             source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                            style={[styles.eventImage, isGridView && { height: 140 }]}
+                                            style={styles.eventImage}
+                                            resizeMode="contain"
                                         />
-                                    </TouchableOpacity>
+                                    </View>
                                 )}
                                 
                                 <View style={[styles.eventInfo, isGridView && { padding: 12 }]}>
@@ -614,6 +600,7 @@ export default function EventsScreen() {
                                                         </Text>
                                                     </View>
                                                 )}
+
                                             </View>
                                         </View>
                                     </View>
@@ -631,6 +618,22 @@ export default function EventsScreen() {
                     if (!isLoggedIn) {
                         setShowLoginPrompt(true);
                     } else {
+                        setEditingActivityId(null);
+                        setNewEventName('');
+                        setNewEventDetails('');
+                        setSocialLink('');
+                        setNewEventLocation('');
+                        setSelectedImage(null);
+                        setStartDate(new Date());
+                        setHasStartDate(false);
+                        setHasStartTime(false);
+                        setHasEndDate(false);
+                        setHasEndTime(false);
+                        setShowStartPicker(false);
+                        setShowStartTimePicker(false);
+                        setShowEndPicker(false);
+                        setShowEndTimePicker(false);
+                        setShowOptionalDetails(false);
                         setContactNumber(user?.phone || user?.email || '');
                         setOrganizerName(user?.fullName || user?.email || '');
                         setIsAddModalVisible(true);
@@ -685,182 +688,16 @@ export default function EventsScreen() {
                     <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
                         <View style={{ padding: 20 }}>
 
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'SELECT ISLAND * (Required)' : 'ADA SEÇİMİ * (Zorunlu)'}</Text>
-                        <View style={{ flexDirection: 'row', gap: 4, marginBottom: 20 }}>
-                            {['KINALIADA', 'BURGAZADA', 'HEYBELIADA', 'BUYUKADA'].map((islandId) => (
-                                <TouchableOpacity 
-                                    key={islandId}
-                                    style={[
-                                        styles.islandChip, 
-                                        isDark && { backgroundColor: '#000000', borderColor: '#262626' },
-                                        { flex: 1 },
-                                        selectedIsland === islandId && styles.islandChipSelected
-                                    ]}
-                                    onPress={() => setSelectedIsland(islandId)}
-                                >
-                                    <Text 
-                                        numberOfLines={1} 
-                                        adjustsFontSizeToFit 
-                                        style={[
-                                            styles.islandChipText, 
-                                            isDark && { color: '#E5E5E5' },
-                                            selectedIsland === islandId && styles.islandChipTextSelected
-                                        ]}
-                                    >
-                                        {t('places.' + (islandId === 'BUYUKADA' ? 'Büyükada' : islandId === 'HEYBELIADA' ? 'Heybeliada' : islandId === 'BURGAZADA' ? 'Burgazada' : 'Kınalıada'))}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventName')}</Text>
-                        <TextInput 
-                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                            placeholder={t('events.titlePlaceholder')}
-                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                            value={newEventName}
-                            onChangeText={setNewEventName}
-                            ref={titleInputRef}
-                        />
-
-                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[styles.inputLabel, { fontSize: 11 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} allowFontScaling={false}>
-                                    {i18n.language.startsWith('en') ? 'START DATE' : 'BAŞLANGIÇ TARİHİ'}
-                                </Text>
-                                <TouchableOpacity 
-                                    style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]} 
-                                    onPress={() => setShowStartPicker(true)}
-                                >
-                                    <Text style={[styles.dateSelectorText, isDark && { color: '#FFFFFF' }, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
-                                        {startDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                    </Text>
-                                    <IconSymbol name="calendar" size={14} color="#3B82F6" />
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[styles.inputLabel, { fontSize: 11 }, isDark && { color: '#94A3B8' }]} numberOfLines={1} allowFontScaling={false}>
-                                    {i18n.language.startsWith('en') ? 'END DATE' : 'BİTİŞ TARİHİ'}
-                                </Text>
-                                <TouchableOpacity
-                                    style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { paddingHorizontal: 12 }]}
-                                    onPress={() => setShowEndPicker(true)}
-                                >
-                                    <Text style={[styles.dateSelectorText, isDark && { color: '#FFFFFF' }, { fontSize: 12, flexShrink: 1, marginRight: 4 }]} numberOfLines={1} adjustsFontSizeToFit>
-                                        {hasEndDate
-                                            ? `${endDate.toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')} • ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                                            : (i18n.language.startsWith('en') ? 'Add end date (Optional)' : 'Bitiş tarihi ekle (Opsiyonel)')}
-                                    </Text>
-                                    {hasEndDate ? (
-                                        <TouchableOpacity
-                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                            onPress={(event) => {
-                                                event.stopPropagation();
-                                                setHasEndDate(false);
-                                            }}
-                                        >
-                                            <IconSymbol name="xmark" size={14} color="#EF4444" />
-                                        </TouchableOpacity>
-                                    ) : (
-                                        <IconSymbol name="calendar" size={14} color="#3B82F6" />
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        <CustomDateTimePicker
-                            visible={showStartPicker}
-                            value={startDate}
-                            title="Başlangıç Tarihi ve Saati"
-                            accentColor="#3B82F6"
-                            minimumDate={new Date()}
-                            onConfirm={(date) => {
-                                setStartDate(date);
-                                if (endDate <= date) setEndDate(new Date(date.getTime() + 60 * 60 * 1000));
-                                setShowStartPicker(false);
-                            }}
-                            onCancel={() => setShowStartPicker(false)}
-                        />
-
-                        <CustomDateTimePicker
-                            visible={showEndPicker}
-                            value={endDate}
-                            title={i18n.language.startsWith('en') ? 'End Date and Time' : 'Bitiş Tarihi ve Saati'}
-                            accentColor="#3B82F6"
-                            minimumDate={startDate}
-                            onConfirm={(date) => { setEndDate(date); setHasEndDate(true); setShowEndPicker(false); }}
-                            onCancel={() => setShowEndPicker(false)}
-                        />
-
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.eventLocation')}</Text>
-                        <TextInput 
-                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                            placeholder={t('events.locationPlaceholder')}
-                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                            value={newEventLocation}
-                            onChangeText={setNewEventLocation}
-                        />
-
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.orgName')}</Text>
-                        <TextInput 
-                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                            placeholder={t('events.orgPlaceholder')}
-                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                            value={organizerName}
-                            onChangeText={setOrganizerName}
-                        />
-
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'CONTACT INFO (TEL/EMAIL) * (Required)' : 'İLETİŞİM BİLGİSİ (TEL/E-POSTA) * (Zorunlu)'}</Text>
-                        <TextInput 
-                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                            placeholder="Örn: 05xx xxx xx xx veya ornek@email.com"
-                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                            keyboardType="default"
-                            value={contactNumber}
-                            onChangeText={setContactNumber}
-                        />
-
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('events.socialLink')}</Text>
-                        <TextInput 
-                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                            placeholder="https://instagram.com/..."
-                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                            autoCapitalize="none"
-                            value={socialLink}
-                            onChangeText={setSocialLink}
-                        />
-
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{t('events.eventDetails')}</Text>
-                            <Text style={{ fontSize: 12, fontWeight: '700', color: newEventDetails.length >= 500 ? '#EF4444' : (isDark ? '#94A3B8' : '#64748B') }}>
-                                {newEventDetails.length}/500
-                            </Text>
-                        </View>
-                        <TextInput 
-                            style={[styles.input, styles.textArea, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
-                            placeholder={t('events.detailsPlaceholder')}
-                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                            value={newEventDetails}
-                            onChangeText={setNewEventDetails}
-                            multiline
-                            scrollEnabled={false}
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            maxLength={500}
-                        />
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{t('events.eventPhoto')}</Text>
+                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{i18n.language.startsWith('en') ? 'EVENT PHOTO (Required)' : 'ETKİNLİK FOTOĞRAFI (Zorunlu)'}</Text>
                             <Text style={{ fontSize: 12, fontWeight: '700', color: selectedImage ? '#10B981' : (isDark ? '#94A3B8' : '#64748B') }}>
-                                {selectedImage ? '1/1 foto' : '0/1 foto'}
+                                {selectedImage ? '1/1' : '0/1'}
                             </Text>
                         </View>
                         {selectedImage ? (
                             <View style={styles.imagePreviewContainer}>
-                                <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-                                <TouchableOpacity 
-                                    style={styles.removeImageBtn} 
-                                    onPress={() => setSelectedImage(null)}
-                                >
+                                <Image source={{ uri: selectedImage }} style={styles.imagePreview} resizeMode="contain" />
+                                <TouchableOpacity style={styles.removeImageBtn} onPress={() => setSelectedImage(null)}>
                                     <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
                                 </TouchableOpacity>
                             </View>
@@ -870,6 +707,187 @@ export default function EventsScreen() {
                                 <Text style={[styles.addPhotoText, isDark && { color: '#94A3B8' }]}>{t('events.addPhoto')}</Text>
                             </TouchableOpacity>
                         )}
+
+                        <TouchableOpacity
+                            style={[styles.optionalDetailsToggle, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]}
+                            onPress={() => setShowOptionalDetails(value => !value)}
+                            activeOpacity={0.75}
+                        >
+                            <View style={styles.optionalDetailsIcon}>
+                                <IconSymbol name="plus" size={18} color="#FFFFFF" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.optionalDetailsTitle, isDark && { color: '#FFFFFF' }]}>
+                                    {i18n.language.startsWith('en') ? 'Add event details' : 'Etkinlik bilgileri ekle'}
+                                </Text>
+                                <Text style={[styles.optionalDetailsSubtitle, isDark && { color: '#94A3B8' }]}>
+                                    {i18n.language.startsWith('en') ? 'Name, location, date and more (Optional)' : 'Ad, konum, tarih ve diğerleri (İsteğe bağlı)'}
+                                </Text>
+                            </View>
+                            <IconSymbol name={showOptionalDetails ? 'chevron.up' : 'chevron.down'} size={16} color="#64748B" />
+                        </TouchableOpacity>
+
+                        {showOptionalDetails && (<View style={styles.optionalDetailsContent}>
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'EVENT NAME (Optional)' : 'ETKİNLİK ADI (İsteğe bağlı)'}</Text>
+                        <TextInput
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
+                            placeholder={i18n.language.startsWith('en') ? 'Enter event name' : 'Etkinlik adını yazın'}
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                            value={newEventName}
+                            onChangeText={setNewEventName}
+                        />
+
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'ISLAND (Optional)' : 'ADA / KONUM (İsteğe bağlı)'}</Text>
+                        <View style={styles.optionalIslandGrid}>
+                            {ISLAND_FILTERS.slice(1).map(item => {
+                                const active = selectedIsland === item.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={[styles.optionalIslandButton, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, active && styles.optionalIslandButtonActive]}
+                                        onPress={() => setSelectedIsland(active ? null : item.id)}
+                                    >
+                                        <Text style={[styles.optionalIslandText, isDark && { color: '#CBD5E1' }, active && { color: '#FFFFFF' }]}>{item.label}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'EVENT PLACE (Optional)' : 'ETKİNLİK YERİ (İsteğe bağlı)'}</Text>
+                        <TextInput
+                            style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
+                            placeholder={t('events.locationPlaceholder')}
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                            value={newEventLocation}
+                            onChangeText={setNewEventLocation}
+                        />
+
+                        <Text style={[styles.dateFieldLabel, isDark && { color: '#CBD5E1' }]}>{i18n.language.startsWith('en') ? 'Start' : 'Başlangıç'}</Text>
+                        <TouchableOpacity
+                            style={[styles.dateSelector, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]}
+                            onPress={() => setShowStartPicker(true)}
+                        >
+                            <Text style={[styles.dateSelectorText, { flex: 1 }, isDark && { color: '#FFFFFF' }]}>
+                                {hasStartDate
+                                    ? startDate.toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+                                    : (i18n.language.startsWith('en') ? 'Select start date' : 'Başlangıç tarihi seç')}
+                            </Text>
+                            <IconSymbol name="calendar" size={20} color="#3B82F6" />
+                        </TouchableOpacity>
+                        {hasStartDate && (
+                            <View style={styles.optionalActionsRow}>
+                                <TouchableOpacity style={styles.addTimeButton} onPress={() => setShowStartTimePicker(true)}>
+                                    <IconSymbol name="clock.fill" size={14} color="#3B82F6" />
+                                    <Text style={styles.addTimeText}>
+                                        {hasStartTime
+                                            ? startDate.toLocaleTimeString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })
+                                            : (i18n.language.startsWith('en') ? '+ Add time' : '+ Saat ekle')}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => { setHasStartDate(false); setHasStartTime(false); setHasEndDate(false); setHasEndTime(false); }}>
+                                    <Text style={styles.removeOptionalText}>{i18n.language.startsWith('en') ? 'Remove' : 'Kaldır'}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        <Text style={[styles.dateFieldLabel, { marginTop: 14 }, isDark && { color: '#CBD5E1' }]}>{i18n.language.startsWith('en') ? 'End' : 'Bitiş'}</Text>
+                        <TouchableOpacity
+                            style={[styles.dateSelector, !hasStartDate && { opacity: 0.5 }, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }]}
+                            onPress={() => hasStartDate && setShowEndPicker(true)}
+                            disabled={!hasStartDate}
+                        >
+                            <Text style={[styles.dateSelectorText, { flex: 1 }, isDark && { color: '#FFFFFF' }]}>
+                                {hasEndDate
+                                    ? endDate.toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+                                    : (i18n.language.startsWith('en') ? 'Select end date' : 'Bitiş tarihi seç')}
+                            </Text>
+                            <IconSymbol name="calendar" size={20} color="#3B82F6" />
+                        </TouchableOpacity>
+                        {hasEndDate && (
+                            <View style={styles.optionalActionsRow}>
+                                <TouchableOpacity style={styles.addTimeButton} onPress={() => setShowEndTimePicker(true)}>
+                                    <IconSymbol name="clock.fill" size={14} color="#3B82F6" />
+                                    <Text style={styles.addTimeText}>
+                                        {hasEndTime
+                                            ? endDate.toLocaleTimeString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })
+                                            : (i18n.language.startsWith('en') ? '+ Add time' : '+ Saat ekle')}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => { setHasEndDate(false); setHasEndTime(false); }}>
+                                    <Text style={styles.removeOptionalText}>{i18n.language.startsWith('en') ? 'Remove' : 'Kaldır'}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        <CustomDateTimePicker
+                            visible={showStartPicker}
+                            value={startDate}
+                            mode="date"
+                            title={i18n.language.startsWith('en') ? 'Start date' : 'Başlangıç tarihi'}
+                            accentColor="#3B82F6"
+                            minimumDate={editingActivityId ? undefined : new Date()}
+                            onConfirm={(date) => {
+                                setStartDate(date);
+                                setHasStartDate(true);
+                                setHasStartTime(false);
+                                if (hasEndDate && endDate < date) {
+                                    setHasEndDate(false);
+                                    setHasEndTime(false);
+                                }
+                                setShowStartPicker(false);
+                            }}
+                            onCancel={() => setShowStartPicker(false)}
+                        />
+                        <CustomDateTimePicker
+                            visible={showStartTimePicker}
+                            value={startDate}
+                            mode="time"
+                            title={i18n.language.startsWith('en') ? 'Start time (Optional)' : 'Başlangıç saati (İsteğe bağlı)'}
+                            accentColor="#3B82F6"
+                            onConfirm={(date) => { setStartDate(date); setHasStartTime(true); setShowStartTimePicker(false); }}
+                            onCancel={() => setShowStartTimePicker(false)}
+                        />
+                        <CustomDateTimePicker
+                            visible={showEndPicker}
+                            value={endDate}
+                            mode="date"
+                            title={i18n.language.startsWith('en') ? 'End date' : 'Bitiş tarihi'}
+                            accentColor="#3B82F6"
+                            minimumDate={startDate}
+                            onConfirm={(date) => { setEndDate(date); setHasEndDate(true); setHasEndTime(false); setShowEndPicker(false); }}
+                            onCancel={() => setShowEndPicker(false)}
+                        />
+                        <CustomDateTimePicker
+                            visible={showEndTimePicker}
+                            value={endDate}
+                            mode="time"
+                            title={i18n.language.startsWith('en') ? 'End time (Optional)' : 'Bitiş saati (İsteğe bağlı)'}
+                            accentColor="#3B82F6"
+                            onConfirm={(date) => { setEndDate(date); setHasEndTime(true); setShowEndTimePicker(false); }}
+                            onCancel={() => setShowEndTimePicker(false)}
+                        />
+
+                        <Text style={[styles.inputLabel, { marginTop: 14 }, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'DESCRIPTION (Optional)' : 'ETKİNLİK AÇIKLAMASI (İsteğe bağlı)'}</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
+                            placeholder={i18n.language.startsWith('en') ? 'Write event details...' : 'Etkinlik açıklamasını yazın...'}
+                            placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                            value={newEventDetails}
+                            onChangeText={setNewEventDetails}
+                            multiline
+                            maxLength={500}
+                            textAlignVertical="top"
+                        />
+
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'ORGANIZER (Optional)' : 'DÜZENLEYEN (İsteğe bağlı)'}</Text>
+                        <TextInput style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder={i18n.language.startsWith('en') ? 'Organizer name' : 'Düzenleyen kişi veya kurum'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={organizerName} onChangeText={setOrganizerName} />
+
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'CONTACT (Optional)' : 'İLETİŞİM (İsteğe bağlı)'}</Text>
+                        <TextInput style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder={i18n.language.startsWith('en') ? 'Phone or email' : 'Telefon veya e-posta'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={contactNumber} onChangeText={setContactNumber} />
+
+                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'SOCIAL LINK (Optional)' : 'SOSYAL MEDYA LİNKİ (İsteğe bağlı)'}</Text>
+                        <TextInput style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder="https://instagram.com/..." placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} autoCapitalize="none" value={socialLink} onChangeText={setSocialLink} />
+                        </View>)}
                         </View>
                     </KeyboardAwareScrollView>
                 </Animated.View>
@@ -894,42 +912,31 @@ export default function EventsScreen() {
                 message={successModalMessage}
             />
 
-            {/* Fullscreen Image Viewer Modal */}
             <Modal
                 visible={imageViewerVisible}
-                transparent={true}
+                transparent
                 animationType="fade"
+                statusBarTranslucent
                 onRequestClose={() => setImageViewerVisible(false)}
             >
-                <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
-                    {/* Close button */}
+                <View style={styles.fullscreenPoster}>
                     <TouchableOpacity
-                        style={{
-                            position: 'absolute',
-                            top: insets.top + 16,
-                            right: 20,
-                            zIndex: 20,
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
+                        style={[styles.fullscreenCloseButton, { top: insets.top + 16 }]}
                         onPress={() => setImageViewerVisible(false)}
+                        activeOpacity={0.75}
                     >
-                        <IconSymbol name="xmark" size={18} color="#FFFFFF" />
+                        <IconSymbol name="xmark" size={19} color="#FFFFFF" />
                     </TouchableOpacity>
-
                     {viewerImageUrl && (
                         <Image
                             source={{ uri: viewerImageUrl }}
-                            style={{ width: Dimensions.get('window').width, height: Dimensions.get('window').height }}
+                            style={styles.fullscreenPosterImage}
                             resizeMode="contain"
                         />
                     )}
                 </View>
             </Modal>
+
         </View>
         </SwipeNavigation>
     );
@@ -938,14 +945,35 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#FFFFFF',
+    },
+    fullscreenPoster: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000000',
+    },
+    fullscreenPosterImage: {
+        width: '100%',
+        height: '100%',
+    },
+    fullscreenCloseButton: {
+        position: 'absolute',
+        right: 20,
+        zIndex: 10,
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.22)',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 16,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#FFFFFF',
     },
     backButton: {
         width: 44,
@@ -985,7 +1013,7 @@ const styles = StyleSheet.create({
     },
     eventImage: {
         width: '100%',
-        height: 300,
+        height: '100%',
     },
     eventInfo: {
         padding: 16,
@@ -1132,6 +1160,98 @@ const styles = StyleSheet.create({
         color: '#1A1A1A',
         fontWeight: '600',
     },
+    optionalDetailsToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 11,
+        padding: 14,
+        marginTop: 2,
+        marginBottom: 4,
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 14,
+    },
+    optionalDetailsIcon: {
+        width: 34,
+        height: 34,
+        borderRadius: 11,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#3B82F6',
+    },
+    optionalDetailsTitle: {
+        color: '#0F172A',
+        fontSize: 14,
+        fontWeight: '800',
+    },
+    optionalDetailsSubtitle: {
+        color: '#64748B',
+        fontSize: 11,
+        fontWeight: '500',
+        marginTop: 2,
+    },
+    optionalDetailsContent: {
+        marginTop: 20,
+    },
+    optionalIslandGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 20,
+    },
+    optionalIslandButton: {
+        width: '48%',
+        minHeight: 42,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 8,
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 10,
+    },
+    optionalIslandButtonActive: {
+        backgroundColor: '#3B82F6',
+        borderColor: '#3B82F6',
+    },
+    optionalIslandText: {
+        color: '#475569',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    dateFieldLabel: {
+        color: '#475569',
+        fontSize: 13,
+        fontWeight: '800',
+        marginBottom: 7,
+    },
+    optionalActionsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: 38,
+        marginTop: 4,
+        paddingHorizontal: 4,
+    },
+    addTimeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 8,
+        paddingRight: 12,
+    },
+    addTimeText: {
+        color: '#3B82F6',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    removeOptionalText: {
+        color: '#EF4444',
+        fontSize: 12,
+        fontWeight: '700',
+        paddingVertical: 8,
+    },
     publishButtonDisabled: {
         backgroundColor: '#E2E8F0',
     },
@@ -1161,8 +1281,8 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     imagePreview: {
-        width: 100,
-        height: 100,
+        width: '100%',
+        aspectRatio: 4 / 5,
         borderRadius: 10,
     },
     removeImageBtn: {

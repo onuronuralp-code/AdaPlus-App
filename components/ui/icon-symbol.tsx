@@ -60,6 +60,7 @@ const MAPPING = {
   'mountain.2.fill': 'landscape', // For Monastery on the hill
   'ferry.fill': 'directions-boat', // For the Pier
   'bell.fill': 'notifications', // For Notifications
+  'bell': 'notifications',
   'megaphone.fill': 'campaign', // For Megaphone / Announcements
   'megaphone': 'campaign',
   'doc.text.fill': 'menu-book', // For Restaurant Menus

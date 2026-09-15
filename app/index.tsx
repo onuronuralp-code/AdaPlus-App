@@ -58,18 +58,11 @@ export default function SplashScreen() {
   useEffect(() => {
     if (!fontsLoaded) return;
 
-    if (isLoggedIn) {
-      const timer = setTimeout(() => {
-        hideNativeSplashOnce();
-        // A cold-start deep link (e.g. a password reset email link) may already have
-        // navigated away from "/" by the time this fires — don't clobber it by forcing
-        // the user back to Explore. Only redirect if we're still actually on this screen.
-        if (pathname === '/') {
-          router.replace("/(tabs)/explore");
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      hideNativeSplashOnce();
+      router.replace("/(tabs)/explore");
+    }, 600);
+    return () => clearTimeout(timer);
 
     hideNativeSplashOnce().then(() => {
       Animated.sequence([

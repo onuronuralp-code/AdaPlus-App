@@ -755,7 +755,7 @@ export default function ProfileScreen() {
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                     <IconSymbol name="clock" size={12} color={isDark ? "#60A5FA" : "#3B82F6"} />
                                     <Text style={[styles.listingTime, { color: isDark ? '#60A5FA' : '#3B82F6', marginLeft: 4, fontWeight: '700' }]}>
-                                        {timeAgo(activity.startDate)}
+                                        {activity.startDate ? timeAgo(activity.startDate) : t('common.notSpecified', { defaultValue: 'Belirtilmemiş' })}
                                     </Text>
                                 </View>
                             </View>

@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard, Share, AppState } from 'react-native';
+import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard, Share, DeviceEventEmitter } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
@@ -28,7 +28,7 @@ import { SwipeButton } from '@/components/SwipeButton';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useTranslation } from 'react-i18next';
-import { fetchActivities, fetchDepartures, fetchServiceBanner, ServiceBannerDto } from '@/services/api';
+import { fetchActivities, fetchServiceBanner, ServiceBannerDto } from '@/services/api';
 import { fetchListings } from '@/services/listingApi';
 import { API_BASE_URL, fetchWithTimeout, resolveImageUrl } from '@/services/config';
 
@@ -41,217 +41,10 @@ import { fetchUserCount } from '@/services/authApi';
 import { CelebrationModal } from '@/components/CelebrationModal';
 import { unregisterPushNotifications } from '@/services/notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useWeather } from '@/hooks/useWeather';
 import { createPost, PostType, Island } from '@/services/forumApi';
 import { CopilotStep, walkthroughable, useCopilot } from 'react-native-copilot';
 const WalkthroughableView = walkthroughable(View);
 
-const getRouteTimeValue = (time: string): number => {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-};
-
-const TodayOnIsland = () => {
-  const { t, i18n } = useTranslation();
-  const router = useRouter();
-  const { height } = useWindowDimensions();
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-  const isLargeScreen = height > 900;
-  
-  const { user, isLoggedIn } = useAuth();
-  const { weather, loading: weatherLoading } = useWeather();
-  const [nextFerry, setNextFerry] = useState<{from: string, to: string, time: string, provider?: string, diffMinutes: number} | null>(null);
-  const [ferryLoading, setFerryLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-    let cancelled = false;
-    let requestId = 0;
-    
-    const getNormalizedIsland = (rawIsland?: string): string => {
-      if (!rawIsland) return isLoggedIn ? "Büyükada" : "Kınalıada";
-      const upper = rawIsland.toUpperCase();
-      if (upper.includes("BUYUK") || upper.includes("BÜYÜK")) return "Büyükada";
-      if (upper.includes("HEYBELI") || upper.includes("HEYBELİ")) return "Heybeliada";
-      if (upper.includes("BURGAZ")) return "Burgazada";
-      if (upper.includes("KINALI") || upper.includes("KİNALI")) return "Kınalıada";
-      return isLoggedIn ? "Büyükada" : "Kınalıada";
-    };
-
-    const fetchFerry = async () => {
-      const currentRequestId = ++requestId;
-      try {
-        setFerryLoading(true);
-        let targetIsland = isLoggedIn ? "Büyükada" : "Kınalıada";
-        let defIsland: string | null = null;
-        if (isLoggedIn && (user as any)?.island) {
-          targetIsland = getNormalizedIsland((user as any)?.island);
-        } else if (isLoggedIn) {
-          defIsland = await AsyncStorage.getItem('defaultIsland');
-          if (defIsland) {
-            targetIsland = getNormalizedIsland(defIsland);
-          }
-        } else {
-          targetIsland = "Kınalıada";
-        }
-
-        const isIslandName = (name: string): boolean => {
-          const upper = name.toUpperCase();
-          return upper.includes("BUYUK") || upper.includes("BÜYÜK") ||
-                 upper.includes("HEYBELI") || upper.includes("HEYBELİ") ||
-                 upper.includes("BURGAZ") ||
-                 upper.includes("KINALI") || upper.includes("KİNALI");
-        };
-
-        let mainPorts = ["Bostancı", "Kabataş", "Kadıköy"];
-        const favRouteStr = await AsyncStorage.getItem('favorite_route');
-        if (favRouteStr) {
-          try {
-            const fav = JSON.parse(favRouteStr);
-            if (fav.departure && fav.destination && isIslandName(fav.destination)) {
-              mainPorts = [fav.departure, ...mainPorts.filter(p => p !== fav.departure)];
-              if (!defIsland) {
-                targetIsland = getNormalizedIsland(fav.destination);
-              }
-            }
-          } catch {}
-        }
-
-        const dateObj = new Date();
-        const yyyy = dateObj.getFullYear();
-        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dd = String(dateObj.getDate()).padStart(2, '0');
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-        const nowMinutes = dateObj.getHours() * 60 + dateObj.getMinutes();
-
-        const routePromises = mainPorts.map(port => fetchDepartures(port, targetIsland, dateStr));
-        const results = await Promise.all(routePromises);
-
-        let allUpcoming: { from: string; to: string; time: string; provider?: string; diffMinutes: number }[] = [];
-
-        results.forEach((departures, idx) => {
-          const portName = mainPorts[idx];
-          departures.forEach(d => {
-            const dest = d.to || targetIsland;
-            const depFrom = d.from || portName;
-            // Only include routes that arrive at or depart from targetIsland
-            if (dest.toLowerCase().includes(targetIsland.toLowerCase()) || depFrom.toLowerCase().includes(targetIsland.toLowerCase())) {
-              const timeVal = getRouteTimeValue(d.time);
-              let diff = timeVal - nowMinutes;
-              if (timeVal < 180 && nowMinutes > 180) {
-                diff = (timeVal + 1440) - nowMinutes;
-              }
-              if (diff >= 0) {
-                allUpcoming.push({
-                  from: depFrom,
-                  to: dest,
-                  time: d.time,
-                  provider: d.provider,
-                  diffMinutes: diff,
-                });
-              }
-            }
-          });
-        });
-
-        allUpcoming.sort((a, b) => a.diffMinutes - b.diffMinutes);
-
-        if (allUpcoming.length === 0) {
-          const tomorrow = new Date(dateObj);
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          const tYyyy = tomorrow.getFullYear();
-          const tMm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-          const tDd = String(tomorrow.getDate()).padStart(2, '0');
-          const tmrwStr = `${tYyyy}-${tMm}-${tDd}`;
-
-          const tmrwPromises = mainPorts.map(port => fetchDepartures(port, targetIsland, tmrwStr));
-          const tmrwResults = await Promise.all(tmrwPromises);
-
-          tmrwResults.forEach((departures, idx) => {
-            const portName = mainPorts[idx];
-            departures.forEach(d => {
-              const dest = d.to || targetIsland;
-              const depFrom = d.from || portName;
-              if (dest.toLowerCase().includes(targetIsland.toLowerCase()) || depFrom.toLowerCase().includes(targetIsland.toLowerCase())) {
-                const timeVal = getRouteTimeValue(d.time);
-                allUpcoming.push({
-                  from: depFrom,
-                  to: dest,
-                  time: d.time,
-                  provider: d.provider,
-                  diffMinutes: timeVal + 1440,
-                });
-              }
-            });
-          });
-
-          allUpcoming.sort((a, b) => a.diffMinutes - b.diffMinutes);
-        }
-
-        if (!cancelled && currentRequestId === requestId) {
-          setNextFerry(allUpcoming.length > 0 ? {
-            from: allUpcoming[0].from,
-            to: allUpcoming[0].to,
-            time: allUpcoming[0].time,
-            provider: allUpcoming[0].provider,
-            diffMinutes: allUpcoming[0].diffMinutes,
-          } : null);
-        }
-      } catch (err) {
-        console.log("Failed to fetch next ferry", err);
-      } finally {
-        if (!cancelled && currentRequestId === requestId) setFerryLoading(false);
-      }
-    };
-    fetchFerry();
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') fetchFerry();
-    });
-    
-    return () => {
-      cancelled = true;
-      subscription.remove();
-    };
-  }, [user, isLoggedIn])
-  );
-
-  return (
-    <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
-      {/* Weather Badge */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#FFF7ED', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, borderWidth: 2, borderColor: isDark ? '#F97316' : '#FED7AA' }}>
-        <IconSymbol 
-          name={weatherLoading ? 'sun.max.fill' : (weather?.condition === 'rainy' ? 'cloud.rain.fill' : (weather?.condition === 'cloudy' ? 'cloud.fill' : 'sun.max.fill'))} 
-          size={isLargeScreen ? 18 : 14} 
-          color={weatherLoading ? '#F97316' : (weather?.condition === 'rainy' ? '#3B82F6' : (weather?.condition === 'cloudy' ? '#94A3B8' : '#F97316'))} 
-        />
-        <Text style={{ fontSize: isLargeScreen ? 14 : 14, fontWeight: '700', color: isDark ? '#FB923C' : '#C2410C', marginLeft: 6 }}>
-          {weatherLoading ? '...' : (weather ? `${weather.temperature}°` : '28°')}
-        </Text>
-      </View>
-
-      {/* Ferry Badge */}
-      <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
-        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#000000' : '#EFF6FF', paddingHorizontal: 12, paddingVertical: isLargeScreen ? 12 : 8, borderRadius: 8, flex: 1, borderWidth: 2, borderColor: isDark ? '#3B82F6' : '#BFDBFE' }}
-        onPress={() => {
-          if (nextFerry) {
-            router.push({
-              pathname: '/(tabs)/home',
-              params: { from: nextFerry.from, to: nextFerry.to, time: nextFerry.time }
-            });
-          } else {
-            router.push('/(tabs)/home');
-          }
-        }}
-      >
-        <IconSymbol name="ferry.fill" size={isLargeScreen ? 18 : 14} color={isDark ? '#60A5FA' : '#3B82F6'} />
-        <Text style={{ fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', color: isDark ? '#93C5FD' : '#1D4ED8', marginLeft: 6, flexShrink: 1 }} numberOfLines={1}>
-          {ferryLoading ? (i18n.language.startsWith('en') ? 'Loading...' : 'Yükleniyor...') : (nextFerry ? `${nextFerry.time} ${nextFerry.from}-${nextFerry.to}${nextFerry.provider ? ' (' + nextFerry.provider + ')' : ''}` : (i18n.language.startsWith('en') ? 'No schedule found' : 'Sefer Bulunamadı'))}
-        </Text>
-      </Pressable>
-    </View>
-  );
-};
 const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChange: (lang: string) => void }) => {
   const isTr = currentLang.startsWith('tr');
 
@@ -274,6 +67,8 @@ const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChan
     </Pressable>
   );
 };
+
+const SHOW_INVITE_AND_SHARE_ACTIONS = false;
 
 export default function MainMenuScreen() {
   const { start } = useCopilot();
@@ -620,7 +415,7 @@ const MOCK_SERVICES = [
             title: event.name,
             subtitle: event.description || event.organizerName || '',
             island: event.island || event.eventPlace || 'Kınalıada',
-            date: event.startDate ? new Date(event.startDate).getTime() : now.getTime(),
+            date: event.startDate ? new Date(event.startDate).getTime() : null,
             createdAt: event.createdAt ? new Date(event.createdAt).getTime() : (event.startDate ? new Date(event.startDate).getTime() : now.getTime()),
             imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&auto=format&fit=crop&q=80'
           }));
@@ -640,7 +435,7 @@ const MOCK_SERVICES = [
           }));
 
         const combined = [...validEvents, ...validListings]
-          .sort((a, b) => b.date - a.date) // sort by newest first
+          .sort((a, b) => (b.date ?? b.createdAt) - (a.date ?? a.createdAt)) // sort by newest first
           .slice(0, 10);
 
         if (bannerData && bannerData.active) {
@@ -720,6 +515,33 @@ const MOCK_SERVICES = [
     }, [isLoggedIn])
   );
 
+  useEffect(() => {
+    const subEventsSeen = DeviceEventEmitter.addListener('eventsSeen', () => {
+      setUnseenEventsCount(0);
+      AsyncStorage.setItem('cached_unseen_events', '0');
+    });
+    const subListingsSeen = DeviceEventEmitter.addListener('listingsSeen', () => {
+      setUnseenListingsCount(0);
+      AsyncStorage.setItem('cached_unseen_listings', '0');
+    });
+    const subUpdated = DeviceEventEmitter.addListener('contentUpdated', () => {
+      Promise.all([fetchActivities(), fetchListings()]).then(([eventsData, listingsData]) => {
+        const events = Array.isArray(eventsData) ? eventsData : [];
+        const listings = Array.isArray(listingsData) ? listingsData : ((listingsData as any)?.content || []);
+        setTotalEventsCount(events.length);
+        setTotalListingsCount(listings.length);
+        AsyncStorage.setItem('cached_total_events', events.length.toString());
+        AsyncStorage.setItem('cached_total_listings', listings.length.toString());
+      }).catch(() => {});
+    });
+
+    return () => {
+      subEventsSeen.remove();
+      subListingsSeen.remove();
+      subUpdated.remove();
+    };
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       return () => {
@@ -761,7 +583,6 @@ const MOCK_SERVICES = [
     const index = Math.round(scrollPosition / snapInterval);
     setActiveIndex(index);
   };
-  const heroHeight = isSmallScreen ? Math.min(height * 0.30, 235) : Math.min(Math.max(height * 0.35, 275), 330);
 
   const heroScrollRef = useRef<ScrollView>(null);
 
@@ -781,7 +602,7 @@ const MOCK_SERVICES = [
 
 
   return (
-    <SwipeNavigation rightRoute="/(tabs)/home">
+    <SwipeNavigation rightRoute="/(tabs)/ilanlar">
     <View style={[styles.container, { paddingTop: insets.top }, isDark && { backgroundColor: '#000000' }]}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
@@ -793,15 +614,19 @@ const MOCK_SERVICES = [
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             scrollEnabled={true}
+            pagingEnabled={true}
             snapToInterval={pageHeight}
-            decelerationRate="fast"
             snapToAlignment="start"
+            decelerationRate="fast"
+            disableIntervalMomentum={true}
             bounces={false}
+            overScrollMode="never"
             keyboardShouldPersistTaps="handled"
             onLayout={(e) => setMeasuredPageHeight(e.nativeEvent.layout.height)}
           >
-            <View style={{ height: pageHeight, justifyContent: 'space-between', paddingBottom: 10 }}>
+            <View style={{ height: pageHeight, gap: 10, paddingBottom: 10 }}>
               <View style={[styles.welcomeContainer, { 
+                flexShrink: 0,
                 flexDirection: 'row', 
                 justifyContent: 'space-between', 
                 alignItems: 'center', 
@@ -833,8 +658,6 @@ const MOCK_SERVICES = [
                         style={({ pressed }) => [{
                           width: 44,
                           height: 44,
-                          borderRadius: 22,
-                          backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
                           justifyContent: 'center',
                           alignItems: 'center',
                         }, pressed && { opacity: 0.7 }]}
@@ -865,7 +688,7 @@ const MOCK_SERVICES = [
                           setLoadingNotifications(false);
                         }}
                       >
-                        <IconSymbol name="megaphone.fill" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
+                        <IconSymbol name="bell.fill" size={24} color={isDark ? '#F8FAFC' : '#0D1B2A'} />
                         {/* Dinamik Okunmamış Bildirim Rozeti (Placeholder Kaldırıldı) */}
                         {(() => {
                           const unreadCount = notifications.filter(n => !n.read).length;
@@ -873,8 +696,8 @@ const MOCK_SERVICES = [
                           return (
                             <View style={{
                               position: 'absolute',
-                              top: -2,
-                              right: -2,
+                              top: 2,
+                              right: 2,
                               backgroundColor: '#EF4444',
                               minWidth: 18,
                               height: 18,
@@ -883,7 +706,7 @@ const MOCK_SERVICES = [
                               justifyContent: 'center',
                               zIndex: 10,
                               borderWidth: 2,
-                              borderColor: isDark ? '#1E293B' : '#FFFFFF',
+                              borderColor: isDark ? '#000000' : '#FFFFFF',
                               paddingHorizontal: 3
                             }}>
                               <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
@@ -900,6 +723,7 @@ const MOCK_SERVICES = [
 
 
       {/* Invite and share actions */}
+      {SHOW_INVITE_AND_SHARE_ACTIONS && (
       <View style={{ paddingHorizontal: 12, marginBottom: 9 }}>
         <CopilotStep 
           text={
@@ -983,14 +807,11 @@ const MOCK_SERVICES = [
         </CopilotStep>
       </View>
 
-      {/* Weather & Ferry Banner */}
-      <View style={{ paddingHorizontal: 12, marginBottom: 10 }}>
-        <TodayOnIsland />
-      </View>
+      )}
 
       {/* Hero Header Slider Wrapper */}
       <CopilotStep text={t('explore.tour.banner', { defaultValue: i18n.language.startsWith('en') ? 'Important announcements, upcoming events, and featured listings are gathered here.' : 'Adadaki en önemli duyurular, yaklaşan etkinlikler ve öne çıkan ilanlar burada toplanır.' })} order={1} name="banner">
-        <WalkthroughableView collapsable={false} style={{ height: heroHeight, marginHorizontal: 12, borderRadius: 12 }}>
+        <WalkthroughableView collapsable={false} style={{ flex: 1, minHeight: 0, marginHorizontal: 12, borderRadius: 12 }}>
             <ScrollView 
           ref={heroScrollRef}
           horizontal 
@@ -1013,7 +834,7 @@ const MOCK_SERVICES = [
               style={{
                 width: slideWidth,
                 marginRight: index === slidesToRender.length - 1 ? 0 : slideGap,
-                backgroundColor: '#fff',
+                backgroundColor: '#0F172A',
                 borderRadius: 12
               }}
               onPress={() => {
@@ -1036,7 +857,8 @@ const MOCK_SERVICES = [
                 <ImageBackground 
                     source={{ uri: slide.imageUrl }} 
                     style={{ flex: 1, padding: 20, justifyContent: 'space-between', paddingHorizontal: 20 }}
-                    imageStyle={{ resizeMode: 'cover', borderRadius: 12 }}
+                    resizeMode="contain"
+                    imageStyle={{ borderRadius: 12 }}
                 >
                   <LinearGradient
                     colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
@@ -1057,7 +879,7 @@ const MOCK_SERVICES = [
                     </View>
                     <Pressable android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }} 
                       style={{ backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}
-                      onPress={() => navigateWithDebounce(slide.type === 'listing' ? '/(tabs)/explore/island/ilanlar' : '/(tabs)/explore/island/events')}
+                      onPress={() => navigateWithDebounce(slide.type === 'listing' ? '/(tabs)/ilanlar' : '/(tabs)/explore/island/events')}
                     >
                       <Text style={{ color: '#0F172A', fontSize: isLargeScreen ? 12 : 12, fontWeight: '700', marginRight: 4 }}>
                         {slide.type === 'listing' 
@@ -1135,6 +957,7 @@ const MOCK_SERVICES = [
 
       {/* 5 Cards Unified Frame Container */}
       <View style={{
+        flexShrink: 0,
         backgroundColor: isDark ? '#121212' : '#FFFFFF',
         marginHorizontal: 12,
         borderRadius: isLargeScreen ? 18 : 14,
@@ -1148,8 +971,8 @@ const MOCK_SERVICES = [
         shadowRadius: 8,
         borderWidth: 1,
         borderColor: isDark ? '#1C1C1E' : '#F1F5F9',
-        marginTop: 14,
-        marginBottom: isLargeScreen ? 26 : (isSmallScreen ? 16 : 20),
+        marginTop: 0,
+        marginBottom: 0,
         gap: isLargeScreen ? 12 : 8
       }}>
         {/* Hızlı Erişim Section (4 Buttons) */}
@@ -1186,33 +1009,25 @@ const MOCK_SERVICES = [
             </View>
           </View>
 
-          {/* 2. İlanlar */}
+          {/* 2. Tarifeler */}
           <View style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
-            <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'You can browse real estate, items, or job listings here.' : 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={3} name="ilanlar">
+            <CopilotStep text={t('explore.tour.tarifeler', { defaultValue: i18n.language.startsWith('en') ? 'You can check all ferry and boat schedules here.' : 'Tüm vapur ve motor sefer saatlerini buradan öğrenebilirsin.' })} order={3} name="tarifeler">
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
-                    AsyncStorage.setItem('lastViewedListings', Date.now().toString());
-                    setUnseenListingsCount(0);
-                    AsyncStorage.setItem('cached_unseen_listings', '0');
-                    navigateWithDebounce('/(tabs)/explore/island/ilanlar');
+                    navigateWithDebounce('/(tabs)/explore/island/tarifeler');
                   }}
                   onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <IconSymbol name="tag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
-                  {unseenListingsCount > 0 && (
-                    <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: isSmallScreen ? 18 : 20, height: isSmallScreen ? 18 : 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 2, borderColor: '#FFF', paddingHorizontal: 3 }}>
-                      <Text style={{ color: '#FFF', fontSize: isSmallScreen ? 9 : 10, fontWeight: '700', textAlign: 'center', includeFontPadding: false }}>{unseenListingsCount > 9 ? '9+' : unseenListingsCount}</Text>
-                    </View>
-                  )}
+                  <IconSymbol name="ferry.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
             <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.listings')}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.listingsCount', { count: totalListingsCount })}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('common.tabSchedule', { defaultValue: 'Tarifeler' })}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Ferry Times' : 'Sefer Saatleri'}</Text>
             </View>
           </View>
 
@@ -1634,13 +1449,10 @@ const MOCK_SERVICES = [
               key={idx}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setSelectedQuickServiceLabel(service.label);
-                const matchedIdx = getMockServiceIndexForCategory(service.label);
-                setMockServiceIndex(matchedIdx);
-                Animated.sequence([
-                  Animated.timing(bannerScaleAnim, { toValue: 0.94, duration: 100, useNativeDriver: true }),
-                  Animated.spring(bannerScaleAnim, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true }),
-                ]).start();
+                router.push({
+                  pathname: '/(tabs)/explore/island/hizmetler',
+                  params: { category: service.label, island: selectedIsland }
+                });
               }}
               style={({ pressed }) => ({
                 width: (width - 46) / 2,
@@ -1866,8 +1678,8 @@ const MOCK_SERVICES = [
 
               <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', lineHeight: 18, marginBottom: 16 }}>
                 {i18n.language.startsWith('en')
-                  ? 'Enter the email address of an island resident to invite them as a verified islander. Invite 3 friends and earn the Island Ambassador badge!'
-                  : 'Ada sakini komşunuzun e-posta adresini girerek AdaPlus\'a davet edin. 3 arkadaşınızı davet edin ve ada elçisi rozetini kazanın!'}
+                  ? 'Enter the email address of an island resident to invite them as a verified islander. Invite 3 friends and earn the "Island Ambassador" badge!'
+                  : 'Ada sakini komşunuzun e-posta adresini girerek AdaPlus\'a davet edin. 3 arkadaşınızı davet edin ve "Ada Elçisi" rozeti kazan!'}
               </Text>
 
               {/* Email Input */}

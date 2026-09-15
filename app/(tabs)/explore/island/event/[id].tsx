@@ -13,7 +13,10 @@ import {
     Alert,
     Platform,
     Modal,
+    DeviceEventEmitter,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -81,11 +84,21 @@ export default function EventDetailScreen() {
     useEffect(() => {
         if (!id) return;
         getActivity(id as string)
-            .then((data) => {
+            .then(async (data) => {
                 if (data) {
                     setActivity(data);
-                    setGoing(data.userHasRsvp ?? false);
-                    setRsvpCount(data.rsvpCount ?? 0);
+                    let initialGoing = data.userHasRsvp ?? false;
+                    let initialCount = data.rsvpCount ?? 0;
+                    try {
+                        const saved = await AsyncStorage.getItem(`rsvp_state_${id}`);
+                        if (saved) {
+                            const parsed = JSON.parse(saved);
+                            if (typeof parsed.going === 'boolean') initialGoing = parsed.going;
+                            if (typeof parsed.count === 'number') initialCount = parsed.count;
+                        }
+                    } catch (e) {}
+                    setGoing(initialGoing);
+                    setRsvpCount(initialCount);
                 }
             })
             .catch(() => setLoadError(true))
@@ -101,22 +114,29 @@ export default function EventDetailScreen() {
         if (rsvpLoading || now - lastTapRef.current < 400) return;
         lastTapRef.current = now;
 
-        // Optimistic update
+        // Instant optimistic update with haptic feedback
         const optimisticGoing = !going;
+        const newCount = optimisticGoing ? rsvpCount + 1 : Math.max(0, rsvpCount - 1);
         setGoing(optimisticGoing);
-        setRsvpCount((prev) => optimisticGoing ? prev + 1 : Math.max(0, prev - 1));
-        setRsvpLoading(true);
+        setRsvpCount(newCount);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
+        try {
+            await AsyncStorage.setItem(`rsvp_state_${id}`, JSON.stringify({ going: optimisticGoing, count: newCount }));
+            DeviceEventEmitter.emit('eventRsvpChanged', { id, going: optimisticGoing, count: newCount });
+        } catch (e) {}
+
+        setRsvpLoading(true);
         const result = await toggleActivityRsvp(id as string);
         setRsvpLoading(false);
 
         if (result) {
             setGoing(result.going);
             setRsvpCount(result.rsvpCount);
-        } else {
-            // Revert on failure
-            setGoing(!optimisticGoing);
-            setRsvpCount((prev) => optimisticGoing ? Math.max(0, prev - 1) : prev + 1);
+            try {
+                await AsyncStorage.setItem(`rsvp_state_${id}`, JSON.stringify({ going: result.going, count: result.rsvpCount }));
+                DeviceEventEmitter.emit('eventRsvpChanged', { id, going: result.going, count: result.rsvpCount });
+            } catch (e) {}
         }
     };
 
@@ -247,7 +267,7 @@ export default function EventDetailScreen() {
                 onPress={() => setImageViewerVisible(true)}
                 style={[styles.heroImage, { backgroundColor: isDark ? '#121212' : '#F1F5F9' }]}
             >
-                <Image source={{ uri: heroUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                <Image source={{ uri: heroUri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
             </TouchableOpacity>
 
             <ScrollView
@@ -257,15 +277,15 @@ export default function EventDetailScreen() {
                 contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
             >
                 <View style={[styles.content, { marginTop: 0 }, isDark && { backgroundColor: '#000000' }]}>
-                    {/* Badge + date */}
-                    <View style={[styles.metaRow, { justifyContent: 'space-between' }]}>
+                    {/* Event badge */}
+                    <View style={styles.metaRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
                             <View style={[styles.badge, isDark && { backgroundColor: '#1E3A8A' }]}>
                                 <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{isEnActive ? 'EVENT' : 'ETKİNLİK'}</Text>
                             </View>
                         </View>
                         {activity.description && activity.description.trim().length > 3 && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={handleToggleTranslation}
                                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: isDark ? '#1E293B' : '#F0F7FF', borderRadius: 12 }}
                                 activeOpacity={0.7}
@@ -301,23 +321,41 @@ export default function EventDetailScreen() {
                         <View style={{ flex: 1 }}>
                             <Text style={[styles.infoLabel, isDark && { color: '#94A3B8' }]}>{isEnActive ? 'START TIME' : 'BAŞLANGIÇ'}</Text>
                             {(() => {
-                                const parseDateAndTime = (ds?: string) => {
-                                    if (!ds) return { date: '', time: '' };
+                                const parseDateAndTime = (ds?: string | null) => {
+                                    if (!ds) return { date: isEnActive ? 'Not specified' : 'Belirtilmemiş', time: null };
                                     const d = new Date(ds);
                                     return {
                                         date: d.toLocaleDateString(isEnActive ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
-                                        time: d.toLocaleTimeString(isEnActive ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })
+                                        time: d.getHours() === 0 && d.getMinutes() === 0
+                                            ? null
+                                            : d.toLocaleTimeString(isEnActive ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })
                                     };
                                 };
                                 const start = parseDateAndTime(activity.startDate);
                                 const end = activity.endDate ? parseDateAndTime(activity.endDate) : null;
-                                
+
                                 return (
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2, paddingRight: 8 }}>
-                                        <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{start.date}</Text>
-                                        <View style={{ backgroundColor: isDark ? '#064E3B' : '#FFFFFF', borderColor: '#10B981', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                                            <Text style={{ color: isDark ? '#34D399' : '#10B981', fontWeight: 'bold', fontSize: 14 }}>{start.time}</Text>
+                                    <View style={{ gap: 8, marginTop: 2, paddingRight: 8 }}>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>{start.date}</Text>
+                                            {start.time && (
+                                                <View style={{ backgroundColor: isDark ? '#064E3B' : '#FFFFFF', borderColor: '#10B981', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                                    <Text style={{ color: isDark ? '#34D399' : '#10B981', fontWeight: 'bold', fontSize: 14 }}>{start.time}</Text>
+                                                </View>
+                                            )}
                                         </View>
+                                        {end && (
+                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <Text style={[styles.infoValue, isDark && { color: '#F8FAFC' }]}>
+                                                    {isEnActive ? 'End: ' : 'Bitiş: '}{end.date}
+                                                </Text>
+                                                {end.time && (
+                                                    <View style={{ backgroundColor: isDark ? '#172554' : '#FFFFFF', borderColor: '#3B82F6', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                                        <Text style={{ color: isDark ? '#60A5FA' : '#3B82F6', fontWeight: 'bold', fontSize: 14 }}>{end.time}</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        )}
                                     </View>
                                 );
                             })()}
@@ -383,10 +421,10 @@ export default function EventDetailScreen() {
                                 }}
                             >
                                 <View style={[styles.infoIcon, isDark ? { backgroundColor: '#1C1C1E' } : { backgroundColor: isEmail ? '#EFF6FF' : '#ECFDF5' }]}>
-                                    <IconSymbol 
-                                        name={isEmail ? "envelope.fill" : "phone.fill"} 
-                                        size={20} 
-                                        color={isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981')} 
+                                    <IconSymbol
+                                        name={isEmail ? "envelope.fill" : "phone.fill"}
+                                        size={20}
+                                        color={isEmail ? (isDark ? '#60A5FA' : '#3B82F6') : (isDark ? '#34D399' : '#10B981')}
                                     />
                                 </View>
                                 <View style={{ flex: 1 }}>
@@ -425,6 +463,38 @@ export default function EventDetailScreen() {
                             </View>
                         </TouchableOpacity>
                     )}
+
+                    {/* Katılacağım / Katılıyorum Button */}
+                    <TouchableOpacity
+                        style={[
+                            styles.rsvpButton,
+                            going && (isDark ? { backgroundColor: '#1E3A8A', borderWidth: 1, borderColor: '#3B82F6' } : styles.rsvpButtonActive),
+                            { marginTop: 24, marginBottom: 8 }
+                        ]}
+                        onPress={handleRsvp}
+                        disabled={rsvpLoading}
+                        activeOpacity={0.8}
+                    >
+                        {rsvpLoading ? (
+                            <ActivityIndicator color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
+                        ) : (
+                            <>
+                                <IconSymbol
+                                    name={going ? "checkmark.circle.fill" : "calendar.badge.plus"}
+                                    size={20}
+                                    color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'}
+                                />
+                                <Text style={[
+                                    styles.rsvpButtonText,
+                                    going && (isDark ? { color: '#60A5FA' } : styles.rsvpButtonTextActive)
+                                ]}>
+                                    {going
+                                        ? (isEnActive ? 'Attending' : 'Katılıyorum')
+                                        : (isEnActive ? "I'll Attend" : 'Katılacağım')}
+                                </Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
 
                 </View>
             </ScrollView>
@@ -504,7 +574,7 @@ const styles = StyleSheet.create({
     },
     heroImage: {
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH * 0.78,
+        aspectRatio: 4 / 5,
         backgroundColor: '#F1F5F9',
     },
     content: {
@@ -529,20 +599,6 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: '#3B82F6',
         letterSpacing: 1,
-    },
-    attendeePill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        backgroundColor: '#FFF7ED',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
-    },
-    attendeeText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#F59E0B',
     },
     title: {
         fontSize: 20,

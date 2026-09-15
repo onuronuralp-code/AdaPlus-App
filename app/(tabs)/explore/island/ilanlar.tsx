@@ -15,9 +15,11 @@ import {
   Keyboard,
   Platform,
   ActionSheetIOS,
+  DeviceEventEmitter,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +38,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { EmptyState } from '@/components/EmptyState';
 import * as mediaApi from '@/services/mediaApi';
 import LoginPromptModal from '@/components/LoginPromptModal';
+import { IslandDropdown } from '@/components/IslandDropdown';
 import { resolveImageUrl } from '@/services/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -78,7 +81,17 @@ const getIslandEnum = (name: string): Island =>
   ISLAND_ENUM_MAP[name] ?? Island.BUYUKADA;
 
 
-export default function IlanlarScreen() {
+interface IlanlarScreenProps {
+  showBackButton?: boolean;
+  leftRoute?: string;
+  rightRoute?: string;
+}
+
+export default function IlanlarScreen({
+  showBackButton = true,
+  leftRoute = "/(tabs)/explore/island/events",
+  rightRoute = "/(tabs)/explore/island/forum",
+}: IlanlarScreenProps = {}) {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -90,7 +103,7 @@ export default function IlanlarScreen() {
   const [listings, setListings] = useState<ListingDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isGridView, setIsGridView] = useState(true);
+  const isGridView = true;
   const [selectedCategory, setSelectedCategory] = useState<IlanCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdModalVisible, setIsAdModalVisible] = useState(false);
@@ -122,6 +135,12 @@ export default function IlanlarScreen() {
   const [adSubCat, setAdSubCat] = useState<'sell' | 'rent'>('sell');
   const [adIsland, setAdIsland] = useState('Kınalıada');
   const [adSeller, setAdSeller] = useState('');
+
+  useEffect(() => {
+    if (typeof params.category === 'string' && params.category in CATEGORY_CONFIG) {
+      setSelectedCategory(params.category as IlanCategory);
+    }
+  }, [params.category]);
 
   React.useEffect(() => {
     if (params.editListingId && typeof params.editListingId === 'string') {
@@ -209,6 +228,9 @@ export default function IlanlarScreen() {
         const data = await listingApi.fetchListings(backendCat);
         setListings(data);
       }
+      AsyncStorage.setItem('lastViewedListings', Date.now().toString());
+      AsyncStorage.setItem('cached_unseen_listings', '0');
+      DeviceEventEmitter.emit('listingsSeen');
     } catch {
       if (showLoading) Alert.alert(t('errors.connectionError', { defaultValue: 'Bağlantı Hatası' }), t('errors.listingsLoadFailed', { defaultValue: 'İlanlar yüklenemedi. Lütfen tekrar deneyin.' }));
     } finally {
@@ -243,7 +265,7 @@ export default function IlanlarScreen() {
         }
         const result = await ImagePicker.launchCameraAsync({
           allowsEditing: true,
-          aspect: [4, 3],
+          aspect: [4, 5],
           quality: 0.8,
         });
         if (!result.canceled) {
@@ -426,6 +448,7 @@ export default function IlanlarScreen() {
       );
     }, 400);
     loadListings(true);
+    DeviceEventEmitter.emit('contentUpdated');
   };
 
   const adCategories = [
@@ -468,64 +491,32 @@ export default function IlanlarScreen() {
   });
 
   return (
-    <SwipeNavigation leftRoute="/(tabs)/explore/island/events" rightRoute="/(tabs)/explore/island/forum">
+    <SwipeNavigation leftRoute={leftRoute} rightRoute={rightRoute}>
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, isDark && { backgroundColor: '#000000' }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity
-            style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}
-            onPress={() => router.back()}
-            activeOpacity={0.8}
-          >
-            <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { marginLeft: 10 }, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
+          {showBackButton && (
+            <TouchableOpacity
+              style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}
+              onPress={() => router.back()}
+              activeOpacity={0.8}
+            >
+              <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+            </TouchableOpacity>
+          )}
+          <Text style={[styles.headerTitle, showBackButton && { marginLeft: 10 }, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <TouchableOpacity
-            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }, isDark && { backgroundColor: '#1C1C1E' }]}
-            onPress={() => setIsGridView(!isGridView)}
-            activeOpacity={0.7}
-          >
-            <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
-          </TouchableOpacity>
+          <IslandDropdown
+            options={ISLAND_FILTERS.map(item => ({ value: item.id, label: item.label }))}
+            value={selectedFilterIsland}
+            onChange={setSelectedFilterIsland}
+            isDark={isDark}
+            menuTop={insets.top + 62}
+            compact
+            triggerLabel={selectedFilterIsland === 'ALL' ? (i18n.language.startsWith('en') ? 'All' : 'Tümü') : undefined}
+          />
         </View>
-      </View>
-
-      <View style={[{ paddingVertical: 6, backgroundColor: 'transparent' }]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
-          {ISLAND_FILTERS.map(item => {
-            const isActive = selectedFilterIsland === item.id;
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  {
-                    paddingHorizontal: 11,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                    borderWidth: 1,
-                    borderColor: isDark ? '#2C2C2E' : '#E2E8F0',
-                  },
-                  isActive && {
-                    backgroundColor: '#3B82F6',
-                    borderColor: '#3B82F6',
-                  }
-                ]}
-                onPress={() => setSelectedFilterIsland(item.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  { fontSize: 13, fontWeight: '600', color: isDark ? '#94A3B8' : '#475569' },
-                  isActive && { color: '#FFFFFF', fontWeight: '700' }
-                ]}>
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
       </View>
 
       <View style={styles.tabsWrapper}>
@@ -539,7 +530,8 @@ export default function IlanlarScreen() {
                 style={[
                   styles.tabItem,
                   isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
-                  isActive && { backgroundColor: isDark ? '#1C1C1E' : '#EFF6FF', borderColor: '#3B82F6', borderWidth: 1.5 }
+                  isActive && styles.activeTabItem,
+                  isActive && isDark && { backgroundColor: '#172554', borderColor: '#1E3A8A' },
                 ]}
                 onPress={() => setSelectedCategory(key)}
                 activeOpacity={0.7}
@@ -547,9 +539,9 @@ export default function IlanlarScreen() {
                 <IconSymbol 
                   name={cfg.icon as any} 
                   size={14} 
-                  color={isActive ? '#3B82F6' : (isDark ? '#94A3B8' : '#475569')} 
+                  color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')}
                 />
-                <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && { color: '#3B82F6', fontWeight: '800' }]}>
+                <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
                   {t(`ilanlar.category.${key}`)}
                 </Text>
               </TouchableOpacity>
@@ -939,7 +931,7 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
           <Image 
              source={{ uri: resolvedUrl }} 
              style={{ width: '100%', height: '100%' }} 
-             resizeMode="cover" 
+             resizeMode="cover"
           />
         </View>
       )}
@@ -984,13 +976,13 @@ function ListingCard({ listing, router, isGridView }: { listing: ListingDto, rou
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 6,
   },
   backButton: {
     width: 44,
@@ -1028,8 +1020,8 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   tabsWrapper: {
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
     backgroundColor: 'transparent',
   },
   tabsContainer: {
@@ -1053,9 +1045,12 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   activeTabItem: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
-    shadowOpacity: 0.1,
+    backgroundColor: '#0F2747',
+    borderColor: '#0F2747',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 3,
   },
   tabLabel: {
     fontSize: 13,
@@ -1064,6 +1059,7 @@ const styles = StyleSheet.create({
   },
   activeTabLabel: {
     color: '#FFFFFF',
+    fontWeight: '800',
   },
   listContainer: {
     flex: 1,
@@ -1091,6 +1087,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   urgentCard: {
     borderColor: 'rgba(239, 68, 68, 0.2)',

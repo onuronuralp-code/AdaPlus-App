@@ -39,7 +39,7 @@ interface FerryRoute {
 }
 
 const ISLANDS = ["Kınalıada", "Burgazada", "Heybeliada", "Büyükada"];
-const MAINLAND = ["Kabataş", "Bostancı", "Kadıköy", "Beşiktaş", "Maltepe"];
+const MAINLAND = ["Kabataş", "Eminönü", "Bostancı", "Kadıköy", "Beşiktaş", "Maltepe"];
 const ALL_LOCATIONS = [...ISLANDS, ...MAINLAND];
 const MONTHS_TR = [
   "Ocak",
@@ -189,7 +189,12 @@ const getTrackingStatus = (route: FerryRoute, selectedDate: Date) => {
   return { trackable: true, message: "Live tracking active" };
 };
 
-export function FerrySchedule() {
+interface FerryScheduleProps {
+  showBackButton?: boolean;
+  onBack?: () => void;
+}
+
+export function FerrySchedule({ showBackButton = false, onBack }: FerryScheduleProps = {}) {
   const router = useRouter();
   const params = useLocalSearchParams<{from?: string, to?: string, time?: string}>();
   const { t, i18n } = useTranslation();
@@ -522,18 +527,29 @@ export function FerrySchedule() {
       {/* Header Section */}
       <View style={[styles.headerContainer, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
-          <View style={styles.headerTitles}>
-            <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t("common.ferrySchedule")}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            {showBackButton && (
+              <TouchableOpacity
+                style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}
+                onPress={() => (onBack ? onBack() : router.back())}
+                activeOpacity={0.8}
+              >
+                <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+              </TouchableOpacity>
+            )}
+            <View style={styles.headerTitles}>
+              <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t("common.ferrySchedule")}</Text>
+            </View>
           </View>
           <TouchableOpacity
-            style={[{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }]}
+            style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setIsGridView(!isGridView);
             }}
             activeOpacity={0.7}
           >
-            <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={20} color={isDark ? "#FFFFFF" : "#1E293B"} />
+            <IconSymbol name={isGridView ? "list.bullet" : "square.grid.2x2.fill"} size={22} color={isDark ? "#FFFFFF" : "#1E293B"} />
           </TouchableOpacity>
         </View>
 
@@ -1445,14 +1461,14 @@ function LocationPicker({
                 {t("common.mainland").toUpperCase()}
               </Text>
             </View>
-            <View style={styles.mainlandList}>
+            <View style={styles.mainlandGrid}>
               {MAINLAND.map((l) => {
                 return (
                   <TouchableOpacity
                     key={l}
                     style={[
-                      styles.mainlandListItem,
-                      selected === l && styles.mainlandListItemActive,
+                      styles.mainlandGridItem,
+                      selected === l && styles.mainlandGridItemActive,
                       isDark && {
                         backgroundColor: selected === l ? '#051A2E' : '#1C1C1E',
                         borderColor: selected === l ? '#0284C7' : '#2C2C2E',
@@ -1465,8 +1481,8 @@ function LocationPicker({
                   >
                     <Text
                       style={[
-                        styles.mainlandListText,
-                        selected === l && styles.mainlandListTextOn,
+                        styles.mainlandGridText,
+                        selected === l && styles.mainlandGridTextOn,
                         isDark && { color: selected === l ? '#0284C7' : '#FFFFFF' },
                       ]}
                     >
@@ -1475,8 +1491,9 @@ function LocationPicker({
                     {selected === l && (
                       <IconSymbol
                         name="checkmark.circle.fill"
-                        size={20}
+                        size={16}
                         color="#0284C7"
+                        style={styles.gridCheck}
                       />
                     )}
                   </TouchableOpacity>
@@ -1992,6 +2009,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerTitles: { flex: 1 },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
   headerTitle: {
     fontSize: 26,
     fontWeight: "800",
@@ -2323,24 +2354,25 @@ const styles = StyleSheet.create({
   islandGridTextOn: { color: "#EA580C" },
   gridCheck: { position: "absolute", top: 6, right: 6 },
 
-  mainlandList: { gap: 8 },
-  mainlandListItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
+  mainlandGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
+  mainlandGridItem: {
+    width: "48%",
+    height: 56,
+    marginBottom: 10,
     backgroundColor: "#F8F9FA",
     borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: "#F1F5F9",
   },
-  mainlandListItemActive: {
+  mainlandGridItemActive: {
     backgroundColor: "#F0F9FF",
     borderColor: "#0284C7",
     borderWidth: 2,
   },
-  mainlandListText: { fontSize: 16, fontWeight: "700", color: "#0D1B2A" },
-  mainlandListTextOn: { color: "#0284C7" },
+  mainlandGridText: { fontSize: 15, fontWeight: "800", color: "#0D1B2A" },
+  mainlandGridTextOn: { color: "#0284C7" },
 
   popup: {
     backgroundColor: "#fff",

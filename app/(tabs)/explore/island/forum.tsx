@@ -407,12 +407,12 @@ export default function ForumScreen() {
                 if (String(opt.id) === String(optionId)) {
                     count = count + 1;
                 }
-                return { 
-                    ...opt, 
-                    voteCount: count, 
-                    votes: count, 
-                    isVoted: String(opt.id) === String(optionId), 
-                    voted: String(opt.id) === String(optionId) 
+                return {
+                    ...opt,
+                    voteCount: count,
+                    votes: count,
+                    isVoted: String(opt.id) === String(optionId),
+                    voted: String(opt.id) === String(optionId)
                 };
             });
 
@@ -436,11 +436,12 @@ export default function ForumScreen() {
             setSelectedPost((prev: PostDto | null) => prev ? updateOptimisticPost(prev) : null);
         }
 
-        // 3. Background API sync
+        // 3. Background API sync. The response already contains the new counts;
+        // recalculate percentages from those counts without applying the vote twice.
         try {
             const updatedPost = await forumApi.voteOnPoll(postId, optionId);
             if (updatedPost) {
-                const finalPost = updateOptimisticPost(updatedPost);
+                const finalPost = normalizePollPost(updatedPost);
                 setPosts(prevPosts => prevPosts.map(p => p.id === postId ? finalPost : p));
                 if (selectedPost && selectedPost.id === postId) {
                     setSelectedPost(finalPost);
@@ -449,6 +450,25 @@ export default function ForumScreen() {
         } catch (error) {
             console.error('Failed to vote:', error);
         }
+    };
+
+    const getPollVoteCount = (option: any): number =>
+        Number(option?.voteCount ?? option?.votes ?? option?.count ?? 0) || 0;
+
+    const normalizePollPost = (post: PostDto): PostDto => {
+        const options = (post.pollOptions || (post as any).options || (post as any).poll_options) as any[] | undefined;
+        if (!options) return post;
+        const total = options.reduce((sum, option) => sum + getPollVoteCount(option), 0);
+        const normalized = options.map(option => {
+            const votes = getPollVoteCount(option);
+            return {
+                ...option,
+                voteCount: votes,
+                votes,
+                percentage: total > 0 ? (votes / total) * 100 : 0,
+            };
+        });
+        return { ...post, pollOptions: normalized, options: normalized } as any;
     };
 
     const handleSendReply = async () => {
@@ -682,9 +702,9 @@ export default function ForumScreen() {
 
     const formatTime = (dateString: string) => {
         try {
-            return formatDistanceToNow(new Date(dateString), { 
-                addSuffix: true, 
-                locale: i18n.language.startsWith('tr') ? tr : enUS 
+            return formatDistanceToNow(new Date(dateString), {
+                addSuffix: true,
+                locale: i18n.language.startsWith('tr') ? tr : enUS
             }).replace('yaklaşık ', '').replace('about ', '');
         } catch (e) {
             return dateString;
@@ -805,7 +825,7 @@ export default function ForumScreen() {
         setSelectedImages([]);
         setEditingPostId(null);
         setEditingReplyId(null);
-        
+
         // Reset the animation value implicitly after closing
         writeModalSlideAnim.setValue(Dimensions.get('window').height);
     };
@@ -980,7 +1000,7 @@ export default function ForumScreen() {
         setNewPostType(post.postType.toLowerCase());
         setIsAnonymous((post as any).anonymous || false);
         setSelectedImages(post.imageUrl ? post.imageUrl.split(',').map(url => url.trim()).filter(Boolean) : []);
-        
+
         if (isDetailModalVisible) {
             setIsDetailModalVisible(false);
             setTimeout(() => {
@@ -1075,7 +1095,7 @@ export default function ForumScreen() {
                 ? (i18n.language.startsWith('en') ? 'You (Anonymous)' : 'Siz (Anonim)')
                 : t('forum.anonymous', { defaultValue: i18n.language.startsWith('en') ? 'Anonymous' : 'Anonim' }))
             : isMyPost
-            ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
+            ? (i18n.language.startsWith('en') ? 'You' : 'Siz')
             : (item.authorName || t('forum.anonymous', { defaultValue: 'Anonim' }));
         const roleName = roleInfo.name;
 
@@ -1083,7 +1103,7 @@ export default function ForumScreen() {
             return (
                 <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
                     {isMyPost ? (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={{ height: '100%', backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
                             activeOpacity={0.7}
                             onPress={() => { swipeable?.close(); handleDeletePost(item.id); }}
@@ -1092,7 +1112,7 @@ export default function ForumScreen() {
                             <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', marginTop: 4 }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                         </TouchableOpacity>
                     ) : (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={{ height: '100%', backgroundColor: '#F59E0B', justifyContent: 'center', alignItems: 'center', width: 80, borderRadius: 12 }}
                             activeOpacity={0.7}
                             onPress={() => { swipeable?.close(); handleReport(item.id); }}
@@ -1108,9 +1128,9 @@ export default function ForumScreen() {
         return (
             <View style={styles.postWrapper}>
                 <Swipeable renderRightActions={renderRightActions} containerStyle={{ backgroundColor: isDark ? '#121212' : '#FFFFFF', borderRadius: s(16) }}>
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[
-                        styles.bubbleContainer, 
+                        styles.bubbleContainer,
                         isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' },
                         isMyPost && (isDark ? { borderLeftWidth: 4, borderLeftColor: '#60A5FA' } : { borderLeftWidth: 4, borderLeftColor: '#3B82F6' })
                     ]}
@@ -1156,7 +1176,7 @@ export default function ForumScreen() {
                             {translatedPosts[item.id]?.isTranslated ? translatedPosts[item.id].text : item.content}
                         </Text>
                         {item.content && item.content.trim().length > 3 && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={() => handleToggleTranslation(item.id, item.content)}
                                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, marginBottom: 4, alignSelf: 'flex-start' }}
                                 activeOpacity={0.7}
@@ -1167,8 +1187,8 @@ export default function ForumScreen() {
                                     <>
                                         <IconSymbol name="globe" size={13} color="#3B82F6" />
                                         <Text style={{ fontSize: 12, color: '#3B82F6', fontWeight: '700' }}>
-                                            {translatedPosts[item.id]?.isTranslated 
-                                                ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör') 
+                                            {translatedPosts[item.id]?.isTranslated
+                                                ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör')
                                                 : (i18n.language.startsWith('en') ? 'Translate to English' : 'İngilizceye Çevir')}
                                         </Text>
                                     </>
@@ -1182,26 +1202,26 @@ export default function ForumScreen() {
 
                             const ended = isPollEnded(item.pollEndsAt);
                             const countdown = getPollCountdown(item.pollEndsAt);
-                            const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
+                            const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + getPollVoteCount(opt), 0);
 
                             return (
                                 <View style={styles.renderedPollContainer}>
                                     {pollOpts.map((option: any, optIdx: number) => {
-                                        const optVotes = Number(option.voteCount || option.votes || option.count || 0);
+                                        const optVotes = getPollVoteCount(option);
                                         const userVotedId = votedPolls[item.id] || (item as any).votedOptionId || (item as any).voted_option_id || (item as any).userVotedOptionId;
                                         const isOptionVoted = Boolean(
                                             optVotes > 0 &&
-                                            (userVotedId 
+                                            (userVotedId
                                                 ? (option.id && String(option.id) === String(userVotedId))
                                                 : (option.isVoted || option.voted || option.is_voted || option.selected))
                                         );
                                         const optText = option.text || option.optionText || option.title || '';
-                                        const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0);
+                                        const optPercent = totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0;
                                         return (
                                         <TouchableOpacity
                                             key={option.id || `opt-${optIdx}`}
                                             style={[
-                                                styles.renderedPollOption, 
+                                                styles.renderedPollOption,
                                                 isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
                                                 ended && { opacity: 0.6 },
                                                 isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
@@ -1223,8 +1243,8 @@ export default function ForumScreen() {
                                     })}
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                                         <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
-                                            {i18n.language.startsWith('en') 
-                                                ? `Total vote: ${totalVotes}` 
+                                            {i18n.language.startsWith('en')
+                                                ? `Total vote: ${totalVotes}`
                                                 : `Toplam oy: ${totalVotes}`}
                                         </Text>
                                         {countdown && (
@@ -1243,11 +1263,11 @@ export default function ForumScreen() {
                             </View>
                         )}
                     </View>
-                    
+
                     <View style={styles.bubbleFooter}>
                         <View style={styles.interactionGroup}>
-                            <TouchableOpacity 
-                                style={styles.chatInteraction} 
+                            <TouchableOpacity
+                                style={styles.chatInteraction}
                                 onPress={() => toggleLike(item.id)}
                             >
                                 <IconSymbol
@@ -1259,7 +1279,7 @@ export default function ForumScreen() {
                                     {item.likeCount > 0 ? item.likeCount : '0'}
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.chatInteraction}
                                 onPress={() => {
                                     if (!isLoggedIn) {
@@ -1312,7 +1332,7 @@ export default function ForumScreen() {
                     <Text style={[{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, paddingHorizontal: 20, marginBottom: 30 }, isDark && { color: '#94A3B8' }]}>
                         {i18n.language.startsWith('en') ? 'You must log in to view community posts and join the discussion.' : 'Topluluktaki mesajları görmek ve tartışmaya katılmak için giriş yapmalısınız.'}
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={{ backgroundColor: '#10B981', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, alignSelf: 'center' }}
                         onPress={() => router.push('/login')}
                     >
@@ -1324,25 +1344,25 @@ export default function ForumScreen() {
             ) : (
                 <>
                     <View style={[styles.tabsWrapper, isDark && { backgroundColor: '#000000' }]}>
-                        <ScrollView 
-                            horizontal 
-                            showsHorizontalScrollIndicator={false} 
-                            contentContainerStyle={styles.tabsContainer} 
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.tabsContainer}
                             bounces={true}
                         >
                             {tabs.map(tab => {
                                 const isActive = activeTab === tab.id;
                                 return (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         key={tab.id}
                                         style={[styles.tabItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, isActive && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeTabItem)]}
                                         onPress={() => setActiveTab(tab.id)}
                                         activeOpacity={0.7}
                                     >
-                                        <IconSymbol 
-                                            name={tab.icon} 
-                                            size={12} 
-                                            color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')} 
+                                        <IconSymbol
+                                            name={tab.icon}
+                                            size={12}
+                                            color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')}
                                         />
                                         <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
                                             {tab.label}
@@ -1364,7 +1384,7 @@ export default function ForumScreen() {
                         style={{ flex: 1 }}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={[
-                            styles.listContent, 
+                            styles.listContent,
                             posts.filter(post => {
                                 if (activeTab === 'polls') return post.postType === PostType.POLL;
                                 if (activeTab === 'complaints') return post.postType === PostType.COMPLAINT;
@@ -1396,8 +1416,8 @@ export default function ForumScreen() {
                             />
                         )}
                     />
-                    <TouchableOpacity 
-                        style={[styles.fab, { bottom: 20, backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} 
+                    <TouchableOpacity
+                        style={[styles.fab, { bottom: 20, backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}
                         onPress={() => {
                             if (!isLoggedIn) {
                                 setShowLoginPrompt(true);
@@ -1433,10 +1453,10 @@ export default function ForumScreen() {
                 }}
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', justifyContent: 'flex-end' }}>
-                        <TouchableOpacity 
-                            style={StyleSheet.absoluteFill} 
-                            activeOpacity={1} 
-                            onPress={handleCloseWriteModal} 
+                        <TouchableOpacity
+                            style={StyleSheet.absoluteFill}
+                            activeOpacity={1}
+                            onPress={handleCloseWriteModal}
                         />
                         <Animated.View style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }, { flex: 0, height: '85%', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, transform: [{ translateY: writeModalSlideAnim }] }]}>
                             <View style={[styles.modalHeader, { paddingTop: 24 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
@@ -1446,8 +1466,8 @@ export default function ForumScreen() {
                         <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
                             <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]}>{editingPostId ? t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' }) : t('forum.createPost')}</Text>
                         </View>
-                        <TouchableOpacity 
-                            onPress={handleCreatePost} 
+                        <TouchableOpacity
+                            onPress={handleCreatePost}
                             style={[styles.premiumPublishBtn, isPublishActive && styles.activePremiumPublishBtn, !isPublishActive && { opacity: 0.5 }]}
                             disabled={!isPublishActive}
                         >
@@ -1463,8 +1483,8 @@ export default function ForumScreen() {
                             <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.islandSelection')}</Text>
                             <View style={{ flexDirection: 'row', gap: 8 }}>
                                 {islands.map(island => (
-                                    <TouchableOpacity 
-                                        key={island} 
+                                    <TouchableOpacity
+                                        key={island}
                                         style={[styles.writeChip, isDark && { backgroundColor: '#000000', borderColor: '#262626' }, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
@@ -1545,8 +1565,8 @@ export default function ForumScreen() {
                                         {selectedImages.map((uri, index) => (
                                             <View key={index} style={[styles.imagePreviewContainer, { marginRight: 10 }]}>
                                                 <Image source={{ uri }} style={styles.imagePreview} />
-                                                <TouchableOpacity 
-                                                    style={styles.removeImageBtn} 
+                                                <TouchableOpacity
+                                                    style={styles.removeImageBtn}
                                                     onPress={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
                                                 >
                                                     <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
@@ -1554,7 +1574,7 @@ export default function ForumScreen() {
                                             </View>
                                         ))}
                                         {selectedImages.length < 3 && (
-                                            <TouchableOpacity 
+                                            <TouchableOpacity
                                                 style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { width: 100, height: 100, borderRadius: 14, marginTop: 0 }]}
                                                 onPress={pickImage}
                                             >
@@ -1563,7 +1583,7 @@ export default function ForumScreen() {
                                         )}
                                     </ScrollView>
                                 ) : (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={[styles.addPhotoBtn, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, { marginTop: 0, marginBottom: 10, height: 100, borderRadius: 14 }]}
                                         onPress={pickImage}
                                     >
@@ -1592,7 +1612,7 @@ export default function ForumScreen() {
                                             }}
                                         />
                                         {pollOptions.length > 2 && (
-                                            <TouchableOpacity 
+                                            <TouchableOpacity
                                                 style={{ padding: 10, marginLeft: 5 }}
                                                 onPress={() => {
                                                     const newOptions = pollOptions.filter((_, i) => i !== index);
@@ -1638,7 +1658,7 @@ export default function ForumScreen() {
                         )}
                         <View style={styles.formSection}>
                             <TouchableOpacity
-                                style={[styles.anonToggle, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }]} 
+                                style={[styles.anonToggle, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }]}
                                 onPress={() => setIsAnonymous(!isAnonymous)}
                                 activeOpacity={0.7}
                             >
@@ -1688,9 +1708,9 @@ export default function ForumScreen() {
                         keyboardVerticalOffset={0}
                     >
                         <View style={styles.modalBody}>
-                            <ScrollView 
+                            <ScrollView
                                 ref={commentsScrollRef}
-                                showsVerticalScrollIndicator={false} 
+                                showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{ paddingBottom: 20 }}
                                 keyboardShouldPersistTaps="handled"
                                 keyboardDismissMode="on-drag"
@@ -1706,13 +1726,13 @@ export default function ForumScreen() {
                                         <View style={styles.postAuthorInfo}>
                                              {(() => {
                                                  const isDetailAnon = Boolean((selectedPost as any).isAnonymous || (selectedPost as any).anonymous || selectedPost.authorName?.toLowerCase() === 'anonim' || selectedPost.authorName?.toLowerCase() === 'anonymous');
-                                                 const detailAuthorColor = isDetailAnon ? '#64748B' : (selectedPost.authorId === user?.id 
+                                                 const detailAuthorColor = isDetailAnon ? '#64748B' : (selectedPost.authorId === user?.id
                                                      ? (isDark ? '#60A5FA' : '#2563EB')
                                                      : getUserAvatarColor(selectedPost.authorId || (selectedPost as any).author?.id || selectedPost.authorName, selectedPost.authorName, isDetailAnon));
                                                  return (
                                                      <>
-                                                         <LinearGradient 
-                                                             colors={[detailAuthorColor, detailAuthorColor + '80']} 
+                                                         <LinearGradient
+                                                             colors={[detailAuthorColor, detailAuthorColor + '80']}
                                                              style={styles.avatar}
                                                          >
                                                              <IconSymbol name="person.fill" size={24} color="#fff" />
@@ -1725,7 +1745,7 @@ export default function ForumScreen() {
                                                                              ? (i18n.language.startsWith('en') ? 'You (Anonymous)' : 'Siz (Anonim)')
                                                                              : t('forum.anonymous', { defaultValue: i18n.language.startsWith('en') ? 'Anonymous' : 'Anonim' }))
                                                                          : selectedPost.authorId === user?.id
-                                                                         ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
+                                                                         ? (i18n.language.startsWith('en') ? 'You' : 'Siz')
                                                                          : (selectedPost.authorName || t('forum.anonymous', { defaultValue: 'Anonim' }))}
                                                                  </Text>
                                                                  <View style={[styles.roleBadge, { backgroundColor: getTagColor(selectedPost.authorUserType) + '10', borderColor: getTagColor(selectedPost.authorUserType) + '20' }]}>
@@ -1742,7 +1762,7 @@ export default function ForumScreen() {
                                                              <Text style={[styles.timeText, isDark && { color: '#94A3B8' }]}>{formatTime(selectedPost.createdAt)}</Text>
                                                          </View>
                                                          {(selectedPost.authorId === user?.id || (selectedPost as any).author?.id === user?.id) ? (
-                                                             <TouchableOpacity 
+                                                             <TouchableOpacity
                                                                  style={{ alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4, backgroundColor: '#EF4444' }}
                                                                  onPress={() => handleDeletePost(selectedPost.id)}
                                                              >
@@ -1750,7 +1770,7 @@ export default function ForumScreen() {
                                                                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>{t('common.delete', { defaultValue: 'Sil' })}</Text>
                                                              </TouchableOpacity>
                                                          ) : (
-                                                             <TouchableOpacity 
+                                                             <TouchableOpacity
                                                                  style={{ alignSelf: 'center', marginLeft: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4, backgroundColor: '#EF4444' }}
                                                                  onPress={() => handleReport(selectedPost.id)}
                                                              >
@@ -1767,7 +1787,7 @@ export default function ForumScreen() {
                                         {translatedPosts[selectedPost.id]?.isTranslated ? translatedPosts[selectedPost.id].text : selectedPost.content}
                                     </Text>
                                     {selectedPost.content && selectedPost.content.trim().length > 3 && (
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             onPress={() => handleToggleTranslation(selectedPost.id, selectedPost.content)}
                                             style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8, marginBottom: 8, alignSelf: 'flex-start' }}
                                             activeOpacity={0.7}
@@ -1778,8 +1798,8 @@ export default function ForumScreen() {
                                                 <>
                                                     <IconSymbol name="globe" size={14} color="#3B82F6" />
                                                     <Text style={{ fontSize: 13, color: '#3B82F6', fontWeight: '700' }}>
-                                                        {translatedPosts[selectedPost.id]?.isTranslated 
-                                                            ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör') 
+                                                        {translatedPosts[selectedPost.id]?.isTranslated
+                                                            ? (i18n.language.startsWith('en') ? 'See Original' : 'Orijinalini Gör')
                                                             : 'Translate to English'}
                                                     </Text>
                                                 </>
@@ -1793,22 +1813,23 @@ export default function ForumScreen() {
 
                                         const ended = isPollEnded(selectedPost.pollEndsAt);
                                         const countdown = getPollCountdown(selectedPost.pollEndsAt);
-                                        const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + (opt.voteCount || opt.votes || 0), 0);
+                                        const totalVotes = pollOpts.reduce((sum: number, opt: any) => sum + getPollVoteCount(opt), 0);
 
                                         return (
                                             <View style={[styles.renderedPollContainer, { marginTop: 15, marginBottom: 5 }]}>
                                                 {pollOpts.map((option: any, optIdx: number) => {
                                                     const userVotedId = votedPolls[selectedPost.id] || (selectedPost as any).votedOptionId || (selectedPost as any).voted_option_id || (selectedPost as any).userVotedOptionId;
-                                                    const isOptionVoted = userVotedId 
+                                                    const isOptionVoted = userVotedId
                                                         ? Boolean(option.id && String(option.id) === String(userVotedId))
                                                         : Boolean(option.isVoted || option.voted || option.is_voted || option.selected);
                                                     const optText = option.text || option.optionText || option.title || '';
-                                                    const optPercent = option.percentage !== undefined ? option.percentage : (totalVotes > 0 ? (((option.voteCount || option.votes || 0) / totalVotes) * 100) : 0);
+                                                    const optVotes = getPollVoteCount(option);
+                                                    const optPercent = totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0;
                                                     return (
                                                     <TouchableOpacity
                                                         key={option.id || `opt-${optIdx}`}
                                                         style={[
-                                                            styles.renderedPollOption, 
+                                                            styles.renderedPollOption,
                                                             isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' },
                                                             ended && { opacity: 0.6 },
                                                             isOptionVoted && (isDark ? { backgroundColor: '#064E3B', borderWidth: 1.5, borderColor: '#10B981' } : { backgroundColor: '#ECFDF5', borderWidth: 1.5, borderColor: '#10B981' })
@@ -1830,8 +1851,8 @@ export default function ForumScreen() {
                                                 })}
                                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                                                     <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#94A3B8', fontWeight: '600' }}>
-                                                        {i18n.language.startsWith('en') 
-                                                            ? `Total vote: ${totalVotes}` 
+                                                        {i18n.language.startsWith('en')
+                                                            ? `Total vote: ${totalVotes}`
                                                             : `Toplam oy: ${totalVotes}`}
                                                     </Text>
                                                     {countdown && (
@@ -1847,10 +1868,10 @@ export default function ForumScreen() {
                                     {selectedPost.imageUrl && (
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.detailImageWrapper}>
                                             {selectedPost.imageUrl.split(',').map((url: string, index: number) => (
-                                                <Image 
-                                                    key={index} 
-                                                    source={{ uri: resolveImageUrl(url.trim()) }} 
-                                                    style={[styles.detailImage, { marginRight: 10, width: selectedPost.imageUrl.includes(',') ? 300 : '100%' }]} 
+                                                <Image
+                                                    key={index}
+                                                    source={{ uri: resolveImageUrl(url.trim()) }}
+                                                    style={[styles.detailImage, { marginRight: 10, width: selectedPost.imageUrl.includes(',') ? 300 : '100%' }]}
                                                 />
                                             ))}
                                         </ScrollView>
@@ -1906,8 +1927,8 @@ export default function ForumScreen() {
                                                         <View style={{ flex: 1 }}>
                                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                                                 <Text style={[styles.replyAuthor, reply.authorId === user?.id && { color: isDark ? '#60A5FA' : '#2563EB' }, reply.authorId !== user?.id && isDark && { color: '#FFFFFF' }]}>
-                                                                     ~ {reply.authorId === user?.id 
-                                                                        ? (i18n.language.startsWith('en') ? 'You' : 'Siz') 
+                                                                     ~ {reply.authorId === user?.id
+                                                                        ? (i18n.language.startsWith('en') ? 'You' : 'Siz')
                                                                         : (reply.authorName || 'Anonim')}
                                                                 </Text>
                                                             </View>
@@ -1921,8 +1942,8 @@ export default function ForumScreen() {
                                         );
                                     })
                                 ) : (
-                                    <EmptyState 
-                                        icon="bubble.left.and.bubble.right" 
+                                    <EmptyState
+                                        icon="bubble.left.and.bubble.right"
                                         title={t('forum.noComments')}
                                         subtitle={t('forum.firstComment')}
                                         color={isDark ? "#94A3B8" : "#64748B"}
@@ -2026,8 +2047,8 @@ export default function ForumScreen() {
                 presentationStyle="fullScreen"
                 onRequestClose={() => setIsAdModalVisible(false)}
             >
-                <KeyboardAvoidingView 
-                    style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }]} 
+                <KeyboardAvoidingView
+                    style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }]}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
@@ -2040,8 +2061,8 @@ export default function ForumScreen() {
                             <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]} numberOfLines={1}>{t('forum.placeAd')}</Text>
                         </View>
                         <View style={{ flex: 1.2, alignItems: 'flex-end', justifyContent: 'center' }}>
-                            <TouchableOpacity 
-                                onPress={() => setIsAdModalVisible(false)} 
+                            <TouchableOpacity
+                                onPress={() => setIsAdModalVisible(false)}
                                 style={[styles.publishButton, (!adTitle.trim() || !adPrice.trim()) && styles.publishButtonDisabled]}
                                 disabled={!adTitle.trim() || !adPrice.trim()}
                             >
@@ -2054,8 +2075,8 @@ export default function ForumScreen() {
                             <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>ADA SEÇİMİ</Text>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 20 }}>
                                 {islands.map(island => (
-                                    <TouchableOpacity 
-                                        key={island} 
+                                    <TouchableOpacity
+                                        key={island}
                                         style={[styles.chip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, selectedIsland === island && styles.activeChip]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
@@ -2078,15 +2099,15 @@ export default function ForumScreen() {
                             <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>KATEGORİ</Text>
                             <View style={styles.adCategoryRow}>
                                 {adCategories.map(cat => (
-                                    <TouchableOpacity 
-                                        key={cat.id} 
+                                    <TouchableOpacity
+                                        key={cat.id}
                                         style={[styles.adCatItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, adCategory === cat.label && styles.activeAdCat]}
                                         onPress={() => setAdCategory(cat.label)}
                                     >
-                                        <MaterialCommunityIcons 
-                                            name={cat.icon as any} 
-                                            size={20} 
-                                            color={adCategory === cat.label ? '#fff' : (isDark ? '#94A3B8' : '#64748B')} 
+                                        <MaterialCommunityIcons
+                                            name={cat.icon as any}
+                                            size={20}
+                                            color={adCategory === cat.label ? '#fff' : (isDark ? '#94A3B8' : '#64748B')}
                                         />
                                         <Text style={[styles.adCatText, isDark && { color: '#CBD5E1' }, adCategory === cat.label && styles.activeAdCatText]}>{cat.label}</Text>
                                     </TouchableOpacity>
@@ -2122,9 +2143,9 @@ export default function ForumScreen() {
                     </ScrollView>
                 </KeyboardAvoidingView>
             </Modal>
-            <LoginPromptModal 
-                visible={showLoginPrompt} 
-                onClose={() => setShowLoginPrompt(false)} 
+            <LoginPromptModal
+                visible={showLoginPrompt}
+                onClose={() => setShowLoginPrompt(false)}
                 onLogin={() => {
                     setShowLoginPrompt(false);
                     router.push('/login');
@@ -2158,10 +2179,10 @@ export default function ForumScreen() {
                     style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center', padding: 20 }}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <TouchableOpacity 
-                        activeOpacity={1} 
-                        style={StyleSheet.absoluteFillObject} 
-                        onPress={() => setIsInviteModalVisible(false)} 
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={StyleSheet.absoluteFillObject}
+                        onPress={() => setIsInviteModalVisible(false)}
                     />
                     <View style={[{ width: '100%', maxWidth: 340, backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', zIndex: 10, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 }, isDark && { backgroundColor: '#121212', borderWidth: 1, borderColor: '#2C2C2E' }]}>
                         <View style={[{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#ECFDF5', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }, isDark && { backgroundColor: '#064E3B' }]}>
@@ -2171,9 +2192,9 @@ export default function ForumScreen() {
                             {i18n.language.startsWith('en') ? 'Invite Friends' : 'Arkadaşlarını Davet Et'}
                         </Text>
                         <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }, isDark && { color: '#CBD5E1' }]}>
-                            {i18n.language.startsWith('en') 
-                                ? 'Share the AdaPlus community with your friends and help it grow. Invite 3 friends and earn the Island Ambassador badge!' 
-                                : 'AdaPlus topluluğunu arkadaşlarınla paylaşarak büyümesine katkıda bulun. 3 arkadaşınızı davet edin ve ada elçisi rozetini kazanın!'}
+                            {i18n.language.startsWith('en')
+                                ? 'Invite your friends to the AdaPlus community by email, or leave the field empty to share the app link.'
+                                : 'Arkadaşlarını e-posta ile AdaPlus topluluğuna davet et veya uygulama bağlantısını paylaşmak için alanı boş bırak.'}
                         </Text>
 
                         <TextInput
@@ -2187,6 +2208,7 @@ export default function ForumScreen() {
                                 paddingVertical: 12,
                                 fontSize: 14,
                                 color: '#1E293B',
+                                textAlign: 'center',
                                 marginBottom: 20
                             }, isDark && { backgroundColor: '#18181B', borderColor: '#2C2C2E', color: '#FFFFFF' }]}
                             placeholder={i18n.language.startsWith('en') ? 'Email address (e.g. adali@email.com)' : 'E-posta adresi (örn. adali@email.com)'}
@@ -2199,8 +2221,8 @@ export default function ForumScreen() {
                         />
 
                         <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                            <TouchableOpacity 
-                                onPress={() => { setInviteContactInput(''); setIsInviteModalVisible(false); }} 
+                            <TouchableOpacity
+                                onPress={() => { setInviteContactInput(''); setIsInviteModalVisible(false); }}
                                 disabled={isInvitingInForum}
                                 style={[{ flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }]}
                             >
@@ -2208,8 +2230,8 @@ export default function ForumScreen() {
                                     {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={performInviteShare} 
+                            <TouchableOpacity
+                                onPress={performInviteShare}
                                 disabled={isInvitingInForum}
                                 style={{ flex: 1, backgroundColor: '#059669', paddingVertical: 14, borderRadius: 16, opacity: isInvitingInForum ? 0.7 : 1, alignItems: 'center', justifyContent: 'center' }}
                             >
@@ -2242,16 +2264,16 @@ export default function ForumScreen() {
                                 <>
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Respect & Courtesy</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Always be respectful and polite to community members. Insults, profanity, hate speech, or discriminatory language are strictly prohibited. Individuals are responsible for their own posts. AdaPlus is not responsible for any grievances that may occur.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam & Advertising</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Posting irrelevant, repetitive messages or unauthorized commercial advertising is prohibited. Please only share relevant topics.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Privacy & Personal Data</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Do not share your own or others&apos; personal contact information (phone number, full address, etc.) in public areas.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Off-topic Posts</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Please make sure your posts are relevant to the islands or matters concerning the community.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderation</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', lineHeight: 22 }}>Posts that do not comply with community guidelines may be removed by administrators. Users with repeated violations may be banned from the platform.</Text>
                                 </>
@@ -2259,16 +2281,16 @@ export default function ForumScreen() {
                                 <>
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>1. Saygı ve Nezaket</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Topluluk üyelerine karşı her zaman saygılı ve nazik olun. Hakaret, küfür, nefret söylemi veya ayrımcı ifadeler kesinlikle yasaktır. Bireyler kendi paylaşımlarından sorumludur, oluşabilecek herhangi bir mağduriyetten AdaPlus sorumlu değildir.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>2. Spam ve Reklam</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Konuyla ilgisiz, sürekli tekrarlanan iletiler veya izinsiz ticari reklam yapmak yasaktır. Lütfen sadece ilgili konuları paylaşın.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>3. Gizlilik ve Kişisel Veriler</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Başkalarının veya kendinizin özel iletişim bilgilerini (telefon numarası, açık adres vb.) genel alanlarda paylaşmayın.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>4. Konu Dışı Paylaşımlar</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', marginBottom: 20, lineHeight: 22 }}>Paylaşımlarınızın Adalar ile veya topluluğu ilgilendiren konularla alakalı olmasına özen gösterin.</Text>
-                                    
+
                                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>5. Moderasyon</Text>
                                     <Text style={{ fontSize: 15, color: '#475569', lineHeight: 22 }}>Topluluk kurallarına uymayan içerikler yöneticiler tarafından kaldırılabilir. Kural ihlali yapan kullanıcılar platformdan uzaklaştırılabilir.</Text>
                                 </>
@@ -2289,7 +2311,7 @@ export default function ForumScreen() {
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
                     <View style={[{ width: '100%', maxWidth: 360, backgroundColor: '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 10 }, isDark && { backgroundColor: '#18181B', borderWidth: 1, borderColor: '#2C2C2E' }]}>
-                        
+
                         {/* Icon */}
                         <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
                             <IconSymbol name="hand.point.left.fill" size={32} color="#3B82F6" />
@@ -2298,10 +2320,10 @@ export default function ForumScreen() {
                         <Text style={[{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 8 }, isDark && { color: '#F8FAFC' }]}>
                             {i18n.language.startsWith('en') ? 'Swipe for Actions' : 'Gönderileri Sola Kaydırın'}
                         </Text>
-                        
+
                         <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }, isDark && { color: '#94A3B8' }]}>
-                            {i18n.language.startsWith('en') 
-                                ? 'Swipe any post to the left to quickly access delete and report actions.' 
+                            {i18n.language.startsWith('en')
+                                ? 'Swipe any post to the left to quickly access delete and report actions.'
                                 : 'Gönderilere sola kaydırma hareketi yaparak silme veya bildirme işlemlerini kolayca gerçekleştirebilirsiniz.'}
                         </Text>
 

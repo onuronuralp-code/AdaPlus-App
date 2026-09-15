@@ -24,9 +24,8 @@ import { ServiceCategory, submitProviderApplication } from '@/services/providerA
 
 const SERVICE_CATEGORIES = [
   { id: 'repair', labelTr: 'Tadilat & Tamirat', labelEn: 'Renovation & Repair', icon: 'wrench.and.screwdriver.fill' },
-  { id: 'painting', labelTr: 'Boya & Badana', labelEn: 'Painting & Decorating', icon: 'paintbrush.fill' },
+  { id: 'cleaning', labelTr: 'Temizlik', labelEn: 'Cleaning', icon: 'sparkles' },
   { id: 'locksmith', labelTr: 'Çilingir & Kilit', labelEn: 'Locksmith Services', icon: 'key.fill' },
-  { id: 'cleaning', labelTr: 'Ev & Ofis Temizliği', labelEn: 'Cleaning', icon: 'sparkles' },
   { id: 'garden', labelTr: 'Bahçe & Peyzaj', labelEn: 'Gardening & Landscape', icon: 'leaf.fill' },
   { id: 'transport', labelTr: 'Nakliye & Taşıma', labelEn: 'Transport & Freight', icon: 'shippingbox.fill' },
   { id: 'tutoring', labelTr: 'Özel Ders & Eğitim', labelEn: 'Tutoring & Lessons', icon: 'book.fill' },
@@ -340,7 +339,7 @@ export default function HizmetSaglayiciScreen() {
               <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#E2E8F0' : '#334155', marginBottom: 8 }}>
                 {isEn ? 'Service Categories (Multi-select)' : 'Hizmet Kategorisi (Birden fazla seçebilirsiniz)'} <Text style={{ color: '#EF4444' }}>*</Text>
               </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 }}>
                 {SERVICE_CATEGORIES.map(cat => {
                   const isSelected = selectedCategories.includes(cat.id);
                   return (
@@ -349,8 +348,11 @@ export default function HizmetSaglayiciScreen() {
                       activeOpacity={0.8}
                       onPress={() => toggleCategory(cat.id)}
                       style={{
+                        width: '48%',
+                        minHeight: 48,
                         flexDirection: 'row',
                         alignItems: 'center',
+                        justifyContent: 'flex-start',
                         gap: 6,
                         paddingHorizontal: 12,
                         paddingVertical: 8,
@@ -361,7 +363,7 @@ export default function HizmetSaglayiciScreen() {
                       }}
                     >
                       <IconSymbol name={cat.icon as any} size={15} color={isSelected ? (isDark ? '#60A5FA' : '#4F46E5') : (isDark ? '#71717A' : '#64748B')} />
-                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: isSelected ? (isDark ? '#60A5FA' : '#4F46E5') : (isDark ? '#E2E8F0' : '#475569') }}>
+                      <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '700', color: isSelected ? (isDark ? '#60A5FA' : '#4F46E5') : (isDark ? '#E2E8F0' : '#475569') }}>
                         {isEn ? cat.labelEn : cat.labelTr}
                       </Text>
                       {isSelected && (
@@ -392,8 +394,8 @@ export default function HizmetSaglayiciScreen() {
                   multiline
                   numberOfLines={3}
                   placeholder={isEn
-                    ? 'Describe what services you offer (e.g. Electrician, Plumbing, House painting, Math tutoring...)'
-                    : 'Sunduğun hizmetleri açıklayın (Örn: Elektrik tesisatı, Boya-Badana, Musluk tamiri, Ev temizliği...)'}
+                    ? 'Describe what services you offer (e.g. Electrician, Plumbing, House cleaning, Math tutoring...)'
+                    : 'Sunduğun hizmetleri açıklayın (Örn: Elektrik tesisatı, Musluk tamiri, Ev temizliği...)'}
                   placeholderTextColor={isDark ? '#71717A' : '#94A3B8'}
                   style={{ fontSize: 14, color: isDark ? '#FFFFFF' : '#0F172A', textAlignVertical: 'top' }}
                 />

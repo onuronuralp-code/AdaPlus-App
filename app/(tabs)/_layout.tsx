@@ -7,6 +7,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function AnimatedTabIcon({ focused, isDeepRoute, iconName, color }: { focused: boolean; isDeepRoute: boolean; iconName: string; color: string }) {
   const iconScale = useRef(new Animated.Value(1)).current;
@@ -45,10 +46,30 @@ export default function TabLayout() {
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
+  const [unseenListingsCount, setUnseenListingsCount] = React.useState(0);
+
+  useEffect(() => {
+    AsyncStorage.getItem('cached_unseen_listings').then(val => {
+      if (val) setUnseenListingsCount(parseInt(val, 10) || 0);
+    });
+
+    const subListingsSeen = DeviceEventEmitter.addListener('listingsSeen', () => {
+      setUnseenListingsCount(0);
+    });
+    const subUpdated = DeviceEventEmitter.addListener('contentUpdated', async () => {
+      const val = await AsyncStorage.getItem('cached_unseen_listings');
+      if (val) setUnseenListingsCount(parseInt(val, 10) || 0);
+    });
+
+    return () => {
+      subListingsSeen.remove();
+      subUpdated.remove();
+    };
+  }, []);
 
   useEffect(() => {
     let activeIndex = 0;
-    if (pathname.includes('/home') || pathname === '/home') activeIndex = 1;
+    if (pathname.includes('/ilanlar') || pathname === '/ilanlar') activeIndex = 1;
     else if (pathname.includes('/contact') || pathname === '/contact') activeIndex = 2;
     else if (pathname.includes('/profile') || pathname === '/profile') activeIndex = 3;
 
@@ -101,18 +122,23 @@ export default function TabLayout() {
         })}
       />
       <Tabs.Screen
-        name="home"
+        name="ilanlar"
         options={{
-          title: t('common.tabSchedule', { defaultValue: 'Seferler' }),
+          title: t('common.tabListings', { defaultValue: 'İlanlar' }),
+          tabBarBadge: unseenListingsCount > 0 ? (unseenListingsCount > 9 ? '9+' : unseenListingsCount) : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10, fontWeight: '700', color: '#FFF' },
           tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="ferry.fill" color={color} />
+            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="tag.fill" color={color} />
           ),
         }}
         listeners={() => ({
           tabPress: (e) => {
-            DeviceEventEmitter.emit('resetFerrySchedule');
-            if (pathname === '/home' || pathname === '/(tabs)/home') {
+            setUnseenListingsCount(0);
+            AsyncStorage.setItem('lastViewedListings', Date.now().toString());
+            AsyncStorage.setItem('cached_unseen_listings', '0');
+            DeviceEventEmitter.emit('listingsSeen');
+            if (pathname === '/ilanlar' || pathname === '/(tabs)/ilanlar') {
               e.preventDefault();
             }
           },

@@ -10,6 +10,7 @@ interface CustomDateTimePickerProps {
     title?: string;
     accentColor?: string;
     minimumDate?: Date;
+    mode?: 'date' | 'time' | 'datetime';
 }
 
 const MONTHS_TR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -96,7 +97,7 @@ const ScrollPicker: React.FC<ScrollPickerProps> = ({ data, value, onValueChange,
     );
 };
 
-export default function CustomDateTimePicker({ visible, value, onConfirm, onCancel, title = 'Tarih ve Saat Seçin', accentColor = '#3B82F6', minimumDate }: CustomDateTimePickerProps) {
+export default function CustomDateTimePicker({ visible, value, onConfirm, onCancel, title = 'Tarih ve Saat Seçin', accentColor = '#3B82F6', minimumDate, mode = 'datetime' }: CustomDateTimePickerProps) {
     const [selectedDate, setSelectedDate] = useState(new Date(value));
     const [viewYear, setViewYear] = useState(value.getFullYear());
     const [viewMonth, setViewMonth] = useState(value.getMonth());
@@ -139,11 +140,15 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
 
     const handleConfirm = () => {
         const finalDate = new Date(selectedDate);
-        finalDate.setHours(hour, minute, 0, 0);
+        finalDate.setHours(mode === 'date' ? 0 : hour, mode === 'date' ? 0 : minute, 0, 0);
 
-        if (minimumDate && finalDate.getTime() < minimumDate.getTime()) {
-            Alert.alert("Geçersiz Tarih", "Geçmiş bir tarih veya saat seçilemez.");
-            return;
+        if (mode !== 'time' && minimumDate) {
+            const comparableMinimum = new Date(minimumDate);
+            if (mode === 'date') comparableMinimum.setHours(0, 0, 0, 0);
+            if (finalDate.getTime() < comparableMinimum.getTime()) {
+                Alert.alert("Geçersiz Tarih", "Geçmiş bir tarih veya saat seçilemez.");
+                return;
+            }
         }
 
         onConfirm(finalDate);
@@ -186,6 +191,7 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
                         <Text style={styles.title}>{title}</Text>
                     </View>
 
+                    {mode !== 'time' && (<>
                     {/* Calendar Navigation */}
                     <View style={styles.monthNav}>
                         <TouchableOpacity onPress={handlePrevMonth} style={styles.navButton}>
@@ -231,11 +237,12 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
                             </View>
                         ))}
                     </View>
+                    </>)}
 
-                    {/* Divider */}
-                    <View style={styles.divider} />
+                    {mode === 'datetime' && <View style={styles.divider} />}
 
-                    {/* Time Picker */}
+                    {mode !== 'date' && (
+                    /* Time Picker */
                     <View style={styles.timeSection}>
                         <Text style={styles.timeLabel}>SAAT</Text>
                         <View style={[styles.timePickerRow, { justifyContent: 'center', gap: 20 }]}>
@@ -258,6 +265,7 @@ export default function CustomDateTimePicker({ visible, value, onConfirm, onCanc
                             />
                         </View>
                     </View>
+                    )}
 
                     {/* Actions */}
                     <View style={styles.actions}>
