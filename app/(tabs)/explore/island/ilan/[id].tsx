@@ -257,7 +257,7 @@ export default function IlanDetailScreen() {
             {listing.description && listing.description.trim().length > 3 && (
               <TouchableOpacity 
                 onPress={handleToggleTranslation}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: isDark ? '#1E293B' : '#F0F7FF', borderRadius: 12 }}
+                style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: isDark ? '#1E293B' : '#F0F7FF', borderRadius: 12 }}
                 activeOpacity={0.7}
               >
                 {isTranslating ? (

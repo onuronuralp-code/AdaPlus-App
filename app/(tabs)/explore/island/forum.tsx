@@ -2193,8 +2193,8 @@ export default function ForumScreen() {
                         </Text>
                         <Text style={[{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20, lineHeight: 20 }, isDark && { color: '#CBD5E1' }]}>
                             {i18n.language.startsWith('en')
-                                ? 'Invite your friends to the AdaPlus community by email, or leave the field empty to share the app link.'
-                                : 'Arkadaşlarını e-posta ile AdaPlus topluluğuna davet et veya uygulama bağlantısını paylaşmak için alanı boş bırak.'}
+                                ? 'People you invite earn the Islander badge.'
+                                : 'Davet ettiğin kişiler Adalı rozeti kazanır.'}
                         </Text>
 
                         <TextInput
