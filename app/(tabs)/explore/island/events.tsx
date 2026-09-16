@@ -621,7 +621,7 @@ export default function EventsScreen() {
                             return (
                             <TouchableOpacity
                                 key={event.id}
-                                style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E', borderWidth: 1 }, isGridView && { width: (width - 44) / 2, marginHorizontal: 0, marginBottom: 14 }]}
+                                style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#3F3F46' }, isGridView && { width: (width - 44) / 2, marginHorizontal: 0, marginBottom: 14 }]}
                                 activeOpacity={0.8}
                                 onPress={() => {
                                     setViewerImageUrl(
@@ -1179,13 +1179,15 @@ const styles = StyleSheet.create({
     eventCard: {
         backgroundColor: '#fff',
         borderRadius: 14,
+        borderWidth: 1.25,
+        borderColor: '#CBD5E1',
         marginBottom: 20,
         overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
+        shadowOpacity: 0.16,
+        shadowRadius: 12,
+        elevation: 6,
     },
     eventImage: {
         width: '100%',

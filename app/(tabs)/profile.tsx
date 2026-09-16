@@ -1210,7 +1210,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#FFFFFF' },
     unifiedTopCard: { backgroundColor: '#FFFFFF', paddingBottom: vs(8), borderBottomLeftRadius: s(20), borderBottomRightRadius: s(20), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2, zIndex: 10 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: s(20), paddingBottom: vs(4), backgroundColor: 'transparent' },
-    headerTitle: { fontSize: ms(25), fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
+    headerTitle: { fontSize: ms(26), fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     scrollContent: { paddingBottom: vs(100) },
     profileCard: { backgroundColor: 'transparent', paddingHorizontal: s(20), paddingTop: vs(4), paddingBottom: vs(8), alignItems: 'center' },
     avatar: { width: s(68), height: s(68), borderRadius: s(34), borderWidth: 2, borderColor: '#F1F5F9', marginBottom: vs(8) },

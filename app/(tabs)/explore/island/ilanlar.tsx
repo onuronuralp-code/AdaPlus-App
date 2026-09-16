@@ -40,6 +40,7 @@ import * as mediaApi from '@/services/mediaApi';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { IslandDropdown } from '@/components/IslandDropdown';
 import { resolveImageUrl } from '@/services/config';
+import { ms } from '@/utils/scale';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -999,7 +1000,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: ms(26),
     fontWeight: '800',
     color: '#0F172A',
     letterSpacing: -0.5,

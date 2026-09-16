@@ -1355,7 +1355,7 @@ export default function ForumScreen() {
                                 return (
                                     <TouchableOpacity
                                         key={tab.id}
-                                        style={[styles.tabItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, isActive && (isDark ? { backgroundColor: '#1E3A8A', borderColor: '#3B82F6' } : styles.activeTabItem)]}
+                                        style={[styles.tabItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, isActive && (isDark ? { backgroundColor: '#172554', borderColor: '#1E3A8A' } : styles.activeTabItem)]}
                                         onPress={() => setActiveTab(tab.id)}
                                         activeOpacity={0.7}
                                     >
@@ -2470,8 +2470,8 @@ const styles = StyleSheet.create({
         borderColor: '#F1F5F9',
     },
     activeTabItem: {
-        backgroundColor: '#1E293B',
-        borderColor: '#1E293B',
+        backgroundColor: '#0F2747',
+        borderColor: '#0F2747',
         shadowOpacity: 0.1,
     },
     tabLabel: {

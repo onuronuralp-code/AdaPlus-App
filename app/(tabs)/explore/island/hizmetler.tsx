@@ -276,7 +276,7 @@ export default function HizmetlerScreen() {
           </View>
         ) : filteredProviders.length === 0 ? (
           <View style={[styles.emptyContainer, isDark && styles.cardDark]}>
-            <IconSymbol name={loadError ? 'wifi.exclamationmark' : 'magnifyingglass'} size={48} color={isDark ? '#64748B' : '#94A3B8'} />
+            <IconSymbol name={loadError ? 'wifi.exclamationmark' : 'toolbox.fill'} size={48} color={isDark ? '#64748B' : '#94A3B8'} />
             <Text style={[styles.emptyTitle, isDark && styles.textWhite]}>
               {i18n.language.startsWith('en') ? 'No service found' : 'Hizmet bulunamadı'}
             </Text>

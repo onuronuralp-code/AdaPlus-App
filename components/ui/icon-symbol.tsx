@@ -130,6 +130,7 @@ const MAPPING = {
   'arrow.right.arrow.left': 'compare-arrows',
   'clock.fill': 'access-time',
   'briefcase.fill': 'work',
+  'toolbox.fill': 'home-repair-service',
   'gearshape.fill': 'settings',
   'rectangle.portrait.and.arrow.right': 'logout',
   'person.circle.fill': 'account-circle',
