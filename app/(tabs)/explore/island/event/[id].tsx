@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -13,22 +13,16 @@ import {
     Alert,
     Platform,
     Modal,
-    DeviceEventEmitter,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppActivityDto, getActivity, toggleActivityRsvp } from '@/services/api';
+import { AppActivityDto, getActivity } from '@/services/api';
 import { resolveImageUrl, safeOpenUrl } from '@/services/config';
-import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
-import LoginPromptModal from '@/components/LoginPromptModal';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { translateText } from '@/utils/translate';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isIphone16 = Platform.OS === 'ios' && SCREEN_HEIGHT >= 852;
@@ -45,7 +39,6 @@ export default function EventDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { isLoggedIn } = useAuth();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
     const { t, i18n } = useTranslation();
@@ -53,93 +46,19 @@ export default function EventDetailScreen() {
     const [activity, setActivity] = useState<AppActivityDto | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
-    const [going, setGoing] = useState(false);
-    const [rsvpCount, setRsvpCount] = useState(0);
-    const [rsvpLoading, setRsvpLoading] = useState(false);
-    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-    const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
-    const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
-    const [isTranslating, setIsTranslating] = useState(false);
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
-
-    const handleToggleTranslation = async () => {
-        if (!activity) return;
-        if (translatedDesc || translatedTitle) {
-            setTranslatedTitle(null);
-            setTranslatedDesc(null);
-            return;
-        }
-        setIsTranslating(true);
-        const targetLang = 'en';
-        const [tTitle, tDesc] = await Promise.all([
-            activity.name ? translateText(activity.name, targetLang) : Promise.resolve(null),
-            activity.description ? translateText(activity.description, targetLang) : Promise.resolve(null)
-        ]);
-        if (tTitle && tTitle !== activity.name) setTranslatedTitle(tTitle);
-        if (tDesc) setTranslatedDesc(tDesc);
-        setIsTranslating(false);
-    };
-    const lastTapRef = useRef<number>(0);
 
     useEffect(() => {
         if (!id) return;
         getActivity(id as string)
-            .then(async (data) => {
+            .then((data) => {
                 if (data) {
                     setActivity(data);
-                    let initialGoing = data.userHasRsvp ?? false;
-                    let initialCount = data.rsvpCount ?? 0;
-                    try {
-                        const saved = await AsyncStorage.getItem(`rsvp_state_${id}`);
-                        if (saved) {
-                            const parsed = JSON.parse(saved);
-                            if (typeof parsed.going === 'boolean') initialGoing = parsed.going;
-                            if (typeof parsed.count === 'number') initialCount = parsed.count;
-                        }
-                    } catch (e) {}
-                    setGoing(initialGoing);
-                    setRsvpCount(initialCount);
                 }
             })
             .catch(() => setLoadError(true))
             .finally(() => setIsLoading(false));
     }, [id]);
-
-    const handleRsvp = async () => {
-        if (!isLoggedIn) {
-            setShowLoginPrompt(true);
-            return;
-        }
-        const now = Date.now();
-        if (rsvpLoading || now - lastTapRef.current < 400) return;
-        lastTapRef.current = now;
-
-        // Instant optimistic update with haptic feedback
-        const optimisticGoing = !going;
-        const newCount = optimisticGoing ? rsvpCount + 1 : Math.max(0, rsvpCount - 1);
-        setGoing(optimisticGoing);
-        setRsvpCount(newCount);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-        try {
-            await AsyncStorage.setItem(`rsvp_state_${id}`, JSON.stringify({ going: optimisticGoing, count: newCount }));
-            DeviceEventEmitter.emit('eventRsvpChanged', { id, going: optimisticGoing, count: newCount });
-        } catch (e) {}
-
-        setRsvpLoading(true);
-        const result = await toggleActivityRsvp(id as string);
-        setRsvpLoading(false);
-
-        if (result) {
-            setGoing(result.going);
-            setRsvpCount(result.rsvpCount);
-            try {
-                await AsyncStorage.setItem(`rsvp_state_${id}`, JSON.stringify({ going: result.going, count: result.rsvpCount }));
-                DeviceEventEmitter.emit('eventRsvpChanged', { id, going: result.going, count: result.rsvpCount });
-            } catch (e) {}
-        }
-    };
-
 
     const formatDateRange = (startStr?: string, endStr?: string) => {
         if (!startStr) return '';
@@ -226,7 +145,7 @@ export default function EventDetailScreen() {
     const heroUri = resolveImageUrl(activity.imageUrl) ||
         'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80';
 
-    const isEnActive = Boolean(translatedDesc || translatedTitle) || i18n.language.startsWith('en');
+    const isEnActive = i18n.language.startsWith('en');
 
     return (
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
@@ -284,31 +203,13 @@ export default function EventDetailScreen() {
                                 <Text style={[styles.badgeText, isDark && { color: '#60A5FA' }]}>{isEnActive ? 'EVENT' : 'ETKİNLİK'}</Text>
                             </View>
                         </View>
-                        {activity.description && activity.description.trim().length > 3 && (
-                            <TouchableOpacity
-                                onPress={handleToggleTranslation}
-                                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, backgroundColor: isDark ? '#1E293B' : '#F0F7FF', borderRadius: 12 }}
-                                activeOpacity={0.7}
-                            >
-                                {isTranslating ? (
-                                    <ActivityIndicator size="small" color="#3B82F6" />
-                                ) : (
-                                    <>
-                                        <IconSymbol name="globe" size={13} color="#3B82F6" />
-                                        <Text style={{ fontSize: 11, color: '#3B82F6', fontWeight: '700' }}>
-                                            {(translatedDesc || translatedTitle) ? 'Show Original (TR)' : 'Translate to English'}
-                                        </Text>
-                                    </>
-                                )}
-                            </TouchableOpacity>
-                        )}
                     </View>
 
-                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{translatedTitle || activity.name}</Text>
+                    <Text style={[styles.title, isDark && { color: '#FFFFFF' }]}>{activity.name}</Text>
 
                     {/* Description */}
                     <Text style={[styles.description, { marginTop: 6, marginBottom: 12 }, isDark && { color: '#CBD5E1' }]}>
-                        {translatedDesc || activity.description}
+                        {activity.description}
                     </Text>
 
                     <View style={[styles.divider, isDark && { backgroundColor: '#1C1C1E' }]} />
@@ -464,50 +365,8 @@ export default function EventDetailScreen() {
                         </TouchableOpacity>
                     )}
 
-                    {/* Katılacağım / Katılıyorum Button */}
-                    <TouchableOpacity
-                        style={[
-                            styles.rsvpButton,
-                            going && (isDark ? { backgroundColor: '#1E3A8A', borderWidth: 1, borderColor: '#3B82F6' } : styles.rsvpButtonActive),
-                            { marginTop: 24, marginBottom: 8 }
-                        ]}
-                        onPress={handleRsvp}
-                        disabled={rsvpLoading}
-                        activeOpacity={0.8}
-                    >
-                        {rsvpLoading ? (
-                            <ActivityIndicator color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'} />
-                        ) : (
-                            <>
-                                <IconSymbol
-                                    name={going ? "checkmark.circle.fill" : "calendar.badge.plus"}
-                                    size={20}
-                                    color={going ? (isDark ? '#60A5FA' : '#3B82F6') : '#fff'}
-                                />
-                                <Text style={[
-                                    styles.rsvpButtonText,
-                                    going && (isDark ? { color: '#60A5FA' } : styles.rsvpButtonTextActive)
-                                ]}>
-                                    {going
-                                        ? (isEnActive ? 'Attending' : 'Katılıyorum')
-                                        : (isEnActive ? "I'll Attend" : 'Katılacağım')}
-                                </Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-
                 </View>
             </ScrollView>
-
-            <LoginPromptModal
-                visible={showLoginPrompt}
-                onClose={() => setShowLoginPrompt(false)}
-                onLogin={() => {
-                    setShowLoginPrompt(false);
-                    router.push('/login');
-                }}
-                message="Etkinliğe katılmak için giriş yapmalısınız."
-            />
 
             {/* Fullscreen Image Viewer Modal */}
             <Modal
@@ -657,27 +516,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#475569',
         lineHeight: 22,
-    },
-    rsvpButton: {
-        backgroundColor: '#3B82F6',
-        borderRadius: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        gap: 8,
-    },
-    rsvpButtonActive: {
-        backgroundColor: '#EFF6FF',
-        borderWidth: 1,
-        borderColor: '#BFDBFE',
-    },
-    rsvpButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '800',
-    },
-    rsvpButtonTextActive: {
-        color: '#3B82F6',
     },
 });

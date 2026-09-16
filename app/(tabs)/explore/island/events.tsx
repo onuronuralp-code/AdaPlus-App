@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions, Linking, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal, TextInput, RefreshControl, Alert, Platform, KeyboardAvoidingView, ImageBackground, ActionSheetIOS, InputAccessoryView, Animated, Dimensions, Linking, DeviceEventEmitter, PanResponder } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { fetchActivities, createActivity, updateActivity, getActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
 import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as mediaApi from '@/services/mediaApi';
 import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +22,9 @@ import CustomDateTimePicker from '@/components/CustomDateTimePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IslandDropdown } from '@/components/IslandDropdown';
 
+const EVENT_BANNER_WIDTH = 4;
+const EVENT_BANNER_HEIGHT = 5;
+const EVENT_BANNER_ASPECT_RATIO = EVENT_BANNER_WIDTH / EVENT_BANNER_HEIGHT;
 
 export default function EventsScreen() {
     const { t, i18n } = useTranslation();
@@ -30,6 +34,53 @@ export default function EventsScreen() {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
     const { width } = Dimensions.get('window');
+    const [pendingCropAsset, setPendingCropAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
+    const [isCroppingImage, setIsCroppingImage] = useState(false);
+    const cropPan = React.useRef(new Animated.ValueXY()).current;
+    const cropOffsetRef = React.useRef({ x: 0, y: 0 });
+    const cropGestureStartRef = React.useRef({ x: 0, y: 0 });
+
+    const cropLayout = useMemo(() => {
+        const frameWidth = Math.min(width - 48, 360);
+        const frameHeight = frameWidth / EVENT_BANNER_ASPECT_RATIO;
+        if (!pendingCropAsset?.width || !pendingCropAsset?.height) {
+            return { frameWidth, frameHeight, displayWidth: frameWidth, displayHeight: frameHeight, scale: 1, maxX: 0, maxY: 0 };
+        }
+
+        const scale = Math.max(frameWidth / pendingCropAsset.width, frameHeight / pendingCropAsset.height);
+        const displayWidth = pendingCropAsset.width * scale;
+        const displayHeight = pendingCropAsset.height * scale;
+        return {
+            frameWidth,
+            frameHeight,
+            displayWidth,
+            displayHeight,
+            scale,
+            maxX: Math.max(0, (displayWidth - frameWidth) / 2),
+            maxY: Math.max(0, (displayHeight - frameHeight) / 2),
+        };
+    }, [pendingCropAsset, width]);
+
+    const clampCropOffset = useCallback((x: number, y: number) => ({
+        x: Math.max(-cropLayout.maxX, Math.min(cropLayout.maxX, x)),
+        y: Math.max(-cropLayout.maxY, Math.min(cropLayout.maxY, y)),
+    }), [cropLayout.maxX, cropLayout.maxY]);
+
+    const cropPanResponder = useMemo(() => PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+            cropGestureStartRef.current = cropOffsetRef.current;
+        },
+        onPanResponderMove: (_, gesture) => {
+            const next = clampCropOffset(
+                cropGestureStartRef.current.x + gesture.dx,
+                cropGestureStartRef.current.y + gesture.dy
+            );
+            cropOffsetRef.current = next;
+            cropPan.setValue(next);
+        },
+    }), [clampCropOffset, cropPan]);
 
     const [events, setEvents] = useState<AppActivityDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -297,6 +348,46 @@ export default function EventsScreen() {
         });
     };
 
+    const openEventCropper = (asset: ImagePicker.ImagePickerAsset) => {
+        cropOffsetRef.current = { x: 0, y: 0 };
+        cropPan.setValue({ x: 0, y: 0 });
+        setPendingCropAsset(asset);
+    };
+
+    const confirmEventCrop = async () => {
+        if (!pendingCropAsset?.width || !pendingCropAsset?.height) return;
+        setIsCroppingImage(true);
+        try {
+            const cropWidth = Math.min(pendingCropAsset.width, Math.round(cropLayout.frameWidth / cropLayout.scale));
+            const cropHeight = Math.min(pendingCropAsset.height, Math.round(cropLayout.frameHeight / cropLayout.scale));
+            const originX = Math.max(0, Math.min(
+                pendingCropAsset.width - cropWidth,
+                Math.round(((cropLayout.displayWidth - cropLayout.frameWidth) / 2 - cropOffsetRef.current.x) / cropLayout.scale)
+            ));
+            const originY = Math.max(0, Math.min(
+                pendingCropAsset.height - cropHeight,
+                Math.round(((cropLayout.displayHeight - cropLayout.frameHeight) / 2 - cropOffsetRef.current.y) / cropLayout.scale)
+            ));
+
+            const croppedImage = await manipulateAsync(
+                pendingCropAsset.uri,
+                [{ crop: { originX, originY, width: cropWidth, height: cropHeight } }],
+                { compress: 0.9, format: SaveFormat.JPEG }
+            );
+            setSelectedImage(croppedImage.uri);
+            setPendingCropAsset(null);
+        } catch {
+            Alert.alert(
+                t('common.error', { defaultValue: 'Hata' }),
+                i18n.language.startsWith('en')
+                    ? 'The photo could not be cropped. Please try another photo.'
+                    : 'Fotoğraf kırpılamadı. Lütfen başka bir fotoğraf deneyin.'
+            );
+        } finally {
+            setIsCroppingImage(false);
+        }
+    };
+
     const pickImage = () => {
         const takePhoto = async () => {
             try {
@@ -306,12 +397,14 @@ export default function EventsScreen() {
                     return;
                 }
                 const result = await ImagePicker.launchCameraAsync({
-                    allowsEditing: true,
-                    aspect: [4, 5],
+                    // iOS forces its native editor to a square crop, so the app applies
+                    // the event banner's 4:5 crop after capture instead.
+                    allowsEditing: Platform.OS !== 'ios',
+                    aspect: [EVENT_BANNER_WIDTH, EVENT_BANNER_HEIGHT],
                     quality: 0.8,
                 });
                 if (!result.canceled) {
-                    setSelectedImage(result.assets[0].uri);
+                    openEventCropper(result.assets[0]);
                 }
             } catch (e: any) {
                 Alert.alert(
@@ -322,14 +415,23 @@ export default function EventsScreen() {
         };
 
         const chooseFromGallery = async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                allowsEditing: true,
-                aspect: [4, 5],
-                quality: 0.8,
-            });
-            if (!result.canceled) {
-                setSelectedImage(result.assets[0].uri);
+            try {
+                const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ['images'],
+                    allowsEditing: Platform.OS !== 'ios',
+                    aspect: [EVENT_BANNER_WIDTH, EVENT_BANNER_HEIGHT],
+                    quality: 0.8,
+                });
+                if (!result.canceled) {
+                    openEventCropper(result.assets[0]);
+                }
+            } catch {
+                Alert.alert(
+                    t('common.error', { defaultValue: 'Hata' }),
+                    i18n.language.startsWith('en')
+                        ? 'The photo could not be prepared. Please try another photo.'
+                        : 'Fotoğraf hazırlanamadı. Lütfen başka bir fotoğraf deneyin.'
+                );
             }
         };
 
@@ -532,7 +634,7 @@ export default function EventsScreen() {
                             >
                                 {hasUserImage ? (
                                     <View
-                                        style={{ width: '100%', aspectRatio: 4 / 5, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
+                                        style={{ width: '100%', aspectRatio: EVENT_BANNER_ASPECT_RATIO, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
                                     >
                                         <Image
                                             source={{ uri: resolvedUrl }}
@@ -542,7 +644,7 @@ export default function EventsScreen() {
                                     </View>
                                 ) : (
                                     <View
-                                        style={{ width: '100%', aspectRatio: 4 / 5, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
+                                        style={{ width: '100%', aspectRatio: EVENT_BANNER_ASPECT_RATIO, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
                                     >
                                         <Image
                                             source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
@@ -891,6 +993,80 @@ export default function EventsScreen() {
                         </View>
                     </KeyboardAwareScrollView>
                 </Animated.View>
+                </View>
+            </Modal>
+
+            <Modal
+                visible={Boolean(pendingCropAsset)}
+                animationType="slide"
+                presentationStyle="fullScreen"
+                onRequestClose={() => !isCroppingImage && setPendingCropAsset(null)}
+            >
+                <View style={{ flex: 1, backgroundColor: '#000000', paddingTop: insets.top }}>
+                    <View style={{ height: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <TouchableOpacity
+                            onPress={() => setPendingCropAsset(null)}
+                            disabled={isCroppingImage}
+                            style={{ minWidth: 72, paddingVertical: 10 }}
+                        >
+                            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
+                                {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
+                            </Text>
+                        </TouchableOpacity>
+                        <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>
+                            {i18n.language.startsWith('en') ? 'Crop event banner' : 'Etkinlik afişini kırp'}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={confirmEventCrop}
+                            disabled={isCroppingImage}
+                            style={{ minWidth: 72, paddingVertical: 10, alignItems: 'flex-end' }}
+                        >
+                            {isCroppingImage ? (
+                                <ActivityIndicator size="small" color="#60A5FA" />
+                            ) : (
+                                <Text style={{ color: '#60A5FA', fontSize: 15, fontWeight: '800' }}>
+                                    {i18n.language.startsWith('en') ? 'Use' : 'Kullan'}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                        <View
+                            {...cropPanResponder.panHandlers}
+                            style={{
+                                width: cropLayout.frameWidth,
+                                height: cropLayout.frameHeight,
+                                overflow: 'hidden',
+                                backgroundColor: '#111827',
+                                borderRadius: 12,
+                            }}
+                        >
+                            {pendingCropAsset && (
+                                <Animated.Image
+                                    source={{ uri: pendingCropAsset.uri }}
+                                    style={{
+                                        position: 'absolute',
+                                        left: (cropLayout.frameWidth - cropLayout.displayWidth) / 2,
+                                        top: (cropLayout.frameHeight - cropLayout.displayHeight) / 2,
+                                        width: cropLayout.displayWidth,
+                                        height: cropLayout.displayHeight,
+                                        transform: cropPan.getTranslateTransform(),
+                                    }}
+                                    resizeMode="stretch"
+                                />
+                            )}
+                            <View
+                                pointerEvents="none"
+                                style={[StyleSheet.absoluteFillObject, { borderWidth: 2, borderColor: '#FFFFFF', borderRadius: 12 }]}
+                            />
+                        </View>
+                        <Text style={{ color: '#CBD5E1', fontSize: 13, marginTop: 18, textAlign: 'center', paddingHorizontal: 30 }}>
+                            {i18n.language.startsWith('en')
+                                ? 'Drag the photo to position it inside the 4:5 event banner.'
+                                : 'Fotoğrafı sürükleyerek 4:5 etkinlik afişi alanına yerleştirin.'}
+                        </Text>
+                    </View>
                 </View>
             </Modal>
 
@@ -1282,7 +1458,7 @@ const styles = StyleSheet.create({
     },
     imagePreview: {
         width: '100%',
-        aspectRatio: 4 / 5,
+        aspectRatio: EVENT_BANNER_ASPECT_RATIO,
         borderRadius: 10,
     },
     removeImageBtn: {

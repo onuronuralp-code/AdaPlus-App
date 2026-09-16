@@ -215,6 +215,7 @@ const MOCK_SERVICES = [
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [showAdaAiModal, setShowAdaAiModal] = useState(false);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [eventPosterUrl, setEventPosterUrl] = useState<string | null>(null);
   const celebrationScale = useRef(new Animated.Value(0)).current;
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -846,7 +847,7 @@ const MOCK_SERVICES = [
                       navigateWithDebounce(slide.actionUrl);
                     }
                   } else {
-                    navigateWithDebounce({ pathname: '/explore/island/event/[id]', params: { id: slide.id } });
+                    setEventPosterUrl(slide.imageUrl);
                   }
                 } else {
                   navigateWithDebounce('/(tabs)/explore/island/events');
@@ -1951,6 +1952,30 @@ const MOCK_SERVICES = [
         title={celebrationContent.title}
         description={celebrationContent.description}
       />
+
+      <Modal
+        visible={Boolean(eventPosterUrl)}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setEventPosterUrl(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+          <TouchableOpacity
+            style={{ position: 'absolute', top: insets.top + 16, right: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}
+            onPress={() => setEventPosterUrl(null)}
+          >
+            <IconSymbol name="xmark" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          {eventPosterUrl && (
+            <Image
+              source={{ uri: eventPosterUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
     </SwipeNavigation>
   );
