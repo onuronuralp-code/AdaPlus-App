@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Keyboard, BackHandler, Modal, Pressable, useColorScheme } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Stack, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
@@ -13,12 +13,24 @@ import { KVKKModal } from '@/components/KVKKModal';
 import { s, vs, ms, SCREEN_HEIGHT } from '@/utils/scale';
 
 const ISLANDS = ['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada', 'Adalı değilim'];
+const DEFAULT_BIRTH_DATE = new Date(2000, 0, 1, 12);
+const MINIMUM_BIRTH_DATE = new Date(1940, 0, 1);
+
+const normalizeLocalCalendarDate = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+
+const formatLocalDateForApi = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 const isEmailPattern = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
 const isPhonePattern = (val: string) => /^\+?[0-9]{7,15}$/.test(val.trim().replace(/[\s\-()]/g, ''));
 
 export default function SignUpScreen() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme();
@@ -60,13 +72,19 @@ export default function SignUpScreen() {
 
     // Optional fields
     const [birthDate, setBirthDate] = useState<Date | null>(null);
+    const [draftBirthDate, setDraftBirthDate] = useState(DEFAULT_BIRTH_DATE);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
     const [islandOpen, setIslandOpen] = useState(false);
 
-    const dayRef = useRef<TextInput>(null);
-    const monthRef = useRef<TextInput>(null);
-    const yearRef = useRef<TextInput>(null);
+    const maximumBirthDate = new Date();
+    maximumBirthDate.setHours(23, 59, 59, 999);
+
+    const openBirthDatePicker = () => {
+        Keyboard.dismiss();
+        setDraftBirthDate(birthDate ? normalizeLocalCalendarDate(birthDate) : new Date(DEFAULT_BIRTH_DATE));
+        setShowDatePicker(true);
+    };
 
     // ── Validators ────────────────────────────────────────────────────────────
 
@@ -175,8 +193,7 @@ export default function SignUpScreen() {
         setKvkkVisible(false);
         setLoading(true);
         try {
-            const formattedBirthDate =
-                birthDate ? birthDate.toISOString().split('T')[0] : undefined;
+            const formattedBirthDate = birthDate ? formatLocalDateForApi(birthDate) : undefined;
             const actualContact = email.trim();
             await authApi.signup(
                 name.trim(),
@@ -427,15 +444,14 @@ export default function SignUpScreen() {
                                 <Text style={styles.inputLabel}>DOĞUM TARİHİ <Text style={styles.optionalTag}>(İsteğe Bağlı)</Text></Text>
                                 <TouchableOpacity
                                     style={styles.inputWrapper}
-                                    onPress={() => {
-                                        Keyboard.dismiss();
-                                        setShowDatePicker(true);
-                                    }}
+                                    onPress={openBirthDatePicker}
                                     activeOpacity={0.8}
                                 >
                                     <IconSymbol name="calendar" size={18} color="#94A3B8" />
                                     <Text style={[styles.dateInputText, !birthDate && styles.datePlaceholder]}>
-                                        {birthDate ? birthDate.toLocaleDateString('tr-TR') : 'GG / AA / YYYY'}
+                                        {birthDate
+                                            ? birthDate.toLocaleDateString(i18n.language.startsWith('en') ? 'en-US' : 'tr-TR')
+                                            : (i18n.language.startsWith('en') ? 'MM / DD / YYYY' : 'GG / AA / YYYY')}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -489,14 +505,22 @@ export default function SignUpScreen() {
                         />
                         <View style={[styles.datePickerSheet, isDarkMode && styles.datePickerSheetDark, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                             <View style={styles.datePickerHeader}>
-                                <Text style={[styles.datePickerTitle, isDarkMode && styles.datePickerTextDark]}>Doğum Tarihi</Text>
-                                <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.datePickerDoneButton}>
-                                    <Text style={styles.datePickerDoneText}>Tamam</Text>
+                                <Text style={[styles.datePickerTitle, isDarkMode && styles.datePickerTextDark]}>
+                                    {i18n.language.startsWith('en') ? 'Date of Birth' : 'Doğum Tarihi'}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setBirthDate(normalizeLocalCalendarDate(draftBirthDate));
+                                        setShowDatePicker(false);
+                                    }}
+                                    style={styles.datePickerDoneButton}
+                                >
+                                    <Text style={styles.datePickerDoneText}>{i18n.language.startsWith('en') ? 'Done' : 'Tamam'}</Text>
                                 </TouchableOpacity>
                             </View>
                             <DateTimePicker
                                 key={`birth-date-picker-${colorScheme ?? 'light'}`}
-                                value={birthDate || new Date(2008, 0, 1)}
+                                value={draftBirthDate}
                                 mode="date"
                                 display="spinner"
                                 style={[
@@ -505,10 +529,11 @@ export default function SignUpScreen() {
                                 ]}
                                 themeVariant={isDarkMode ? 'dark' : 'light'}
                                 textColor={isDarkMode ? '#F8FAFC' : '#0F172A'}
-                                locale="tr-TR"
-                                maximumDate={new Date(2011, 11, 31)}
+                                locale={i18n.language.startsWith('en') ? 'en-US' : 'tr-TR'}
+                                minimumDate={MINIMUM_BIRTH_DATE}
+                                maximumDate={maximumBirthDate}
                                 onChange={(_, date) => {
-                                    if (date) setBirthDate(date);
+                                    if (date) setDraftBirthDate(normalizeLocalCalendarDate(date));
                                 }}
                             />
                         </View>
@@ -517,13 +542,16 @@ export default function SignUpScreen() {
             ) : (
                 showDatePicker && (
                     <DateTimePicker
-                        value={birthDate || new Date(2008, 0, 1)}
+                        value={birthDate || DEFAULT_BIRTH_DATE}
                         mode="date"
                         display="default"
-                        maximumDate={new Date(2011, 11, 31)}
+                        minimumDate={MINIMUM_BIRTH_DATE}
+                        maximumDate={maximumBirthDate}
                         onChange={(event, date) => {
                             setShowDatePicker(false);
-                            if (event.type !== 'dismissed' && date) setBirthDate(date);
+                            if (event.type !== 'dismissed' && date) {
+                                setBirthDate(normalizeLocalCalendarDate(date));
+                            }
                         }}
                     />
                 )
