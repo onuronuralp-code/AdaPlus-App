@@ -7,9 +7,17 @@ const MEDIA_API_BASE = `${API_BASE_URL}/api/v1/media`;
 export const uploadImage = async (uri: string): Promise<string | null> => {
   try {
     const formData = new FormData();
-    const filename = uri.split('/').pop() || 'image.jpg';
-    const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : 'image/jpeg';
+    const rawFilename = uri.split('/').pop()?.split('?')[0] || 'image.jpg';
+    const match = /\.(\w+)$/.exec(rawFilename);
+    const extension = match?.[1]?.toLowerCase();
+    const filename = extension ? rawFilename : `${rawFilename}.jpg`;
+    const type = extension === 'png'
+      ? 'image/png'
+      : extension === 'webp'
+        ? 'image/webp'
+        : extension === 'heic' || extension === 'heif'
+          ? `image/${extension}`
+          : 'image/jpeg';
 
     // @ts-ignore - FormData issue in RN
     formData.append('file', {

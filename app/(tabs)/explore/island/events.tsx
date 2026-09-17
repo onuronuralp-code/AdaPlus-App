@@ -110,6 +110,7 @@ export default function EventsScreen() {
             useNativeDriver: true,
         }).start(() => {
             setIsAddModalVisible(false);
+            setPendingCropAsset(null);
             if (editingActivityId) setEditingActivityId(null);
         });
     };
@@ -354,7 +355,12 @@ export default function EventsScreen() {
     };
 
     const confirmEventCrop = async () => {
-        if (!pendingCropAsset?.width || !pendingCropAsset?.height) return;
+        if (!pendingCropAsset) return;
+        if (!pendingCropAsset.width || !pendingCropAsset.height) {
+            setSelectedImage(pendingCropAsset.uri);
+            setPendingCropAsset(null);
+            return;
+        }
         setIsCroppingImage(true);
         try {
             const cropWidth = Math.min(pendingCropAsset.width, Math.round(cropLayout.frameWidth / cropLayout.scale));
@@ -480,7 +486,11 @@ export default function EventsScreen() {
         setIsUploading(true);
         try {
             let imageUrl = selectedImage;
-            if (selectedImage && !selectedImage.startsWith('http') && !selectedImage.startsWith('/')) {
+            const isExistingServerImage = Boolean(selectedImage && (
+                /^https?:\/\//i.test(selectedImage) ||
+                /^\/?(?:uploads|media|api)\//i.test(selectedImage)
+            ));
+            if (selectedImage && !isExistingServerImage) {
                 const uploaded = await mediaApi.uploadImage(selectedImage);
                 if (!uploaded) {
                     Alert.alert(
@@ -758,10 +768,10 @@ export default function EventsScreen() {
                 transparent={true}
                 statusBarTranslucent={true}
                 navigationBarTranslucent={true}
-                onRequestClose={closeModal}
+                onRequestClose={() => pendingCropAsset ? setPendingCropAsset(null) : closeModal()}
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
-                    <TouchableOpacity style={{ flex: 1 }} onPress={closeModal} activeOpacity={1} />
+                    <TouchableOpacity style={{ flex: 1 }} onPress={() => pendingCropAsset ? setPendingCropAsset(null) : closeModal()} activeOpacity={1} />
                     <Animated.View 
                         style={[styles.modalContainer, isDark && { backgroundColor: '#000000' }, { flex: 0, height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom, transform: [{ translateY: modalSlideAnim }] }]} 
                     >
@@ -996,81 +1006,74 @@ export default function EventsScreen() {
                         </View>)}
                         </View>
                     </KeyboardAwareScrollView>
-                </Animated.View>
-                </View>
-            </Modal>
 
-            <Modal
-                visible={Boolean(pendingCropAsset)}
-                animationType="slide"
-                presentationStyle="fullScreen"
-                onRequestClose={() => !isCroppingImage && setPendingCropAsset(null)}
-            >
-                <View style={{ flex: 1, backgroundColor: '#000000', paddingTop: insets.top }}>
-                    <View style={{ height: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <TouchableOpacity
-                            onPress={() => setPendingCropAsset(null)}
-                            disabled={isCroppingImage}
-                            style={{ minWidth: 72, paddingVertical: 10 }}
-                        >
-                            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
-                                {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
-                            </Text>
-                        </TouchableOpacity>
-                        <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>
-                            {i18n.language.startsWith('en') ? 'Crop event banner' : 'Etkinlik afişini kırp'}
-                        </Text>
-                        <TouchableOpacity
-                            onPress={confirmEventCrop}
-                            disabled={isCroppingImage}
-                            style={{ minWidth: 72, paddingVertical: 10, alignItems: 'flex-end' }}
-                        >
-                            {isCroppingImage ? (
-                                <ActivityIndicator size="small" color="#60A5FA" />
-                            ) : (
-                                <Text style={{ color: '#60A5FA', fontSize: 15, fontWeight: '800' }}>
-                                    {i18n.language.startsWith('en') ? 'Use' : 'Kullan'}
+                    {pendingCropAsset && (
+                        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#000000', zIndex: 50 }]}>
+                            <View style={{ height: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <TouchableOpacity
+                                    onPress={() => setPendingCropAsset(null)}
+                                    disabled={isCroppingImage}
+                                    style={{ minWidth: 72, paddingVertical: 10 }}
+                                >
+                                    <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
+                                        {i18n.language.startsWith('en') ? 'Cancel' : 'İptal'}
+                                    </Text>
+                                </TouchableOpacity>
+                                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>
+                                    {i18n.language.startsWith('en') ? 'Crop event banner' : 'Etkinlik afişini kırp'}
                                 </Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                                <TouchableOpacity
+                                    onPress={confirmEventCrop}
+                                    disabled={isCroppingImage}
+                                    style={{ minWidth: 72, paddingVertical: 10, alignItems: 'flex-end' }}
+                                >
+                                    {isCroppingImage ? (
+                                        <ActivityIndicator size="small" color="#60A5FA" />
+                                    ) : (
+                                        <Text style={{ color: '#60A5FA', fontSize: 15, fontWeight: '800' }}>
+                                            {i18n.language.startsWith('en') ? 'Use' : 'Kullan'}
+                                        </Text>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
 
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <View
-                            {...cropPanResponder.panHandlers}
-                            style={{
-                                width: cropLayout.frameWidth,
-                                height: cropLayout.frameHeight,
-                                overflow: 'hidden',
-                                backgroundColor: '#111827',
-                                borderRadius: 12,
-                            }}
-                        >
-                            {pendingCropAsset && (
-                                <Animated.Image
-                                    source={{ uri: pendingCropAsset.uri }}
+                            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                <View
+                                    {...cropPanResponder.panHandlers}
                                     style={{
-                                        position: 'absolute',
-                                        left: (cropLayout.frameWidth - cropLayout.displayWidth) / 2,
-                                        top: (cropLayout.frameHeight - cropLayout.displayHeight) / 2,
-                                        width: cropLayout.displayWidth,
-                                        height: cropLayout.displayHeight,
-                                        transform: cropPan.getTranslateTransform(),
+                                        width: cropLayout.frameWidth,
+                                        height: cropLayout.frameHeight,
+                                        overflow: 'hidden',
+                                        backgroundColor: '#111827',
+                                        borderRadius: 12,
                                     }}
-                                    resizeMode="stretch"
-                                />
-                            )}
-                            <View
-                                pointerEvents="none"
-                                style={[StyleSheet.absoluteFillObject, { borderWidth: 2, borderColor: '#FFFFFF', borderRadius: 12 }]}
-                            />
+                                >
+                                    <Animated.Image
+                                        source={{ uri: pendingCropAsset.uri }}
+                                        style={{
+                                            position: 'absolute',
+                                            left: (cropLayout.frameWidth - cropLayout.displayWidth) / 2,
+                                            top: (cropLayout.frameHeight - cropLayout.displayHeight) / 2,
+                                            width: cropLayout.displayWidth,
+                                            height: cropLayout.displayHeight,
+                                            transform: cropPan.getTranslateTransform(),
+                                        }}
+                                        resizeMode="stretch"
+                                    />
+                                    <View
+                                        pointerEvents="none"
+                                        style={[StyleSheet.absoluteFillObject, { borderWidth: 2, borderColor: '#FFFFFF', borderRadius: 12 }]}
+                                    />
+                                </View>
+                                <Text style={{ color: '#CBD5E1', fontSize: 13, marginTop: 18, textAlign: 'center', paddingHorizontal: 30 }}>
+                                    {i18n.language.startsWith('en')
+                                        ? 'Drag the photo to position it inside the 4:5 event banner.'
+                                        : 'Fotoğrafı sürükleyerek 4:5 etkinlik afişi alanına yerleştirin.'}
+                                </Text>
+                            </View>
                         </View>
-                        <Text style={{ color: '#CBD5E1', fontSize: 13, marginTop: 18, textAlign: 'center', paddingHorizontal: 30 }}>
-                            {i18n.language.startsWith('en')
-                                ? 'Drag the photo to position it inside the 4:5 event banner.'
-                                : 'Fotoğrafı sürükleyerek 4:5 etkinlik afişi alanına yerleştirin.'}
-                        </Text>
-                    </View>
+                    )}
+                </Animated.View>
                 </View>
             </Modal>
 
@@ -1184,7 +1187,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 14,
         borderWidth: 1.25,
-        borderColor: '#CBD5E1',
+        borderColor: '#F8FAFC',
         marginBottom: 20,
         overflow: 'hidden',
         shadowColor: '#000',
