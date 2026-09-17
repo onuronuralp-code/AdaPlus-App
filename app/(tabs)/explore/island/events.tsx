@@ -8,7 +8,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { fetchActivities, createActivity, updateActivity, getActivity, AppActivityDto, CreateActivityRequest } from '@/services/api';
 import { resolveImageUrl } from '@/services/config';
 import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as mediaApi from '@/services/mediaApi';
 import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/context/AuthContext';
@@ -369,6 +368,11 @@ export default function EventsScreen() {
                 Math.round(((cropLayout.displayHeight - cropLayout.frameHeight) / 2 - cropOffsetRef.current.y) / cropLayout.scale)
             ));
 
+            // Imported lazily (rather than statically at the top of the file) so that on
+            // app installs whose native binary predates this dependency, the missing
+            // native module only surfaces as a catchable error here when a crop is
+            // actually confirmed — not as a fatal crash the instant this screen opens.
+            const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
             const croppedImage = await manipulateAsync(
                 pendingCropAsset.uri,
                 [{ crop: { originX, originY, width: cropWidth, height: cropHeight } }],
