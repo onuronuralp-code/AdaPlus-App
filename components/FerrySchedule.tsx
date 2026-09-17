@@ -144,12 +144,23 @@ const addMinutes = (time: string, mins: number): string => {
   return `${String(rh).padStart(2, "0")}:${String(rm).padStart(2, "0")}`;
 };
 
+// The 19:20 Kabataş->Heybeliada sailing runs 5 min slower than the 18:25 one
+// on the same nonstop route, per the official Şehir Hatları timetable.
+const getLegMinutes = (
+  from: string,
+  to: string,
+  legDepartureTime: string,
+): number | undefined => {
+  if (from === "Kabataş" && to === "Heybeliada" && legDepartureTime === "19:20") return 60;
+  return TRANSIT_MINUTES[from]?.[to];
+};
+
 const getArrivalTime = (
   from: string,
   to: string,
   departureTime: string,
 ): string | null => {
-  const mins = TRANSIT_MINUTES[from]?.[to];
+  const mins = getLegMinutes(from, to, departureTime);
   if (!mins) return null;
   return addMinutes(departureTime, mins);
 };
@@ -165,8 +176,10 @@ const computeArrivalWithVia = (
   }
   let currTime = departureTime;
   let currStop = from;
-  for (const stop of [...via, to]) {
-    const mins = TRANSIT_MINUTES[currStop]?.[stop];
+  const stops = [...via, to];
+  for (let i = 0; i < stops.length; i++) {
+    const stop = stops[i];
+    const mins = i === 0 ? getLegMinutes(currStop, stop, departureTime) : TRANSIT_MINUTES[currStop]?.[stop];
     if (!mins) return getArrivalTime(from, to, departureTime) || "";
     currTime = addMinutes(currTime, mins);
     currStop = stop;
