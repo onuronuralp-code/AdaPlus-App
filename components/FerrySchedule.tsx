@@ -113,7 +113,7 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
   Kabataş: {
     Kınalıada: 60,
     Burgazada: 75,
-    Heybeliada: 90,
+    Heybeliada: 55,
     Büyükada: 105,
     Kadıköy: 25,
     Eminönü: 15,
