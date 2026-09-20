@@ -340,7 +340,9 @@ export const updateListing = async (id: string, request: CreateListingRequest): 
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify(request),
+      // Optional event fields must be omitted rather than sent as JSON null;
+      // the API validates absent dates/contacts as optional values.
+      body: JSON.stringify(request, (_key, value) => value === null ? undefined : value),
     });
     if (!response.ok) throw new Error("Listing update error");
     return await response.json();
@@ -366,7 +368,7 @@ export const createActivity = async (
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(request, (_key, value) => value === null ? undefined : value),
     });
     if (!response.ok) {
       const errorText = await response.text();
