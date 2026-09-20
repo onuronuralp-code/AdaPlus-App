@@ -1586,10 +1586,10 @@ function TripDetailPopup({
         onClose();
         setTimeout(() => {
           Alert.alert(
-            i18n.language === "tr" ? "Desteklenmiyor" : "Not Supported",
+            i18n.language === "tr" ? "Hata" : "Error",
             i18n.language === "tr"
-              ? "Bu özellik Expo Go'da desteklenmiyor. Lütfen geliştirme derlemesini kullanın."
-              : "This feature isn't supported in Expo Go. Please use a development build.",
+              ? "Bildirim servisi bu cihazda başlatılamadı."
+              : "Failed to initialize notification service on this device.",
           );
         }, 400);
         return;
@@ -1677,13 +1677,19 @@ function TripDetailPopup({
           sound: true,
         },
         trigger: {
-          type: NotificationsModule.SchedulableTriggerInputTypes.DATE,
+          type: NotificationsModule.SchedulableTriggerInputTypes?.DATE ?? "date",
           date: alarmDate,
         },
       });
 
       setAlarmSet(minutesBefore);
       setShowAlarmOptions(false);
+      Alert.alert(
+        i18n.language === "tr" ? "Hatırlatıcı Kuruldu" : "Reminder Set",
+        i18n.language === "tr"
+          ? `${trip.departureTime} seferiniz için ${alarmLabel} önce bildirim gönderilecek.`
+          : `A reminder will be sent ${alarmLabel} before your ${trip.departureTime} departure.`,
+      );
     } catch (error) {
       console.error("Failed to schedule alarm:", error);
       onClose();

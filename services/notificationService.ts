@@ -5,20 +5,9 @@ import { getToken } from '@/utils/tokenStorage';
 
 export function getNotificationsModule() {
   try {
-    // Expo Go does not include legacy PushNotificationIOS / RCTPushNotificationManager native modules.
-    // Requiring expo-notifications in Expo Go or simulator without native build throws an Invariant Violation.
-    const isExpoGo =
-      Constants.appOwnership === 'expo' ||
-      (Constants as any).executionEnvironment === 'storeClient' ||
-      !!(Constants as any).expoVersion ||
-      !!(Constants as any).manifest ||
-      !NativeModules.PushNotificationManager;
-
-    if (isExpoGo) {
-      return null;
-    }
     return require('expo-notifications');
-  } catch {
+  } catch (error) {
+    console.warn('[Notifications] expo-notifications not available:', error);
     return null;
   }
 }
@@ -27,6 +16,15 @@ export async function registerForPushNotifications(): Promise<void> {
   try {
     const Notifications = getNotificationsModule();
     if (!Notifications) return;
+
+    // Remote push notifications via Expo push service are not supported in Expo Go (SDK 53+)
+    // Local notifications continue to work normally.
+    const isExpoGo =
+      Constants.appOwnership === 'expo' ||
+      (Constants as any).executionEnvironment === 'storeClient';
+    if (isExpoGo) {
+      return;
+    }
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
     if (existing !== 'granted') {
@@ -67,6 +65,14 @@ export async function unregisterPushNotifications(): Promise<void> {
   try {
     const Notifications = getNotificationsModule();
     if (!Notifications) return;
+
+    const isExpoGo =
+      Constants.appOwnership === 'expo' ||
+      (Constants as any).executionEnvironment === 'storeClient';
+    if (isExpoGo) {
+      return;
+    }
+
     const projectId =
       Constants.expoConfig?.extra?.eas?.projectId ?? 'f842f1f6-7573-43a1-a1a9-58b9e270eff6';
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
