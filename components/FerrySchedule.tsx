@@ -1685,6 +1685,15 @@ function TripDetailPopup({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setAlarmSet(minutesBefore);
       setShowAlarmOptions(false);
+      onClose();
+      setTimeout(() => {
+        Alert.alert(
+          i18n.language === "tr" ? "Hatırlatıcı Kuruldu" : "Reminder Set",
+          i18n.language === "tr"
+            ? `${trip.departureTime} seferiniz için ${alarmLabel} önce bildirim gönderilecek.`
+            : `A reminder will be sent ${alarmLabel} before your ${trip.departureTime} departure.`,
+        );
+      }, 350);
     } catch (error) {
       console.error("Failed to schedule alarm:", error);
       onClose();

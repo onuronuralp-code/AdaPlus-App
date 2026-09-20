@@ -16,11 +16,11 @@ const resolveApiBaseUrl = (): string => {
   let url = process.env.EXPO_PUBLIC_API_URL;
 
   if (!url) {
-    const devHost = getDevHost();
-    if (devHost && Platform.OS !== 'web') {
-      return `http://${devHost}:8080`;
-    }
-    return 'http://localhost:8080';
+    // Simulator/Expo Go previously inferred Metro's LAN IP and assumed that a
+    // backend was running on port 8080 there. When it was not, every publish
+    // request waited for the unreachable host and made the UI look frozen.
+    // Local backend development can still opt in with EXPO_PUBLIC_API_URL.
+    return 'https://api.adaplus.app';
   }
 
   // If URL explicitly targets localhost on a non-web device, rewrite to Metro dev host IP
