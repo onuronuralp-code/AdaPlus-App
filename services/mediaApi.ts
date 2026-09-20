@@ -1,5 +1,4 @@
-import { triggerNetworkError } from './api';
-import { API_BASE_URL, fetchWithTimeout } from './config';
+import { API_BASE_URL } from './config';
 import { getToken } from '@/utils/tokenStorage';
 
 const MEDIA_API_BASE = `${API_BASE_URL}/api/v1/media`;
@@ -27,14 +26,25 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
     });
 
     const token = getToken();
-    const response = await fetchWithTimeout(`${MEDIA_API_BASE}/upload`, {
+    // Uploads use a single bounded request. Retrying a multipart POST can leave
+    // the publish button spinning for almost a minute on a weak connection and
+    // may submit the same image more than once.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+    let response: Response;
+    try {
+      response = await fetch(`${MEDIA_API_BASE}/upload`, {
       method: 'POST',
       body: formData,
       headers: {
         'Accept': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
-    });
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
     
@@ -43,7 +53,9 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
     return data.url ?? data.imageUrl ?? data.fileUrl ?? data.path ?? null;
   } catch (error) {
     console.log('Failed to upload image:', error);
-    triggerNetworkError();
+    // The event form presents its own actionable error message. Do not open the
+    // global network modal here: it can cover that message and look like the app
+    // has frozen while the upload is timing out.
     return null;
   }
 };

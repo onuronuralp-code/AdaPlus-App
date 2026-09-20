@@ -376,7 +376,8 @@ export const createActivity = async (
     return await response.json();
   } catch (error) {
     console.log("Failed to create activity:", error);
-    triggerNetworkError();
+    // The event form displays a local, actionable error. A global modal here can
+    // cover that message and make a failed publish look like a frozen screen.
     return null;
   }
 };
@@ -400,7 +401,8 @@ export const updateActivity = async (
     return await response.json();
   } catch (error) {
     console.log("Failed to update activity:", error);
-    triggerNetworkError();
+    // Keep the error visible in the event form instead of covering it with the
+    // global network modal.
     return null;
   }
 };
