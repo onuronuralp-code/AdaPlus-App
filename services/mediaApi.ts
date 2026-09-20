@@ -33,15 +33,21 @@ export const uploadImage = async (uri: string): Promise<string | null> => {
     const timeoutId = setTimeout(() => controller.abort(), 30_000);
     let response: Response;
     try {
-      response = await fetch(`${MEDIA_API_BASE}/upload`, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Accept': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      },
-        signal: controller.signal,
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Image upload timed out')), 30_000);
       });
+      response = await Promise.race([
+        fetch(`${MEDIA_API_BASE}/upload`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+          signal: controller.signal,
+        }),
+        timeout,
+      ]);
     } finally {
       clearTimeout(timeoutId);
     }
