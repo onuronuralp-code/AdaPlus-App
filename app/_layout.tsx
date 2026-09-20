@@ -7,13 +7,14 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, Dimensions } from "react-native";
+import { Alert, AppState, Linking, Modal, StyleSheet, Text, TouchableOpacity, View, Platform, Dimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../utils/configureTextScaling";
 import type * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { fetchAppVersion, requiresUpdate } from "@/services/appVersionApi";
+import { fetchAppStoreVersion, isNewerVersion } from "@/services/appStoreVersionApi";
 import { getNotificationsModule } from "@/services/notificationService";
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
 import { useTranslation } from 'react-i18next';
@@ -224,6 +225,7 @@ export default function RootLayout() {
   // back to a usable state.
   const isCheckingVersion = useRef(false);
   const isShowingUpdateAlert = useRef(false);
+  const promptedStoreVersion = useRef<string | null>(null);
 
   const checkVersion = useRef(() => {
     if (isCheckingVersion.current) return;
@@ -268,6 +270,33 @@ export default function RootLayout() {
     );
   };
 
+  const checkAppStoreVersion = useRef(async () => {
+    // App Store checks are only meaningful in the released iOS binary. In Expo Go,
+    // development builds, and Android there is no App Store version to compare.
+    if (Platform.OS !== 'ios' || __DEV__ || Constants.executionEnvironment !== 'standalone') return;
+
+    const installedVersion = Constants.expoConfig?.version;
+    if (!installedVersion) return;
+
+    const released = await fetchAppStoreVersion();
+    if (!released || !isNewerVersion(released.version, installedVersion)) return;
+    if (promptedStoreVersion.current === released.version) return;
+    promptedStoreVersion.current = released.version;
+
+    Alert.alert(
+      'Yeni sürüm mevcut',
+      `AdaPlus'ın ${released.version} sürümü App Store'da yayınlandı. Şimdi güncellemek ister misin?`,
+      [
+        { text: 'Daha Sonra', style: 'cancel' },
+        {
+          text: 'Güncelle',
+          onPress: () => Linking.openURL(released.trackViewUrl || APP_STORE_URL),
+        },
+      ],
+      { cancelable: true },
+    );
+  }).current;
+
   useEffect(() => {
     notificationListener.current = NotificationsModule?.addNotificationReceivedListener(
       (notification: any) => {
@@ -279,6 +308,11 @@ export default function RootLayout() {
 
     // Initial version check
     checkVersion();
+    checkAppStoreVersion();
+
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') checkAppStoreVersion();
+    });
 
     // Poll every 30 seconds
     const pollingInterval = setInterval(() => {
@@ -287,6 +321,7 @@ export default function RootLayout() {
 
     return () => {
       notificationListener.current?.remove();
+      appStateSubscription.remove();
       clearInterval(pollingInterval);
     };
   }, []);
