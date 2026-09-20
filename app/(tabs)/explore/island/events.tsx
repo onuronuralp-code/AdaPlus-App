@@ -532,9 +532,12 @@ export default function EventsScreen() {
         const request: CreateActivityRequest = {
             name: newEventName.trim() || (i18n.language.startsWith('en') ? 'Event' : 'Etkinlik'),
             description: newEventDetails.trim() || (i18n.language.startsWith('en') ? 'Event details are in the photo.' : 'Etkinlik detayları fotoğraftadır.'),
-            startDate: hasStartDate ? startDate.toISOString() : null,
+            // The form keeps the date optional, while the current backend still
+            // requires a non-null startDate. Use the submission time only as a
+            // compatibility fallback when the user did not choose a date.
+            startDate: hasStartDate ? startDate.toISOString() : new Date().toISOString(),
             endDate: hasStartDate && hasEndDate ? endDate.toISOString() : null,
-            organizerName: organizerName.trim(),
+            organizerName: organizerName.trim() || user?.fullName || user?.email || 'AdaPlus',
             organizerContact: contactNumber.trim(),
             eventPlace: newEventLocation.trim(),
             instagramLink: formattedSocialLink,
