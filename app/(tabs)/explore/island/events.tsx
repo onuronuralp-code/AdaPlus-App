@@ -381,8 +381,11 @@ export default function EventsScreen() {
             const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
             const croppedImage = await manipulateAsync(
                 pendingCropAsset.uri,
-                [{ crop: { originX, originY, width: cropWidth, height: cropHeight } }],
-                { compress: 0.9, format: SaveFormat.JPEG }
+                [
+                    { crop: { originX, originY, width: cropWidth, height: cropHeight } },
+                    { resize: { width: 1200 } },
+                ],
+                { compress: 0.8, format: SaveFormat.JPEG }
             );
             setSelectedImage(croppedImage.uri);
             setPendingCropAsset(null);
