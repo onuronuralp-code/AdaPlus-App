@@ -180,7 +180,12 @@ export default function ForumScreen() {
     const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
     const [deleteConfirmState, setDeleteConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
     const [reportConfirmState, setReportConfirmState] = useState<{ visible: boolean, id: string | null }>({ visible: false, id: null });
-    const [translatedPosts, setTranslatedPosts] = useState<Record<string, { text: string; isTranslated: boolean; loading: boolean }>>({});
+    const [translatedPosts, setTranslatedPosts] = useState<Record<string, {
+        text: string;
+        optionTexts?: Record<string, string>;
+        isTranslated: boolean;
+        loading: boolean;
+    }>>({});
 
     useEffect(() => {
         if (isKeyboardVisible && isDetailModalVisible) {
@@ -201,7 +206,8 @@ export default function ForumScreen() {
         }
     }, [isKeyboardVisible, isDetailModalVisible]);
 
-    const handleToggleTranslation = async (postId: string, text: string) => {
+    const handleToggleTranslation = async (post: PostDto) => {
+        const postId = post.id;
         const current = translatedPosts[postId];
         if (current?.isTranslated) {
             setTranslatedPosts(prev => ({
@@ -217,11 +223,30 @@ export default function ForumScreen() {
         }));
 
         const targetLang = i18n.language.startsWith('tr') ? 'en' : 'tr';
-        const translated = await translateText(text, targetLang);
+        const pollOptions = (post.pollOptions || (post as any).options || (post as any).poll_options || []) as any[];
+        const [translated, translatedOptions] = await Promise.all([
+            translateText(post.content, targetLang),
+            Promise.all(pollOptions.map(async (option, index) => {
+                const key = String(option?.id ?? index);
+                const original = String(option?.text ?? option?.optionText ?? option?.title ?? '');
+                const backendTranslation = targetLang === 'en'
+                    ? (option?.textEn ?? option?.text_en ?? option?.optionTextEn ?? option?.option_text_en ?? option?.translations?.en)
+                    : (option?.textTr ?? option?.text_tr ?? option?.translations?.tr);
+                const value = typeof backendTranslation === 'string' && backendTranslation.trim()
+                    ? backendTranslation
+                    : await translateText(original, targetLang);
+                return [key, value] as const;
+            })),
+        ]);
 
         setTranslatedPosts(prev => ({
             ...prev,
-            [postId]: { text: translated, isTranslated: true, loading: false }
+            [postId]: {
+                text: translated,
+                optionTexts: Object.fromEntries(translatedOptions),
+                isTranslated: true,
+                loading: false,
+            }
         }));
     };
     const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
@@ -454,6 +479,66 @@ export default function ForumScreen() {
 
     const getPollVoteCount = (option: any): number =>
         Number(option?.voteCount ?? option?.votes ?? option?.count ?? 0) || 0;
+
+    const getPollOptionText = (postId: string, option: any, optionIndex: number): string => {
+        const originalText = String(
+            option?.textTr ??
+            option?.text_tr ??
+            option?.translations?.tr ??
+            option?.text ??
+            option?.optionText ??
+            option?.title ??
+            ''
+        );
+
+        const translatedOption = translatedPosts[postId]?.optionTexts?.[String(option?.id ?? optionIndex)];
+        if (translatedPosts[postId]?.isTranslated && translatedOption) return translatedOption;
+
+        if (!i18n.language.startsWith('en')) return originalText;
+
+        const englishText =
+            option?.textEn ??
+            option?.text_en ??
+            option?.optionTextEn ??
+            option?.option_text_en ??
+            option?.translations?.en;
+        if (typeof englishText === 'string' && englishText.trim()) return englishText;
+
+        // Older polls only stored one Turkish value. Keep custom answers intact,
+        // but localize the common choices until their English value is backfilled.
+        const normalized = originalText.trim().toLocaleLowerCase('tr-TR');
+        const commonTranslations: Record<string, string> = {
+            'yaz': 'Summer',
+            'kış': 'Winter',
+            'kis': 'Winter',
+            'sonbahar': 'Autumn',
+            'ilkbahar': 'Spring',
+            'kararsızım': 'Undecided',
+            'kararsizim': 'Undecided',
+            'fikrim yok': 'No opinion',
+            'katılıyorum': 'I agree',
+            'katiliyorum': 'I agree',
+            'katılmıyorum': 'I disagree',
+            'katilmiyorum': 'I disagree',
+            'belki': 'Maybe',
+            'olabilir': 'Maybe',
+            'diğer': 'Other',
+            'diger': 'Other',
+        };
+        if (commonTranslations[normalized]) return commonTranslations[normalized];
+
+        if (normalized === 'evet' || normalized.startsWith('evet ')) {
+            return `Yes${originalText.trim().slice(4)}`;
+        }
+        if (normalized === 'hayır' || normalized.startsWith('hayır ') || normalized.startsWith('hayır!')) {
+            return `No${originalText.trim().slice(5)}`;
+        }
+        if (normalized === 'hayir' || normalized.startsWith('hayir ') || normalized.startsWith('hayir!')) {
+            return `No${originalText.trim().slice(5)}`;
+        }
+
+        return originalText;
+    };
 
     const normalizePollPost = (post: PostDto): PostDto => {
         const options = (post.pollOptions || (post as any).options || (post as any).poll_options) as any[] | undefined;
@@ -1177,7 +1262,7 @@ export default function ForumScreen() {
                         </Text>
                         {item.content && item.content.trim().length > 3 && (
                             <TouchableOpacity
-                                onPress={() => handleToggleTranslation(item.id, item.content)}
+                                onPress={() => handleToggleTranslation(item)}
                                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, marginBottom: 4, alignSelf: 'flex-start' }}
                                 activeOpacity={0.7}
                             >
@@ -1215,7 +1300,7 @@ export default function ForumScreen() {
                                                 ? (option.id && String(option.id) === String(userVotedId))
                                                 : (option.isVoted || option.voted || option.is_voted || option.selected))
                                         );
-                                        const optText = option.text || option.optionText || option.title || '';
+                                        const optText = getPollOptionText(item.id, option, optIdx);
                                         const optPercent = totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0;
                                         return (
                                         <TouchableOpacity
@@ -1788,7 +1873,7 @@ export default function ForumScreen() {
                                     </Text>
                                     {selectedPost.content && selectedPost.content.trim().length > 3 && (
                                         <TouchableOpacity
-                                            onPress={() => handleToggleTranslation(selectedPost.id, selectedPost.content)}
+                                            onPress={() => handleToggleTranslation(selectedPost)}
                                             style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8, marginBottom: 8, alignSelf: 'flex-start' }}
                                             activeOpacity={0.7}
                                         >
@@ -1822,7 +1907,7 @@ export default function ForumScreen() {
                                                     const isOptionVoted = userVotedId
                                                         ? Boolean(option.id && String(option.id) === String(userVotedId))
                                                         : Boolean(option.isVoted || option.voted || option.is_voted || option.selected);
-                                                    const optText = option.text || option.optionText || option.title || '';
+                                                    const optText = getPollOptionText(selectedPost.id, option, optIdx);
                                                     const optVotes = getPollVoteCount(option);
                                                     const optPercent = totalVotes > 0 ? ((optVotes / totalVotes) * 100) : 0;
                                                     return (
