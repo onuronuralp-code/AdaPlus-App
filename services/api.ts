@@ -237,15 +237,40 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     });
     if (!response.ok) throw new Error("Activities fetch error");
     const data = await response.json();
-    if (Array.isArray(data) && data.length > 0) {
-      return data.filter(Boolean);
-    }
+    let activities: AppActivityDto[] = Array.isArray(data) ? data.filter(Boolean) : [];
     // Some deployments return a paginated envelope while others return a raw
     // array. Support both so approved activities are not mistaken for an empty
     // result.
     const items = data?.content ?? data?.items ?? data?.data;
-    if (Array.isArray(items)) return items.filter(Boolean);
-    return [];
+    if (Array.isArray(items)) activities = items.filter(Boolean);
+
+    // The public collection can lag behind moderation. Include the signed-in
+    // user's approved activity immediately from the personal collection too.
+    if (token) {
+      try {
+        const mineResponse = await fetchWithTimeout(`${BASE}/api/v1/users/me/activities`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (mineResponse.ok) {
+          const mineData = await mineResponse.json();
+          const mineItems = Array.isArray(mineData)
+            ? mineData
+            : (mineData?.content ?? mineData?.items ?? mineData?.data ?? []);
+          if (Array.isArray(mineItems)) {
+            const approvedMine = mineItems.filter((item: AppActivityDto) =>
+              !item.status || String(item.status).toUpperCase() === 'APPROVED'
+            );
+            const byId = new Map(activities.map((item) => [item.id, item]));
+            approvedMine.forEach((item: AppActivityDto) => byId.set(item.id, item));
+            activities = Array.from(byId.values());
+          }
+        }
+      } catch (error) {
+        console.log('Failed to merge my activities:', error);
+      }
+    }
+
+    return activities;
   } catch (error) {
     console.log("Failed to fetch activities:", error);
     return [];
