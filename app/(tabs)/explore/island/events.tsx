@@ -644,11 +644,8 @@ export default function EventsScreen() {
                                 style={[styles.eventCard, isDark && { backgroundColor: '#121212', borderColor: '#3F3F46' }, isGridView && { width: (width - 44) / 2, marginHorizontal: 0, marginBottom: 14 }]}
                                 activeOpacity={0.8}
                                 onPress={() => {
-                                    setViewerImageUrl(
-                                        hasUserImage
-                                            ? resolvedUrl
-                                            : 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
-                                    );
+                                    if (!hasUserImage) return;
+                                    setViewerImageUrl(resolvedUrl);
                                     setImageViewerVisible(true);
                                 }}
                             >
@@ -664,13 +661,9 @@ export default function EventsScreen() {
                                     </View>
                                 ) : (
                                     <View
-                                        style={{ width: '100%', aspectRatio: EVENT_BANNER_ASPECT_RATIO, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9' }}
+                                        style={{ width: '100%', aspectRatio: EVENT_BANNER_ASPECT_RATIO, backgroundColor: isDark ? '#1C1C1E' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        <Image
-                                            source={{ uri: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80' }}
-                                            style={styles.eventImage}
-                                            resizeMode="contain"
-                                        />
+                                        <IconSymbol name="photo" size={28} color={isDark ? '#71717A' : '#CBD5E1'} />
                                     </View>
                                 )}
                                 

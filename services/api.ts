@@ -237,10 +237,10 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
     if (Array.isArray(data) && data.length > 0) {
       return data;
     }
-    return DEFAULT_ACTIVITIES;
+    return [];
   } catch (error) {
     console.log("Failed to fetch activities:", error);
-    return DEFAULT_ACTIVITIES;
+    return [];
   }
 };
 
@@ -252,10 +252,10 @@ export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppAct
     if (Array.isArray(data) && data.length > 0) {
       return data.slice(0, limit);
     }
-    return DEFAULT_ACTIVITIES.slice(0, limit);
+    return [];
   } catch (error) {
     console.log("Failed to fetch upcoming activities:", error);
-    return DEFAULT_ACTIVITIES.slice(0, limit);
+    return [];
   }
 };
 
