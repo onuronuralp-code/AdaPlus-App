@@ -231,12 +231,20 @@ export const MOCK_ACTIVITIES: AppActivityDto[] = DEFAULT_ACTIVITIES;
 
 export const fetchActivities = async (): Promise<AppActivityDto[]> => {
   try {
-    const response = await fetchWithTimeout(ACTIVITIES_API_BASE_URL);
+    const token = getToken();
+    const response = await fetchWithTimeout(ACTIVITIES_API_BASE_URL, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     if (!response.ok) throw new Error("Activities fetch error");
     const data = await response.json();
     if (Array.isArray(data) && data.length > 0) {
-      return data;
+      return data.filter(Boolean);
     }
+    // Some deployments return a paginated envelope while others return a raw
+    // array. Support both so approved activities are not mistaken for an empty
+    // result.
+    const items = data?.content ?? data?.items ?? data?.data;
+    if (Array.isArray(items)) return items.filter(Boolean);
     return [];
   } catch (error) {
     console.log("Failed to fetch activities:", error);
@@ -246,12 +254,17 @@ export const fetchActivities = async (): Promise<AppActivityDto[]> => {
 
 export const fetchUpcomingActivities = async (limit: number = 5): Promise<AppActivityDto[]> => {
   try {
-    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`);
+    const token = getToken();
+    const response = await fetchWithTimeout(`${ACTIVITIES_API_BASE_URL}/upcoming?limit=${limit}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     if (!response.ok) throw new Error("Upcoming activities fetch error");
     const data = await response.json();
     if (Array.isArray(data) && data.length > 0) {
       return data.slice(0, limit);
     }
+    const items = data?.content ?? data?.items ?? data?.data;
+    if (Array.isArray(items)) return items.filter(Boolean).slice(0, limit);
     return [];
   } catch (error) {
     console.log("Failed to fetch upcoming activities:", error);
