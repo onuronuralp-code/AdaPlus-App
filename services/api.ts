@@ -435,10 +435,23 @@ export const updateActivity = async (
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify(request),
+      // Match the create endpoint: optional fields must be omitted instead of
+      // being sent as null/empty values, which the update DTO rejects.
+      body: JSON.stringify(request, (_key, value) =>
+        value === null || value === '' ? undefined : value
+      ),
     });
-    if (!response.ok) throw new Error("Activity update error");
-    return await response.json();
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.log(`Activity update error (${response.status}):`, errorText);
+      return null;
+    }
+
+    // Some successful PUT responses do not include a body. Treat those as a
+    // completed update instead of failing while trying to parse empty JSON.
+    const responseText = await response.text();
+    if (!responseText.trim()) return { id, ...request } as AppActivityDto;
+    return JSON.parse(responseText) as AppActivityDto;
   } catch (error) {
     console.log("Failed to update activity:", error);
     // Keep the error visible in the event form instead of covering it with the

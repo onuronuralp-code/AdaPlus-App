@@ -125,7 +125,7 @@ export default function EventsScreen() {
             setEditingActivityId(id);
             getActivity(id).then(act => {
                 if (act) {
-                    setNewEventName(act.name);
+                    setNewEventName(act.name || '');
                     const activityStartDate = act.startDate ? new Date(act.startDate) : new Date();
                     setHasStartDate(Boolean(act.startDate));
                     setHasStartTime(Boolean(act.startDate) && (activityStartDate.getHours() !== 0 || activityStartDate.getMinutes() !== 0));
@@ -135,12 +135,12 @@ export default function EventsScreen() {
                     setEndDate(activityEndDate);
                     setHasEndTime(Boolean(act.endDate) && (activityEndDate.getHours() !== 0 || activityEndDate.getMinutes() !== 0));
                     setNewEventLocation(act.eventPlace || '');
-                    setNewEventDetails(act.description);
+                    setNewEventDetails(act.description || '');
                     setShowOptionalDetails(true);
-                    setOrganizerName(act.organizerName);
+                    setOrganizerName(act.organizerName || '');
                     setContactNumber(act.organizerContact || '');
                     setSocialLink(act.instagramLink || '');
-                    setSelectedImage(act.imageUrl || null);
+                    setSelectedImage(act.imageUrl || act.imageUrls?.[0] || null);
                     setSelectedIsland(act.island || null);
                     setIsAddModalVisible(true);
                 }
@@ -508,7 +508,16 @@ export default function EventsScreen() {
             }
             await publishEvent(imageUrl || undefined);
         } catch {
-            Alert.alert(t('common.error', { defaultValue: 'Hata' }), 'Etkinlik oluşturulamadı. Lütfen tekrar deneyin.');
+            Alert.alert(
+                t('common.error', { defaultValue: 'Hata' }),
+                editingActivityId
+                    ? (i18n.language.startsWith('en')
+                        ? 'The event could not be updated. Please try again.'
+                        : 'Etkinlik güncellenemedi. Lütfen tekrar deneyin.')
+                    : (i18n.language.startsWith('en')
+                        ? 'The event could not be created. Please try again.'
+                        : 'Etkinlik oluşturulamadı. Lütfen tekrar deneyin.')
+            );
         } finally {
             setIsUploading(false);
         }
@@ -536,11 +545,11 @@ export default function EventsScreen() {
             // requires a non-null startDate. Use the submission time only as a
             // compatibility fallback when the user did not choose a date.
             startDate: hasStartDate ? startDate.toISOString() : new Date().toISOString(),
-            endDate: hasStartDate && hasEndDate ? endDate.toISOString() : null,
+            endDate: hasStartDate && hasEndDate ? endDate.toISOString() : undefined,
             organizerName: organizerName.trim() || user?.fullName || user?.email || 'AdaPlus',
-            organizerContact: contactNumber.trim(),
-            eventPlace: newEventLocation.trim(),
-            instagramLink: formattedSocialLink,
+            organizerContact: contactNumber.trim() || undefined,
+            eventPlace: newEventLocation.trim() || undefined,
+            instagramLink: formattedSocialLink || undefined,
             imageUrl: imageUrl,
             island: selectedIsland || undefined,
         };
