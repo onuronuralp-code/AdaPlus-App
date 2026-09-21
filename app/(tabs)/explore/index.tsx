@@ -690,32 +690,6 @@ const MOCK_SERVICES = [
                         }}
                       >
                         <IconSymbol name="bell.fill" size={24} color={isDark ? '#F8FAFC' : '#0D1B2A'} />
-                        {/* Dinamik Okunmamış Bildirim Rozeti (Placeholder Kaldırıldı) */}
-                        {(() => {
-                          const unreadCount = notifications.filter(n => !n.read).length;
-                          if (unreadCount <= 0) return null;
-                          return (
-                            <View style={{
-                              position: 'absolute',
-                              top: 2,
-                              right: 2,
-                              backgroundColor: '#EF4444',
-                              minWidth: 18,
-                              height: 18,
-                              borderRadius: 9,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              zIndex: 10,
-                              borderWidth: 2,
-                              borderColor: isDark ? '#000000' : '#FFFFFF',
-                              paddingHorizontal: 3
-                            }}>
-                              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', textAlign: 'center', includeFontPadding: false }}>
-                                {unreadCount}
-                              </Text>
-                            </View>
-                          );
-                        })()}
                       </Pressable>
                     </WalkthroughableView>
                   </CopilotStep>
