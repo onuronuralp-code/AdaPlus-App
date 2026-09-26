@@ -1137,7 +1137,7 @@ function TripTripGridCard({ item, onPress, isNext, isPast, diffMinutes, t, i18n 
             color={item.isDirect ? "#059669" : "#7C3AED"}
           />
           <Text style={{ fontSize: 9.5, fontWeight: '700', color: item.isDirect ? "#059669" : "#7C3AED" }}>
-            {item.isDirect ? (i18n.language === 'tr' ? 'DİREKT' : 'DIRECT') : (i18n.language === 'tr' ? 'AKTARMA' : 'VIA')}
+            {item.isDirect ? (i18n.language === 'tr' ? 'DİREKT' : 'DIRECT') : (i18n.language === 'tr' ? 'AKTARMALI' : 'VIA')}
           </Text>
         </View>
       </View>

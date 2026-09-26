@@ -1,9 +1,8 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { s, vs, ms, isLargeScreen } from '@/utils/scale';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { SwipeNavigation } from '@/components/SwipeNavigation';
-import { ActivityIndicator, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView, Share } from 'react-native';
+import { ActivityIndicator, BackHandler, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView, Share } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -74,6 +73,13 @@ export default function ForumScreen() {
     useEffect(() => {
         // writeModalSlideAnim is now handled in Modal's onShow to ensure native view is ready
     }, [isWriteModalVisible]);
+
+    useFocusEffect(useCallback(() => {
+        if (Platform.OS !== 'android') return undefined;
+
+        const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+        return () => subscription.remove();
+    }, []));
 
     const [isSwipeOnboardingVisible, setIsSwipeOnboardingVisible] = useState(false);
     const [isSwipeOnboardingPending, setIsSwipeOnboardingPending] = useState(false);
@@ -618,18 +624,14 @@ export default function ForumScreen() {
     ];
 
     const postTypes = [
-        { id: 'discussion', label: t('forum.type.discussion') },
-        { id: 'poll', label: t('forum.type.poll') },
-        { id: 'complaint', label: t('forum.type.complaint') },
-        { id: 'info', label: t('forum.type.info') },
+        { id: 'discussion', label: i18n.language.startsWith('en') ? 'Message' : 'Mesaj' },
+        { id: 'poll', label: i18n.language.startsWith('en') ? 'Poll' : 'Anket' },
     ];
 
     const tabs = [
-        { id: 'all', icon: 'square.grid.2x2.fill', label: t('forum.tabs.all') },
-        { id: 'hot', icon: 'flame.fill', label: t('forum.tabs.hot') },
-        { id: 'polls', icon: 'chart.bar.fill', label: t('forum.tabs.polls') },
-        { id: 'complaints', icon: 'exclamationmark.triangle.fill', label: t('forum.type.complaint', { defaultValue: 'Şikayet' }) },
-        { id: 'info', icon: 'info.circle.fill', label: t('forum.type.info', { defaultValue: 'Bilgi' }) },
+        { id: 'all', label: i18n.language.startsWith('en') ? 'All' : 'Tümü' },
+        { id: 'hot', label: i18n.language.startsWith('en') ? 'Popular' : 'Popüler' },
+        { id: 'polls', label: i18n.language.startsWith('en') ? 'Poll' : 'Anket' },
     ] as const;
 
     React.useEffect(() => {
@@ -910,6 +912,7 @@ export default function ForumScreen() {
         setSelectedImages([]);
         setEditingPostId(null);
         setEditingReplyId(null);
+        setNewPostType('discussion');
 
         // Reset the animation value implicitly after closing
         writeModalSlideAnim.setValue(Dimensions.get('window').height);
@@ -1389,9 +1392,8 @@ export default function ForumScreen() {
     };
 
     return (
-        <SwipeNavigation leftRoute="/(tabs)/explore/island/ilanlar">
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
-            <Stack.Screen options={{ headerShown: false }} />
+            <Stack.Screen options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
             <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <View style={[styles.header, { paddingTop: insets.top + 10 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
                 <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}>
@@ -1429,39 +1431,30 @@ export default function ForumScreen() {
             ) : (
                 <>
                     <View style={[styles.tabsWrapper, isDark && { backgroundColor: '#000000' }]}>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.tabsContainer}
-                            bounces={true}
-                        >
-                            {tabs.map(tab => {
-                                const isActive = activeTab === tab.id;
-                                return (
-                                    <TouchableOpacity
-                                        key={tab.id}
-                                        style={[styles.tabItem, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, isActive && (isDark ? { backgroundColor: '#172554', borderColor: '#1E3A8A' } : styles.activeTabItem)]}
-                                        onPress={() => setActiveTab(tab.id)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <IconSymbol
-                                            name={tab.icon}
-                                            size={12}
-                                            color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')}
-                                        />
-                                        <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
-                                            {tab.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </ScrollView>
+                        {tabs.map(tab => {
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <TouchableOpacity
+                                    key={tab.id}
+                                    style={styles.postTypeTab}
+                                    onPress={() => setActiveTab(tab.id)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[
+                                        styles.postTypeTabText,
+                                        isDark && !isActive && { color: '#64748B' },
+                                        isActive && styles.postTypeTabTextSelected,
+                                    ]}>
+                                        {tab.label}
+                                    </Text>
+                                    {isActive && <View style={styles.postTypeTabIndicator} />}
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                     <FlatList
                         data={posts.filter(post => {
                             if (activeTab === 'polls') return post.postType === PostType.POLL;
-                            if (activeTab === 'complaints') return post.postType === PostType.COMPLAINT;
-                            if (activeTab === 'info') return post.postType === PostType.INFO;
                             return true;
                         })}
                         renderItem={renderPost}
@@ -1472,8 +1465,6 @@ export default function ForumScreen() {
                             styles.listContent,
                             posts.filter(post => {
                                 if (activeTab === 'polls') return post.postType === PostType.POLL;
-                                if (activeTab === 'complaints') return post.postType === PostType.COMPLAINT;
-                                if (activeTab === 'info') return post.postType === PostType.INFO;
                                 return true;
                             }).length === 0 && { flexGrow: 1, justifyContent: 'center', paddingBottom: 0 }
                         ]}
@@ -1531,10 +1522,11 @@ export default function ForumScreen() {
                         toValue: 0,
                         duration: 150,
                         useNativeDriver: true,
-                    }).start();
-                    setTimeout(() => {
-                        postInputRef.current?.focus();
-                    }, 50);
+                    }).start(({ finished }) => {
+                        if (finished) {
+                            requestAnimationFrame(() => postInputRef.current?.focus());
+                        }
+                    });
                 }}
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', justifyContent: 'flex-end' }}>
@@ -1548,69 +1540,53 @@ export default function ForumScreen() {
                                 <TouchableOpacity onPress={handleCloseWriteModal} style={styles.modalHeaderButton}>
                             <IconSymbol name="xmark" size={24} color={isDark ? "#94A3B8" : "#64748B"} />
                         </TouchableOpacity>
-                        <View style={{ flex: 1, alignItems: 'center', marginLeft: 55 }}>
+                        <View style={{ flex: 1, alignItems: 'center', marginLeft: 20 }}>
                             <Text style={[styles.modalTitle, isDark && { color: '#FFFFFF' }]}>{editingPostId ? t('common.edit', { defaultValue: i18n.language.startsWith('en') ? 'Edit' : 'Düzenle' }) : t('forum.createPost')}</Text>
                         </View>
                         <TouchableOpacity
                             onPress={handleCreatePost}
                             style={[styles.premiumPublishBtn, isPublishActive && styles.activePremiumPublishBtn, !isPublishActive && { opacity: 0.5 }]}
                             disabled={!isPublishActive}
+                            accessibilityLabel={i18n.language.startsWith('en') ? 'Send' : 'Gönder'}
                         >
                             {isUploading ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
-                                <Text style={styles.premiumPublishText}>{t('common.send', { defaultValue: 'Paylaş' })}</Text>
+                                <IconSymbol name="paperplane.fill" size={20} color="#FFFFFF" />
                             )}
                         </TouchableOpacity>
                     </View>
-                    <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={60} keyboardShouldPersistTaps="handled">
-                        <View style={styles.formSection}>
-                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.islandSelection')}</Text>
-                            <View style={{ flexDirection: 'row', gap: 8 }}>
-                                {islands.map(island => (
-                                    <TouchableOpacity
-                                        key={island}
-                                        style={[styles.writeChip, isDark && { backgroundColor: '#000000', borderColor: '#262626' }, { flex: 1, alignItems: 'center', paddingHorizontal: 0 }, selectedIsland === island && styles.activeWriteChipPink]}
-                                        onPress={() => setSelectedIsland(island)}
+                    <View
+                        style={styles.postTypeTabs}
+                        accessibilityRole="tablist"
+                    >
+                        {postTypes.map(type => {
+                            const isSelected = newPostType === type.id;
+
+                            return (
+                                <TouchableOpacity
+                                    key={type.id}
+                                    style={styles.postTypeTab}
+                                    onPress={() => setNewPostType(type.id)}
+                                    activeOpacity={0.7}
+                                    accessibilityRole="tab"
+                                    accessibilityState={{ selected: isSelected }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.postTypeTabText,
+                                            isDark && { color: '#94A3B8' },
+                                            isSelected && styles.postTypeTabTextSelected,
+                                        ]}
                                     >
-                                        <Text style={[styles.writeChipText, isDark && { color: '#E5E5E5' }, { fontSize: 13 }, selectedIsland === island && styles.activeWriteChipPinkText]}>{t('places.' + island, { defaultValue: island })}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                        <View style={styles.formSection}>
-                            <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('forum.postType')}</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={styles.chipContainer} keyboardShouldPersistTaps="handled">
-                                {postTypes.map(type => {
-                                    const isSelected = newPostType === type.id;
-                                    return (
-                                        <TouchableOpacity
-                                            key={type.id}
-                                            style={[
-                                                styles.writeChip,
-                                                !isSelected && (isDark
-                                                    ? { backgroundColor: '#172554', borderColor: '#1E40AF' }
-                                                    : { backgroundColor: '#EFF6FF', borderColor: '#DBEAFE' }),
-                                                isDark && isSelected && { backgroundColor: '#3B82F6', borderColor: '#3B82F6' },
-                                                isSelected && styles.activeWriteChipPink
-                                            ]}
-                                            onPress={() => setNewPostType(type.id)}
-                                        >
-                                            <Text style={[
-                                                styles.writeChipText,
-                                                !isSelected && (isDark
-                                                    ? { color: '#93C5FD' }
-                                                    : { color: '#2563EB' }),
-                                                isSelected && styles.activeWriteChipPinkText
-                                            ]}>
-                                                {type.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </ScrollView>
-                        </View>
-                        <View style={[styles.writeOptionsDivider, isDark && { backgroundColor: '#1C1C1E' }]} />
+                                        {type.label}
+                                    </Text>
+                                    {isSelected && <View style={styles.postTypeTabIndicator} />}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                    <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }, { paddingTop: 16 }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={60} keyboardShouldPersistTaps="handled">
                         <View style={styles.formSection}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                 <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }, { marginBottom: 0 }]}>{newPostType === 'poll' ? t('forum.pollTitle') : t('forum.yourMessage')}</Text>
@@ -1627,6 +1603,7 @@ export default function ForumScreen() {
                                 value={newPostType === 'poll' ? pollQuestion : newPostContent}
                                 onChangeText={newPostType === 'poll' ? setPollQuestion : setNewPostContent}
                                 ref={postInputRef}
+                                autoFocus
                                 textAlignVertical={newPostType === 'poll' ? "center" : "top"}
                             />
                             {postContentTooShort && (
@@ -1727,7 +1704,6 @@ export default function ForumScreen() {
                                         { value: 24, label: i18n.language.startsWith('en') ? '1 Day' : '1 Gün' },
                                         { value: 72, label: i18n.language.startsWith('en') ? '3 Days' : '3 Gün' },
                                         { value: 168, label: i18n.language.startsWith('en') ? '7 Days' : '7 Gün' },
-                                        { value: 0, label: i18n.language.startsWith('en') ? 'Unlimited' : 'Süresiz' },
                                     ].map(opt => (
                                         <TouchableOpacity
                                             key={opt.value}
@@ -2151,7 +2127,7 @@ export default function ForumScreen() {
                                 style={[styles.publishButton, (!adTitle.trim() || !adPrice.trim()) && styles.publishButtonDisabled]}
                                 disabled={!adTitle.trim() || !adPrice.trim()}
                             >
-                                <Text style={[styles.publishText, (!adTitle.trim() || !adPrice.trim()) && { color: '#94A3B8' }]}>{t('common.publish')}</Text>
+                                <IconSymbol name="paperplane.fill" size={18} color={(!adTitle.trim() || !adPrice.trim()) ? '#94A3B8' : '#FFFFFF'} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -2488,7 +2464,6 @@ export default function ForumScreen() {
                 </View>
             </Modal>
         </View>
-        </SwipeNavigation>
     );
 }
 
@@ -2529,43 +2504,9 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
     },
     tabsWrapper: {
-        paddingTop: vs(4),
-        paddingBottom: vs(8),
-        backgroundColor: 'transparent',
-    },
-    tabsContainer: {
-        paddingHorizontal: s(20),
-        paddingRight: s(40),
-        gap: s(12),
-    },
-    tabItem: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: s(6),
-        paddingHorizontal: s(16),
-        paddingVertical: vs(8),
-        borderRadius: s(12),
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: s(4),
-        elevation: 1,
-        borderWidth: 1,
-        borderColor: '#F1F5F9',
-    },
-    activeTabItem: {
-        backgroundColor: '#0F2747',
-        borderColor: '#0F2747',
-        shadowOpacity: 0.1,
-    },
-    tabLabel: {
-        fontSize: ms(12),
-        fontWeight: '700',
-        color: '#475569',
-    },
-    activeTabLabel: {
-        color: '#FFFFFF',
+        paddingHorizontal: s(20),
+        backgroundColor: 'transparent',
     },
     listContent: {
         paddingTop: vs(2),
@@ -2837,9 +2778,11 @@ const styles = StyleSheet.create({
     },
     publishButton: {
         backgroundColor: '#10B981',
-        paddingHorizontal: s(16),
-        paddingVertical: vs(10),
-        borderRadius: s(12),
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     publishButtonDisabled: {
         backgroundColor: '#E2E8F0',
@@ -2851,6 +2794,35 @@ const styles = StyleSheet.create({
     },
     modalBody: {
         flex: 1,
+    },
+    postTypeTabs: {
+        flexDirection: 'row',
+        paddingHorizontal: s(20),
+    },
+    postTypeTab: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: vs(14),
+        paddingBottom: vs(12),
+        position: 'relative',
+    },
+    postTypeTabText: {
+        color: '#94A3B8',
+        fontSize: ms(15),
+        fontWeight: '700',
+    },
+    postTypeTabTextSelected: {
+        color: '#3B82F6',
+        fontWeight: '800',
+    },
+    postTypeTabIndicator: {
+        position: 'absolute',
+        bottom: 0,
+        width: '72%',
+        height: vs(3),
+        borderRadius: s(2),
+        backgroundColor: '#3B82F6',
     },
     inputSection: {
         marginBottom: vs(32),
@@ -3066,18 +3038,15 @@ const styles = StyleSheet.create({
         marginLeft: s(28),
     },
     premiumPublishBtn: {
+        width: s(44),
+        height: s(44),
         backgroundColor: '#CBD5E1',
-        paddingHorizontal: s(20),
-        paddingVertical: vs(10),
-        borderRadius: s(12),
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: s(22),
     },
     activePremiumPublishBtn: {
         backgroundColor: '#10B981',
-    },
-    premiumPublishText: {
-        color: '#FFFFFF',
-        fontSize: ms(15),
-        fontWeight: '800',
     },
     disabledBtn: {
         opacity: 0.3,

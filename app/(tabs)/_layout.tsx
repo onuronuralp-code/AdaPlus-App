@@ -43,6 +43,7 @@ export default function TabLayout() {
   const tabBarHeight = 56 + Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8);
 
   const isDeepRoute = pathname.includes('/island/') || pathname.includes('/guide');
+  const isCommunityRoute = pathname.includes('/island/forum');
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
@@ -69,7 +70,7 @@ export default function TabLayout() {
 
   useEffect(() => {
     let activeIndex = 0;
-    if (pathname.includes('/ilanlar') || pathname === '/ilanlar') activeIndex = 1;
+    if (pathname.includes('/servisler') || pathname === '/servisler') activeIndex = 1;
     else if (pathname.includes('/contact') || pathname === '/contact') activeIndex = 2;
     else if (pathname.includes('/profile') || pathname === '/profile') activeIndex = 3;
 
@@ -94,10 +95,12 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: (props) => <HapticTab {...props} />,
-        tabBarStyle: [isDark ? styles.tabBarDark : styles.tabBarLight, {
-          height: tabBarHeight,
-          paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8),
-        }],
+        tabBarStyle: isCommunityRoute
+          ? { display: 'none' }
+          : [isDark ? styles.tabBarDark : styles.tabBarLight, {
+              height: tabBarHeight,
+              paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8),
+            }],
         tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : (isDark ? '#FFFFFF' : '#000000'),
         tabBarInactiveTintColor: isDark ? '#64748B' : '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
@@ -122,27 +125,27 @@ export default function TabLayout() {
         })}
       />
       <Tabs.Screen
-        name="ilanlar"
+        name="servisler"
         options={{
-          title: t('common.tabListings', { defaultValue: 'İlanlar' }),
-          tabBarBadge: unseenListingsCount > 0 ? (unseenListingsCount > 9 ? '9+' : unseenListingsCount) : undefined,
-          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10, fontWeight: '700', color: '#FFF' },
+          title: t('common.tabServices', { defaultValue: i18n.language.startsWith('en') ? 'Services' : 'Servisler' }),
           tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="tag.fill" color={color} />
+            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="wrench.and.screwdriver.fill" color={color} />
           ),
         }}
         listeners={() => ({
           tabPress: (e) => {
-            setUnseenListingsCount(0);
-            AsyncStorage.setItem('lastViewedListings', Date.now().toString());
-            AsyncStorage.setItem('cached_unseen_listings', '0');
-            DeviceEventEmitter.emit('listingsSeen');
-            if (pathname === '/ilanlar' || pathname === '/(tabs)/ilanlar') {
+            if (pathname === '/servisler' || pathname === '/(tabs)/servisler') {
               e.preventDefault();
             }
           },
         })}
+      />
+      <Tabs.Screen
+        name="ilanlar"
+        options={{
+          href: null,
+        }}
       />
       <Tabs.Screen
         name="contact"

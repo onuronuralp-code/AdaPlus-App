@@ -5,21 +5,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ImageBackground, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, Dimensions, ScrollView, NativeScrollEvent, NativeSyntheticEvent, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback, Alert, TextInput, Pressable, Platform, Vibration, KeyboardAvoidingView, Keyboard, Share, DeviceEventEmitter } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
-
-const playNote = async (noteModule: any) => {
-  try {
-    const { sound } = await Audio.Sound.createAsync(noteModule);
-    await sound.playAsync();
-    sound.setOnPlaybackStatusUpdate((status: any) => {
-      if (status.didJustFinish) {
-        sound.unloadAsync();
-      }
-    });
-  } catch (e) {
-    console.log('Error playing note:', e);
-  }
-};
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -586,6 +571,7 @@ const MOCK_SERVICES = [
   };
 
   const heroScrollRef = useRef<ScrollView>(null);
+  const pageScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (slidesToRender.length <= 1) return;
@@ -603,7 +589,7 @@ const MOCK_SERVICES = [
 
 
   return (
-    <SwipeNavigation rightRoute="/(tabs)/ilanlar">
+    <SwipeNavigation rightRoute="/(tabs)/servisler">
     <View style={[styles.container, { paddingTop: insets.top }, isDark && { backgroundColor: '#000000' }]}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
@@ -611,10 +597,11 @@ const MOCK_SERVICES = [
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView
+            ref={pageScrollRef}
             style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
-            scrollEnabled={true}
+            scrollEnabled={false}
             pagingEnabled={true}
             snapToInterval={pageHeight}
             snapToAlignment="start"
@@ -623,7 +610,10 @@ const MOCK_SERVICES = [
             bounces={false}
             overScrollMode="never"
             keyboardShouldPersistTaps="handled"
-            onLayout={(e) => setMeasuredPageHeight(e.nativeEvent.layout.height)}
+            onLayout={(e) => {
+              setMeasuredPageHeight(e.nativeEvent.layout.height);
+              pageScrollRef.current?.scrollTo({ y: 0, animated: false });
+            }}
           >
             <View style={{ height: pageHeight, gap: 10, paddingBottom: 10 }}>
               <View style={[styles.welcomeContainer, { 
@@ -1006,26 +996,46 @@ const MOCK_SERVICES = [
             </View>
           </View>
 
-          {/* 3. Ada AI */}
+          {/* 3. İlanlar */}
           <View style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
-            <CopilotStep text={t('explore.tour.adaAi', { defaultValue: i18n.language.startsWith('en') ? 'Our AI guide, specially developed for the islands, is currently under development.' : 'Adalar için özel olarak geliştirilen yapay zeka rehberimiz şu an geliştirilme aşamasındadır.' })} order={4} name="ada_ai">
+            <CopilotStep text={t('explore.tour.ilanlar', { defaultValue: i18n.language.startsWith('en') ? 'You can browse real estate, items, or job listings here.' : 'Emlak, eşya veya iş ilanlarına buradan göz atabilirsin.' })} order={4} name="ilanlar">
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => setShowAdaAiModal(true)}
+                  onPress={() => {
+                    navigateWithDebounce('/(tabs)/explore/island/ilanlar');
+                  }}
                   onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#EC4899', elevation: 6, shadowColor: '#EC4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <IconSymbol name="pawprint.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
-                  <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#831843' : '#FCE7F3', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FBCFE8', zIndex: 10 }}>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#F472B6' : '#EC4899', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
-                  </View>
+                  <IconSymbol name="tag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
+                  {unseenListingsCount > 0 && (
+                    <View style={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -4,
+                      backgroundColor: '#EF4444',
+                      borderRadius: 10,
+                      minWidth: 18,
+                      height: 18,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      paddingHorizontal: 4,
+                      borderWidth: 1.5,
+                      borderColor: '#FFFFFF',
+                      zIndex: 10,
+                    }}>
+                      <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
+                        {unseenListingsCount > 9 ? '9+' : unseenListingsCount}
+                      </Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
             <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('explore.adaAi')}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{t('explore.yourGuide')}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('common.tabListings', { defaultValue: 'İlanlar' })}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Classifieds' : 'Alım & Satım'}</Text>
             </View>
           </View>
 

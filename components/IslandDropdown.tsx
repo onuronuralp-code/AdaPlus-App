@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Dimensions,
   Modal,
   Pressable,
   StyleSheet,
@@ -21,6 +22,7 @@ type IslandDropdownProps = {
   isDark?: boolean;
   menuTop?: number;
   compact?: boolean;
+  fullWidth?: boolean;
   triggerLabel?: string;
 };
 
@@ -29,22 +31,47 @@ export function IslandDropdown({
   value,
   onChange,
   isDark = false,
-  menuTop = 70,
+  menuTop,
   compact = false,
+  fullWidth = false,
   triggerLabel,
 }: IslandDropdownProps) {
   const [visible, setVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const triggerRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const selected = options.find(option => option.value === value) ?? options[0];
+
+  const openMenu = () => {
+    triggerRef.current?.measureInWindow((x, y, width, height) => {
+      const screen = Dimensions.get('window');
+      const menuHeight = Math.min(options.length * 42 + 12, screen.height - 32);
+      const calculatedTop = y + height + 6 + menuHeight <= screen.height - 16
+        ? y + height + 6
+        : Math.max(16, y - menuHeight - 6);
+      const menuWidth = fullWidth ? width : Math.max(190, width);
+
+      setMenuPosition({
+        top: menuTop ?? calculatedTop,
+        left: menuTop === undefined
+          ? Math.max(16, Math.min(x, screen.width - menuWidth - 16))
+          : screen.width - menuWidth - 16,
+        width: menuWidth,
+      });
+      setVisible(true);
+    });
+  };
 
   return (
     <>
       <TouchableOpacity
+        ref={triggerRef}
         style={[
           styles.trigger,
           compact && styles.triggerCompact,
+          fullWidth && styles.triggerFullWidth,
           isDark && styles.triggerDark,
         ]}
-        onPress={() => setVisible(true)}
+        onPress={openMenu}
         activeOpacity={0.75}
         accessibilityRole="button"
         accessibilityLabel={`Ada seçimi: ${selected?.label ?? ''}`}
@@ -70,7 +97,7 @@ export function IslandDropdown({
           <View
             style={[
               styles.menu,
-              { top: menuTop },
+              menuPosition ?? { top: menuTop ?? 70, right: 16 },
               isDark && styles.menuDark,
             ]}
           >
@@ -131,6 +158,12 @@ const styles = StyleSheet.create({
     maxWidth: 140,
     height: 36,
     paddingHorizontal: 8,
+  },
+  triggerFullWidth: {
+    width: '100%',
+    maxWidth: '100%',
+    height: 48,
+    paddingHorizontal: 14,
   },
   triggerDark: {
     backgroundColor: '#1C1C1E',

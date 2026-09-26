@@ -20,6 +20,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { IslandDropdown } from '@/components/IslandDropdown';
+import { SwipeNavigation } from '@/components/SwipeNavigation';
 import { fetchServiceProviders, ServiceProviderDto } from '@/services/serviceProviderApi';
 
 export interface ServiceProvider {
@@ -88,7 +89,17 @@ const mapProvider = (dto: ServiceProviderDto, isEn: boolean): ServiceProvider =>
   };
 };
 
-export default function HizmetlerScreen() {
+interface HizmetlerScreenProps {
+  showBackButton?: boolean;
+  leftRoute?: string;
+  rightRoute?: string;
+}
+
+export default function HizmetlerScreen({
+  showBackButton = true,
+  leftRoute,
+  rightRoute,
+}: HizmetlerScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -190,24 +201,26 @@ export default function HizmetlerScreen() {
     });
   };
 
-  return (
+  const content = (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }, isDark && styles.containerDark]} edges={['left', 'right']}>
       {/* Header */}
       <View style={[styles.header, isDark && styles.headerDark]}>
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.back();
-          }}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          style={styles.backButton}
-        >
-          <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
-        </TouchableOpacity>
+        {showBackButton && (
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.backButton}
+          >
+            <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
+          </TouchableOpacity>
+        )}
 
-        <View style={styles.headerTitleContainer}>
+        <View style={[styles.headerTitleContainer, !showBackButton && { marginLeft: 2 }]}>
           <Text style={[styles.headerTitle, isDark && styles.textWhite]}>
-            {i18n.language.startsWith('en') ? 'Services' : 'Hizmetler'}
+            {i18n.language.startsWith('en') ? 'Services' : 'Servisler'}
           </Text>
           <Text style={[styles.headerSubtitle, isDark && styles.textMuted]}>
             {i18n.language.startsWith('en') ? 'Island Local Craftsmen & Experts' : 'Adalı Yerel Ustalar & Uzmanlar'}
@@ -276,7 +289,7 @@ export default function HizmetlerScreen() {
           </View>
         ) : filteredProviders.length === 0 ? (
           <View style={[styles.emptyContainer, isDark && styles.cardDark]}>
-            <IconSymbol name={loadError ? 'wifi.exclamationmark' : 'toolbox.fill'} size={48} color={isDark ? '#64748B' : '#94A3B8'} />
+            <MaterialCommunityIcons name="toolbox" size={48} color={isDark ? '#64748B' : '#94A3B8'} />
             <Text style={[styles.emptyTitle, isDark && styles.textWhite]}>
               {i18n.language.startsWith('en') ? 'No service found' : 'Hizmet bulunamadı'}
             </Text>
@@ -391,6 +404,16 @@ export default function HizmetlerScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+
+  if (leftRoute || rightRoute) {
+    return (
+      <SwipeNavigation leftRoute={leftRoute} rightRoute={rightRoute}>
+        {content}
+      </SwipeNavigation>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({

@@ -129,16 +129,11 @@ export default function IslandDetailScreen() {
                         onPress={() => router.push({ pathname: '/(tabs)/explore/island/transportation', params: { islandId: id } })}
                     />
                     <ActivityCard
-                        icon="pawprint.fill"
+                        icon="wrench.and.screwdriver.fill"
                         color="#EC4899"
-                        title={t('common.adaAI', { defaultValue: i18n.language.startsWith('en') ? 'ADA+ (Coming Soon)' : 'ADA+ (Yakında)' })}
-                        subtitle={t('common.yourSmartGuide', { defaultValue: i18n.language.startsWith('en') ? 'Coming Soon - In collaboration with the Islands Municipality and Museum...' : 'Yakında - Adalar Belediyesi ve Adalar Müzesi işbirliğiyle...' })}
-                        onPress={() => {
-                            Alert.alert(
-                                t('explore.adaAiModalTitle', { defaultValue: i18n.language.startsWith('en') ? 'ADA+ • Coming Soon' : 'ADA+ • Yakında' }),
-                                t('explore.adaAiModalDesc', { defaultValue: i18n.language.startsWith('en') ? 'Our work with the Islands Municipality and the Museum of the Princes\' Islands is ongoing to develop our AI guide tailored for the Islands.' : 'Adalar\'a özel yapay zeka rehberimizi geliştirmek için Adalar Belediyesi ve Adalar Müzesi ile çalışmalarımız devam etmektedir.' })
-                            );
-                        }}
+                        title={t('common.tabServices', { defaultValue: i18n.language.startsWith('en') ? 'Services' : 'Servisler' })}
+                        subtitle={i18n.language.startsWith('en') ? 'Local island craftsmen & services' : 'Adalı yerel ustalar ve servisler'}
+                        onPress={() => router.push({ pathname: '/(tabs)/explore/island/hizmetler', params: { island: id } })}
                     />
                     <ActivityCard
                         icon="bubble.left.and.bubble.right.fill"

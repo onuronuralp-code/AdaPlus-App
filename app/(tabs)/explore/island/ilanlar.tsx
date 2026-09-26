@@ -623,11 +623,12 @@ export default function IlanlarScreen({
               <TouchableOpacity
                 style={[styles.publishButton, isPublishDisabled && (isDark ? { backgroundColor: '#27272A' } : styles.publishButtonDisabled)]}
                 onPress={handlePublish}
+                disabled={isPublishDisabled}
               >
                 {isUploading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={[styles.publishText, isPublishDisabled && { color: isDark ? '#52525B' : '#94A3B8' }]} numberOfLines={1}>{editingListingId ? t('common.save') : t('common.publish')}</Text>
+                  <IconSymbol name="paperplane.fill" size={18} color={isPublishDisabled ? (isDark ? '#52525B' : '#94A3B8') : '#FFFFFF'} />
                 )}
               </TouchableOpacity>
             </View>
@@ -636,33 +637,16 @@ export default function IlanlarScreen({
           <KeyboardAwareScrollView style={[styles.modalBody, isDark && { backgroundColor: '#000000' }]} showsVerticalScrollIndicator={false} enableOnAndroid={true} extraScrollHeight={80} keyboardShouldPersistTaps="handled">
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{t('ilanlar.islandSelection')}</Text>
-              <View style={{ flexDirection: 'row', gap: 4 }}>
-                {islands.map(island => (
-                  <TouchableOpacity 
-                    key={island} 
-                    style={[
-                      styles.adCatItem, 
-                      isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, 
-                      { flex: 1, justifyContent: 'center', paddingHorizontal: 4 }, 
-                      adIsland === island && { backgroundColor: '#3B82F6', borderColor: '#3B82F6' }
-                    ]}
-                    onPress={() => setAdIsland(island)}
-                  >
-                    <Text 
-                      style={[
-                        styles.adCatText, 
-                        isDark && { color: '#E5E5E5' }, 
-                        { fontSize: 12 }, 
-                        adIsland === island && { color: '#FFFFFF', fontWeight: '700' }
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {t('places.' + island, { defaultValue: island })}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <IslandDropdown
+                options={islands.map(island => ({
+                  value: island,
+                  label: t('places.' + island, { defaultValue: island }),
+                }))}
+                value={adIsland}
+                onChange={setAdIsland}
+                isDark={isDark}
+                fullWidth
+              />
             </View>
 
             <View style={styles.inputSection}>
@@ -1273,9 +1257,11 @@ const styles = StyleSheet.create({
   },
   publishButton: {
     backgroundColor: '#10B981',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   publishButtonDisabled: {
     backgroundColor: '#E2E8F0',

@@ -591,7 +591,7 @@ export default function EventsScreen() {
         <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
             <Stack.Screen options={{ headerShown: false }} />
             
-            <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 }, isDark && { backgroundColor: '#000000' }]}>
+            <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1A1A1A' }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <TouchableOpacity style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]} onPress={() => {
                         if (router.canGoBack()) {
@@ -804,7 +804,7 @@ export default function EventsScreen() {
                                 {isUploading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={[styles.publishText, isPublishDisabled && { color: isDark ? '#52525B' : '#94A3B8' }]}>{editingActivityId ? t('events.update') : t('common.publish')}</Text>
+                                    <IconSymbol name="paperplane.fill" size={18} color={isPublishDisabled ? (isDark ? '#52525B' : '#94A3B8') : '#FFFFFF'} />
                                 )}
                             </TouchableOpacity>
                         </View>
@@ -862,20 +862,16 @@ export default function EventsScreen() {
                         />
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'ISLAND (Optional)' : 'ADA / KONUM (İsteğe bağlı)'}</Text>
-                        <View style={styles.optionalIslandGrid}>
-                            {ISLAND_FILTERS.slice(1).map(item => {
-                                const active = selectedIsland === item.id;
-                                return (
-                                    <TouchableOpacity
-                                        key={item.id}
-                                        style={[styles.optionalIslandButton, isDark && { backgroundColor: '#121212', borderColor: '#2C2C2E' }, active && styles.optionalIslandButtonActive]}
-                                        onPress={() => setSelectedIsland(active ? null : item.id)}
-                                    >
-                                        <Text style={[styles.optionalIslandText, isDark && { color: '#CBD5E1' }, active && { color: '#FFFFFF' }]}>{item.label}</Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
+                        <IslandDropdown
+                            options={[
+                                { value: '', label: i18n.language.startsWith('en') ? 'Not specified' : 'Belirtilmedi' },
+                                ...ISLAND_FILTERS.slice(1).map(item => ({ value: item.id, label: item.label })),
+                            ]}
+                            value={selectedIsland ?? ''}
+                            onChange={value => setSelectedIsland(value || null)}
+                            isDark={isDark}
+                            fullWidth
+                        />
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'EVENT PLACE (Optional)' : 'ETKİNLİK YERİ (İsteğe bağlı)'}</Text>
                         <TextInput
@@ -1165,6 +1161,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 16,
         backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
     },
     backButton: {
         width: 44,
@@ -1305,9 +1303,11 @@ const styles = StyleSheet.create({
     },
     publishButton: {
         backgroundColor: '#10B981',
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 8,
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     publishText: {
         color: '#fff',

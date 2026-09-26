@@ -4,9 +4,9 @@ import IlanlarScreen from './explore/island/ilanlar';
 export default function IlanlarTabScreen() {
   return (
     <IlanlarScreen
-      showBackButton={false}
+      showBackButton={true}
       leftRoute="/(tabs)/explore"
-      rightRoute="/(tabs)/contact"
+      rightRoute="/(tabs)/servisler"
     />
   );
 }

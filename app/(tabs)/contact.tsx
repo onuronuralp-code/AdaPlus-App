@@ -86,7 +86,7 @@ export default function ContactScreen() {
   };
 
   return (
-    <SwipeNavigation leftRoute="/(tabs)/ilanlar" rightRoute="/(tabs)/profile">
+    <SwipeNavigation leftRoute="/(tabs)/servisler" rightRoute="/(tabs)/profile">
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       <View style={[styles.header, { paddingTop: insets.top + vs(10) }, isDark && { backgroundColor: '#000000' }]}>
         <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.tabRequests')}</Text>
