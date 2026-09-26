@@ -47,7 +47,6 @@ export interface PostDto {
   authorUserType?: UserType;
   content: string;
   postType: PostType;
-  island: Island;
   imageUrl?: string;
   topicId?: string;
   topicName?: string;
@@ -69,7 +68,6 @@ export interface ForumTopicDto {
 export interface CreatePostRequest {
   content: string;
   postType: PostType;
-  island: Island;
   pollOptions?: string[];
   imageUrl?: string;
   topicId?: string;

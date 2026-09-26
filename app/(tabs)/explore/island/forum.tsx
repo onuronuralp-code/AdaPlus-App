@@ -11,7 +11,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/utils/i18n';
 import * as forumApi from '@/services/forumApi';
-import { PostDto, PostType, Island, UserType } from '@/services/forumApi';
+import { PostDto, PostType, UserType } from '@/services/forumApi';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
 import * as ImagePicker from 'expo-image-picker';
@@ -588,7 +588,6 @@ export default function ForumScreen() {
                 const request: Partial<forumApi.CreatePostRequest> = {
                     content: newReplyContent.trim(),
                     postType: PostType.DISCUSSION,
-                    island: selectedPost.island,
                     anonymous: false
                 };
 
@@ -798,27 +797,6 @@ export default function ForumScreen() {
         }
     };
 
-    const getIslandEnum = (islandName: string): Island => {
-        const mapping: Record<string, Island> = {
-            'Büyükada': Island.BUYUKADA,
-            'Heybeliada': Island.HEYBELIADA,
-            'Burgazada': Island.BURGAZADA,
-            'Kınalıada': Island.KINALIADA,
-            'Sedef Adası': Island.SEDEF_ADASI
-        };
-        return mapping[islandName] || Island.BUYUKADA;
-    };
-
-    const getIslandName = (island: Island): string => {
-        const mapping: Record<Island, string> = {
-            [Island.BUYUKADA]: 'Büyükada',
-            [Island.HEYBELIADA]: 'Heybeliada',
-            [Island.BURGAZADA]: 'Burgazada',
-            [Island.KINALIADA]: 'Kınalıada',
-            [Island.SEDEF_ADASI]: 'Sedef Adası'
-        };
-        return mapping[island] || island;
-    };
 
     const pickImage = async () => {
         const handleGallery = async () => {
@@ -894,11 +872,13 @@ export default function ForumScreen() {
     // MIN_POST_LENGTH requirement (see isPublishActive below), but previously got no
     // feedback explaining why the publish button stayed disabled.
     const currentPostContentLength = newPostType === 'poll' ? pollQuestion.trim().length : trimmedPostContent.length;
-    const postContentTooShort = currentPostContentLength > 0 && currentPostContentLength < MIN_POST_LENGTH;
+    // A photo can stand on its own — message posts with an image skip the minimum text length.
+    const hasPhoto = newPostType !== 'poll' && selectedImages.length > 0;
+    const postContentTooShort = !hasPhoto && currentPostContentLength > 0 && currentPostContentLength < MIN_POST_LENGTH;
     const isPublishActive = (
       newPostType === 'poll'
         ? (pollQuestion.trim().length >= MIN_POST_LENGTH && pollOptions.filter(o => o.trim()).length >= 2)
-        : trimmedPostContent.length >= MIN_POST_LENGTH
+        : (hasPhoto || trimmedPostContent.length >= MIN_POST_LENGTH)
     ) && !isUploading;
 
     const isWriteFormDirty = newPostContent.trim().length > 0 || pollQuestion.trim().length > 0 || selectedImages.length > 0;
@@ -930,7 +910,7 @@ export default function ForumScreen() {
 
     const handleCreatePost = async () => {
         const content = newPostType === 'poll' ? pollQuestion.trim() : trimmedPostContent;
-        if (!content || content.length < MIN_POST_LENGTH) return;
+        if (!hasPhoto && (!content || content.length < MIN_POST_LENGTH)) return;
 
         setIsUploading(true);
         try {
@@ -980,7 +960,6 @@ export default function ForumScreen() {
                 const createReq: forumApi.CreatePostRequest = {
                     content,
                     postType: newPostType.toUpperCase() as PostType,
-                    island: getIslandEnum(selectedIsland),
                     anonymous: isAnonymous,
                     pollOptions: filterOpts,
                     imageUrl: imageUrl,
@@ -1247,14 +1226,6 @@ export default function ForumScreen() {
                                     <View style={[styles.roleDot, { backgroundColor: roleInfo.color }]} />
                                 )}
                                 <Text style={[styles.roleText, { color: roleInfo.color }]}>{roleInfo.name}</Text>
-                            </View>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <View style={[styles.islandBadge, isDark && { backgroundColor: '#1C1C1E' }]}>
-                                <IconSymbol name="mappin" size={10} color={isDark ? "#CBD5E1" : "#64748B"} />
-                                <Text style={[styles.islandBadgeText, isDark && { color: '#CBD5E1' }]}>
-                                    {t('places.' + getIslandName(item.island), { defaultValue: getIslandName(item.island) })}
-                                </Text>
                             </View>
                         </View>
                     </View>
