@@ -181,6 +181,7 @@ export default function EventsScreen() {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
     const [selectedFilterIsland, setSelectedFilterIsland] = useState<string>('ALL');
+    const [currentTime, setCurrentTime] = useState(() => Date.now());
 
     const ISLAND_FILTERS = [
         { id: 'ALL', label: t('common.allIslands', { defaultValue: 'Tüm Adalar' }) },
@@ -225,9 +226,21 @@ export default function EventsScreen() {
             ?? normalizeIslandId(event.name);
     };
 
-    const filteredEvents = selectedFilterIsland === 'ALL'
-        ? events
-        : events.filter(event => getEventIslandId(event) === selectedFilterIsland);
+    // Keep events visible while they are in progress, but remove them once
+    // their end date (or start date when no end date exists) has passed.
+    // Events without a valid date are retained for backwards compatibility
+    // with older records that did not require a date.
+    const isCurrentEvent = (event: AppActivityDto) => {
+        const startTime = event.startDate ? Date.parse(event.startDate) : Number.NaN;
+        const endTime = event.endDate ? Date.parse(event.endDate) : Number.NaN;
+        if (!Number.isFinite(startTime)) return true;
+        const expirationTime = Number.isFinite(endTime) ? endTime : startTime;
+        return expirationTime >= currentTime;
+    };
+
+    const filteredEvents = events
+        .filter(isCurrentEvent)
+        .filter(event => selectedFilterIsland === 'ALL' || getEventIslandId(event) === selectedFilterIsland);
     
     // removed isValidPhone
     
@@ -242,9 +255,13 @@ export default function EventsScreen() {
 
     useFocusEffect(
         useCallback(() => {
+            setCurrentTime(Date.now());
             loadEvents();
             DeviceEventEmitter.emit('eventsSeen');
-            const id = setInterval(() => loadEvents(false), 60_000);
+            const id = setInterval(() => {
+                setCurrentTime(Date.now());
+                loadEvents(false);
+            }, 60_000);
             return () => clearInterval(id);
         }, [])
     );
