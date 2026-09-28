@@ -9,18 +9,18 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function AnimatedTabIcon({ focused, isDeepRoute, iconName, color }: { focused: boolean; isDeepRoute: boolean; iconName: string; color: string }) {
+function AnimatedTabIcon({ focused, isDeepRoute, isTarifelerRoute = false, iconName, color }: { focused: boolean; isDeepRoute: boolean; isTarifelerRoute?: boolean; iconName: string; color: string }) {
   const iconScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const isActive = focused && !isDeepRoute;
+    const isActive = focused && (!isDeepRoute || isTarifelerRoute);
     Animated.spring(iconScale, {
       toValue: isActive ? 1.1 : 1,
       friction: 8,
       tension: 40,
       useNativeDriver: true,
     }).start();
-  }, [focused, isDeepRoute, iconScale]);
+  }, [focused, isDeepRoute, isTarifelerRoute, iconScale]);
 
   return (
     <View style={styles.tabIconWrapper}>
@@ -43,6 +43,7 @@ export default function TabLayout() {
   const tabBarHeight = 56 + Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8);
 
   const isDeepRoute = pathname.includes('/island/') || pathname.includes('/guide');
+  const isTarifelerRoute = pathname.includes('/island/tarifeler');
   const isCommunityRoute = pathname.includes('/island/forum');
   const [isCommunityTabBarHidden, setIsCommunityTabBarHidden] = React.useState(false);
 
@@ -122,7 +123,7 @@ export default function TabLayout() {
               height: tabBarHeight,
               paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8),
             }],
-        tabBarActiveTintColor: isDeepRoute ? '#AAAAAA' : (isDark ? '#FFFFFF' : '#000000'),
+        tabBarActiveTintColor: isDeepRoute && !isTarifelerRoute ? '#AAAAAA' : (isDark ? '#FFFFFF' : '#000000'),
         tabBarInactiveTintColor: isDark ? '#64748B' : '#AAAAAA',
         tabBarLabelStyle: styles.tabLabel,
         animation: 'none',
@@ -148,10 +149,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="servisler"
         options={{
-          title: t('common.tabServices', { defaultValue: i18n.language.startsWith('en') ? 'Services' : 'Servisler' }),
+          title: t('common.tabSchedule', { defaultValue: i18n.language.startsWith('en') ? 'Schedule' : 'Tarifeler' }),
           tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="ferry.fill" color={color} />
+            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} isTarifelerRoute={isTarifelerRoute} iconName="ferry.fill" color={color} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -200,7 +201,7 @@ export default function TabLayout() {
         })}
       />
     </Tabs>
-      {!isDeepRoute && (
+      {(!isDeepRoute || isTarifelerRoute) && (
         <Animated.View
           style={{
             position: 'absolute',

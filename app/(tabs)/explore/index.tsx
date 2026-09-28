@@ -973,25 +973,25 @@ const MOCK_SERVICES = [
             </View>
           </View>
 
-          {/* 2. Tarifeler */}
+          {/* 2. Servisler */}
           <View style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
-            <CopilotStep text={t('explore.tour.tarifeler', { defaultValue: i18n.language.startsWith('en') ? 'You can check all ferry and boat schedules here.' : 'Tüm vapur ve motor sefer saatlerini buradan öğrenebilirsin.' })} order={3} name="tarifeler">
+            <CopilotStep text={t('explore.tour.services', { defaultValue: i18n.language.startsWith('en') ? 'Discover local island services and service providers here.' : 'Adadaki yerel hizmetleri ve hizmet sağlayıcılarını buradan keşfedebilirsin.' })} order={3} name="servisler">
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
-                    navigateWithDebounce('/(tabs)/explore/island/tarifeler');
+                    navigateWithDebounce('/(tabs)/explore/island/hizmetler');
                   }}
                   onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#F59E0B', elevation: 6, shadowColor: '#F59E0B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <IconSymbol name="ferry.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
+                  <IconSymbol name="wrench.and.screwdriver.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
             <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('common.tabSchedule', { defaultValue: 'Tarifeler' })}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Ferry Times' : 'Sefer Saatleri'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{t('common.tabServices', { defaultValue: i18n.language.startsWith('en') ? 'Services' : 'Servisler' })}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Local services' : 'Ada hizmetleri'}</Text>
             </View>
           </View>
 
