@@ -96,7 +96,7 @@ export default function TabLayout() {
         tension: 50,
       }),
       Animated.timing(opacityAnim, {
-        toValue: isDeepRoute ? 0 : 1,
+        toValue: isDeepRoute && !isTarifelerRoute ? 0 : 1,
         duration: 200,
         useNativeDriver: true,
       })
