@@ -821,7 +821,7 @@ const MOCK_SERVICES = [
                 <ImageBackground 
                     source={{ uri: slide.imageUrl }} 
                     style={{ flex: 1, padding: 20, justifyContent: 'space-between', paddingHorizontal: 20 }}
-                    resizeMode="contain"
+                    resizeMode="cover"
                     imageStyle={{ borderRadius: 12 }}
                 >
                   <LinearGradient

@@ -664,7 +664,7 @@ export default function EventsScreen() {
                                         <Image
                                             source={{ uri: resolvedUrl }}
                                             style={{ width: '100%', height: '100%' }}
-                                            resizeMode="contain"
+                                            resizeMode="cover"
                                         />
                                     </View>
                                 ) : (
@@ -819,7 +819,7 @@ export default function EventsScreen() {
                         </View>
                         {selectedImage ? (
                             <View style={styles.imagePreviewContainer}>
-                                <Image source={{ uri: selectedImage }} style={styles.imagePreview} resizeMode="contain" />
+                                <Image source={{ uri: selectedImage }} style={styles.imagePreview} resizeMode="cover" />
                                 <TouchableOpacity style={styles.removeImageBtn} onPress={() => setSelectedImage(null)}>
                                     <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
                                 </TouchableOpacity>

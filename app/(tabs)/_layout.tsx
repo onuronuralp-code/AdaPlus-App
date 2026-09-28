@@ -83,7 +83,7 @@ export default function TabLayout() {
 
   useEffect(() => {
     let activeIndex = 0;
-    if (pathname.includes('/servisler') || pathname === '/servisler') activeIndex = 1;
+    if (pathname.includes('/servisler') || pathname === '/servisler' || pathname.includes('/island/tarifeler')) activeIndex = 1;
     else if (pathname.includes('/contact') || pathname === '/contact') activeIndex = 2;
     else if (pathname.includes('/profile') || pathname === '/profile') activeIndex = 3;
 
@@ -135,7 +135,7 @@ export default function TabLayout() {
             <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="safari" color={color} />
           ),
         }}
-        listeners={({ navigation }) => ({
+        listeners={() => ({
           tabPress: (e) => {
             e.preventDefault();
             const isAlreadyOnMainExplore = pathname === '/explore' || pathname === '/(tabs)/explore' || pathname === '/';
@@ -151,14 +151,13 @@ export default function TabLayout() {
           title: t('common.tabServices', { defaultValue: i18n.language.startsWith('en') ? 'Services' : 'Servisler' }),
           tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="wrench.and.screwdriver.fill" color={color} />
+            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} iconName="ferry.fill" color={color} />
           ),
         }}
-        listeners={() => ({
+        listeners={({ navigation }) => ({
           tabPress: (e) => {
-            if (pathname === '/servisler' || pathname === '/(tabs)/servisler') {
-              e.preventDefault();
-            }
+            e.preventDefault();
+            router.replace('/(tabs)/explore/island/tarifeler');
           },
         })}
       />
