@@ -2149,7 +2149,7 @@ export default function ForumScreen() {
                                         style={[styles.chip, isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' }, selectedIsland === island && styles.activeChip]}
                                         onPress={() => setSelectedIsland(island)}
                                     >
-                                        <Text style={[styles.chipText, isDark && { color: '#CBD5E1' }, selectedIsland === island && styles.activeChipText]}>{t('places.' + island, { defaultValue: island })}</Text>
+                                        <Text style={[styles.chipText, isDark && { color: '#CBD5E1' }, selectedIsland === island && styles.activeChipText]}>{island}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -3185,19 +3185,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: s(8),
-    },
-    islandBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: s(8),
-        paddingVertical: vs(4),
-        borderRadius: s(10),
-        gap: s(4),
-    },
-    islandBadgeText: {
-        fontSize: ms(12),
-        fontWeight: '800',
-        color: '#64748B',
     },
     emptyStateButton: {
         marginHorizontal: s(60),
