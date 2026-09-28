@@ -604,15 +604,14 @@ export default function EventsScreen() {
                     </TouchableOpacity>
                     <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <IslandDropdown
                         options={ISLAND_FILTERS.map(item => ({ value: item.id, label: item.label }))}
                         value={selectedFilterIsland}
                         onChange={setSelectedFilterIsland}
                         isDark={isDark}
                         menuTop={insets.top + 62}
-                        compact
-                        triggerLabel={selectedFilterIsland === 'ALL' ? (i18n.language.startsWith('en') ? 'All' : 'Tümü') : undefined}
+                        iconOnly
                     />
                 </View>
             </View>

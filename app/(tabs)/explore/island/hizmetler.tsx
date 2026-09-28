@@ -266,7 +266,7 @@ export default function HizmetlerScreen({
         style={styles.listContainer}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: insets.bottom + 40 },
+          { paddingBottom: insets.bottom + 110 },
           (isLoading || filteredProviders.length === 0) && { flexGrow: 1 },
         ]}
         showsVerticalScrollIndicator={false}
@@ -402,6 +402,26 @@ export default function HizmetlerScreen({
         )}
 
       </ScrollView>
+
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.push('/(tabs)/explore/island/hizmet-saglayici');
+        }}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={i18n.language.startsWith('en') ? 'Add service' : 'Hizmet ekle'}
+      >
+        <View style={[
+          styles.fabContent,
+          isDark
+            ? styles.fabContentDark
+            : styles.fabContentLight,
+        ]}>
+          <IconSymbol name="plus" size={32} color="#3B82F6" />
+        </View>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 
@@ -735,6 +755,35 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontSize: 14,
     fontWeight: '800',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    elevation: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+  },
+  fabContent: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  fabContentLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+  },
+  fabContentDark: {
+    backgroundColor: '#121212',
+    borderColor: '#2C2C2E',
   },
   emptyContainer: {
     flex: 1,

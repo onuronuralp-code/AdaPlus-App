@@ -2,7 +2,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { s, vs, ms, isLargeScreen } from '@/utils/scale';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ActivityIndicator, BackHandler, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView, Share } from 'react-native';
+import { ActivityIndicator, BackHandler, DeviceEventEmitter, FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Animated, Dimensions, Keyboard, ActionSheetIOS, InputAccessoryView, Share } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -67,12 +67,30 @@ export default function ForumScreen() {
     const postInputRef = useRef<TextInput>(null);
     const replyInputRef = useRef<TextInput>(null);
     const commentsScrollRef = useRef<ScrollView>(null);
+    const lastForumScrollOffset = useRef(0);
+
+    const handleForumScroll = useCallback((event: any) => {
+        const offsetY = Math.max(0, event.nativeEvent.contentOffset?.y ?? 0);
+        const previousOffset = lastForumScrollOffset.current;
+        if (offsetY <= 8 || offsetY < previousOffset - 2) {
+            DeviceEventEmitter.emit('communityScrollVisibility', false);
+        } else if (offsetY > previousOffset + 2) {
+            DeviceEventEmitter.emit('communityScrollVisibility', true);
+        }
+        lastForumScrollOffset.current = offsetY;
+    }, []);
 
 
 
     useEffect(() => {
         // writeModalSlideAnim is now handled in Modal's onShow to ensure native view is ready
     }, [isWriteModalVisible]);
+
+    useFocusEffect(useCallback(() => {
+        lastForumScrollOffset.current = 0;
+        DeviceEventEmitter.emit('communityScrollVisibility', false);
+        return () => DeviceEventEmitter.emit('communityScrollVisibility', false);
+    }, []));
 
     useFocusEffect(useCallback(() => {
         if (Platform.OS !== 'android') return undefined;
@@ -921,7 +939,24 @@ export default function ForumScreen() {
                     if (uri.startsWith('http') || uri.startsWith('/')) {
                         uploadedUrls.push(uri);
                     } else {
-                        const uploaded = await mediaApi.uploadImage(uri);
+                        // iOS photo-library assets are often HEIC or provider URIs.
+                        // Normalize them to a local JPEG before multipart upload so
+                        // the community endpoint receives a consistently supported
+                        // image type (the preview can still use the original URI).
+                        let uploadUri = uri;
+                        try {
+                            const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+                            const normalized = await manipulateAsync(
+                                uri,
+                                [],
+                                { compress: 0.82, format: SaveFormat.JPEG },
+                            );
+                            uploadUri = normalized.uri;
+                        } catch (normalizeError) {
+                            console.warn('Could not normalize community image; uploading original URI', normalizeError);
+                        }
+
+                        const uploaded = await mediaApi.uploadImage(uploadUri);
                         if (uploaded) uploadedUrls.push(uploaded);
                     }
                 }
@@ -1432,6 +1467,8 @@ export default function ForumScreen() {
                         keyExtractor={item => item.id}
                         style={{ flex: 1 }}
                         showsVerticalScrollIndicator={false}
+                        onScroll={handleForumScroll}
+                        scrollEventThrottle={16}
                         contentContainerStyle={[
                             styles.listContent,
                             posts.filter(post => {

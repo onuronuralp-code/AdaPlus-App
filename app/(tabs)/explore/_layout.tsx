@@ -17,7 +17,7 @@ export default function ExploreLayout() {
             <Stack.Screen name="island/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="island/restaurant" options={{ headerShown: false }} />
             <Stack.Screen name="island/transportation" options={{ headerShown: false }} />
-            <Stack.Screen name="island/forum" options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
+            <Stack.Screen name="island/forum" options={{ headerShown: false, animation: 'none', gestureEnabled: false, fullScreenGestureEnabled: false }} />
             <Stack.Screen name="island/guided-tour" options={{ headerShown: false }} />
             <Stack.Screen name="island/ilanlar" options={{ headerShown: false }} />
             <Stack.Screen name="island/ilan/[id]" options={{ headerShown: false }} />

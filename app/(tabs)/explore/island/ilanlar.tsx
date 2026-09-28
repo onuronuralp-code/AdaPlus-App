@@ -514,37 +514,31 @@ export default function IlanlarScreen({
             onChange={setSelectedFilterIsland}
             isDark={isDark}
             menuTop={insets.top + 62}
-            compact
-            triggerLabel={selectedFilterIsland === 'ALL' ? (i18n.language.startsWith('en') ? 'All' : 'Tümü') : undefined}
+            iconOnly
           />
         </View>
       </View>
 
-      <View style={styles.tabsWrapper}>
+      <View style={[styles.tabsWrapper, isDark && styles.tabsWrapperDark]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer} bounces={true}>
           {(Object.keys(CATEGORY_CONFIG) as IlanCategory[]).map(key => {
-            const cfg = CATEGORY_CONFIG[key];
             const isActive = selectedCategory === key;
             return (
               <TouchableOpacity
                 key={key}
-                style={[
-                  styles.tabItem,
-                  isDark && { backgroundColor: '#1C1C1E', borderColor: '#2C2C2E' },
-                  isActive && styles.activeTabItem,
-                  isActive && isDark && { backgroundColor: '#172554', borderColor: '#1E3A8A' },
-                ]}
+                style={styles.tabItem}
                 onPress={() => setSelectedCategory(key)}
                 activeOpacity={0.7}
               >
-                <IconSymbol 
-                  name={cfg.icon as any} 
-                  size={14} 
-                  color={isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#475569')}
-                />
-                <Text style={[styles.tabLabel, isDark && { color: '#94A3B8' }, isActive && styles.activeTabLabel]}>
+                <Text style={[
+                  styles.tabLabel,
+                  isDark && styles.tabLabelDark,
+                  isActive && styles.activeTabLabel,
+                  isActive && isDark && styles.activeTabLabelDark,
+                ]}>
                   {t(`ilanlar.category.${key}`)}
                 </Text>
+                {isActive && <View style={[styles.tabIndicator, isDark && styles.tabIndicatorDark]} />}
               </TouchableOpacity>
             );
           })}
@@ -1005,46 +999,51 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   tabsWrapper: {
-    paddingTop: 8,
-    paddingBottom: 10,
+    paddingTop: 2,
     backgroundColor: 'transparent',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E2E8F0',
+  },
+  tabsWrapperDark: {
+    borderBottomColor: '#2C2C2E',
   },
   tabsContainer: {
     paddingHorizontal: 16,
-    gap: 10,
+    gap: 30,
   },
   tabItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  activeTabItem: {
-    backgroundColor: '#0F2747',
-    borderColor: '#0F2747',
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 3,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 4,
+    position: 'relative',
   },
   tabLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#475569',
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  tabLabelDark: {
+    color: '#94A3B8',
   },
   activeTabLabel: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: '800',
+  },
+  activeTabLabelDark: {
+    color: '#FFFFFF',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2.5,
+    borderRadius: 2,
+    backgroundColor: '#0F172A',
+  },
+  tabIndicatorDark: {
+    backgroundColor: '#FFFFFF',
   },
   listContainer: {
     flex: 1,

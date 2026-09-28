@@ -612,7 +612,6 @@ const MOCK_SERVICES = [
             keyboardShouldPersistTaps="handled"
             onLayout={(e) => {
               setMeasuredPageHeight(e.nativeEvent.layout.height);
-              pageScrollRef.current?.scrollTo({ y: 0, animated: false });
             }}
           >
             <View style={{ height: pageHeight, gap: 10, paddingBottom: 10 }}>
@@ -1041,32 +1040,23 @@ const MOCK_SERVICES = [
 
           {/* 4. Paket Servis */}
           <View style={{ alignItems: 'center', flex: 1, gap: isLargeScreen ? 6 : 4 }}>
-            <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Our delivery service will be available here very soon.' : 'Çok yakında paket servis hizmetimiz de burada olacak.' })} order={5} name="paket">
+            <CopilotStep text={t('explore.tour.paket', { defaultValue: i18n.language.startsWith('en') ? 'Order delivery, grocery, water, gas, and courier services here.' : 'Paket servis, market, su, tüp ve kurye hizmetlerine buradan ulaşabilirsin.' })} order={5} name="paket">
               <WalkthroughableView collapsable={false}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    Alert.alert(
-                      i18n.language.startsWith('en') ? 'DELIVERY • COMING SOON' : 'PAKET SERVİS • YAKINDA',
-                      i18n.language.startsWith('en')
-                        ? 'Delivery service will be available very soon.'
-                        : 'Paket Servis hizmeti çok yakında kullanıma açılacak.',
-                      [{ text: i18n.language.startsWith('en') ? 'Understood' : 'Anladım' }]
-                    );
+                    navigateWithDebounce('/(tabs)/explore/island/paket-servis');
                   }}
                   style={{ width: isLargeScreen ? 68 : (isSmallScreen ? 46 : 55), aspectRatio: 1, borderRadius: isLargeScreen ? 14 : 12, backgroundColor: '#8B5CF6', elevation: 3, shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <IconSymbol name="bag.fill" size={isLargeScreen ? 29 : (isSmallScreen ? 20 : 24)} color="#FFFFFF" />
-                  <View style={{ position: 'absolute', bottom: -5, backgroundColor: isDark ? '#4C1D95' : '#EDE9FE', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: isDark ? '#6D28D9' : '#DDD6FE', zIndex: 10 }}>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: isSmallScreen ? 7.5 : 8.5, color: isDark ? '#C4B5FD' : '#7C3AED', fontWeight: '700' }}>{i18n.language.startsWith('en') ? 'Soon' : 'Yakında'}</Text>
-                  </View>
                 </TouchableOpacity>
               </WalkthroughableView>
             </CopilotStep>
             <View style={{ width: '100%', paddingHorizontal: 1, alignItems: 'center', height: isLargeScreen ? 34 : 30, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 12.5 : (isSmallScreen ? 10 : 11), fontWeight: '700', color: isDark ? '#F8FAFC' : '#1F2937', marginBottom: 1 }}>{i18n.language.startsWith('en') ? 'Delivery' : 'Paket Servis'}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Coming Soon' : 'Çok Yakında'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false} style={{ width: '100%', textAlign: 'center', fontSize: isLargeScreen ? 10.5 : (isSmallScreen ? 9 : 9.5), color: isDark ? '#CBD5E1' : '#6B7280', fontWeight: '500' }}>{i18n.language.startsWith('en') ? 'Delivery & Courier' : 'Teslimat & Kurye'}</Text>
             </View>
           </View>
         </View>

@@ -187,6 +187,28 @@ const computeArrivalWithVia = (
   return currTime;
 };
 
+const getDepartureTimeAtIntermediateStop = (
+  from: string,
+  to: string,
+  departureTime: string,
+  via: string[] | undefined,
+  intermediateStop: string,
+): string | null => {
+  const routeStops = [from, ...(via ?? []), to];
+  const stopIndex = routeStops.indexOf(intermediateStop);
+  if (stopIndex <= 0 || stopIndex >= routeStops.length - 1) return null;
+
+  let currentTime = departureTime;
+  for (let index = 0; index < stopIndex; index += 1) {
+    const legFrom = routeStops[index];
+    const legTo = routeStops[index + 1];
+    const minutes = getLegMinutes(legFrom, legTo, currentTime);
+    if (!minutes) return null;
+    currentTime = addMinutes(currentTime, minutes);
+  }
+  return currentTime;
+};
+
 const getRouteTimeValue = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -389,7 +411,17 @@ export function FerrySchedule({ showBackButton = false, onBack }: FerryScheduleP
       }
       setLoading(true);
       try {
-        const froms = departure === "Unselected" ? ALL_LOCATIONS : [departure];
+        // The backend does not consistently expand a through-service into every
+        // intermediate departure. When a specific origin is selected, also fetch
+        // upstream services and derive the leg that starts at that intermediate stop.
+        const froms = departure === "Unselected"
+          ? ALL_LOCATIONS
+          : [
+              departure,
+              ...ALL_LOCATIONS.filter(
+                (location) => location !== departure && location !== destination,
+              ),
+            ];
         // To prevent the backend from filtering out daytime ferries for today,
         // we request the schedule for 7 days from now (which has the exact same schedule).
         const queryDate = new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -405,21 +437,44 @@ export function FerrySchedule({ showBackButton = false, onBack }: FerryScheduleP
         if (!active || currentRequestId !== requestId) return;
 
         const allRoutes: FerryRoute[] = [];
-        results.forEach((data, idx) => {
-          const { from, to } = pairs[idx];
+        results.forEach((data) => {
           data.forEach((dto) => {
+            let routeDeparture = dto.from;
+            let routeDepartureTime = dto.time;
+            let routeVia = dto.via;
+
+            if (departure !== "Unselected" && dto.from !== departure) {
+              const intermediateDepartureTime = getDepartureTimeAtIntermediateStop(
+                dto.from,
+                dto.to,
+                dto.time,
+                dto.via,
+                departure,
+              );
+              if (!intermediateDepartureTime) return;
+
+              const fullRoute = [dto.from, ...(dto.via ?? []), dto.to];
+              const departureIndex = fullRoute.indexOf(departure);
+              const destinationIndex = fullRoute.lastIndexOf(destination);
+              if (destinationIndex <= departureIndex) return;
+
+              routeDeparture = departure;
+              routeDepartureTime = intermediateDepartureTime;
+              routeVia = fullRoute.slice(departureIndex + 1, destinationIndex);
+            }
+
             allRoutes.push({
-              id: `${dto.from}|${dto.to}|${dto.time}|${dto.provider}`,
-              departure: dto.from,
-              destination: dto.to,
-              departureTime: dto.time,
-              arrivalTime: computeArrivalWithVia(dto.from, dto.to, dto.time, dto.via),
+              id: `${routeDeparture}|${destination}|${routeDepartureTime}|${dto.provider}`,
+              departure: routeDeparture,
+              destination,
+              departureTime: routeDepartureTime,
+              arrivalTime: computeArrivalWithVia(routeDeparture, destination, routeDepartureTime, routeVia),
               type: (dto.provider === "Şehir Hatları" ? "Vapur" : "Motor") as
                 | "Vapur"
                 | "Motor",
               provider: dto.provider,
-              isDirect: !dto.via || dto.via.length === 0,
-              via: dto.via,
+              isDirect: !routeVia || routeVia.length === 0,
+              via: routeVia,
             });
           });
         });

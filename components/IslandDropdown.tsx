@@ -23,6 +23,7 @@ type IslandDropdownProps = {
   menuTop?: number;
   compact?: boolean;
   fullWidth?: boolean;
+  iconOnly?: boolean;
   triggerLabel?: string;
 };
 
@@ -34,6 +35,7 @@ export function IslandDropdown({
   menuTop,
   compact = false,
   fullWidth = false,
+  iconOnly = false,
   triggerLabel,
 }: IslandDropdownProps) {
   const [visible, setVisible] = useState(false);
@@ -69,21 +71,30 @@ export function IslandDropdown({
           styles.trigger,
           compact && styles.triggerCompact,
           fullWidth && styles.triggerFullWidth,
-          isDark && styles.triggerDark,
+          iconOnly && styles.triggerIconOnly,
+          isDark && !iconOnly && styles.triggerDark,
         ]}
         onPress={openMenu}
         activeOpacity={0.75}
         accessibilityRole="button"
         accessibilityLabel={`Ada seçimi: ${selected?.label ?? ''}`}
       >
-        <IconSymbol name="mappin.circle.fill" size={15} color="#3B82F6" />
-        <Text
-          style={[styles.triggerText, isDark && styles.textLight]}
-          numberOfLines={1}
-        >
-          {triggerLabel ?? selected?.label}
-        </Text>
-        <IconSymbol name="chevron.down" size={14} color={isDark ? '#94A3B8' : '#64748B'} />
+        <IconSymbol
+          name="mappin.circle.fill"
+          size={iconOnly ? 25 : 15}
+          color="#3B82F6"
+        />
+        {!iconOnly && (
+          <>
+            <Text
+              style={[styles.triggerText, isDark && styles.textLight]}
+              numberOfLines={1}
+            >
+              {triggerLabel ?? selected?.label}
+            </Text>
+            <IconSymbol name="chevron.down" size={14} color={isDark ? '#94A3B8' : '#64748B'} />
+          </>
+        )}
       </TouchableOpacity>
 
       <Modal
@@ -164,6 +175,15 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     height: 48,
     paddingHorizontal: 14,
+  },
+  triggerIconOnly: {
+    minWidth: 44,
+    width: 44,
+    height: 44,
+    paddingHorizontal: 0,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   triggerDark: {
     backgroundColor: '#1C1C1E',

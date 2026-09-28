@@ -44,10 +44,23 @@ export default function TabLayout() {
 
   const isDeepRoute = pathname.includes('/island/') || pathname.includes('/guide');
   const isCommunityRoute = pathname.includes('/island/forum');
+  const [isCommunityTabBarHidden, setIsCommunityTabBarHidden] = React.useState(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
   const [unseenListingsCount, setUnseenListingsCount] = React.useState(0);
+
+  useEffect(() => {
+    if (!isCommunityRoute) {
+      setIsCommunityTabBarHidden(false);
+      return;
+    }
+
+    const subscription = DeviceEventEmitter.addListener('communityScrollVisibility', (hidden: boolean) => {
+      setIsCommunityTabBarHidden(Boolean(hidden));
+    });
+    return () => subscription.remove();
+  }, [isCommunityRoute]);
 
   useEffect(() => {
     AsyncStorage.getItem('cached_unseen_listings').then(val => {
@@ -95,8 +108,16 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: (props) => <HapticTab {...props} />,
-        tabBarStyle: isCommunityRoute
-          ? { display: 'none' }
+        tabBarStyle: isCommunityRoute && isCommunityTabBarHidden
+          ? {
+              position: 'absolute',
+              height: 0,
+              opacity: 0,
+              borderTopWidth: 0,
+              paddingTop: 0,
+              paddingBottom: 0,
+              overflow: 'hidden',
+            }
           : [isDark ? styles.tabBarDark : styles.tabBarLight, {
               height: tabBarHeight,
               paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8),
