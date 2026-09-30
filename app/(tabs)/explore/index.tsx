@@ -55,6 +55,28 @@ const LanguageToggle = ({ currentLang, onChange }: { currentLang: string, onChan
 
 const SHOW_INVITE_AND_SHARE_ACTIONS = false;
 
+// The listings API can expose the expiry field under different names across
+// backend versions. Keep expired/inactive records out of the home hero slider
+// even when the public endpoint still returns them.
+const isListingVisibleInHero = (listing: any, nowMs: number): boolean => {
+  if (listing?.active === false) return false;
+
+  const status = String(listing?.status || '').toUpperCase();
+  if (['EXPIRED', 'INACTIVE', 'DELETED', 'ARCHIVED', 'CLOSED', 'REJECTED'].includes(status)) {
+    return false;
+  }
+
+  const expiryKeys = ['expiresAt', 'expirationDate', 'expiryDate', 'validUntil', 'endDate'];
+  for (const key of expiryKeys) {
+    const value = listing?.[key];
+    if (!value) continue;
+    const expiryMs = Date.parse(String(value));
+    if (Number.isFinite(expiryMs)) return expiryMs >= nowMs;
+  }
+
+  return true;
+};
+
 export default function MainMenuScreen() {
   const { start } = useCopilot();
   const startOnboardingRef = useRef(start);
@@ -407,6 +429,7 @@ const MOCK_SERVICES = [
           }));
 
         const validListings = listings
+          .filter((listing: any) => isListingVisibleInHero(listing, now.getTime()))
           .map((listing: any) => ({
             id: listing.id,
             type: 'listing',
