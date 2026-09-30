@@ -47,9 +47,18 @@ export default function TabLayout() {
   const isCommunityRoute = pathname.includes('/island/forum');
   const [isCommunityTabBarHidden, setIsCommunityTabBarHidden] = React.useState(false);
 
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
   const [unseenListingsCount, setUnseenListingsCount] = React.useState(0);
+
+  // The second visible tab is the schedules screen even though its file name
+  // remains `servisler`. Derive the indicator position directly from the
+  // route so it cannot remain stuck on Keşfet after navigating back.
+  const activeIndex = pathname.includes('/servisler') || pathname === '/servisler' || isTarifelerRoute
+    ? 1
+    : pathname.includes('/contact') || pathname === '/contact'
+      ? 2
+      : pathname.includes('/profile') || pathname === '/profile'
+        ? 3
+        : 0;
 
   useEffect(() => {
     if (!isCommunityRoute) {
@@ -81,27 +90,6 @@ export default function TabLayout() {
       subUpdated.remove();
     };
   }, []);
-
-  useEffect(() => {
-    let activeIndex = 0;
-    if (pathname.includes('/servisler') || pathname === '/servisler' || pathname.includes('/island/tarifeler')) activeIndex = 1;
-    else if (pathname.includes('/contact') || pathname === '/contact') activeIndex = 2;
-    else if (pathname.includes('/profile') || pathname === '/profile') activeIndex = 3;
-
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: activeIndex * tabWidth + (tabWidth / 2) - 21,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 50,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: isDeepRoute && !isTarifelerRoute ? 0 : 1,
-        duration: 200,
-        useNativeDriver: true,
-      })
-    ]).start();
-  }, [pathname, isDeepRoute, tabWidth, opacityAnim, slideAnim]);
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }}>
@@ -151,8 +139,9 @@ export default function TabLayout() {
         options={{
           title: t('common.tabSchedule', { defaultValue: i18n.language.startsWith('en') ? 'Schedule' : 'Tarifeler' }),
           tabBarButton: (props) => <HapticTab {...props} />,
+          tabBarLabelStyle: [styles.tabLabel, isTarifelerRoute && { color: isDark ? '#FFFFFF' : '#000000' }],
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon focused={focused} isDeepRoute={isDeepRoute} isTarifelerRoute={isTarifelerRoute} iconName="ferry.fill" color={color} />
+            <AnimatedTabIcon focused={focused || isTarifelerRoute} isDeepRoute={isDeepRoute} isTarifelerRoute={isTarifelerRoute} iconName="ferry.fill" color={isTarifelerRoute ? (isDark ? '#FFFFFF' : '#000000') : color} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -202,7 +191,7 @@ export default function TabLayout() {
       />
     </Tabs>
       {(!isDeepRoute || isTarifelerRoute) && (
-        <Animated.View
+        <View
           style={{
             position: 'absolute',
             bottom: tabBarHeight - 2.5,
@@ -211,8 +200,7 @@ export default function TabLayout() {
             height: 2.5,
             borderRadius: 2,
             backgroundColor: isDark ? '#FFFFFF' : '#000000',
-            opacity: opacityAnim,
-            transform: [{ translateX: slideAnim }],
+            transform: [{ translateX: activeIndex * tabWidth + (tabWidth / 2) - 21 }],
             zIndex: 100,
           }}
         />
