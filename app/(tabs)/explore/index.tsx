@@ -194,6 +194,7 @@ const MOCK_SERVICES = [
   };
 
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [heroNow, setHeroNow] = useState(() => Date.now());
   const [showSurvey, setShowSurvey] = useState(false);
   const [surveyOptions, setSurveyOptions] = useState<string[]>([]);
   const [surveyOtherText, setSurveyOtherText] = useState('');
@@ -409,12 +410,14 @@ const MOCK_SERVICES = [
         }
         
         const now = new Date();
-        const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
         
         const validEvents = (Array.isArray(events) ? events : [])
           .filter((e: any) => {
+            // An event is valid until its end date. When no end date exists,
+            // its start date is the expiration point; never keep old events
+            // in the home banner just because they were created recently.
             if (e.endDate) return new Date(e.endDate) >= now;
-            if (e.startDate) return new Date(e.startDate) >= cutoff;
+            if (e.startDate) return new Date(e.startDate) >= now;
             return true;
           })
           .map((event: any) => ({
@@ -424,6 +427,7 @@ const MOCK_SERVICES = [
             subtitle: event.description || event.organizerName || '',
             island: event.island || event.eventPlace || 'Kınalıada',
             date: event.startDate ? new Date(event.startDate).getTime() : null,
+            expiresAt: event.endDate || event.startDate || null,
             createdAt: event.createdAt ? new Date(event.createdAt).getTime() : (event.startDate ? new Date(event.startDate).getTime() : now.getTime()),
             imageUrl: resolveImageUrl(event.imageUrl) || 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&auto=format&fit=crop&q=80'
           }));
@@ -582,7 +586,14 @@ const MOCK_SERVICES = [
     imageUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=80'
   };
 
-  const slidesToRender = heroSlides.length > 0 ? heroSlides : [defaultSlide];
+  // Remove an event from the already-loaded carousel as soon as its expiry
+  // time passes, without waiting for another navigation or API response.
+  const visibleHeroSlides = heroSlides.filter((slide) => {
+    if (slide.type !== 'event' || !slide.expiresAt) return true;
+    const expiryMs = Date.parse(String(slide.expiresAt));
+    return !Number.isFinite(expiryMs) || expiryMs >= heroNow;
+  });
+  const slidesToRender = visibleHeroSlides.length > 0 ? visibleHeroSlides : [defaultSlide];
   const slideWidth = width - 24;
   const slideGap = 12;
   const snapInterval = slideWidth + slideGap;
@@ -595,6 +606,14 @@ const MOCK_SERVICES = [
 
   const heroScrollRef = useRef<ScrollView>(null);
   const pageScrollRef = useRef<ScrollView>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      setHeroNow(Date.now());
+      const expiryTimer = setInterval(() => setHeroNow(Date.now()), 60_000);
+      return () => clearInterval(expiryTimer);
+    }, [])
+  );
 
   useEffect(() => {
     if (slidesToRender.length <= 1) return;
