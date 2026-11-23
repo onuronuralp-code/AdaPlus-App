@@ -1,0 +1,1 @@
+ALTER TABLE posts ADD COLUMN poll_ends_at TIMESTAMPTZ;

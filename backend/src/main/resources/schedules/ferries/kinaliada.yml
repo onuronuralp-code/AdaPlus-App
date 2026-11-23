@@ -1,0 +1,117 @@
+timezone: Europe/Istanbul
+origin: "Kınalıada"
+
+routes:
+  - to: "Kabataş"
+    provider: "Şehir Hatları"
+    via: ["Kadıköy", "Eminönü"]
+    calendar:
+      - days: [MON,TUE,WED,THU,FRI,SAT]
+        times: ["06:30"]
+      - days: [SUN]
+        times: ["07:00"]
+
+  - to: "Kabataş"
+    provider: "Şehir Hatları"
+    via: ["Kadıköy"]
+    calendar:
+      - days: [MON,TUE,WED,THU,FRI,SAT]
+        times:
+          ["07:20","08:25","09:45","11:20","12:50","14:15","15:45","17:15","18:20","19:15","20:20","21:20","22:30"]
+      - days: [SUN]
+        times:
+          ["07:45","08:20","09:45","11:45","12:50","14:15","15:45","17:15","18:20","19:15","20:20","21:20","22:30"]
+
+  - to: "Beşiktaş"
+    provider: "Şehir Hatları"
+    via: ["Kadıköy"]
+    calendar:
+      - days: [MON,TUE,WED,THU,FRI,SAT]
+        times: ["07:55","11:55","16:25","18:45"]
+      - days: [SUN]
+        times: [ "09:20","10:55","16:25","18:45"]
+
+  # Beşiktaş kalkışlı Kınalıada uğramalı Büyükada tarifesi
+  - to: "Büyükada"
+    provider: "Şehir Hatları"
+    via: [ "Burgazada","Heybeliada"]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: ["08:15","13:50","16:05","19:05"]
+      - days: [ SUN ]
+        times: ["09:00","13:50","16:05","19:05"]
+
+  # BOSTANCI - ADALAR RİNG HATTI (Büyükada | Kalkış)
+  - to: "Bostancı"
+    provider: "Şehir Hatları"
+    via: []
+    calendar:
+      - days: [MON,TUE,WED,THU,FRI,SAT]
+        times: ["10:45","19:55","01:20"]
+      - days: [SUN]
+        times: ["11:25","19:55","01:20"]
+
+  # BOSTANCI - ADALAR RİNG HATTI (Bostancı | Kalkış)
+  - to: "Bostancı"
+    provider: "Şehir Hatları"
+    via: [ "Burgazada" ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "08:45" ]
+      - days: [ SUN ]
+        times: [ "08:45" ]
+
+  # BOSTANCI - ADALAR RİNG HATTI (Bostancı | Kalkış)
+  - to: "Bostancı"
+    provider: "Şehir Hatları"
+    via: [ "Burgazada","Heybeliada","Büyükada" ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "02:25","05:10","15:35","22:10" ]
+      - days: [ SUN ]
+        times: [ "02:25","05:10","15:35","22:10" ]
+
+  # KABATAŞ-ADALAR
+  - to: "Bostancı"
+    provider: "Şehir Hatları"
+    via: [ "Burgazada","Heybeliada","Büyükada" ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "07:45","12:05","17:30","22:40" ]
+      - days: [ SUN ]
+        times: [ "08:30","12:05","17:30","22:40" ]
+
+  # KABATAŞ-ADALAR
+  - to: "Büyükada"
+    provider: "Şehir Hatları"
+    via: [ "Burgazada","Heybeliada"]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "09:00","10:00","11:05","13:00","15:00","18:35","20:00","20:40","00:30"]
+      - days: [ SUN ]
+        times: [ "09:30","10:05","11:05","13:05","15:00","18:35","20:00","20:40","00:30" ]
+
+  - to: "Bostancı"
+    provider: "Mavi Marmara"
+    via: []
+    calendar:
+      - days: [MON,TUE,WED,THU,FRI,SAT]
+        times: ["07:15","08:00","09:00","10:00","11:30","13:00","15:25","17:25","18:30","19:25","20:40"]
+      - days: [SUN]
+        times: ["07:15","08:00","09:00","10:00","11:30","13:00","15:25","17:25","18:30","19:25","20:40"]
+
+  - to: "Burgazada"
+    provider: "Mavi Marmara"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN ]
+        times: [ "08:30","09:30","10:55","12:25","14:55","16:55","18:00","18:55","20:05","21:30","23:25" ]
+
+  - to: "Maltepe"
+    provider: "Şehir Hatları"
+    via: ["Burgazada","Heybeliada","Büyükada"]
+    calendar:
+      - days: [MON,TUE,WED,THU,FRI,SAT]
+        times: ["07:05","08:00","10:30","14:00","17:10"]
+      - days: [SUN]
+        times: ["10:30","14:00","17:10"]

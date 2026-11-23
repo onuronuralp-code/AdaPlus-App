@@ -1,0 +1,57 @@
+spring:
+  h2:
+    console:
+      enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/adaplus
+    username: adaplus
+    password: adaplus_dev
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+sentry:
+  environment: dev
+
+cors:
+  allowed-origins:
+    - "*"
+
+app:
+  jwt:
+    secret: ZGV2LXNlY3JldC1rZXktZm9yLWFkYS1wbHVzLWJhY2tlbmQtZGV2ZWxvcG1lbnQtMjAyNA==
+    expiration-ms: 7776000000  # 90 days in dev
+  email:
+    # false by default — credentials logged to console.
+    # Set EMAIL_ENABLED=true in your env to send real emails via Resend (uses daily quota).
+    enabled: ${EMAIL_ENABLED:false}
+  bedrock:
+    region: us-east-1
+    model-id: us.anthropic.claude-haiku-4-5-20251001-v1:0
+  admin:
+    seed:
+      enabled: false
+      email: ${ADMIN_SEED_EMAIL:admin@adaplus.app}
+      password: ${ADMIN_SEED_PASSWORD:}
+    ui-secret: ${ADMIN_UI_SECRET:123}
+  firebase:
+    enabled: true
+    credentials-path: /Users/ara.utucu/Downloads/adaplusapp-e3dce-firebase-adminsdk-fbsvc-f32ad0ea59.json
+  # Set to your machine's LAN IP so uploaded image URLs are reachable from physical devices.
+  # Override with APP_BASE_URL env var if your IP changes.
+  base-url: ${APP_BASE_URL:http://192.168.1.120:8080}
+  # Expo Go deep-link prefix — token arrives as ?token= param and auto-fills the reset screen.
+  # In production set FRONTEND_URL=ada:// (custom scheme) or your Universal Link domain.
+  frontend-url: ${FRONTEND_URL:exp://192.168.1.120:8081/--}
+  sms:
+    enabled: ${SMS_ENABLED:false}  # false = OTP logged to console, no real SMS sent
+  version:
+    minimum: 2.0.0
+    latest: 2.0.0

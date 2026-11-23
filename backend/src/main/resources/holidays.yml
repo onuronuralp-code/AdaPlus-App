@@ -1,0 +1,26 @@
+# Turkish public holidays — ferries/buses use the Sunday schedule on these days
+fixed:
+  - { month: 1,  day: 1  }   # Yılbaşı
+  - { month: 4,  day: 23 }   # Ulusal Egemenlik ve Çocuk Bayramı
+  - { month: 5,  day: 1  }   # Emek ve Dayanışma Bayramı
+  - { month: 5,  day: 19 }   # Atatürk'ü Anma, Gençlik ve Spor Bayramı
+  - { month: 7,  day: 15 }   # Demokrasi ve Millî Birlik Günü
+  - { month: 8,  day: 30 }   # Zafer Bayramı
+  - { month: 10, day: 29 }   # Cumhuriyet Bayramı
+
+# Variable religious holidays (Ramazan/Kurban Bayramı) — add dates each year
+specific:
+  - "2025-03-30"   # Ramazan Bayramı 1. gün
+  - "2025-03-31"   # Ramazan Bayramı 2. gün
+  - "2025-04-01"   # Ramazan Bayramı 3. gün
+  - "2025-06-06"   # Kurban Bayramı 1. gün
+  - "2025-06-07"   # Kurban Bayramı 2. gün
+  - "2025-06-08"   # Kurban Bayramı 3. gün
+  - "2025-06-09"   # Kurban Bayramı 4. gün
+  - "2026-03-20"   # Ramazan Bayramı 1. gün
+  - "2026-03-21"   # Ramazan Bayramı 2. gün
+  - "2026-03-22"   # Ramazan Bayramı 3. gün
+  - "2026-05-27"   # Kurban Bayramı 1. gün
+  - "2026-05-28"   # Kurban Bayramı 2. gün
+  - "2026-05-29"   # Kurban Bayramı 3. gün
+  - "2026-05-30"   # Kurban Bayramı 4. gün

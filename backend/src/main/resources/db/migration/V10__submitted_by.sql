@@ -1,0 +1,2 @@
+ALTER TABLE activities ADD COLUMN submitted_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE listings  ADD COLUMN submitted_by UUID REFERENCES users(id) ON DELETE SET NULL;

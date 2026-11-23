@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:adaplus-test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+  mail:
+    host: localhost
+    port: 1025
+
+app:
+  jwt:
+    secret: ZGV2LXNlY3JldC1rZXktZm9yLWFkYS1wbHVzLWJhY2tlbmQtZGV2ZWxvcG1lbnQtMjAyNA==
+  email:
+    enabled: false
+  admin:
+    seed:
+      enabled: false
+      password:
+    review-secret: test-review-secret
+  forum:
+    daily-post-limit: 2
+    daily-reply-limit: 3
+  bedrock:
+    moderation-enabled: false
+
+rate-limit:
+  requests-per-minute: 10000
+  burst-capacity: 10000

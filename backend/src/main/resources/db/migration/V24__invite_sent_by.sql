@@ -1,0 +1,1 @@
+ALTER TABLE island_invites ADD COLUMN sent_by UUID REFERENCES users(id) ON DELETE SET NULL;

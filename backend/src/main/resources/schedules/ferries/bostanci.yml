@@ -1,0 +1,56 @@
+timezone: Europe/Istanbul
+origin: "Bostancı"
+
+routes:
+  - to: ["Büyükada","Heybeliada","Burgazada","Kınalıada"]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "07:05", "09:25","12:55", "17:55","18:35","20:00","00:00"]
+      - days: [ SUN ]
+        times: [ "07:00","10:05","12:55", "17:55","18:35","20:00","00:00"]
+
+  - to: [ "Kınalıada","Burgazada","Heybeliada","Büyükada" ]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN ]
+        times: [ "02:00", "04:45", "15:10","21:45" ]
+
+  - to: [ "Kınalıada","Burgazada" ]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN ]
+        times: [ "08:20" ]
+
+  - to: [ "Büyükada","Heybeliada" ]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN]
+        times: [ "07:45", "11:00" ]
+
+  - to: [ "Kınalıada","Burgazada" ]
+    provider: "Mavi Marmara"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN ]
+        times: ["08:05","09:05", "10:30","12:00","14:30","16:30","17:35","18:30","19:40","21:05","23:00"]
+
+  - to: [ "Heybeliada","Büyükada" ]
+    provider: "Mavi Marmara"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "07:10", "08:05", "11:35", "15:30", "17:30","21:05","23:00" ]
+      - days: [ SUN ]
+        times: [ "08:05", "11:35", "15:30", "17:30","21:05","23:00" ]
+
+  - to: [ "Büyükada","Heybeliada" ]
+    provider: "Mavi Marmara"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN ]
+        times: [ "09:00","10:30", "12:30", "13:30", "14:45","16:20","18:20", "19:30","22:00" ]

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>AdaPlus Admin Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; }
+  header { background: #1e3a5f; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 18px; }
+  #login { max-width: 400px; margin: 60px auto; background: white; border-radius: 10px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,.1); }
+  #login h2 { margin-bottom: 20px; }
+  input[type=text], input[type=password], textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+  button.primary { background: #1e3a5f; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  button.primary:hover { background: #2d5a9e; }
+  button.approve { background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+  button.reject  { background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+  button.approve:hover { background: #15803d; }
+  button.reject:hover  { background: #b91c1c; }
+  #app { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .section-title { font-size: 20px; font-weight: 600; margin: 24px 0 12px; border-left: 4px solid #1e3a5f; padding-left: 12px; }
+  .empty { color: #888; font-style: italic; margin: 12px 0; }
+  .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.07); }
+  .card h3 { font-size: 16px; margin-bottom: 6px; }
+  .card p  { font-size: 13px; color: #555; margin-bottom: 4px; }
+  .card .meta { font-size: 12px; color: #999; margin-bottom: 12px; }
+  .actions { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; margin-top: 12px; }
+  .reason-input { flex: 1; min-width: 200px; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; background: #fef08a; color: #713f12; margin-bottom: 8px; }
+  .logout { margin-left: auto; background: transparent; border: 1px solid white; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h2>Ada+ Admin Girişi</h2>
+  <input type="text" id="tokenInput" placeholder="Admin JWT token" />
+  <button class="primary" onclick="doLogin()">Giriş Yap</button>
+  <p id="loginError" style="color:red;margin-top:8px;font-size:13px;"></p>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Ada+ — İnceleme Paneli</h1>
+    <button class="logout" onclick="doLogout()">Çıkış</button>
+  </header>
+
+  <div style="padding:24px;max-width:1200px;margin:0 auto;">
+    <div id="activitiesSection">
+      <div class="section-title">Etkinlikler — Bekleyen İnceleme</div>
+      <div id="activities"></div>
+    </div>
+
+    <div id="listingsSection" style="margin-top:8px;">
+      <div class="section-title">İlanlar — Bekleyen İnceleme</div>
+      <div id="listings"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE = '';
+  let token = '';
+
+  function doLogin() {
+    token = document.getElementById('tokenInput').value.trim();
+    if (!token) return;
+    load();
+  }
+
+  function doLogout() {
+    token = '';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login').style.display = 'block';
+  }
+
+  async function load() {
+    try {
+      const [acts, lists] = await Promise.all([
+        api('/api/v1/activities/pending'),
+        api('/api/v1/listings/pending')
+      ]);
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      renderActivities(acts);
+      renderListings(lists);
+    } catch(e) {
+      document.getElementById('loginError').textContent = 'Giriş başarısız: ' + e.message;
+    }
+  }
+
+  async function api(path, method='GET', body=null) {
+    const opts = { method, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(BASE + path, opts);
+    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+    if (res.status === 204) return null;
+    return res.json();
+  }
+
+  function renderActivities(items) {
+    const el = document.getElementById('activities');
+    if (!items.length) { el.innerHTML = '<p class="empty">İnceleme bekleyen etkinlik yok.</p>'; return; }
+    el.innerHTML = items.map(a => `
+      <div class="card" id="act-${a.id}">
+        <span class="badge">BEKLEMEDE</span>
+        <h3>${esc(a.name)}</h3>
+        <p>${esc(a.description || '')}</p>
+        <p class="meta">${esc(a.organizerName)} · ${esc(a.organizerContact)}</p>
+        <p class="meta">${fmt(a.startDate)} → ${fmt(a.endDate)}</p>
+        <div class="actions">
+          <button class="approve" onclick="reviewActivity('${a.id}','APPROVED')">Onayla</button>
+          <input class="reason-input" id="ar-${a.id}" placeholder="Ret gerekçesi (zorunlu değilse boş bırakın)" />
+          <button class="reject" onclick="reviewActivity('${a.id}','REJECTED')">Reddet</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderListings(items) {
+    const el = document.getElementById('listings');
+    if (!items.length) { el.innerHTML = '<p class="empty">İnceleme bekleyen ilan yok.</p>'; return; }
+    el.innerHTML = items.map(l => `
+      <div class="card" id="lst-${l.id}">
+        <span class="badge">BEKLEMEDE</span>
+        <h3>${esc(l.title)}</h3>
+        <p>${esc(l.description)}</p>
+        <p class="meta">${esc(l.category)} · ${l.island ? esc(l.island) : '—'} · ${l.price ? l.price + ' ' + (l.priceLabel||'') : 'Ücretsiz'}</p>
+        <div class="actions">
+          <button class="approve" onclick="reviewListing('${l.id}','APPROVED')">Onayla</button>
+          <input class="reason-input" id="lr-${l.id}" placeholder="Ret gerekçesi (zorunlu değilse boş bırakın)" />
+          <button class="reject" onclick="reviewListing('${l.id}','REJECTED')">Reddet</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function reviewActivity(id, decision) {
+    const reason = document.getElementById('ar-'+id)?.value.trim() || null;
+    try {
+      await api(`/api/v1/activities/${id}/review`, 'POST', { decision, rejectionReason: reason });
+      document.getElementById('act-'+id)?.remove();
+    } catch(e) { alert('Hata: ' + e.message); }
+  }
+
+  async function reviewListing(id, decision) {
+    const reason = document.getElementById('lr-'+id)?.value.trim() || null;
+    try {
+      await api(`/api/v1/listings/${id}/review`, 'POST', { decision, rejectionReason: reason });
+      document.getElementById('lst-'+id)?.remove();
+    } catch(e) { alert('Hata: ' + e.message); }
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmt(iso) { return iso ? new Date(iso).toLocaleDateString('tr-TR') : '—'; }
+</script>
+</body>
+</html>

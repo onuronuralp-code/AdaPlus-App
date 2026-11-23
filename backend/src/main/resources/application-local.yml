@@ -1,0 +1,36 @@
+server:
+  address: 0.0.0.0
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/adaplus;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    show-sql: true
+  flyway:
+    enabled: false
+  mail:
+    host: localhost
+    port: 1025
+
+app:
+  jwt:
+    secret: ZGV2LXNlY3JldC1rZXktZm9yLWFkYS1wbHVzLWJhY2tlbmQtZGV2ZWxvcG1lbnQtMjAyNA==
+  email:
+    enabled: false
+  admin:
+    seed:
+      enabled: true
+      password: AdaAdmin1!
+  s3:
+    enabled: true

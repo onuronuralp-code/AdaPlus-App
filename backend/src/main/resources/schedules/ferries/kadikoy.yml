@@ -1,0 +1,30 @@
+timezone: Europe/Istanbul
+origin: "Kadıköy"
+
+routes:
+  - to: ["Kınalıada","Burgazada","Heybeliada","Büyükada"]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "07:10", "08:25", "09:25", "10:30", "11:30", "12:25", "14:25", "16:55", "18:00","19:25", "20:05", "22:05","23:55" ]
+      - days: [ SUN ]
+        times: [ "07:55", "08:55", "09:30", "10:30", "11:30", "12:30", "14:25", "16:55", "18:00","19:25", "20:05", "22:05","23:55" ]
+
+  - to: ["Kabataş"]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: ["07:55","09:00","10:20","11:55","13:25","14:50","16:20","17:50","18:55","19:50","20:55","21:55","23:05"]
+      - days: [ SUN ]
+        times: [ "08:20","09:00","10:20","12:20","13:25","14:50","16:20","17:50","18:55","19:50","20:55","21:55","23:05" ]
+
+  - to: [ "Kabataş" ]
+    provider: "Şehir Hatları"
+    via: [ "Eminönü" ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "07:05" ]
+      - days: [ SUN ]
+        times: ["07:35" ]

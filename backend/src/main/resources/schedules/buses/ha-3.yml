@@ -1,0 +1,21 @@
+routeCode: "HA-3"
+routeName: "ÇARŞI-DEĞİRMENBURNU-KÜÇÜKTUR"
+provider: "İETT"
+island: "Heybeliada"
+timezone: "Europe/Istanbul"
+oneWayDurationMinutes: 3
+
+stops:
+  - "DÜZAYAK SOKAK"
+  - "MUHTARLIK"
+  - "ULUÇPAŞA SOKAK"
+  - "HEYBELİADA HALK KÜTÜPHANESİ"
+  - "ANADOLU LİSESİ"
+  - "HEYBELİADA SU SPORLARI"
+  - "DEĞİRMENBURNU 1"
+  - "DEĞİRMENBURNU 2"
+  - "DÜZAYAK SOKAK"
+
+calendar:
+  - days: [MON,TUE,WED,THU,FRI,SAT,SUN]
+    times: ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:30","15:00","15:30","16:00","16:30","17:00","17:30"]

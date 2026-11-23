@@ -1,0 +1,102 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.7'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'app.adaplus'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	all {
+		resolutionStrategy {
+			force 'io.jsonwebtoken:jjwt-api:0.12.6'
+			force 'io.jsonwebtoken:jjwt-impl:0.12.6'
+			force 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+		}
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2'
+
+	// Caching
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
+	// Rate limiting
+	implementation 'com.bucket4j:bucket4j-core:8.10.1'
+
+	// Persistence
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+
+	// Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+	// Email
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// Swagger / OpenAPI
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+	// Push notifications (FCM)
+	implementation 'com.google.firebase:firebase-admin:9.3.0'
+
+	// File storage (S3) + AI (Bedrock)
+	implementation 'software.amazon.awssdk:s3:2.25.0'
+	implementation 'software.amazon.awssdk:bedrockruntime:2.29.0'
+
+	// SMS OTP (Twilio Verify) — exclude jjwt to prevent 0.11.2/0.12.6 classpath conflict
+	implementation('com.twilio.sdk:twilio:13.0.0') {
+		exclude group: 'io.jsonwebtoken'
+	}
+
+	// Error monitoring
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.14.0'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	systemProperty 'spring.profiles.active', 'test'
+}
+
+tasks.named('bootRun') {
+	def activeProfile = System.getenv('SPRING_PROFILES_ACTIVE') ?: 'local'
+	args "--spring.profiles.active=${activeProfile}"
+	jvmArgs '-Djava.version=21'
+}
+
+// Always use Java 21 to run Gradle
+tasks.withType(JavaCompile).configureEach {
+	options.release = 21
+}

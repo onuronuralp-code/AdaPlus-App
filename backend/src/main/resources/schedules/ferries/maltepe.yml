@@ -1,0 +1,30 @@
+timezone: Europe/Istanbul
+origin: "Maltepe"
+
+routes:
+  - to: ["Büyükada","Heybeliada","Burgazada","Kınalıada"]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "06:45", "09:15", "11:20", "15:35","21:45" ]
+      - days: [ SUN ]
+        times: [ "09:15", "11:20", "15:35","21:45" ]
+
+  - to: [ "Büyükada","Heybeliada" ]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT ]
+        times: [ "08:20", "12:00", "13:45", "17:50","18:35","19:05","20:05","20:40" ]
+      - days: [ SUN ]
+        times: [ "12:00", "13:45", "17:50","18:35","19:05","20:05","20:40" ]
+
+
+  - to: [ "Büyükada" ]
+    provider: "Şehir Hatları"
+    via: [ ]
+    calendar:
+      - days: [ MON,TUE,WED,THU,FRI,SAT,SUN]
+        times: [ "10:05", "16:50" ]
+
