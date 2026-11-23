@@ -1,6 +1,6 @@
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Platform, View, Animated, useWindowDimensions, DeviceEventEmitter } from 'react-native';
+import { StyleSheet, Platform, View, Animated, Easing, useWindowDimensions, DeviceEventEmitter } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -59,6 +59,19 @@ export default function TabLayout() {
       : pathname.includes('/profile') || pathname === '/profile'
         ? 3
         : 0;
+
+  const indicatorX = useRef(new Animated.Value(activeIndex * tabWidth + tabWidth / 2 - 21)).current;
+
+  useEffect(() => {
+    const animation = Animated.timing(indicatorX, {
+      toValue: activeIndex * tabWidth + tabWidth / 2 - 21,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [activeIndex, tabWidth, indicatorX]);
 
   useEffect(() => {
     if (!isCommunityRoute) {
@@ -144,10 +157,11 @@ export default function TabLayout() {
             <AnimatedTabIcon focused={focused || isTarifelerRoute} isDeepRoute={isDeepRoute} isTarifelerRoute={isTarifelerRoute} iconName="ferry.fill" color={isTarifelerRoute ? (isDark ? '#FFFFFF' : '#000000') : color} />
           ),
         }}
-        listeners={({ navigation }) => ({
+        listeners={() => ({
           tabPress: (e) => {
-            e.preventDefault();
-            router.replace('/(tabs)/explore/island/tarifeler');
+            if (pathname === '/servisler' || isTarifelerRoute) {
+              e.preventDefault();
+            }
           },
         })}
       />
@@ -191,7 +205,8 @@ export default function TabLayout() {
       />
     </Tabs>
       {(!isDeepRoute || isTarifelerRoute) && (
-        <View
+        <Animated.View
+          pointerEvents="none"
           style={{
             position: 'absolute',
             bottom: tabBarHeight - 2.5,
@@ -200,7 +215,7 @@ export default function TabLayout() {
             height: 2.5,
             borderRadius: 2,
             backgroundColor: isDark ? '#FFFFFF' : '#000000',
-            transform: [{ translateX: activeIndex * tabWidth + (tabWidth / 2) - 21 }],
+            transform: [{ translateX: indicatorX }],
             zIndex: 100,
           }}
         />

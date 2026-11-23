@@ -1,12 +1,13 @@
 import React from 'react';
-import HizmetlerScreen from './explore/island/hizmetler';
+import { useRouter } from 'expo-router';
+import { FerrySchedule } from '@/components/FerrySchedule';
 
 export default function ServislerTabScreen() {
+  const router = useRouter();
   return (
-    <HizmetlerScreen
-      showBackButton={false}
-      leftRoute="/(tabs)/explore"
-      rightRoute="/(tabs)/contact"
+    <FerrySchedule
+      showBackButton
+      onBack={() => router.navigate('/(tabs)/explore')}
     />
   );
 }

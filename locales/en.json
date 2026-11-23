@@ -1,6 +1,8 @@
 {
     "common": {
         "classifieds": "Listings",
+        "classifiedsSubtitle": "Buy, sell and share on the islands",
+        "eventsSubtitle": "Discover island events",
         "readyForAdventure": "Ready for an Adventure?",
         "chooseYourIsland": "Choose your island",
         "tapToDiscover": "Tap to discover",

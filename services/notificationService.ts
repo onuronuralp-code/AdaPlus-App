@@ -1,7 +1,32 @@
 import Constants from 'expo-constants';
-import { Platform, NativeModules } from 'react-native';
+import { Platform } from 'react-native';
 import { API_BASE_URL } from './config';
 import { getToken } from '@/utils/tokenStorage';
+
+export const FERRY_REMINDER_CHANNEL = 'ferry-reminders';
+
+// Ferry timetables are Istanbul wall-clock times, regardless of the phone's timezone.
+export function getFerryReminderDate(date: Date, departureTime: string, minutesBefore: number): Date {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(departureTime) ||
+      !Number.isFinite(minutesBefore) || minutesBefore <= 0) {
+    throw new Error('Invalid ferry reminder time');
+  }
+  const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const departure = new Date(`${day}T${departureTime}:00+03:00`);
+  if (!Number.isFinite(departure.getTime())) throw new Error('Invalid ferry departure date');
+  return new Date(departure.getTime() - minutesBefore * 60_000);
+}
+
+export async function prepareFerryReminderChannel(Notifications: NonNullable<ReturnType<typeof getNotificationsModule>>) {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync(FERRY_REMINDER_CHANNEL, {
+      name: 'Sefer hatırlatmaları',
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: 'default',
+      enableVibrate: true,
+    });
+  }
+}
 
 export function getNotificationsModule() {
   try {

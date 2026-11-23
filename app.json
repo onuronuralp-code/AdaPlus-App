@@ -24,6 +24,7 @@
     },
     "android": {
       "package": "com.onurx.ADA",
+      "permissions": ["android.permission.SCHEDULE_EXACT_ALARM"],
       "adaptiveIcon": {
         "backgroundColor": "#D84A35",
         "foregroundImage": "./assets/images/icon.png",

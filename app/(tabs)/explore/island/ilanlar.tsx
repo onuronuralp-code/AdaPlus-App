@@ -495,17 +495,20 @@ export default function IlanlarScreen({
     <SwipeNavigation leftRoute={leftRoute} rightRoute={rightRoute}>
     <View style={[styles.container, isDark && { backgroundColor: '#000000' }]}>
       <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, isDark && { backgroundColor: '#000000' }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
           {showBackButton && (
             <TouchableOpacity
-              style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}
+              style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               onPress={() => router.back()}
               activeOpacity={0.8}
             >
-              <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+              <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#0F172A"} />
             </TouchableOpacity>
           )}
-          <Text style={[styles.headerTitle, showBackButton && { marginLeft: 10 }, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.classifieds', { defaultValue: i18n.language.startsWith('en') ? 'Listings' : 'İlanlar' })}{' '}<Text style={{ fontSize: 14, fontStyle: 'italic', fontWeight: '500' }}>({ISLAND_FILTERS.find(item => item.id === selectedFilterIsland)?.label})</Text></Text>
+            <Text style={[styles.headerSubtitle, isDark && { color: '#94A3B8' }]}>{t('common.classifiedsSubtitle')}</Text>
+          </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <IslandDropdown
@@ -734,7 +737,7 @@ export default function IlanlarScreen({
                 placeholder={t('ilanlar.descPlaceholder')}
                 placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 multiline
-                scrollEnabled={false}
+                scrollEnabled
                 value={adDesc}
                 onChangeText={setAdDesc}
                 maxLength={500}
@@ -964,24 +967,20 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
+    padding: 4,
+    marginRight: 8,
   },
   headerTitle: {
-    fontSize: ms(26),
+    fontSize: 20,
     fontWeight: '800',
     color: '#0F172A',
     letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
+    fontWeight: '500',
   },
   searchBar: {
     flexDirection: 'row',

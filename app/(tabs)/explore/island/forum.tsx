@@ -1402,8 +1402,8 @@ export default function ForumScreen() {
             <Stack.Screen options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
             <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <View style={[styles.header, { paddingTop: insets.top + 10 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1C1C1E' }]}>
-                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}>
-                    <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                    <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#0F172A"} />
                 </TouchableOpacity>
                 <View style={styles.headerTitles}>
                     <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.community')}</Text>
@@ -1450,10 +1450,11 @@ export default function ForumScreen() {
                                         styles.postTypeTabText,
                                         isDark && !isActive && { color: '#64748B' },
                                         isActive && styles.postTypeTabTextSelected,
+                                        isActive && { color: isDark ? '#FFFFFF' : '#000000' },
                                     ]}>
                                         {tab.label}
                                     </Text>
-                                    {isActive && <View style={styles.postTypeTabIndicator} />}
+                                    {isActive && <View style={[styles.postTypeTabIndicator, { backgroundColor: isDark ? '#FFFFFF' : '#000000' }]} />}
                                 </TouchableOpacity>
                             );
                         })}
@@ -2489,18 +2490,8 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     backButton: {
-        width: s(44),
-        height: s(44),
-        borderRadius: s(12),
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: s(16),
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: vs(4) },
-        shadowOpacity: 0.04,
-        shadowRadius: s(10),
-        elevation: 2,
+        padding: 4,
+        marginRight: 8,
     },
     headerTitles: {
         flex: 1,

@@ -115,8 +115,8 @@ export default function PaketServisScreen() {
       {/* Header */}
       <View style={[styles.header, isDark && styles.headerDark, { paddingTop: insets.top + 8 }]}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, isDark && styles.backButtonDark]}>
-            <IconSymbol name="chevron.left" size={22} color={isDark ? '#F8FAFC' : '#0F172A'} />
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <IconSymbol name="chevron.left" size={24} color={isDark ? '#FFFFFF' : '#0F172A'} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={[styles.headerTitle, isDark && styles.textLight]}>
@@ -491,26 +491,20 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   backButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  backButtonDark: {
-    backgroundColor: '#334155',
+    padding: 4,
+    marginRight: 8,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '800',
     color: '#0F172A',
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#64748B',
-    marginTop: 2,
+    marginTop: 1,
+    fontWeight: '500',
   },
   searchContainer: {
     flexDirection: 'row',

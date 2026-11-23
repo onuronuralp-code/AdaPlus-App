@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getNotificationsModule } from "@/services/notificationService";
+import { FERRY_REMINDER_CHANNEL, getFerryReminderDate, getNotificationsModule, prepareFerryReminderChannel } from "@/services/notificationService";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import {
   Alert,
   ActionSheetIOS,
   Platform,
+  Linking,
   Animated,
   Dimensions,
   Modal,
@@ -98,6 +99,8 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
     Bostancı: 50,
     Kabataş: 55,
     Kadıköy: 65,
+    // Mavi Marmara winter route: 14:45 -> 15:45 (also 15:45 -> 16:45).
+    Eminönü: 60,
     Maltepe: 35,
   },
   Büyükada: {
@@ -117,6 +120,7 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
     Büyükada: 105,
     Kadıköy: 25,
     Eminönü: 15,
+    Beşiktaş: 15,
   },
   Kadıköy: {
     Kınalıada: 35,
@@ -124,10 +128,13 @@ const TRANSIT_MINUTES: Record<string, Record<string, number>> = {
     Heybeliada: 65,
     Büyükada: 80,
     Kabataş: 30,
+    // Şehir Hatları return sailing: 07:35 Kadıköy -> 08:00 Eminönü.
+    Eminönü: 25,
   },
   Beşiktaş: { Kınalıada: 50, Burgazada: 65, Heybeliada: 80, Büyükada: 95 },
   Maltepe: { Kınalıada: 65, Burgazada: 50, Heybeliada: 35, Büyükada: 20 },
   Eminönü: {
+    Kabataş: 15,
     Kadıköy: 20,
     Kınalıada: 55,
     Burgazada: 70,
@@ -598,11 +605,14 @@ export function FerrySchedule({ showBackButton = false, onBack }: FerryScheduleP
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
             {showBackButton && (
               <TouchableOpacity
-                style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]}
+                testID="ferry-schedule-back"
+                accessibilityRole="button"
+                accessibilityLabel={i18n.language.startsWith('en') ? 'Back' : 'Geri'}
+                style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 onPress={() => (onBack ? onBack() : router.back())}
                 activeOpacity={0.8}
               >
-                <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+                <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#0F172A"} />
               </TouchableOpacity>
             )}
             <View style={styles.headerTitles}>
@@ -1588,6 +1598,8 @@ function TripDetailPopup({
   const isDark = theme === 'dark';
   const [showAlarmOptions, setShowAlarmOptions] = useState(false);
   const [alarmSet, setAlarmSet] = useState<number | null>(null);
+  const schedulingAlarm = useRef(false);
+  const [isSchedulingAlarm, setIsSchedulingAlarm] = useState(false);
 
   const timeline = React.useMemo(() => {
     if (!trip.via || trip.via.length === 0) return [];
@@ -1609,6 +1621,9 @@ function TripDetailPopup({
   const isToday = (selectedDate ? new Date(selectedDate) : new Date()).toDateString() === new Date().toDateString();
 
   const scheduleAlarm = async (minutesBefore: number) => {
+    if (schedulingAlarm.current) return;
+    schedulingAlarm.current = true;
+    setIsSchedulingAlarm(true);
     try {
       if (!isToday) {
         onClose();
@@ -1650,13 +1665,17 @@ function TripDetailPopup({
         return;
       }
 
-      const { status: permStatus } = await NotificationsModule.getPermissionsAsync();
-      let finalStatus = permStatus;
-      if (permStatus !== "granted") {
-        const { status: asked } = await NotificationsModule.requestPermissionsAsync();
-        finalStatus = asked;
+      // Android 13 requires a channel before requesting notification permission.
+      await prepareFerryReminderChannel(NotificationsModule);
+      let permissions = await NotificationsModule.getPermissionsAsync();
+      if (permissions.status !== "granted") {
+        permissions = await NotificationsModule.requestPermissionsAsync({
+          ios: { allowAlert: true, allowSound: true, allowBadge: false },
+        });
       }
-      if (finalStatus !== "granted") {
+      // iOS can retain authorization while banners/alerts are disabled separately.
+      if (permissions.status !== "granted" ||
+          (Platform.OS === 'ios' && permissions.ios?.allowsAlert === false)) {
         onClose();
         setTimeout(() => {
           Alert.alert(
@@ -1664,20 +1683,22 @@ function TripDetailPopup({
             i18n.language === "tr"
               ? "Bildirim gönderebilmek için cihaz ayarlarından bildirim izni vermeniz gerekmektedir."
               : "Notification permission is required to send notifications.",
+            [
+              { text: i18n.language === 'tr' ? 'İptal' : 'Cancel', style: 'cancel' },
+              {
+                text: i18n.language === 'tr' ? 'Ayarları Aç' : 'Open Settings',
+                onPress: () => { Linking.openSettings().catch(() => {}); },
+              },
+            ],
           );
         }, 400);
         return;
       }
 
       // Calculate the departure Date object
-      const [depH, depM] = trip.departureTime.split(":").map(Number);
-      const departureDate = new Date(selectedDate || new Date());
-      departureDate.setHours(depH, depM, 0, 0);
-
-      // Subtract minutesBefore
-      const alarmDate = new Date(
-        departureDate.getTime() - minutesBefore * 60 * 1000,
-      );
+      const serviceDate = new Date(selectedDate || new Date());
+      const alarmDate = getFerryReminderDate(serviceDate, trip.departureTime, minutesBefore);
+      const departureDate = new Date(alarmDate.getTime() + minutesBefore * 60_000);
 
       const timeUntilDeparture = departureDate.getTime() - Date.now();
 
@@ -1719,7 +1740,9 @@ function TripDetailPopup({
             ? `${minutesBefore / 60} saat`
             : `${minutesBefore / 60} hour${minutesBefore > 60 ? "s" : ""}`;
 
-      await NotificationsModule.scheduleNotificationAsync({
+      const notificationId = await NotificationsModule.scheduleNotificationAsync({
+        // Re-selecting a lead time replaces this trip's existing reminder.
+        identifier: `ferry:${trip.id}:${departureDate.toISOString()}`,
         content: {
           title:
             i18n.language === "tr"
@@ -1734,8 +1757,14 @@ function TripDetailPopup({
         trigger: {
           type: NotificationsModule.SchedulableTriggerInputTypes?.DATE ?? "date",
           date: alarmDate,
+          ...(Platform.OS === 'android' ? { channelId: FERRY_REMINDER_CHANNEL } : {}),
         },
       });
+
+      const scheduled = await NotificationsModule.getAllScheduledNotificationsAsync();
+      if (!scheduled.some((notification: { identifier: string }) => notification.identifier === notificationId)) {
+        throw new Error('Ferry reminder was not saved by the notification service');
+      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setAlarmSet(minutesBefore);
@@ -1745,8 +1774,19 @@ function TripDetailPopup({
         Alert.alert(
           i18n.language === "tr" ? "Hatırlatıcı Kuruldu" : "Reminder Set",
           i18n.language === "tr"
-            ? `${trip.departureTime} seferiniz için ${alarmLabel} önce bildirim gönderilecek.`
-            : `A reminder will be sent ${alarmLabel} before your ${trip.departureTime} departure.`,
+            ? `${trip.departureTime} seferiniz için ${alarmLabel} önce bildirim gönderilecek.${Platform.OS === 'android' ? '\n\nZamanında gelmesi için sistem ayarlarında AdaPlus için “Alarmlar ve hatırlatıcılar” izninin açık olduğundan emin olun.' : ''}`
+            : `A reminder will be sent ${alarmLabel} before your ${trip.departureTime} departure.${Platform.OS === 'android' ? '\n\nFor timely delivery, make sure “Alarms & reminders” is enabled for AdaPlus in system settings.' : ''}`,
+          Platform.OS === 'android' ? [
+            { text: i18n.language === 'tr' ? 'Tamam' : 'OK' },
+            {
+              text: i18n.language === 'tr' ? 'Alarm Ayarları' : 'Alarm Settings',
+              onPress: () => {
+                Linking.sendIntent('android.settings.REQUEST_SCHEDULE_EXACT_ALARM')
+                  .catch(() => Linking.openSettings())
+                  .catch(() => {});
+              },
+            },
+          ] : undefined,
         );
       }, 350);
     } catch (error) {
@@ -1760,6 +1800,9 @@ function TripDetailPopup({
             : "Failed to set the notification.",
         );
       }, 400);
+    } finally {
+      schedulingAlarm.current = false;
+      setIsSchedulingAlarm(false);
     }
   };
 
@@ -1965,6 +2008,7 @@ function TripDetailPopup({
                     <TouchableOpacity
                       key={opt.minutes}
                       style={alarmStyles.alarmOption}
+                      disabled={isSchedulingAlarm}
                       onPress={() => scheduleAlarm(opt.minutes)}
                       activeOpacity={0.7}
                     >
@@ -2088,18 +2132,8 @@ const styles = StyleSheet.create({
   },
   headerTitles: { flex: 1 },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
+    padding: 4,
+    marginRight: 8,
   },
   headerTitle: {
     fontSize: 26,

@@ -1,6 +1,8 @@
 {
     "common": {
         "classifieds": "İlanlar",
+        "classifiedsSubtitle": "Adalarda alım, satım ve paylaşım",
+        "eventsSubtitle": "Adalardaki etkinlikleri keşfet",
         "readyForAdventure": "Maceraya Hazır mısın?",
         "chooseYourIsland": "Adanı seç",
         "tapToDiscover": "Keşfetmek için dokun",

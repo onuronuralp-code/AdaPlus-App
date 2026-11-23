@@ -609,17 +609,20 @@ export default function EventsScreen() {
             <Stack.Screen options={{ headerShown: false }} />
             
             <View style={[styles.header, { paddingTop: insets.top + 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 }, isDark && { backgroundColor: '#000000', borderBottomColor: '#1A1A1A' }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity style={[styles.backButton, isDark && { backgroundColor: '#1C1C1E' }]} onPress={() => {
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                    <TouchableOpacity style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={() => {
                         if (router.canGoBack()) {
                             router.back();
                         } else {
                             router.back();
                         }
                     }}>
-                        <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#1E293B"} />
+                        <IconSymbol name="chevron.left" size={24} color={isDark ? "#FFFFFF" : "#0F172A"} />
                     </TouchableOpacity>
-                    <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.events', { defaultValue: 'Etkinlikler' })}</Text>
+                    <View style={{ flex: 1 }}>
+                        <Text style={[styles.headerTitle, isDark && { color: '#FFFFFF' }]}>{t('common.events', { defaultValue: 'Etkinlikler' })}{' '}<Text style={{ fontSize: 14, fontStyle: 'italic', fontWeight: '500' }}>({ISLAND_FILTERS.find(item => item.id === selectedFilterIsland)?.label})</Text></Text>
+                        <Text style={[styles.headerSubtitle, isDark && { color: '#94A3B8' }]}>{t('common.eventsSubtitle')}</Text>
+                    </View>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <IslandDropdown
@@ -889,7 +892,7 @@ export default function EventsScreen() {
                             fullWidth
                         />
 
-                        <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'EVENT PLACE (Optional)' : 'ETKİNLİK YERİ (İsteğe bağlı)'}</Text>
+                        <Text style={[styles.inputLabel, { marginTop: 20 }, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'EVENT PLACE (Optional)' : 'ETKİNLİK YERİ (İsteğe bağlı)'}</Text>
                         <TextInput
                             style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]}
                             placeholder={t('events.locationPlaceholder')}
@@ -1016,10 +1019,34 @@ export default function EventsScreen() {
                         />
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'ORGANIZER (Optional)' : 'DÜZENLEYEN (İsteğe bağlı)'}</Text>
-                        <TextInput style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder={i18n.language.startsWith('en') ? 'Organizer name' : 'Düzenleyen kişi veya kurum'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={organizerName} onChangeText={setOrganizerName} />
+                        <View style={{ position: 'relative' }}>
+                            <TextInput style={[styles.input, { paddingRight: 48 }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder={i18n.language.startsWith('en') ? 'Organizer name' : 'Düzenleyen kişi veya kurum'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={organizerName} onChangeText={setOrganizerName} />
+                            {!!organizerName && (
+                                <TouchableOpacity
+                                    onPress={() => setOrganizerName('')}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={i18n.language.startsWith('en') ? 'Clear organizer name' : 'İsmi temizle'}
+                                    style={styles.clearInputButton}
+                                >
+                                    <IconSymbol name="xmark.circle.fill" size={20} color={isDark ? '#94A3B8' : '#64748B'} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'CONTACT (Optional)' : 'İLETİŞİM (İsteğe bağlı)'}</Text>
-                        <TextInput style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder={i18n.language.startsWith('en') ? 'Phone or email' : 'Telefon veya e-posta'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={contactNumber} onChangeText={setContactNumber} />
+                        <View style={{ position: 'relative' }}>
+                            <TextInput style={[styles.input, { paddingRight: 48 }, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder={i18n.language.startsWith('en') ? 'Phone or email' : 'Telefon veya e-posta'} placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} value={contactNumber} onChangeText={setContactNumber} />
+                            {!!contactNumber && (
+                                <TouchableOpacity
+                                    onPress={() => setContactNumber('')}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={i18n.language.startsWith('en') ? 'Clear phone or email' : 'Telefon veya e-postayı temizle'}
+                                    style={styles.clearInputButton}
+                                >
+                                    <IconSymbol name="xmark.circle.fill" size={20} color={isDark ? '#94A3B8' : '#64748B'} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
 
                         <Text style={[styles.inputLabel, isDark && { color: '#94A3B8' }]}>{i18n.language.startsWith('en') ? 'SOCIAL LINK (Optional)' : 'SOSYAL MEDYA LİNKİ (İsteğe bağlı)'}</Text>
                         <TextInput style={[styles.input, isDark && { backgroundColor: '#121212', color: '#FFFFFF', borderWidth: 1, borderColor: '#2C2C2E' }]} placeholder="https://instagram.com/..." placeholderTextColor={isDark ? '#64748B' : '#94A3B8'} autoCapitalize="none" value={socialLink} onChangeText={setSocialLink} />
@@ -1181,24 +1208,20 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F1F5F9',
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 10,
-        elevation: 2,
+        padding: 4,
+        marginRight: 8,
     },
     headerTitle: {
-        fontSize: 26,
+        fontSize: 20,
         fontWeight: '800',
         color: '#0F172A',
         letterSpacing: -0.5,
+    },
+    headerSubtitle: {
+        fontSize: 11,
+        color: '#64748B',
+        marginTop: 1,
+        fontWeight: '500',
     },
     content: {
         flex: 1,
@@ -1340,6 +1363,15 @@ const styles = StyleSheet.create({
         color: '#94A3B8',
         letterSpacing: 1,
         marginBottom: 8,
+    },
+    clearInputButton: {
+        position: 'absolute',
+        right: 4,
+        top: 0,
+        width: 44,
+        height: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     input: {
         backgroundColor: '#F8FAFC',
